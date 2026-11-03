@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "design-kit",
+  "owner": { "name": "AtlasScope" },
+  "metadata": { "description": "A design library for AI coding agents: a /design router that picks the right skill or recipe, plus vetted skills for typography, color, motion, UX writing, usability, landing copy, native iOS and more." },
+  "plugins": [
+    {
+      "name": "design-kit",
+      "description": "A design library for AI coding agents: a /design router that picks the right skill or recipe, plus vetted skills for typography, color, motion, UX writing, usability, landing copy, native iOS and more.",
+      "version": "1.0.0",
+      "source": "./plugins/design-kit",
+      "category": "design",
+      "homepage": "https://github.com/AtlasScope/design-kit",
+      "tags": ["design", "ui", "ux", "typography", "color", "motion", "skills"]
+    }
+  ]
+}

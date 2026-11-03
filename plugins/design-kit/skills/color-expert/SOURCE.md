@@ -1,0 +1,1 @@
+Third-party skill. Source: https://github.com/meodai/skill.color-expert at commit 5bf7c7704d56bccc6aeea38c36bcf449abe56a6c. Copied by hand on 2026-11-02 after a read of every file; no auto-update. To update, re-vet and copy again.
