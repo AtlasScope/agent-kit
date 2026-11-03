@@ -52,11 +52,13 @@ Cloud sessions only get what the repo declares. Add this to the repo's `.claude/
 
 **claude.ai chats and Projects**
 
-claude.ai takes one skill per zip. Build the recommended set and upload each at Settings > Capabilities > Skills:
+Build one zip that holds the whole library as a single skill, then upload it once per account at Settings > Capabilities > Skills (code execution must be on):
 
 ```sh
 scripts/build-claude-ai-zips.sh
 ```
+
+The zip is `dist/claude-ai/design-kit.zip`. Its own instructions (`claude-ai/SKILL.md`) pick the right specialist and read it from inside the bundle. To upload single skills instead, name them: `scripts/build-claude-ai-zips.sh oklch-skill ux-writing`.
 
 Skills uploaded there run in claude.ai's sandbox: they advise and write, but cannot reach your repos.
 
