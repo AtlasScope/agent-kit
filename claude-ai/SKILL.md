@@ -16,7 +16,7 @@ This one skill holds a full design library: about thirty specialist skills, twen
 
 ## How to apply a skill
 
-Each specialist lives in `skills/<name>/SKILL.md`. Read that file and follow it, along with any reference files it points to inside its own folder. Skill names in the references may appear as `/name`, `/design-kit:name` or `example-skills:name`; strip the prefix to find the folder.
+Each specialist is one file, `skills/<name>.md`. It starts with that skill's own instructions; the files those instructions point to (such as `references/typography.md`) follow further down, each under a `## File: <path>` heading. Read the top, then search the file for the heading of any reference it tells you to load. Skill names in the references may appear as `/name`, `/design-kit:name` or `example-skills:name`; strip the prefix to find the folder.
 
 Some references name skills that are not in this bundle: Impeccable (`/impeccable ...`), Interface Design, Humanizer, Sepia, Vale, and private skills such as `/harsh-review`, `/image` or `/viewport-proof`. If the pick is one of those, use the closest skill that is here (the overlap rules in situations.md name one) and say so in one line.
 

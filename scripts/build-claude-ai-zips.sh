@@ -11,13 +11,18 @@ if [ $# -eq 0 ]; then
   mkdir -p "$b/skills"
   cp claude-ai/SKILL.md "$b/SKILL.md"
   cp -R plugins/design-kit/skills/design/references "$b/references"
+  # claude.ai allows at most 200 files per skill, so each specialist becomes one Markdown file:
+  # its SKILL.md first, then every other text file under a "## File: <path>" heading.
   for d in plugins/design-kit/skills/*/; do
     n=$(basename "$d")
     [ "$n" = design ] && continue
-    cp -R "$d" "$b/skills/$n"
-    rm -rf "$b/skills/$n/scripts"
+    f="$b/skills/$n.md"
+    cat "$d/SKILL.md" > "$f"
+    (cd "$d" && find . -type f ! -name SKILL.md ! -path './scripts/*' ! -path './agents/*' \( -name '*.md' -o -name '*.json' -o -name '*.txt' -o -name 'LICENSE' \) | sort) | while read -r x; do
+      printf '\n\n---\n\n## File: %s\n\n' "${x#./}" >> "$f"
+      cat "$d/$x" >> "$f"
+    done
   done
-  find "$b" \( -name "*.jpg" -o -name "*.png" \) -delete
   cp THIRD_PARTY.md "$b/THIRD_PARTY.md"
   rm -f "$out/design-kit.zip"
   (cd "$(dirname "$b")" && zip -qr "$OLDPWD/$out/design-kit.zip" design-kit -x '*/.DS_Store')
