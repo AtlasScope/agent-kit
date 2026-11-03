@@ -1,0 +1,1 @@
+Third-party skill. Source: https://github.com/wondelai/skills at commit d8d5d75f83da9f16d8aad5bab5f5b341a4770a30. Copied by hand on 2026-11-02 after a read of every file; no auto-update. To update, re-vet and copy again.

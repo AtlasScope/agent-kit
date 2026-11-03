@@ -1,0 +1,1 @@
+Third-party skill. Source: https://github.com/coreyhaines31/marketingskills at commit 88c79f6528a9347420e57ceb1fff9a60de651768. Copied by hand on 2026-11-02 after a read of every file; no auto-update. To update, re-vet and copy again.

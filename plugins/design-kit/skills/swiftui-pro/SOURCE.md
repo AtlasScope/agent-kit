@@ -1,0 +1,1 @@
+Third-party skill. Source: https://github.com/twostraws/SwiftUI-Agent-Skill at commit f2920b63995263f57b3e198674e89a602efba6d2. Copied by hand on 2026-11-02 after a read of every file; no auto-update. To update, re-vet and copy again.
