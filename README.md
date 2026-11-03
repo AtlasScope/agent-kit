@@ -8,7 +8,7 @@ The router also routes to skills that ship as their own plugins. Install the one
 
 | Plugin | Claude Code | Codex |
 |---|---|---|
-| Impeccable | `claude plugin marketplace add pbakaus/impeccable` then `claude plugin install impeccable@impeccable` | `codex plugin marketplace add pbakaus/impeccable` then `codex plugin add impeccable` |
+| Impeccable | `claude plugin marketplace add pbakaus/impeccable` then `claude plugin install impeccable@impeccable` | `codex plugin marketplace add pbakaus/impeccable` then `codex plugin add impeccable@impeccable` |
 | Interface Design | `claude plugin marketplace add Dammyjay93/interface-design` then `claude plugin install interface-design@interface-design` | copy its skills |
 | Humanizer | `claude plugin marketplace add blader/humanizer` then `claude plugin install humanizer@humanizer` | copy its skill |
 | Sepia | `claude plugin marketplace add Nanako0129/sepia` then `claude plugin install sepia@sepia` | copy its skills |
@@ -28,7 +28,7 @@ Update later with `claude plugin marketplace update design-kit` and `claude plug
 
 ```sh
 codex plugin marketplace add AtlasScope/design-kit
-codex plugin add design-kit
+codex plugin add design-kit@design-kit
 ```
 
 Update with `codex plugin marketplace upgrade design-kit`.
@@ -59,6 +59,10 @@ scripts/build-claude-ai-zips.sh
 ```
 
 Skills uploaded there run in claude.ai's sandbox: they advise and write, but cannot reach your repos.
+
+**Another Claude account**
+
+Plugins install per computer, not per account, so a second account on a computer that already has the kit sees it in Claude Code. For that account's claude.ai chats, upload the zips as above while signed in to it. Cloud sessions follow the repo, whichever account opens them.
 
 **Hermes Agent**
 
