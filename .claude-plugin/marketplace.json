@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "engineering-kit",
+  "owner": { "name": "AtlasScope" },
+  "metadata": { "description": "Engineering skills for AI coding agents, vetted and pinned: bug diagnosis, test-first work, architecture scans, plan interviews, retros, primary-source research and setup wizards. Every command runs only when you call it." },
+  "plugins": [
+    {
+      "name": "engineering-kit",
+      "description": "Engineering skills for AI coding agents, vetted and pinned: bug diagnosis, test-first work, architecture scans, plan interviews, retros, primary-source research and setup wizards. Every command runs only when you call it.",
+      "version": "1.0.0",
+      "source": "./plugins/engineering-kit",
+      "category": "engineering",
+      "homepage": "https://github.com/AtlasScope/engineering-kit",
+      "tags": ["engineering", "debugging", "tdd", "architecture", "skills"]
+    }
+  ]
+}
