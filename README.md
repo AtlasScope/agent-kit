@@ -8,6 +8,7 @@ It is the engineering sibling of [AtlasScope/design-kit](https://github.com/Atla
 
 | Command | What it does |
 |---|---|
+| `/engineer` | Describe what is going on and get one starting move: an investigation prompt to paste, the skill to run, or a thinking prompt. It suggests and stops; it runs nothing until you say go. Catalog from the Agent Engineering Field Guide. |
 | `/diagnosing-bugs` | Hard bugs and performance regressions: build a loop that goes red, minimise, rank hypotheses, instrument, fix with a regression test, clean up. |
 | `/tdd` | Test-first work in vertical slices, with the seams agreed before any test is written. |
 | `/improve-codebase-architecture` | Scans recent hot spots for shallow modules, writes a before/after HTML report to the temp folder, then interviews you on the one you pick. |
@@ -68,6 +69,10 @@ Add this to the repo's `.claude/settings.json`, merged with anything already the
   "enabledPlugins": { "engineering-kit@engineering-kit": true }
 }
 ```
+
+## Rebuilding the /engineer catalog
+
+The router's references are generated from the field guide's JSON catalog. When the guide changes, run `node scripts/build_references.cjs <guide.html> plugins/engineering-kit/skills/engineer/references` and land the result through a PR. The script leaves out per-project notes and private commands.
 
 ## Updating a vendored skill
 
