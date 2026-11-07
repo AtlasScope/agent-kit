@@ -1,0 +1,39 @@
+schema_version: "1.1"
+name: back-closes-drawer
+description: >
+  A narrow continuity question with a known code cause. The customer drawer opens with router.replace, so Back
+  leaves /customers instead of closing it. A good answer names that cause, says Back should close the drawer,
+  and recommends a push (or an addressable overlay) without editing code.
+tags: [continuity, focused]
+plugins: ["../.."]
+runs: 1
+context:
+  add_dirs: [fixture]
+execution:
+  prompt: |
+    The app in the fixture directory is a Next.js admin tool. On /customers, clicking a customer row opens a
+    side panel. If I then press the browser Back button, I'm taken off the customers page entirely instead of
+    the panel just closing. Why does that happen and what's the right fix? Don't change any code.
+  max_turns: 25
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill, Bash]
+graders:
+  - name: used-plugin-skill
+    type: tool_used
+    tool: Skill
+    input_match: 'diagnose|verify'
+    arm: with-only
+  - name: names-replace
+    type: regex
+    pattern: "replace"
+    flags: i
+    weight: 0.5
+  - name: correct-diagnosis
+    type: llm
+    weight: 2
+    criteria: >
+      Pass only if the answer says the row click (or drawer open) uses router.replace (in the customers list page),
+      so opening the drawer adds no history entry and Back goes to the previous page; and recommends opening it
+      with a push (or an addressable overlay or intercepting route) so Back closes it, with the close button using
+      history back or replace rather than another push. Fail if it blames something else, or claims to have
+      edited code.

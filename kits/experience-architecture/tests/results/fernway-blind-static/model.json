@@ -1,0 +1,1893 @@
+{
+  "generatedAt": "2026-11-06T20:35:59.274Z",
+  "root": "fixtures/fernway",
+  "project": {
+    "name": "fernway-helpdesk",
+    "frameworks": [
+      "react-router@6.28.0"
+    ],
+    "stateLibs": [
+      "zustand"
+    ],
+    "aliases": [
+      {
+        "prefix": "@/",
+        "targets": [
+          "fixtures/fernway/src"
+        ]
+      }
+    ]
+  },
+  "counts": {
+    "files": 30,
+    "routes": 29,
+    "pages": 18,
+    "edges": 50,
+    "signals": 11
+  },
+  "routes": [
+    {
+      "path": "/settings",
+      "file": "src/pages/settings/SettingsArea.tsx",
+      "line": 70,
+      "kind": "redirect",
+      "source": "react-router-jsx",
+      "redirectTo": "profile",
+      "relative": true,
+      "layoutElements": [],
+      "element": "Navigate",
+      "params": [],
+      "layouts": [
+        "src/layouts/AppLayout.tsx",
+        "src/pages/settings/SettingsArea.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "mountedFrom": "/settings/*"
+    },
+    {
+      "path": "/",
+      "file": "src/layouts/AppLayout.tsx",
+      "kind": "layout-route",
+      "source": "react-router-config",
+      "layoutElements": [],
+      "element": "AppLayout",
+      "params": [],
+      "layouts": [],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "componentFile": "src/layouts/AppLayout.tsx",
+      "definedAt": "src/router.tsx:27",
+      "inbound": [
+        "chrome:src/components/MobileHeader.tsx",
+        "chrome:src/components/TopNav.tsx",
+        "/sign-in",
+        "/tickets/:ticketId",
+        "file:src/router.tsx",
+        "redirect:src/pages/settings/SettingsArea.tsx",
+        "redirect:src/router.tsx"
+      ]
+    },
+    {
+      "path": "/",
+      "file": "src/pages/Dashboard.tsx",
+      "kind": "page",
+      "source": "react-router-config",
+      "layoutElements": [
+        "AppLayout"
+      ],
+      "element": "Dashboard",
+      "params": [],
+      "layouts": [
+        "src/layouts/AppLayout.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "componentFile": "src/pages/Dashboard.tsx",
+      "definedAt": "src/router.tsx:32",
+      "inbound": [
+        "chrome:src/components/MobileHeader.tsx",
+        "chrome:src/components/TopNav.tsx",
+        "/sign-in",
+        "/tickets/:ticketId",
+        "file:src/router.tsx",
+        "redirect:src/pages/settings/SettingsArea.tsx",
+        "redirect:src/router.tsx"
+      ]
+    },
+    {
+      "path": "/settings/*",
+      "file": "src/pages/settings/SettingsArea.tsx",
+      "line": 75,
+      "kind": "mount",
+      "source": "react-router-jsx",
+      "relative": true,
+      "layoutElements": [],
+      "element": null,
+      "params": [
+        "*"
+      ],
+      "layouts": [
+        "src/layouts/AppLayout.tsx",
+        "src/pages/settings/SettingsArea.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "mountedFrom": "/settings/*"
+    },
+    {
+      "path": "/*",
+      "file": "src/router.tsx",
+      "line": 69,
+      "kind": "redirect",
+      "source": "react-router-config",
+      "redirectTo": "/",
+      "layoutElements": [
+        "AppLayout"
+      ],
+      "element": "Navigate",
+      "params": [
+        "*"
+      ],
+      "layouts": [
+        "src/layouts/AppLayout.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null
+    },
+    {
+      "path": "/archive",
+      "file": "src/pages/Archive.tsx",
+      "kind": "page",
+      "source": "react-router-config",
+      "layoutElements": [
+        "AppLayout"
+      ],
+      "element": "Archive",
+      "params": [],
+      "layouts": [
+        "src/layouts/AppLayout.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "componentFile": "src/pages/Archive.tsx",
+      "definedAt": "src/router.tsx:67",
+      "inbound": []
+    },
+    {
+      "path": "/customers",
+      "file": "src/router.tsx",
+      "line": 45,
+      "kind": "prefix",
+      "source": "react-router-config",
+      "layoutElements": [
+        "AppLayout"
+      ],
+      "element": null,
+      "params": [],
+      "layouts": [
+        "src/layouts/AppLayout.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "inbound": [
+        "chrome:src/components/MobileHeader.tsx",
+        "chrome:src/components/Sidebar.tsx",
+        "chrome:src/components/TopNav.tsx",
+        "shared:src/pages/Customers.tsx"
+      ]
+    },
+    {
+      "path": "/customers",
+      "file": "src/pages/Customers.tsx",
+      "kind": "page",
+      "source": "react-router-config",
+      "layoutElements": [
+        "AppLayout"
+      ],
+      "element": "Customers",
+      "params": [],
+      "layouts": [
+        "src/layouts/AppLayout.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "componentFile": "src/pages/Customers.tsx",
+      "definedAt": "src/router.tsx:48",
+      "inbound": [
+        "chrome:src/components/MobileHeader.tsx",
+        "chrome:src/components/Sidebar.tsx",
+        "chrome:src/components/TopNav.tsx",
+        "shared:src/pages/Customers.tsx"
+      ]
+    },
+    {
+      "path": "/customers/:customerId",
+      "file": "src/pages/Customers.tsx",
+      "kind": "page",
+      "source": "react-router-config",
+      "layoutElements": [
+        "AppLayout"
+      ],
+      "element": "CustomerDetail",
+      "params": [
+        "customerId"
+      ],
+      "layouts": [
+        "src/layouts/AppLayout.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "componentFile": "src/pages/Customers.tsx",
+      "definedAt": "src/router.tsx:49",
+      "inbound": [
+        "shared:src/pages/Customers.tsx",
+        "/tickets/:ticketId"
+      ]
+    },
+    {
+      "path": "/dashboard",
+      "file": "src/router.tsx",
+      "line": 34,
+      "kind": "redirect",
+      "source": "react-router-config",
+      "redirectTo": "/",
+      "layoutElements": [
+        "AppLayout"
+      ],
+      "element": "Navigate",
+      "params": [],
+      "layouts": [
+        "src/layouts/AppLayout.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null
+    },
+    {
+      "path": "/home",
+      "file": "src/router.tsx",
+      "line": 33,
+      "kind": "redirect",
+      "source": "react-router-config",
+      "redirectTo": "/dashboard",
+      "layoutElements": [
+        "AppLayout"
+      ],
+      "element": "Navigate",
+      "params": [],
+      "layouts": [
+        "src/layouts/AppLayout.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null
+    },
+    {
+      "path": "/inbox",
+      "file": "src/pages/Inbox.tsx",
+      "kind": "page",
+      "source": "react-router-config",
+      "layoutElements": [
+        "AppLayout"
+      ],
+      "element": "Inbox",
+      "params": [],
+      "layouts": [
+        "src/layouts/AppLayout.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "componentFile": "src/pages/Inbox.tsx",
+      "definedAt": "src/router.tsx:35",
+      "inbound": [
+        "chrome:src/components/Sidebar.tsx",
+        "/",
+        "/tickets/:ticketId"
+      ]
+    },
+    {
+      "path": "/knowledge",
+      "file": "src/router.tsx",
+      "line": 52,
+      "kind": "prefix",
+      "source": "react-router-config",
+      "layoutElements": [
+        "AppLayout"
+      ],
+      "element": null,
+      "params": [],
+      "layouts": [
+        "src/layouts/AppLayout.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "inbound": [
+        "chrome:src/components/Sidebar.tsx",
+        "chrome:src/components/TopNav.tsx",
+        "shared:src/pages/Knowledge.tsx"
+      ]
+    },
+    {
+      "path": "/knowledge",
+      "file": "src/pages/Knowledge.tsx",
+      "kind": "page",
+      "source": "react-router-config",
+      "layoutElements": [
+        "AppLayout"
+      ],
+      "element": "Knowledge",
+      "params": [],
+      "layouts": [
+        "src/layouts/AppLayout.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "componentFile": "src/pages/Knowledge.tsx",
+      "definedAt": "src/router.tsx:55",
+      "inbound": [
+        "chrome:src/components/Sidebar.tsx",
+        "chrome:src/components/TopNav.tsx",
+        "shared:src/pages/Knowledge.tsx"
+      ]
+    },
+    {
+      "path": "/knowledge/:slug",
+      "file": "src/pages/Knowledge.tsx",
+      "kind": "page",
+      "source": "react-router-config",
+      "layoutElements": [
+        "AppLayout"
+      ],
+      "element": "Article",
+      "params": [
+        "slug"
+      ],
+      "layouts": [
+        "src/layouts/AppLayout.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "componentFile": "src/pages/Knowledge.tsx",
+      "definedAt": "src/router.tsx:57",
+      "inbound": [
+        "shared:src/pages/Knowledge.tsx"
+      ]
+    },
+    {
+      "path": "/knowledge/saved-replies",
+      "file": "src/pages/SavedReplies.tsx",
+      "kind": "page",
+      "source": "react-router-config",
+      "layoutElements": [
+        "AppLayout"
+      ],
+      "element": "SavedReplies",
+      "params": [],
+      "layouts": [
+        "src/layouts/AppLayout.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "componentFile": "src/pages/SavedReplies.tsx",
+      "definedAt": "src/router.tsx:56",
+      "inbound": [
+        "/",
+        "shared:src/pages/Knowledge.tsx"
+      ]
+    },
+    {
+      "path": "/settings/macros",
+      "file": "src/pages/settings/SettingsArea.tsx",
+      "line": 74,
+      "kind": "page",
+      "source": "react-router-jsx",
+      "relative": true,
+      "layoutElements": [],
+      "element": "Macros",
+      "params": [],
+      "layouts": [
+        "src/layouts/AppLayout.tsx",
+        "src/pages/settings/SettingsArea.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "componentFile": "src/pages/settings/SettingsArea.tsx",
+      "mountedFrom": "/settings/*",
+      "inbound": [
+        "chrome:src/pages/settings/SettingsArea.tsx"
+      ]
+    },
+    {
+      "path": "/settings/notifications",
+      "file": "src/pages/settings/SettingsArea.tsx",
+      "line": 73,
+      "kind": "page",
+      "source": "react-router-jsx",
+      "relative": true,
+      "layoutElements": [],
+      "element": "Notifications",
+      "params": [],
+      "layouts": [
+        "src/layouts/AppLayout.tsx",
+        "src/pages/settings/SettingsArea.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "componentFile": "src/pages/settings/SettingsArea.tsx",
+      "mountedFrom": "/settings/*",
+      "inbound": [
+        "chrome:src/pages/settings/SettingsArea.tsx"
+      ]
+    },
+    {
+      "path": "/settings/profile",
+      "file": "src/pages/settings/SettingsArea.tsx",
+      "line": 71,
+      "kind": "page",
+      "source": "react-router-jsx",
+      "relative": true,
+      "layoutElements": [],
+      "element": "Profile",
+      "params": [],
+      "layouts": [
+        "src/layouts/AppLayout.tsx",
+        "src/pages/settings/SettingsArea.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "componentFile": "src/pages/settings/SettingsArea.tsx",
+      "mountedFrom": "/settings/*",
+      "inbound": [
+        "chrome:src/components/Sidebar.tsx",
+        "chrome:src/pages/settings/SettingsArea.tsx",
+        "redirect:src/pages/settings/SettingsArea.tsx"
+      ]
+    },
+    {
+      "path": "/reports",
+      "file": "src/router.tsx",
+      "line": 60,
+      "kind": "prefix",
+      "source": "react-router-config",
+      "layoutElements": [
+        "AppLayout"
+      ],
+      "element": null,
+      "params": [],
+      "layouts": [
+        "src/layouts/AppLayout.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "inbound": [
+        "chrome:src/components/Sidebar.tsx",
+        "chrome:src/components/TopNav.tsx",
+        "shared:src/pages/Reports.tsx"
+      ]
+    },
+    {
+      "path": "/reports",
+      "file": "src/pages/Reports.tsx",
+      "kind": "page",
+      "source": "react-router-config",
+      "layoutElements": [
+        "AppLayout"
+      ],
+      "element": "Reports",
+      "params": [],
+      "layouts": [
+        "src/layouts/AppLayout.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "componentFile": "src/pages/Reports.tsx",
+      "definedAt": "src/router.tsx:63",
+      "inbound": [
+        "chrome:src/components/Sidebar.tsx",
+        "chrome:src/components/TopNav.tsx",
+        "shared:src/pages/Reports.tsx"
+      ]
+    },
+    {
+      "path": "/reports/billing",
+      "file": "src/pages/Reports.tsx",
+      "kind": "page",
+      "source": "react-router-config",
+      "layoutElements": [
+        "AppLayout"
+      ],
+      "element": "Billing",
+      "params": [],
+      "layouts": [
+        "src/layouts/AppLayout.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "componentFile": "src/pages/Reports.tsx",
+      "definedAt": "src/router.tsx:64",
+      "inbound": [
+        "shared:src/pages/Reports.tsx"
+      ]
+    },
+    {
+      "path": "/settings/*",
+      "file": "src/pages/settings/SettingsArea.tsx",
+      "kind": "mount",
+      "source": "react-router-config",
+      "layoutElements": [
+        "AppLayout"
+      ],
+      "element": "SettingsArea",
+      "params": [
+        "*"
+      ],
+      "layouts": [
+        "src/layouts/AppLayout.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "componentFile": "src/pages/settings/SettingsArea.tsx",
+      "definedAt": "src/router.tsx:68"
+    },
+    {
+      "path": "/sign-in",
+      "file": "src/pages/SignIn.tsx",
+      "kind": "page",
+      "source": "react-router-config",
+      "layoutElements": [],
+      "element": "SignIn",
+      "params": [],
+      "layouts": [],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "componentFile": "src/pages/SignIn.tsx",
+      "definedAt": "src/router.tsx:26",
+      "inbound": [
+        "chrome:src/components/Sidebar.tsx",
+        "file:src/router.tsx",
+        "guard:src/router.tsx",
+        "redirect:src/router.tsx"
+      ]
+    },
+    {
+      "path": "/settings/team",
+      "file": "src/pages/settings/SettingsArea.tsx",
+      "line": 72,
+      "kind": "page",
+      "source": "react-router-jsx",
+      "relative": true,
+      "layoutElements": [],
+      "element": "Team",
+      "params": [],
+      "layouts": [
+        "src/layouts/AppLayout.tsx",
+        "src/pages/settings/SettingsArea.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "componentFile": "src/pages/settings/SettingsArea.tsx",
+      "mountedFrom": "/settings/*",
+      "inbound": [
+        "chrome:src/pages/settings/SettingsArea.tsx"
+      ]
+    },
+    {
+      "path": "/tickets",
+      "file": "src/layouts/TicketsLayout.tsx",
+      "kind": "layout-route",
+      "source": "react-router-config",
+      "layoutElements": [
+        "AppLayout"
+      ],
+      "element": "TicketsLayout",
+      "params": [],
+      "layouts": [
+        "src/layouts/AppLayout.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "componentFile": "src/layouts/TicketsLayout.tsx",
+      "definedAt": "src/router.tsx:36",
+      "inbound": [
+        "chrome:src/components/MobileHeader.tsx",
+        "chrome:src/components/Sidebar.tsx",
+        "chrome:src/components/TopNav.tsx",
+        "chrome:src/layouts/TicketsLayout.tsx",
+        "/tickets/:ticketId"
+      ]
+    },
+    {
+      "path": "/tickets",
+      "file": "src/pages/TicketList.tsx",
+      "kind": "page",
+      "source": "react-router-config",
+      "layoutElements": [
+        "AppLayout",
+        "TicketsLayout"
+      ],
+      "element": "TicketList",
+      "params": [],
+      "layouts": [
+        "src/layouts/AppLayout.tsx",
+        "src/layouts/TicketsLayout.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "componentFile": "src/pages/TicketList.tsx",
+      "definedAt": "src/router.tsx:40",
+      "inbound": [
+        "chrome:src/components/MobileHeader.tsx",
+        "chrome:src/components/Sidebar.tsx",
+        "chrome:src/components/TopNav.tsx",
+        "chrome:src/layouts/TicketsLayout.tsx",
+        "/tickets/:ticketId"
+      ]
+    },
+    {
+      "path": "/tickets/:ticketId",
+      "file": "src/pages/TicketDetail.tsx",
+      "kind": "page",
+      "source": "react-router-config",
+      "layoutElements": [
+        "AppLayout",
+        "TicketsLayout"
+      ],
+      "element": "TicketDetail",
+      "params": [
+        "ticketId"
+      ],
+      "layouts": [
+        "src/layouts/AppLayout.tsx",
+        "src/layouts/TicketsLayout.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "componentFile": "src/pages/TicketDetail.tsx",
+      "definedAt": "src/router.tsx:42",
+      "inbound": [
+        "chrome:src/components/NewTicketDialog.tsx",
+        "shared:src/components/TicketTable.tsx",
+        "/"
+      ]
+    },
+    {
+      "path": "/tickets/status/:status",
+      "file": "src/pages/TicketsByStatus.tsx",
+      "kind": "page",
+      "source": "react-router-config",
+      "layoutElements": [
+        "AppLayout",
+        "TicketsLayout"
+      ],
+      "element": "TicketsByStatus",
+      "params": [
+        "status"
+      ],
+      "layouts": [
+        "src/layouts/AppLayout.tsx",
+        "src/layouts/TicketsLayout.tsx"
+      ],
+      "templates": [],
+      "boundaries": {},
+      "groups": [],
+      "slot": null,
+      "intercept": null,
+      "componentFile": "src/pages/TicketsByStatus.tsx",
+      "definedAt": "src/router.tsx:41",
+      "inbound": [
+        "/"
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "from": null,
+      "to": "profile",
+      "kind": "navigate-element",
+      "permanent": false,
+      "replace": false,
+      "file": "src/pages/settings/SettingsArea.tsx",
+      "line": 70
+    },
+    {
+      "from": null,
+      "to": "/sign-in",
+      "kind": "render-redirect",
+      "permanent": false,
+      "file": "src/router.tsx",
+      "line": 20
+    },
+    {
+      "from": null,
+      "to": "/dashboard",
+      "kind": "navigate-element",
+      "permanent": false,
+      "replace": false,
+      "file": "src/router.tsx",
+      "line": 33
+    },
+    {
+      "from": null,
+      "to": "/",
+      "kind": "navigate-element",
+      "permanent": false,
+      "replace": false,
+      "file": "src/router.tsx",
+      "line": 34
+    },
+    {
+      "from": null,
+      "to": "/",
+      "kind": "navigate-element",
+      "permanent": false,
+      "replace": false,
+      "file": "src/router.tsx",
+      "line": 69
+    },
+    {
+      "from": "/settings",
+      "to": "/settings/profile",
+      "kind": "redirect",
+      "permanent": false,
+      "client": true,
+      "catchAll": false,
+      "file": "src/pages/settings/SettingsArea.tsx",
+      "line": 70
+    },
+    {
+      "from": "/*",
+      "to": "/",
+      "kind": "redirect",
+      "permanent": false,
+      "client": true,
+      "catchAll": true,
+      "file": "src/router.tsx",
+      "line": 69
+    },
+    {
+      "from": "/dashboard",
+      "to": "/",
+      "kind": "redirect",
+      "permanent": false,
+      "client": true,
+      "catchAll": false,
+      "file": "src/router.tsx",
+      "line": 34
+    },
+    {
+      "from": "/home",
+      "to": "/dashboard",
+      "kind": "redirect",
+      "permanent": false,
+      "client": true,
+      "catchAll": false,
+      "file": "src/router.tsx",
+      "line": 33
+    }
+  ],
+  "guards": [
+    {
+      "kind": "redirect",
+      "to": "/sign-in",
+      "file": "src/router.tsx",
+      "line": 20,
+      "middleware": false,
+      "preservesDestination": false
+    }
+  ],
+  "chrome": [
+    {
+      "file": "src/components/TopNav.tsx",
+      "scope": 17,
+      "scopeSample": [
+        "/",
+        "/archive",
+        "/customers",
+        "/customers/:customerId",
+        "/inbox",
+        "/knowledge"
+      ],
+      "activeStrategy": "library",
+      "ariaCurrent": false,
+      "derivedCrumbs": false,
+      "targets": [
+        "/",
+        "/tickets",
+        "/customers",
+        "/knowledge",
+        "/reports"
+      ],
+      "mobileNavHint": false
+    },
+    {
+      "file": "src/components/Sidebar.tsx",
+      "scope": 17,
+      "scopeSample": [
+        "/",
+        "/archive",
+        "/customers",
+        "/customers/:customerId",
+        "/inbox",
+        "/knowledge"
+      ],
+      "activeStrategy": "prefix",
+      "ariaCurrent": false,
+      "derivedCrumbs": false,
+      "targets": [
+        "/sign-in",
+        "/inbox",
+        "/tickets",
+        "/customers",
+        "/knowledge",
+        "/reports",
+        "/settings/profile"
+      ],
+      "mobileNavHint": false
+    },
+    {
+      "file": "src/components/MobileHeader.tsx",
+      "scope": 17,
+      "scopeSample": [
+        "/",
+        "/archive",
+        "/customers",
+        "/customers/:customerId",
+        "/inbox",
+        "/knowledge"
+      ],
+      "activeStrategy": null,
+      "ariaCurrent": false,
+      "derivedCrumbs": false,
+      "targets": [
+        "/",
+        "/tickets",
+        "/customers"
+      ],
+      "mobileNavHint": true
+    },
+    {
+      "file": "src/components/NewTicketDialog.tsx",
+      "scope": 17,
+      "scopeSample": [
+        "/",
+        "/archive",
+        "/customers",
+        "/customers/:customerId",
+        "/inbox",
+        "/knowledge"
+      ],
+      "activeStrategy": null,
+      "ariaCurrent": false,
+      "derivedCrumbs": false,
+      "targets": [
+        "/tickets/:ticketId"
+      ],
+      "mobileNavHint": false
+    },
+    {
+      "file": "src/pages/settings/SettingsArea.tsx",
+      "scope": 4,
+      "scopeSample": [
+        "/settings/macros",
+        "/settings/notifications",
+        "/settings/profile",
+        "/settings/team"
+      ],
+      "activeStrategy": "library",
+      "ariaCurrent": false,
+      "derivedCrumbs": false,
+      "targets": [
+        "/settings/profile",
+        "/settings/team",
+        "/settings/notifications",
+        "/settings/macros"
+      ],
+      "mobileNavHint": false
+    },
+    {
+      "file": "src/layouts/TicketsLayout.tsx",
+      "scope": 3,
+      "scopeSample": [
+        "/tickets",
+        "/tickets/:ticketId",
+        "/tickets/status/:status"
+      ],
+      "activeStrategy": "exact",
+      "ariaCurrent": false,
+      "derivedCrumbs": false,
+      "targets": [
+        "/tickets"
+      ],
+      "mobileNavHint": false
+    }
+  ],
+  "edges": [
+    {
+      "from": "shared:src/components/Breadcrumbs.tsx",
+      "file": "src/components/Breadcrumbs.tsx",
+      "line": 13,
+      "via": null,
+      "kind": "link",
+      "tag": "Link",
+      "label": null,
+      "target": null,
+      "expr": "c.to",
+      "query": [],
+      "targetRoute": null,
+      "status": "dynamic"
+    },
+    {
+      "from": "chrome:src/components/MobileHeader.tsx",
+      "file": "src/components/MobileHeader.tsx",
+      "line": 16,
+      "via": null,
+      "kind": "link",
+      "tag": "Link",
+      "label": null,
+      "target": null,
+      "expr": "item.to",
+      "query": [],
+      "targetRoute": null,
+      "status": "dynamic"
+    },
+    {
+      "from": "chrome:src/components/MobileHeader.tsx",
+      "file": "src/components/MobileHeader.tsx",
+      "line": 25,
+      "via": "src/config/nav.ts:25 (mobileNav)",
+      "kind": "nav-item",
+      "tag": null,
+      "label": "Dashboard",
+      "target": "/",
+      "query": [],
+      "targetRoute": "/",
+      "status": "ok"
+    },
+    {
+      "from": "chrome:src/components/MobileHeader.tsx",
+      "file": "src/components/MobileHeader.tsx",
+      "line": 26,
+      "via": "src/config/nav.ts:26 (mobileNav)",
+      "kind": "nav-item",
+      "tag": null,
+      "label": "Tickets",
+      "target": "/tickets",
+      "query": [],
+      "targetRoute": "/tickets",
+      "status": "ok"
+    },
+    {
+      "from": "chrome:src/components/MobileHeader.tsx",
+      "file": "src/components/MobileHeader.tsx",
+      "line": 27,
+      "via": "src/config/nav.ts:27 (mobileNav)",
+      "kind": "nav-item",
+      "tag": null,
+      "label": "Customers",
+      "target": "/customers",
+      "query": [],
+      "targetRoute": "/customers",
+      "status": "ok"
+    },
+    {
+      "from": "chrome:src/components/NewTicketDialog.tsx",
+      "file": "src/components/NewTicketDialog.tsx",
+      "line": 20,
+      "via": "src/lib/urls.ts:9 (ticketUrl)",
+      "kind": "push",
+      "tag": null,
+      "target": "/tickets/${id}",
+      "expr": null,
+      "query": [],
+      "targetRoute": "/tickets/:ticketId",
+      "status": "ok",
+      "scrollFalse": false,
+      "backLike": false
+    },
+    {
+      "from": "chrome:src/components/Sidebar.tsx",
+      "file": "src/components/Sidebar.tsx",
+      "line": 18,
+      "via": null,
+      "kind": "link",
+      "tag": "Link",
+      "label": null,
+      "target": null,
+      "expr": "item.to",
+      "query": [],
+      "targetRoute": null,
+      "status": "dynamic"
+    },
+    {
+      "from": "chrome:src/components/Sidebar.tsx",
+      "file": "src/components/Sidebar.tsx",
+      "line": 28,
+      "via": null,
+      "kind": "replace",
+      "tag": null,
+      "target": "/sign-in",
+      "expr": null,
+      "query": [],
+      "targetRoute": "/sign-in",
+      "status": "ok",
+      "scrollFalse": false,
+      "backLike": false
+    },
+    {
+      "from": "chrome:src/components/Sidebar.tsx",
+      "file": "src/components/Sidebar.tsx",
+      "line": 15,
+      "via": "/dashboard",
+      "kind": "nav-item",
+      "tag": null,
+      "label": "Home",
+      "target": "/home",
+      "query": [],
+      "targetRoute": null,
+      "status": "redirected"
+    },
+    {
+      "from": "chrome:src/components/Sidebar.tsx",
+      "file": "src/components/Sidebar.tsx",
+      "line": 16,
+      "via": "src/config/nav.ts:16 (sidebarNav)",
+      "kind": "nav-item",
+      "tag": null,
+      "label": "Inbox",
+      "target": "/inbox",
+      "query": [],
+      "targetRoute": "/inbox",
+      "status": "ok"
+    },
+    {
+      "from": "chrome:src/components/Sidebar.tsx",
+      "file": "src/components/Sidebar.tsx",
+      "line": 17,
+      "via": "src/config/nav.ts:17 (sidebarNav)",
+      "kind": "nav-item",
+      "tag": null,
+      "label": "Tickets",
+      "target": "/tickets",
+      "query": [],
+      "targetRoute": "/tickets",
+      "status": "ok"
+    },
+    {
+      "from": "chrome:src/components/Sidebar.tsx",
+      "file": "src/components/Sidebar.tsx",
+      "line": 18,
+      "via": "src/config/nav.ts:18 (sidebarNav)",
+      "kind": "nav-item",
+      "tag": null,
+      "label": "Customers",
+      "target": "/customers",
+      "query": [],
+      "targetRoute": "/customers",
+      "status": "ok"
+    },
+    {
+      "from": "chrome:src/components/Sidebar.tsx",
+      "file": "src/components/Sidebar.tsx",
+      "line": 19,
+      "via": "src/config/nav.ts:19 (sidebarNav)",
+      "kind": "nav-item",
+      "tag": null,
+      "label": "Knowledge",
+      "target": "/knowledge",
+      "query": [],
+      "targetRoute": "/knowledge",
+      "status": "ok"
+    },
+    {
+      "from": "chrome:src/components/Sidebar.tsx",
+      "file": "src/components/Sidebar.tsx",
+      "line": 20,
+      "via": "src/config/nav.ts:20 (sidebarNav)",
+      "kind": "nav-item",
+      "tag": null,
+      "label": "Reports",
+      "target": "/reports",
+      "query": [],
+      "targetRoute": "/reports",
+      "status": "ok"
+    },
+    {
+      "from": "chrome:src/components/Sidebar.tsx",
+      "file": "src/components/Sidebar.tsx",
+      "line": 21,
+      "via": "/settings/profile",
+      "kind": "nav-item",
+      "tag": null,
+      "label": "Settings",
+      "target": "/settings",
+      "query": [],
+      "targetRoute": "/settings/profile",
+      "status": "redirected"
+    },
+    {
+      "from": "shared:src/components/TicketTable.tsx",
+      "file": "src/components/TicketTable.tsx",
+      "line": 28,
+      "via": "src/lib/urls.ts:9 (ticketUrl)",
+      "kind": "link",
+      "tag": "Link",
+      "label": null,
+      "target": "/tickets/${id}",
+      "expr": null,
+      "query": [],
+      "targetRoute": "/tickets/:ticketId",
+      "status": "ok"
+    },
+    {
+      "from": "chrome:src/components/TopNav.tsx",
+      "file": "src/components/TopNav.tsx",
+      "line": 12,
+      "via": null,
+      "kind": "link",
+      "tag": "NavLink",
+      "label": null,
+      "target": null,
+      "expr": "item.to",
+      "query": [],
+      "targetRoute": null,
+      "status": "dynamic"
+    },
+    {
+      "from": "chrome:src/components/TopNav.tsx",
+      "file": "src/components/TopNav.tsx",
+      "line": 7,
+      "via": "src/config/nav.ts:7 (primaryNav)",
+      "kind": "nav-item",
+      "tag": null,
+      "label": "Dashboard",
+      "target": "/",
+      "query": [],
+      "targetRoute": "/",
+      "status": "ok"
+    },
+    {
+      "from": "chrome:src/components/TopNav.tsx",
+      "file": "src/components/TopNav.tsx",
+      "line": 8,
+      "via": "src/config/nav.ts:8 (primaryNav)",
+      "kind": "nav-item",
+      "tag": null,
+      "label": "Tickets",
+      "target": "/tickets",
+      "query": [],
+      "targetRoute": "/tickets",
+      "status": "ok"
+    },
+    {
+      "from": "chrome:src/components/TopNav.tsx",
+      "file": "src/components/TopNav.tsx",
+      "line": 9,
+      "via": "src/config/nav.ts:9 (primaryNav)",
+      "kind": "nav-item",
+      "tag": null,
+      "label": "Customers",
+      "target": "/customers",
+      "query": [],
+      "targetRoute": "/customers",
+      "status": "ok"
+    },
+    {
+      "from": "chrome:src/components/TopNav.tsx",
+      "file": "src/components/TopNav.tsx",
+      "line": 10,
+      "via": "src/config/nav.ts:10 (primaryNav)",
+      "kind": "nav-item",
+      "tag": null,
+      "label": "Knowledge",
+      "target": "/knowledge",
+      "query": [],
+      "targetRoute": "/knowledge",
+      "status": "ok"
+    },
+    {
+      "from": "chrome:src/components/TopNav.tsx",
+      "file": "src/components/TopNav.tsx",
+      "line": 11,
+      "via": "src/config/nav.ts:11 (primaryNav)",
+      "kind": "nav-item",
+      "tag": null,
+      "label": "Reports",
+      "target": "/reports",
+      "query": [],
+      "targetRoute": "/reports",
+      "status": "ok"
+    },
+    {
+      "from": "chrome:src/layouts/TicketsLayout.tsx",
+      "file": "src/layouts/TicketsLayout.tsx",
+      "line": 24,
+      "via": "src/lib/urls.ts:13 (ticketsUrl)",
+      "kind": "link",
+      "tag": "Link",
+      "label": null,
+      "target": "/tickets",
+      "expr": null,
+      "query": [],
+      "targetRoute": "/tickets",
+      "status": "ok"
+    },
+    {
+      "from": "shared:src/pages/Customers.tsx",
+      "file": "src/pages/Customers.tsx",
+      "line": 15,
+      "via": "src/lib/urls.ts:21 (customerUrl)",
+      "kind": "link",
+      "tag": "Link",
+      "label": null,
+      "target": "/customers/${id}",
+      "expr": null,
+      "query": [],
+      "targetRoute": "/customers/:customerId",
+      "status": "ok"
+    },
+    {
+      "from": "shared:src/pages/Customers.tsx",
+      "file": "src/pages/Customers.tsx",
+      "line": 30,
+      "via": null,
+      "kind": "nav-item",
+      "tag": null,
+      "label": "Customers",
+      "target": "/customers",
+      "query": [],
+      "targetRoute": "/customers",
+      "status": "ok"
+    },
+    {
+      "from": "/",
+      "file": "src/pages/Dashboard.tsx",
+      "line": 15,
+      "via": "src/lib/urls.ts:11 (statusPath)",
+      "kind": "link",
+      "tag": "Link",
+      "label": null,
+      "target": "/tickets/status/${status}",
+      "expr": null,
+      "query": [],
+      "targetRoute": "/tickets/status/:status",
+      "status": "ok"
+    },
+    {
+      "from": "/",
+      "file": "src/pages/Dashboard.tsx",
+      "line": 27,
+      "via": "src/lib/urls.ts:9 (ticketUrl)",
+      "kind": "link",
+      "tag": "Link",
+      "label": null,
+      "target": "/tickets/${id}",
+      "expr": null,
+      "query": [],
+      "targetRoute": "/tickets/:ticketId",
+      "status": "ok"
+    },
+    {
+      "from": "/",
+      "file": "src/pages/Dashboard.tsx",
+      "line": 38,
+      "via": null,
+      "kind": "link",
+      "tag": "Link",
+      "label": "Assigned to you",
+      "target": "/inbox",
+      "expr": null,
+      "query": [],
+      "targetRoute": "/inbox",
+      "status": "ok"
+    },
+    {
+      "from": "/",
+      "file": "src/pages/Dashboard.tsx",
+      "line": 39,
+      "via": "caught by /* → /",
+      "kind": "link",
+      "tag": "Link",
+      "label": "Weekly digest",
+      "target": "/reports/weekly",
+      "expr": null,
+      "query": [],
+      "targetRoute": null,
+      "status": "dead"
+    },
+    {
+      "from": "/",
+      "file": "src/pages/Dashboard.tsx",
+      "line": 40,
+      "via": null,
+      "kind": "link",
+      "tag": "Link",
+      "label": "Saved replies",
+      "target": "/knowledge/saved-replies",
+      "expr": null,
+      "query": [],
+      "targetRoute": "/knowledge/saved-replies",
+      "status": "ok"
+    },
+    {
+      "from": "shared:src/pages/Knowledge.tsx",
+      "file": "src/pages/Knowledge.tsx",
+      "line": 11,
+      "via": null,
+      "kind": "link",
+      "tag": "Link",
+      "label": "Saved replies",
+      "target": "/knowledge/saved-replies",
+      "expr": null,
+      "query": [],
+      "targetRoute": "/knowledge/saved-replies",
+      "status": "ok"
+    },
+    {
+      "from": "shared:src/pages/Knowledge.tsx",
+      "file": "src/pages/Knowledge.tsx",
+      "line": 20,
+      "via": "src/lib/urls.ts:23 (articleUrl)",
+      "kind": "link",
+      "tag": "Link",
+      "label": null,
+      "target": "/knowledge/${slug}",
+      "expr": null,
+      "query": [],
+      "targetRoute": "/knowledge/:slug",
+      "status": "ok"
+    },
+    {
+      "from": "shared:src/pages/Knowledge.tsx",
+      "file": "src/pages/Knowledge.tsx",
+      "line": 36,
+      "via": null,
+      "kind": "nav-item",
+      "tag": null,
+      "label": "Knowledge",
+      "target": "/knowledge",
+      "query": [],
+      "targetRoute": "/knowledge",
+      "status": "ok"
+    },
+    {
+      "from": "shared:src/pages/Reports.tsx",
+      "file": "src/pages/Reports.tsx",
+      "line": 22,
+      "via": null,
+      "kind": "link",
+      "tag": "Link",
+      "label": "Plan and billing",
+      "target": "/reports/billing",
+      "expr": null,
+      "query": [],
+      "targetRoute": "/reports/billing",
+      "status": "ok"
+    },
+    {
+      "from": "shared:src/pages/Reports.tsx",
+      "file": "src/pages/Reports.tsx",
+      "line": 31,
+      "via": null,
+      "kind": "nav-item",
+      "tag": null,
+      "label": "Reports",
+      "target": "/reports",
+      "query": [],
+      "targetRoute": "/reports",
+      "status": "ok"
+    },
+    {
+      "from": "/sign-in",
+      "file": "src/pages/SignIn.tsx",
+      "line": 12,
+      "via": null,
+      "kind": "replace",
+      "tag": null,
+      "target": "/",
+      "expr": null,
+      "query": [],
+      "targetRoute": "/",
+      "status": "ok",
+      "scrollFalse": false,
+      "backLike": false
+    },
+    {
+      "from": "/tickets/:ticketId",
+      "file": "src/pages/TicketDetail.tsx",
+      "line": 49,
+      "via": "src/lib/urls.ts:21 (customerUrl)",
+      "kind": "link",
+      "tag": "Link",
+      "label": null,
+      "target": "/customers/${id}",
+      "expr": null,
+      "query": [],
+      "targetRoute": "/customers/:customerId",
+      "status": "ok"
+    },
+    {
+      "from": "/tickets/:ticketId",
+      "file": "src/pages/TicketDetail.tsx",
+      "line": 50,
+      "via": "src/lib/urls.ts:13 (ticketsUrl)",
+      "kind": "link",
+      "tag": "Link",
+      "label": null,
+      "target": "/tickets",
+      "expr": null,
+      "query": [],
+      "targetRoute": "/tickets",
+      "status": "ok"
+    },
+    {
+      "from": "/tickets/:ticketId",
+      "file": "src/pages/TicketDetail.tsx",
+      "line": 61,
+      "via": null,
+      "kind": "nav-item",
+      "tag": null,
+      "label": "Dashboard",
+      "target": "/",
+      "query": [],
+      "targetRoute": "/",
+      "status": "ok"
+    },
+    {
+      "from": "/tickets/:ticketId",
+      "file": "src/pages/TicketDetail.tsx",
+      "line": 62,
+      "via": null,
+      "kind": "nav-item",
+      "tag": null,
+      "label": "Inbox",
+      "target": "/inbox",
+      "query": [],
+      "targetRoute": "/inbox",
+      "status": "ok"
+    },
+    {
+      "from": "chrome:src/pages/settings/SettingsArea.tsx",
+      "file": "src/pages/settings/SettingsArea.tsx",
+      "line": 63,
+      "via": null,
+      "kind": "link",
+      "tag": "NavLink",
+      "label": null,
+      "target": null,
+      "expr": "item.to",
+      "query": [],
+      "targetRoute": null,
+      "status": "dynamic"
+    },
+    {
+      "from": "chrome:src/pages/settings/SettingsArea.tsx",
+      "file": "src/pages/settings/SettingsArea.tsx",
+      "line": 70,
+      "via": null,
+      "kind": "link",
+      "tag": "Navigate",
+      "label": "} />",
+      "target": "profile",
+      "expr": null,
+      "query": [],
+      "targetRoute": null,
+      "status": "external"
+    },
+    {
+      "from": "chrome:src/pages/settings/SettingsArea.tsx",
+      "file": "src/pages/settings/SettingsArea.tsx",
+      "line": 31,
+      "via": "src/config/nav.ts:31 (settingsNav)",
+      "kind": "nav-item",
+      "tag": null,
+      "label": "Profile",
+      "target": "/settings/profile",
+      "query": [],
+      "targetRoute": "/settings/profile",
+      "status": "ok"
+    },
+    {
+      "from": "chrome:src/pages/settings/SettingsArea.tsx",
+      "file": "src/pages/settings/SettingsArea.tsx",
+      "line": 32,
+      "via": "src/config/nav.ts:32 (settingsNav)",
+      "kind": "nav-item",
+      "tag": null,
+      "label": "Team",
+      "target": "/settings/team",
+      "query": [],
+      "targetRoute": "/settings/team",
+      "status": "ok"
+    },
+    {
+      "from": "chrome:src/pages/settings/SettingsArea.tsx",
+      "file": "src/pages/settings/SettingsArea.tsx",
+      "line": 33,
+      "via": "src/config/nav.ts:33 (settingsNav)",
+      "kind": "nav-item",
+      "tag": null,
+      "label": "Notifications",
+      "target": "/settings/notifications",
+      "query": [],
+      "targetRoute": "/settings/notifications",
+      "status": "ok"
+    },
+    {
+      "from": "chrome:src/pages/settings/SettingsArea.tsx",
+      "file": "src/pages/settings/SettingsArea.tsx",
+      "line": 34,
+      "via": "src/config/nav.ts:34 (settingsNav)",
+      "kind": "nav-item",
+      "tag": null,
+      "label": "Macros",
+      "target": "/settings/macros",
+      "query": [],
+      "targetRoute": "/settings/macros",
+      "status": "ok"
+    },
+    {
+      "from": "file:src/router.tsx",
+      "file": "src/router.tsx",
+      "line": 33,
+      "via": "/",
+      "kind": "link",
+      "tag": "Navigate",
+      "label": null,
+      "target": "/dashboard",
+      "expr": null,
+      "query": [],
+      "targetRoute": "/",
+      "status": "redirected"
+    },
+    {
+      "from": "file:src/router.tsx",
+      "file": "src/router.tsx",
+      "line": 34,
+      "via": null,
+      "kind": "link",
+      "tag": "Navigate",
+      "label": null,
+      "target": "/",
+      "expr": null,
+      "query": [],
+      "targetRoute": "/",
+      "status": "ok"
+    },
+    {
+      "from": "file:src/router.tsx",
+      "file": "src/router.tsx",
+      "line": 69,
+      "via": null,
+      "kind": "link",
+      "tag": "Navigate",
+      "label": null,
+      "target": "/",
+      "expr": null,
+      "query": [],
+      "targetRoute": "/",
+      "status": "ok"
+    },
+    {
+      "from": "file:src/router.tsx",
+      "file": "src/router.tsx",
+      "line": 20,
+      "via": null,
+      "kind": "redirect",
+      "tag": null,
+      "target": "/sign-in",
+      "expr": null,
+      "query": [],
+      "targetRoute": "/sign-in",
+      "status": "ok",
+      "scrollFalse": false,
+      "backLike": false
+    }
+  ],
+  "signals": [
+    {
+      "id": "ia-1",
+      "area": "ia",
+      "kind": "orphan",
+      "title": "No in-app path reaches /archive",
+      "evidence": [
+        {
+          "file": "src/pages/Archive.tsx"
+        }
+      ],
+      "detail": "No link, navigation call, redirect or guard targets this route. It can only be reached by typing the URL or from outside the app.",
+      "verify": "Search for dynamic hrefs that could build this path; crawl the running app to confirm."
+    },
+    {
+      "id": "routing-1",
+      "area": "routing",
+      "kind": "dead-link",
+      "title": "Links point at /reports/weekly, which no route or redirect serves",
+      "evidence": [
+        {
+          "file": "src/pages/Dashboard.tsx",
+          "line": 39,
+          "label": "Weekly digest"
+        }
+      ],
+      "detail": "1 reference(s). Users get a not-found page.",
+      "verify": "Open /reports/weekly in the running app."
+    },
+    {
+      "id": "routing-2",
+      "area": "routing",
+      "kind": "missing-parent",
+      "title": "1 URL prefix(es) have no page",
+      "evidence": [],
+      "paths": [
+        "/settings"
+      ],
+      "detail": "Removing the last segment from a URL leads to a 404 at: /settings",
+      "verify": "Visit each prefix in the running app."
+    },
+    {
+      "id": "routing-3",
+      "area": "routing",
+      "kind": "redirect-chain",
+      "title": "Redirect chain: /settings → /settings/profile → /",
+      "evidence": [
+        {
+          "file": "src/pages/settings/SettingsArea.tsx",
+          "line": 70
+        }
+      ],
+      "detail": "2 hops. Each hop costs a round trip and an extra history decision; point /settings straight at /.",
+      "verify": "curl -sI the first URL and count Location headers."
+    },
+    {
+      "id": "routing-4",
+      "area": "routing",
+      "kind": "redirect-chain",
+      "title": "Redirect chain: /home → /dashboard → /",
+      "evidence": [
+        {
+          "file": "src/router.tsx",
+          "line": 33
+        }
+      ],
+      "detail": "2 hops. Each hop costs a round trip and an extra history decision; point /home straight at /.",
+      "verify": "curl -sI the first URL and count Location headers."
+    },
+    {
+      "id": "routing-5",
+      "area": "routing",
+      "kind": "deep-link-loss",
+      "title": "Guard redirect to /sign-in does not carry the requested URL",
+      "evidence": [
+        {
+          "file": "src/router.tsx",
+          "line": 20
+        }
+      ],
+      "detail": "A signed-out user who opens a deep link is sent to the guard target with no record of where they were going, so after signing in they land on a default page.",
+      "verify": "Signed out, open a protected deep link, sign in, and check where you land."
+    },
+    {
+      "id": "chrome-1",
+      "area": "chrome",
+      "kind": "duplicate-nav",
+      "title": "6 destination(s) are linked from more than one persistent nav system",
+      "evidence": [
+        {
+          "file": "src/components/TopNav.tsx"
+        },
+        {
+          "file": "src/components/Sidebar.tsx"
+        },
+        {
+          "file": "src/components/MobileHeader.tsx"
+        },
+        {
+          "file": "src/pages/settings/SettingsArea.tsx"
+        }
+      ],
+      "destinations": [
+        {
+          "target": "/",
+          "from": [
+            "src/components/TopNav.tsx",
+            "src/components/MobileHeader.tsx"
+          ]
+        },
+        {
+          "target": "/tickets",
+          "from": [
+            "src/components/TopNav.tsx",
+            "src/components/Sidebar.tsx",
+            "src/components/MobileHeader.tsx"
+          ]
+        },
+        {
+          "target": "/customers",
+          "from": [
+            "src/components/TopNav.tsx",
+            "src/components/Sidebar.tsx",
+            "src/components/MobileHeader.tsx"
+          ]
+        },
+        {
+          "target": "/knowledge",
+          "from": [
+            "src/components/TopNav.tsx",
+            "src/components/Sidebar.tsx"
+          ]
+        },
+        {
+          "target": "/reports",
+          "from": [
+            "src/components/TopNav.tsx",
+            "src/components/Sidebar.tsx"
+          ]
+        },
+        {
+          "target": "/settings/profile",
+          "from": [
+            "src/components/Sidebar.tsx",
+            "src/pages/settings/SettingsArea.tsx"
+          ]
+        }
+      ],
+      "detail": "Shared: /, /tickets, /customers, /knowledge, /reports, /settings/profile. Two systems claiming the same job means two active states to keep in sync and no clear owner for where something lives.",
+      "verify": "Visit a nested page and compare which item each system highlights."
+    },
+    {
+      "id": "chrome-2",
+      "area": "chrome",
+      "kind": "active-state-mismatch",
+      "title": "Persistent nav systems compute \"current\" differently (library vs prefix vs none)",
+      "evidence": [
+        {
+          "file": "src/components/TopNav.tsx",
+          "note": "library"
+        },
+        {
+          "file": "src/components/Sidebar.tsx",
+          "note": "prefix"
+        },
+        {
+          "file": "src/components/MobileHeader.tsx",
+          "note": "no active state"
+        },
+        {
+          "file": "src/pages/settings/SettingsArea.tsx",
+          "note": "library"
+        }
+      ],
+      "detail": "On a nested route one system shows the section as current and another does not.",
+      "verify": "Open a nested page (e.g. a detail route) and check both systems."
+    },
+    {
+      "id": "chrome-3",
+      "area": "chrome",
+      "kind": "label-drift",
+      "title": "/settings/profile is labelled \"Settings\" and \"Profile\" in different places",
+      "evidence": [
+        {
+          "file": "src/components/Sidebar.tsx",
+          "line": 21
+        },
+        {
+          "file": "src/pages/settings/SettingsArea.tsx",
+          "line": 31
+        }
+      ],
+      "detail": "Different names for one destination make users think they are different places.",
+      "verify": "Confirm in the UI."
+    },
+    {
+      "id": "continuity-1",
+      "area": "continuity",
+      "kind": "view-state-not-in-url",
+      "title": "/tickets: sort live only in component memory",
+      "evidence": [
+        {
+          "file": "src/pages/TicketList.tsx",
+          "line": 13
+        }
+      ],
+      "detail": "Refresh, Back from a child page, opening in a new tab and sharing the link all lose this state.",
+      "verify": "Change it, open a child page, press Back; then refresh."
+    },
+    {
+      "id": "continuity-2",
+      "area": "continuity",
+      "kind": "view-state-not-in-url",
+      "title": "/tickets/:ticketId: tab live only in component memory",
+      "evidence": [
+        {
+          "file": "src/pages/TicketDetail.tsx",
+          "line": 19
+        }
+      ],
+      "detail": "Refresh, Back from a child page, opening in a new tab and sharing the link all lose this state.",
+      "verify": "Change it, open a child page, press Back; then refresh."
+    }
+  ]
+}

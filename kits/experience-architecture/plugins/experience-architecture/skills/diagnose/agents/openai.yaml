@@ -1,0 +1,5 @@
+interface:
+  display_name: "Diagnose (experience architecture)"
+  short_description: "Find why navigation, Back or links feel wrong"
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,14 @@
+{
+  "baseUrl": "http://localhost:3100",
+  "keepRest": true,
+  "targets": ["/overview", "/customers", "/customers/:id", "/orders", "/orders/:id", "/reports", "/settings", "/settings/profile", "/settings/team", "/settings/billing", "/login", "/"],
+  "moves": [
+    { "from": "/analytics", "to": "/reports", "reason": "Same content" },
+    { "from": "/customers/archive", "to": "/customers?status=archived", "reason": "Archive is a filter" },
+    { "from": "/customers/:id/notes", "to": "/customers/:id?tab=notes", "reason": "Duplicate of the notes tab" },
+    { "from": "/customer-activity", "to": "/customers", "reason": "Activity moves into the record" },
+    { "from": "/admin/users", "to": "/settings/team" },
+    { "from": "/account/billing", "to": "/settings/billing" }
+  ],
+  "retire": [{ "path": "/insights", "to": "/reports" }]
+}

@@ -1,0 +1,79 @@
+flowchart LR
+  n_chrome_src_components_MobileHeader_tsx[["MobileHeader.tsx"]]
+  n__["/"]
+  n__tickets["/tickets"]
+  n__customers["/customers"]
+  n_chrome_src_components_NewTicketDialog_tsx[["NewTicketDialog.tsx"]]
+  n__tickets__ticketId["/tickets/:ticketId"]
+  n_chrome_src_components_Sidebar_tsx[["Sidebar.tsx"]]
+  n__sign_in["/sign-in"]
+  n__inbox["/inbox"]
+  n__knowledge["/knowledge"]
+  n__reports["/reports"]
+  n__settings_profile["/settings/profile"]
+  n_shared_src_components_TicketTable_tsx["shared:src/components/TicketTable.tsx"]
+  n_chrome_src_components_TopNav_tsx[["TopNav.tsx"]]
+  n_chrome_src_layouts_TicketsLayout_tsx[["TicketsLayout.tsx"]]
+  n_shared_src_pages_Customers_tsx["shared:src/pages/Customers.tsx"]
+  n__customers__customerId["/customers/:customerId"]
+  n__tickets_status__status["/tickets/status/:status"]
+  n_dead__reports_weekly(["/reports/weekly ✕"])
+  n__knowledge_saved_replies["/knowledge/saved-replies"]
+  n_shared_src_pages_Knowledge_tsx["shared:src/pages/Knowledge.tsx"]
+  n__knowledge__slug["/knowledge/:slug"]
+  n_shared_src_pages_Reports_tsx["shared:src/pages/Reports.tsx"]
+  n__reports_billing["/reports/billing"]
+  n_chrome_src_pages_settings_SettingsArea_tsx[["SettingsArea.tsx"]]
+  n__settings_team["/settings/team"]
+  n__settings_notifications["/settings/notifications"]
+  n__settings_macros["/settings/macros"]
+  n_file_src_router_tsx["file:src/router.tsx"]
+  n__archive["/archive (orphan)"]
+  n_chrome_src_components_MobileHeader_tsx --> n__
+  n_chrome_src_components_MobileHeader_tsx --> n__tickets
+  n_chrome_src_components_MobileHeader_tsx --> n__customers
+  n_chrome_src_components_NewTicketDialog_tsx ==>|push| n__tickets__ticketId
+  n_chrome_src_components_Sidebar_tsx -.->|replace| n__sign_in
+  n_chrome_src_components_Sidebar_tsx --> n__inbox
+  n_chrome_src_components_Sidebar_tsx --> n__tickets
+  n_chrome_src_components_Sidebar_tsx --> n__customers
+  n_chrome_src_components_Sidebar_tsx --> n__knowledge
+  n_chrome_src_components_Sidebar_tsx --> n__reports
+  n_chrome_src_components_Sidebar_tsx --> n__settings_profile
+  n_shared_src_components_TicketTable_tsx --> n__tickets__ticketId
+  n_chrome_src_components_TopNav_tsx --> n__
+  n_chrome_src_components_TopNav_tsx --> n__tickets
+  n_chrome_src_components_TopNav_tsx --> n__customers
+  n_chrome_src_components_TopNav_tsx --> n__knowledge
+  n_chrome_src_components_TopNav_tsx --> n__reports
+  n_chrome_src_layouts_TicketsLayout_tsx --> n__tickets
+  n_shared_src_pages_Customers_tsx --> n__customers__customerId
+  n_shared_src_pages_Customers_tsx --> n__customers
+  n__ --> n__tickets_status__status
+  n__ --> n__tickets__ticketId
+  n__ --> n__inbox
+  n__ --> n_dead__reports_weekly
+  n__ --> n__knowledge_saved_replies
+  n_shared_src_pages_Knowledge_tsx --> n__knowledge_saved_replies
+  n_shared_src_pages_Knowledge_tsx --> n__knowledge__slug
+  n_shared_src_pages_Knowledge_tsx --> n__knowledge
+  n_shared_src_pages_Reports_tsx --> n__reports_billing
+  n_shared_src_pages_Reports_tsx --> n__reports
+  n__sign_in -.->|replace| n__
+  n__tickets__ticketId --> n__customers__customerId
+  n__tickets__ticketId --> n__tickets
+  n__tickets__ticketId --> n__
+  n__tickets__ticketId --> n__inbox
+  n_chrome_src_pages_settings_SettingsArea_tsx --> n__settings_profile
+  n_chrome_src_pages_settings_SettingsArea_tsx --> n__settings_team
+  n_chrome_src_pages_settings_SettingsArea_tsx --> n__settings_notifications
+  n_chrome_src_pages_settings_SettingsArea_tsx --> n__settings_macros
+  n_file_src_router_tsx --> n__
+  n_file_src_router_tsx -.->|redirect| n__sign_in
+  classDef chrome fill:#e0e7ff
+  class n_chrome_src_components_MobileHeader_tsx chrome
+  class n_chrome_src_components_NewTicketDialog_tsx chrome
+  class n_chrome_src_components_Sidebar_tsx chrome
+  class n_chrome_src_components_TopNav_tsx chrome
+  class n_chrome_src_layouts_TicketsLayout_tsx chrome
+  class n_chrome_src_pages_settings_SettingsArea_tsx chrome

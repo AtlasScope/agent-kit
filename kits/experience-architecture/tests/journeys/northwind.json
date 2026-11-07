@@ -1,0 +1,49 @@
+{
+  "baseUrl": "http://localhost:3100",
+  "viewports": ["desktop"],
+  "cookies": [{ "name": "session", "value": "demo" }],
+  "journeys": [
+    { "id": "record-tabs", "intent": "Look through a customer's tabs, then go back to where I came from", "steps": [
+      { "goto": "/customers" }, { "goto": "/customers/1" },
+      { "click": "role=tab[name='Orders']" }, { "click": "role=tab[name='Notes']" },
+      { "back": true }, { "back": true },
+      { "expect": { "path": "/customers" } }
+    ]},
+    { "id": "drawer-back", "intent": "Peek at a customer from the list, then close the peek with Back", "steps": [
+      { "goto": "/overview" }, { "click": "role=link[name='Customers']", "within": "nav[aria-label=Sidebar]" },
+      { "click": "text=Globex" }, { "back": true },
+      { "expect": { "path": "/customers", "dialog": false } }
+    ]},
+    { "id": "orders-filter-back", "intent": "Filter orders, open one, come back to the same filtered list", "steps": [
+      { "goto": "/orders" }, { "click": "role=button[name='shipped']" }, { "scroll": 900 },
+      { "click": "role=link[name='Order 1031']" }, { "back": true },
+      { "expect": { "pressed": "shipped" } }
+    ]},
+    { "id": "orders-in-app-back", "intent": "Same, using the page's own back button", "steps": [
+      { "goto": "/orders" }, { "click": "role=button[name='shipped']" },
+      { "click": "role=link[name='Order 1001']" }, { "click": "text=← Orders" },
+      { "expect": { "pressed": "shipped" } }, { "back": true }
+    ]},
+    { "id": "orders-refresh", "intent": "Refresh a filtered list", "steps": [
+      { "goto": "/orders" }, { "click": "role=button[name='closed']" }, { "reload": true }
+    ]},
+    { "id": "draft-switch", "intent": "Draft a note for one customer, move to the next customer", "steps": [
+      { "goto": "/customers/1?tab=notes" }, { "fill": ["textarea[aria-label='Note draft']", "Call about renewal"] },
+      { "click": "text=Next customer →" },
+      { "expect": { "field": { "Note draft": "" } } }
+    ]},
+    { "id": "banner-dismiss", "intent": "Dismiss the announcement and keep working", "steps": [
+      { "goto": "/overview" }, { "click": "role=button[name='Dismiss']" },
+      { "click": "role=link[name='Orders']", "within": "nav[aria-label=Sidebar]" },
+      { "expect": { "notText": "quarterly billing is now available" } }
+    ]},
+    { "id": "deep-link-signed-out", "intent": "Open a shared order link while signed out, sign in, land on the order", "steps": [
+      { "clearCookies": true }, { "goto": "/orders/1003" }, { "click": "role=button[name='Sign in']" },
+      { "expect": { "path": "/orders/1003" } }
+    ]},
+    { "id": "legacy-url", "intent": "Old bookmark to the dashboard", "steps": [ { "goto": "/dashboard" }, { "expect": { "path": "/overview" } } ]},
+    { "id": "mobile-nav", "intent": "On a phone, get from the overview to orders", "viewports": ["mobile"], "steps": [
+      { "goto": "/overview" }, { "expect": { "navVisible": true } }
+    ]}
+  ]
+}
