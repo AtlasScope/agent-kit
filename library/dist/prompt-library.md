@@ -1,6 +1,6 @@
 # Prompt Library
 
-214 prompts, commands and recipes for coding and design agents. Open prompt-library.html for search, stars and the prompt composer.
+238 prompts, commands and recipes for coding and design agents. Open prompt-library.html for search, stars and the prompt composer.
 
 ## Investigations
 
@@ -318,6 +318,285 @@ Trace calculations involving currency, percentages, basis points, share counts, 
 Trace every flow where the client updates UI state or local cache optimistically before server confirmation. Demonstrate what happens to user state, queued actions, and screen accuracy when the server rejects the mutation, times out, or returns canonical values that differ from the client's assumption.
 ```
 
+## Database
+
+### Start here
+
+**PG00 · Make this database easier to trust and operate** The broad starting point when the database feels hard to trust or costly, and you can't yet name one problem.
+
+```text
+I want this PostgreSQL database to become easier to maintain, faster where it matters, less expensive to operate, and more trustworthy.
+
+Study how the database actually works today, including its schema, important relationships, data sources, reads, writes, background jobs, migrations and consumers. Use the real database state, repository and operational evidence rather than relying on documentation alone.
+
+Find the few underlying problems responsible for the greatest amount of unnecessary complexity, repeated work, data-quality risk and operational expense.
+
+I care especially about correctness of the underlying data, efficient and reliable writes, duplicated logic, unnecessary database objects, historical accuracy, and changes that make future development easier for coding agents.
+
+Rank the opportunities by actual impact. Distinguish demonstrated problems from theoretical concerns, and don't recommend a redesign just because an approach is unconventional.
+
+Make recommendations that simplify the existing system rather than introduce more infrastructure or recurring processes. Reuse evidence already gathered, investigate only what's needed to support a decision, and group related findings around their shared cause.
+
+Use read-only investigation initially. Don't modify production data, schemas or infrastructure. Give me the strongest findings, what proves them, and the smallest changes that would produce meaningful improvements.
+```
+
+### Accuracy and evidence
+
+**PG01 · Can we independently prove these numbers?** Important figures may be wrong even though their lineage is documented.
+
+```text
+Take a representative set of important figures from this database and independently reconstruct them from their original sources. Don't rely on the existing calculation code to verify itself. Find discrepancies in definitions, source selection, units, dates, classifications, and relationships. Determine which errors are isolated and which come from shared logic, then rank corrections by analytical impact.
+```
+
+**PG02 · Find data that is internally consistent but wrong** Every check passes, but totals or outputs still look implausible.
+
+```text
+Look for data that passes the database's constraints and ordinary validation but is still analytically wrong. Test cross-table relationships, accounting identities, historical continuity, plausible ranges, source coverage, and independent calculations. Focus on contradictions that existing checks would miss, and distinguish genuine errors from legitimate differences in definitions or reporting periods.
+```
+
+**PG03 · Find where records silently change identity** Sources use aliases, changing identifiers, share classes or inconsistent names for the same thing.
+
+```text
+Trace how real-world entities are identified, matched and connected across imports, source documents and database tables. Find cases where distinct entities are merged, identical entities are duplicated, or historical relationships become disconnected. Identify the matching rule responsible and the affected population before proposing corrections.
+```
+
+**PG04 · Reproduce what the database believed in the past** Past reports, backfills, restatements or changed classification rules matter.
+
+```text
+Choose important historical records and determine whether the system can reproduce what was known and reported at a specific past date, using the definitions and evidence available then. Distinguish later source corrections from later classification changes. Find where current logic silently rewrites historical meaning and recommend the smallest reliable solution.
+```
+
+### Writes and ingestion
+
+**PG05 · Map every place that writes to the database** Several jobs, functions, APIs or agents change the same data, or nobody is sure who owns it.
+
+```text
+Map the actual write paths for the important tables in this application. Identify every script, job, API, function, trigger and agent that can create, update or delete their records. Show who owns each field, which paths overlap, and where two writers can disagree or overwrite each other. Recommend the simplest ownership model supported by the existing system.
+```
+
+**PG06 · Stop rewriting data that hasn't changed** Upserts and updates run at high volume, imports are costly, or vacuum and write-ahead log churn look high.
+
+```text
+Investigate how much database write activity actually changes meaningful information. Find repeated upserts, unchanged updates, unnecessary delete-and-reinsert operations, repeated index maintenance and cascading refreshes. Measure their cost where practical and determine which writes can be eliminated without changing correctness, history or recovery behavior.
+```
+
+**PG07 · Is our ingestion process more complicated than necessary?** The import pipeline is long, slow to correct, or does the same work at several stages.
+
+```text
+Trace one complete ingestion cycle from the original source to the final database records. Identify repeated parsing, unnecessary intermediate states, duplicate validation, repeated reads, redundant transformations and writes that could be consolidated. Recommend the simplest workflow that preserves accuracy, traceability, failure recovery and the ability to process corrections.
+```
+
+**PG08 · Can we rerun everything without damaging the data?** Imports get retried, schedulers overlap, files are replayed, or runs fail halfway.
+
+```text
+Examine the ingestion and correction workflows under retries, interrupted runs, duplicate source files, out-of-order arrivals and repeated execution. Demonstrate where these cases produce duplicate records, lost corrections, partial results or unnecessary rewrites. Find the smallest durable approach that makes each operation safely repeatable.
+```
+
+**PG09 · Find where write logic should live** Business rules are split across SQL, triggers, edge functions, server routes and workers.
+
+```text
+Trace how records are validated, transformed and written across application code, database functions, triggers and background jobs. Find rules duplicated in different layers or placed where they are difficult to test and maintain. Recommend the simplest ownership boundary for each rule, without assuming that moving more logic into Postgres is automatically better.
+```
+
+### Schema and dependencies
+
+**PG10 · Which database objects no longer earn their keep?** The list of views, functions and triggers has grown hard to reason about.
+
+```text
+Examine the tables, views, functions, triggers, indexes and materialized views in this database. Identify redundant representations, obsolete objects, overlapping responsibilities, unnecessary dependency chains and abstractions that no longer provide meaningful value. Verify actual consumers before recommending removal. Rank opportunities by complexity eliminated, operational savings and migration risk.
+```
+
+**PG11 · Are we storing the same truth multiple times?** Caches, aggregates, materialized views or derived columns drift from the raw facts.
+
+```text
+Find concepts and values maintained in multiple tables, materialized views, caches or derived columns. Trace which representation is authoritative, why each copy exists, how it stays synchronized, and what happens when the copies disagree. Recommend which duplication is justified by performance or history and which should be removed.
+```
+
+**PG12 · Can the schema be easier to understand without losing depth?** New developers or agents keep misunderstanding names, concepts or relationships.
+
+```text
+Review the database's logical organization from the perspective of a new senior engineer. Identify confusing names, mixed responsibilities, inconsistent conventions, unclear relationships and schemas that obscure the business domain. Recommend structural improvements that make the model easier to understand and maintain without sacrificing useful historical detail or creating unnecessary migrations.
+```
+
+### Performance and maintenance
+
+**PG13 · Find the true sources of database waste** The bill is high, CPU or disk usage is high, storage keeps growing, or you suspect bloat.
+
+```text
+Measure which tables, indexes, queries and maintenance activities consume the most storage, execution time and write resources. Distinguish useful capacity from avoidable waste, including unused indexes, row churn, bloat, poor plans and excessive scans. Recommend changes based on observed workload and realistic savings, not generic optimization rules.
+```
+
+**PG14 · What will become expensive as the database grows?** Fact or history tables are growing fast, or you need to plan capacity.
+
+```text
+Use actual table sizes, row growth, query plans and workload patterns to identify the first database operations likely to become disproportionately expensive as data grows. Evaluate indexing, partitioning, pagination, aggregation and retention only where the evidence justifies them. Show what scale would trigger a change rather than optimizing everything prematurely.
+```
+
+### Rebuild and safe change
+
+**PG15 · Can we rebuild this database from its sources?** You worry about disaster recovery, production-only state, or whether the data could be rebuilt.
+
+```text
+Determine whether this database can be reconstructed from the repository, migrations, original source material and retained operational records. Identify anything that exists only in production, any transformations that cannot be reproduced, and data that would be permanently lost. Where possible, test the reconstruction on an isolated database and compare the resulting records and relationships.
+```
+
+**PG17 · Are our database changes safe before we merge?** A migration, or a change to functions, views, RLS, types or column meaning, is about to ship.
+
+```text
+Review this database change against the live schema, existing consumers, prior migrations and deployment process. Establish whether it preserves current records, supports old and new application versions during rollout, and can be verified on an isolated database. Identify the smallest necessary migration and a realistic recovery path before approving it.
+```
+
+### Agent decisions
+
+**PG16 · Which decisions should an expert agent make without me?** Agents keep asking you to classify fields, match records or pick between sources.
+
+```text
+Find recurring database decisions that agents currently escalate to me, including field classification, record matching, write conflicts, source precedence and schema choices. Determine which can be resolved through established standards, existing precedent and authoritative evidence. Make the decision rules reusable, identify their limits, and reserve escalation for genuine product or risk decisions.
+```
+
+### Workflows
+
+**DBR01 · Is the data actually right?** Prove the numbers before fixing anything.
+
+```text
+Is the data actually right? Prove the numbers before fixing anything.
+Work through this in order and check in with me after each step. Stay read-only until I approve a change.
+
+1. Start: PG01 when a figure disagrees with its source; PG02 when everything validates but still looks wrong.
+
+Can we independently prove these numbers? (PG01)
+Take a representative set of important figures from this database and independently reconstruct them from their original sources. Don't rely on the existing calculation code to verify itself. Find discrepancies in definitions, source selection, units, dates, classifications, and relationships. Determine which errors are isolated and which come from shared logic, then rank corrections by analytical impact.
+
+Find data that is internally consistent but wrong (PG02)
+Look for data that passes the database's constraints and ordinary validation but is still analytically wrong. Test cross-table relationships, accounting identities, historical continuity, plausible ranges, source coverage, and independent calculations. Focus on contradictions that existing checks would miss, and distinguish genuine errors from legitimate differences in definitions or reporting periods.
+
+2. If needed: PG03 for identity gaps; PG04 when the meaning of past records matters.
+
+Find where records silently change identity (PG03)
+Trace how real-world entities are identified, matched and connected across imports, source documents and database tables. Find cases where distinct entities are merged, identical entities are duplicated, or historical relationships become disconnected. Identify the matching rule responsible and the affected population before proposing corrections.
+
+Reproduce what the database believed in the past (PG04)
+Choose important historical records and determine whether the system can reproduce what was known and reported at a specific past date, using the definitions and evidence available then. Distinguish later source corrections from later classification changes. Find where current logic silently rewrites historical meaning and recommend the smallest reliable solution.
+
+3. Change: Fix only the confirmed shared causes, and add SQL or metric tests for them.
+
+4. Done when: Recomputed examples that now match, an estimate of how much data was affected, and any source limits stated plainly.
+```
+
+**DBR02 · Make ingestion simpler and cheaper** Less work per import, without losing provenance or corrections.
+
+```text
+Make ingestion simpler and cheaper Less work per import, without losing provenance or corrections.
+Work through this in order and check in with me after each step. Stay read-only until I approve a change.
+
+1. Start: PG05 when it is unclear who writes what; otherwise PG07.
+
+Map every place that writes to the database (PG05)
+Map the actual write paths for the important tables in this application. Identify every script, job, API, function, trigger and agent that can create, update or delete their records. Show who owns each field, which paths overlap, and where two writers can disagree or overwrite each other. Recommend the simplest ownership model supported by the existing system.
+
+Is our ingestion process more complicated than necessary? (PG07)
+Trace one complete ingestion cycle from the original source to the final database records. Identify repeated parsing, unnecessary intermediate states, duplicate validation, repeated reads, redundant transformations and writes that could be consolidated. Recommend the simplest workflow that preserves accuracy, traceability, failure recovery and the ability to process corrections.
+
+2. If needed: PG06 for writes that change nothing; PG08 for replay or correction failures; PG09 for validation done in several places.
+
+Stop rewriting data that hasn't changed (PG06)
+Investigate how much database write activity actually changes meaningful information. Find repeated upserts, unchanged updates, unnecessary delete-and-reinsert operations, repeated index maintenance and cascading refreshes. Measure their cost where practical and determine which writes can be eliminated without changing correctness, history or recovery behavior.
+
+Can we rerun everything without damaging the data? (PG08)
+Examine the ingestion and correction workflows under retries, interrupted runs, duplicate source files, out-of-order arrivals and repeated execution. Demonstrate where these cases produce duplicate records, lost corrections, partial results or unnecessary rewrites. Find the smallest durable approach that makes each operation safely repeatable.
+
+Find where write logic should live (PG09)
+Trace how records are validated, transformed and written across application code, database functions, triggers and background jobs. Find rules duplicated in different layers or placed where they are difficult to test and maintain. Recommend the simplest ownership boundary for each rule, without assuming that moving more logic into Postgres is automatically better.
+
+3. Change: Make the smallest change to one cause at a time, keeping provenance and corrections.
+
+4. Done when: The same results for reference inputs, measurably less work, and retries that do no harm.
+```
+
+**DBR03 · Simplify a crowded schema** Fewer objects with the same outcomes.
+
+```text
+Simplify a crowded schema Fewer objects with the same outcomes.
+Work through this in order and check in with me after each step. Stay read-only until I approve a change.
+
+1. Start: Inventory objects and their real consumers.
+
+Which database objects no longer earn their keep? (PG10)
+Examine the tables, views, functions, triggers, indexes and materialized views in this database. Identify redundant representations, obsolete objects, overlapping responsibilities, unnecessary dependency chains and abstractions that no longer provide meaningful value. Verify actual consumers before recommending removal. Rank opportunities by complexity eliminated, operational savings and migration risk.
+
+2. If needed: PG11 for copies of the same fact; PG12 for confusing names; PG17 before any schema change ships.
+
+Are we storing the same truth multiple times? (PG11)
+Find concepts and values maintained in multiple tables, materialized views, caches or derived columns. Trace which representation is authoritative, why each copy exists, how it stays synchronized, and what happens when the copies disagree. Recommend which duplication is justified by performance or history and which should be removed.
+
+Can the schema be easier to understand without losing depth? (PG12)
+Review the database's logical organization from the perspective of a new senior engineer. Identify confusing names, mixed responsibilities, inconsistent conventions, unclear relationships and schemas that obscure the business domain. Recommend structural improvements that make the model easier to understand and maintain without sacrificing useful historical detail or creating unnecessary migrations.
+
+Are our database changes safe before we merge? (PG17)
+Review this database change against the live schema, existing consumers, prior migrations and deployment process. Establish whether it preserves current records, supports old and new application versions during rollout, and can be verified on an isolated database. Identify the smallest necessary migration and a realistic recovery path before approving it.
+
+3. Change: Confirm consumers before retiring anything, and keep old and new versions working during rollout.
+
+4. Done when: Less complexity with unchanged results for users and data.
+```
+
+**DBR04 · Reduce PostgreSQL resource cost** Spend less where the measurements say the money goes.
+
+```text
+Reduce PostgreSQL resource cost Spend less where the measurements say the money goes.
+Work through this in order and check in with me after each step. Stay read-only until I approve a change.
+
+1. Start: Measure the top consumers first.
+
+Find the true sources of database waste (PG13)
+Measure which tables, indexes, queries and maintenance activities consume the most storage, execution time and write resources. Distinguish useful capacity from avoidable waste, including unused indexes, row churn, bloat, poor plans and excessive scans. Recommend changes based on observed workload and realistic savings, not generic optimization rules.
+
+2. If needed: PG06 for write churn; PG14 when growth is the driver; P03 for one slow query.
+
+Stop rewriting data that hasn't changed (PG06)
+Investigate how much database write activity actually changes meaningful information. Find repeated upserts, unchanged updates, unnecessary delete-and-reinsert operations, repeated index maintenance and cascading refreshes. Measure their cost where practical and determine which writes can be eliminated without changing correctness, history or recovery behavior.
+
+What will become expensive as the database grows? (PG14)
+Use actual table sizes, row growth, query plans and workload patterns to identify the first database operations likely to become disproportionately expensive as data grows. Evaluate indexing, partitioning, pagination, aggregation and retention only where the evidence justifies them. Show what scale would trigger a change rather than optimizing everything prematurely.
+
+Queries that grow badly (P03)
+Find database queries whose cost grows disproportionately with records, tenants, or relationships. Examine execution plans, indexes, joins, pagination, and application-side filtering.
+
+3. Change: Take the biggest measured savings first. No speculative indexes or partitions.
+
+4. Done when: Workload figures before and after, with no loss of correctness.
+```
+
+**DBR05 · Ship or recover safely** A schema change or a restore you have actually tested.
+
+```text
+Ship or recover safely A schema change or a restore you have actually tested.
+Work through this in order and check in with me after each step. Stay read-only until I approve a change.
+
+1. Start: PG17 for a change about to ship; PG15 for rebuilding or recovery.
+
+Are our database changes safe before we merge? (PG17)
+Review this database change against the live schema, existing consumers, prior migrations and deployment process. Establish whether it preserves current records, supports old and new application versions during rollout, and can be verified on an isolated database. Identify the smallest necessary migration and a realistic recovery path before approving it.
+
+Can we rebuild this database from its sources? (PG15)
+Determine whether this database can be reconstructed from the repository, migrations, original source material and retained operational records. Identify anything that exists only in production, any transformations that cannot be reproduced, and data that would be permanently lost. Where possible, test the reconstruction on an isolated database and compare the resulting records and relationships.
+
+2. If needed: G02 for deploy timing; R06 for half-finished failures; PG04 when past results must not move.
+
+Database changes during a deploy (G02)
+Trace what happens during the deployment window when a new database migration or API schema change goes live while previous client bundles, active background workers, or queue consumers are still running. Identify column renames, non-nullable additions, or contract changes that break backwards compatibility before the old code finishes draining.
+
+Half-finished failures (R06)
+Trace error, timeout and cancellation paths for transactions, locks, file handles, temporary files, worker jobs and network connections. Identify paths that leave resources held or state half-committed, and demonstrate them with controlled failure injection where practical.
+
+Reproduce what the database believed in the past (PG04)
+Choose important historical records and determine whether the system can reproduce what was known and reported at a specific past date, using the definitions and evidence available then. Distinguish later source corrections from later classification changes. Find where current logic silently rewrites historical meaning and recommend the smallest reliable solution.
+
+3. Change: Run migrations and restores on a separate database, check compatibility, and plan the recovery.
+
+4. Done when: A migration or restore tested on a separate database, and no claim about production that wasn't proved.
+```
+
 ## Thinking prompts
 
 ### Thinking prompts
@@ -396,6 +675,12 @@ Be thorough in your analysis and bold in your recommendations
 
 ```text
 /engineer
+```
+
+**EC35 · /database** Describe a PostgreSQL problem in plain words and it picks one database prompt from this library, says why, and runs it read-only when it can reach the code and database. In Codex it's $database.
+
+```text
+/database
 ```
 
 **EC02 · /diagnosing-bugs** For hard bugs and slowdowns. Builds a check that fails on the bug, shrinks it, ranks likely causes, adds logging, fixes it with a test that keeps it from coming back, then cleans up.
