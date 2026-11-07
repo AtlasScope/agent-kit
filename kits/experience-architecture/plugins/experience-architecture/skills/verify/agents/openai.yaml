@@ -1,0 +1,5 @@
+interface:
+  display_name: "Verify (experience architecture)"
+  short_description: "Prove navigation and state behaviour in a browser"
+policy:
+  allow_implicit_invocation: true

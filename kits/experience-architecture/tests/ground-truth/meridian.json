@@ -1,0 +1,172 @@
+{
+  "app": "meridian",
+  "routes": 57,
+  "routes_note": "57 = page.tsx + route.ts files under src/app, excluding the two @modal slot files (default.tsx is not counted; @modal/page.tsx and the intercepting @modal/(.)[exceptionId]/page.tsx are not counted because they add no URL). Includes 2 route handlers (/track/[ref], /api/search), the catch-all /w/[workspace]/[...rest], /share/[code] and the root redirect page. Source size: about 5,100 lines of TS/TSX/CSS under src/. Paths below are relative to fixtures/meridian/.",
+  "defects": [
+    {
+      "id": "M1",
+      "area": "routing",
+      "summary": "Inbox alert links lose the alert's workspace. Each notification carries its own workspace, but the link is built from the last-visited workspace cookie (meridian_ws, default acme), so alerts about Harbor or Northwind shipments open /w/acme/shipments/<id> and 404. Alerts that happen to belong to the last workspace work, which hides the bug.",
+      "where": "src/app/(app)/inbox/InboxList.tsx:49",
+      "how_to_see": "Sign in, visit /w/acme/overview, open /inbox, click an alert whose Workspace column says Harbor Line Imports (e.g. SHP-1006): lands on 'Page not found'. Code read: href uses `ws` from readCookie(LAST_WORKSPACE_COOKIE) instead of n.workspace.",
+      "needs_browser": false
+    },
+    {
+      "id": "M2",
+      "area": "routing",
+      "summary": "Sign-in honours the destination only for /w/ paths. LoginForm.destinationFor accepts `next` only if it starts with /w/; every other destination (/share/<code>, /org/..., /account/..., /inbox) is replaced with /workspaces. A signed-out person opening a shared shipment link (/share/<code>) signs in and lands on the workspace picker instead of the shipment. ADR 0002 says login continues to the page the person was trying to reach.",
+      "where": "src/app/(auth)/login/LoginForm.tsx:7",
+      "how_to_see": "Signed out (no meridian_session cookie), open /share/s744 (shared link for SHP-1002). Middleware sends you to /login?next=%2Fshare%2Fs744; sign in; you land on /workspaces, not /w/northwind/shipments/SHP-1002. Same for /org/members. Compare /w/acme/overview, which does come back.",
+      "needs_browser": true,
+      "signed_out_shared_link": true
+    },
+    {
+      "id": "M3",
+      "area": "routing",
+      "summary": "Middleware drops the query string when it builds the sign-in destination: it clears url.search and stores only req.nextUrl.pathname in `next`. A signed-out deep link to a filtered view (/w/acme/shipments?status=delayed, /org/shipments?ws=harbor, /w/acme/exceptions?status=all) comes back unfiltered after sign-in.",
+      "where": "src/middleware.ts:11",
+      "how_to_see": "curl -sI http://host/w/acme/shipments?status=delayed without the cookie: Location is /login?next=%2Fw%2Facme%2Fshipments (no status). Code read of middleware.ts lines 9-11.",
+      "needs_browser": false
+    },
+    {
+      "id": "M4",
+      "area": "routing",
+      "summary": "Legacy redirect chain that also pins the workspace: /tracking/:id 308s to /shipments/:id, which 308s again to /w/acme/shipments/:id. Two hops (three for a signed-out user via /login), and every legacy shipment link is forced into the acme workspace, so Northwind and Harbor shipments 404. /track/:ref already resolves the right workspace and could have been the target.",
+      "where": "next.config.ts:9",
+      "how_to_see": "curl -sI -b meridian_session=demo /tracking/SHP-1005 -> 308 /shipments/SHP-1005 -> 308 /w/acme/shipments/SHP-1005 -> 404 (SHP-1005 belongs to northwind). Code read of the redirects array, lines 9-16.",
+      "needs_browser": false
+    },
+    {
+      "id": "M5",
+      "area": "routing",
+      "summary": "Workspace catch-all hides dead links. /w/[workspace]/[...rest] redirects any unknown workspace path to the overview, so the sidebar's 'Rate cards' item (/w/<ws>/rate-cards, no page exists) and the breadcrumb 'Settings' crumb (/w/<ws>/settings, no index page) silently bounce to Overview instead of 404ing. Mistyped or stale bookmarks also land on Overview with no message.",
+      "where": "src/app/(app)/w/[workspace]/[...rest]/page.tsx:5 (dead link at src/lib/nav.ts:29)",
+      "how_to_see": "Click Network > Rate cards in the sidebar: URL becomes /w/acme/overview. curl /w/acme/rate-cards -> 307 /w/acme/overview. Code read: catch-all page plus SIDEBAR_GROUPS entry with no matching route.",
+      "needs_browser": false
+    },
+    {
+      "id": "M6",
+      "area": "chrome",
+      "summary": "Navigation systems disagree on Reports pages. The sidebar's Dashboards item has match ['/dashboards','/reports'] and activeSidebarKey returns the first match, so on /w/<ws>/reports and every report detail the sidebar highlights Dashboards while the page title and breadcrumb say Reports and the Reports item is never active. The rail shows Insights for all three.",
+      "where": "src/lib/nav.ts:40",
+      "how_to_see": "Open /w/acme/reports/rp-acme-otd: sidebar active item is Dashboards, breadcrumb ends 'Reports / rp-acme-otd', title 'On-time delivery'. Reports item is never highlighted on any URL.",
+      "needs_browser": true
+    },
+    {
+      "id": "M7",
+      "area": "chrome",
+      "summary": "Exceptions is missing from the phone menu. Below 768px the rail and sidebar are hidden and the drawer is built from a separate MOBILE_NAV list that omits Exceptions, the dispatchers' main work queue. On a phone there is no menu path to /w/<ws>/exceptions.",
+      "where": "src/lib/nav.ts:56",
+      "how_to_see": "At 375px width open /w/acme/overview, tap Menu: Overview, Shipments, Carriers, Locations, Partners, Invoices, Insights, Dashboards, Reports, Settings, no Exceptions. Desktop sidebar has it with a count badge. Code read: compare MOBILE_NAV with SIDEBAR_GROUPS.",
+      "needs_browser": true,
+      "phone_width_only": true
+    },
+    {
+      "id": "M8",
+      "area": "chrome",
+      "summary": "Breadcrumbs link every URL prefix, including prefixes with no page: 'Workspaces' -> /w (404), the workspace name -> /w/<ws> (404), 'Account' -> /account (404), 'Settings' -> /org/settings (404) and /w/<ws>/settings (bounced to Overview by the catch-all). Shipment IDs also show as raw segments.",
+      "where": "src/lib/nav.ts:158 (crumbsFor), rendered by src/components/Breadcrumbs.tsx",
+      "how_to_see": "On /w/acme/shipments/SHP-1001/tracking click the first two crumbs: both 404. On /account/profile click 'Account': 404. On /org/settings/sso click 'Settings': 404.",
+      "needs_browser": false
+    },
+    {
+      "id": "M9",
+      "area": "continuity",
+      "summary": "Shipment list filters are lost on Back. Status, carrier, search, sort and page live only in useState (seeded once from searchParams) and are never written to the URL, so opening a shipment and pressing Back returns to the unfiltered first page. Refresh and sharing the filtered view also lose it.",
+      "where": "src/app/(app)/w/[workspace]/shipments/ShipmentsTable.tsx:30",
+      "how_to_see": "On /w/acme/shipments set Status = Delayed (URL does not change), click a row, press Back: Status is back to 'Any status'. Compare /org/shipments and /w/<ws>/exceptions, which keep filters in the URL.",
+      "needs_browser": true
+    },
+    {
+      "id": "M10",
+      "area": "continuity",
+      "summary": "Invoice detail tab is not restored after refresh or Back. Summary / Line items / Disputes / History are useState-only buttons, so refresh, Back from a linked shipment, or a shared link always opens Summary.",
+      "where": "src/app/(app)/w/[workspace]/invoices/[invoiceId]/InvoiceTabs.tsx:29",
+      "how_to_see": "Open /w/acme/invoices/INV-26-5100, click Line items, reload: Summary is selected again; URL never changed.",
+      "needs_browser": true
+    },
+    {
+      "id": "M11",
+      "area": "continuity",
+      "summary": "Shipment note draft leaks between records. The Activity tab composer stores its draft in the workspace-level DraftProvider under the constant key 'shipment-note' (no shipment ID), so text typed on one shipment appears in the composer of the next shipment you open, ready to be posted on the wrong load. The exception workbench keys its draft by ID correctly.",
+      "where": "src/app/(app)/w/[workspace]/shipments/[id]/activity/ShipmentNotes.tsx:16",
+      "how_to_see": "On /w/acme/shipments/SHP-1001/activity type a note, click the 'SHP-1004 →' next-record button, open Activity: the composer labelled 'Add a note to SHP-1004' contains the SHP-1001 text.",
+      "needs_browser": true
+    },
+    {
+      "id": "M12",
+      "area": "continuity",
+      "summary": "Scroll position lost on return to the invoice list. The 66-row table scrolls inside a fixed-height .scroll-pane div (max-height 64vh, overflow auto) instead of the page, so browser and Next.js scroll restoration do not apply; Back from an invoice puts the list at the top.",
+      "where": "src/app/(app)/w/[workspace]/invoices/page.tsx:23",
+      "how_to_see": "On /w/acme/invoices scroll the table well down, open an invoice, press Back: the inner table is scrolled to the top.",
+      "needs_browser": true
+    },
+    {
+      "id": "M13",
+      "area": "continuity",
+      "summary": "Exception quick-view modal is opened with router.replace, so Back does not close it: Back leaves the Exceptions list entirely (to whatever was before it). The modal is an intercepting route, so the URL does change, but no history entry is added. Opening a modal also discards the list's ?status filter.",
+      "where": "src/app/(app)/w/[workspace]/exceptions/ExceptionsList.tsx:32",
+      "how_to_see": "Go Overview -> Exceptions, click a row (modal opens, URL /w/acme/exceptions/EX-303), press Back: you are on Overview, not the list.",
+      "needs_browser": true
+    },
+    {
+      "id": "M14",
+      "area": "ia",
+      "summary": "Near-duplicate pages under different labels: Network > Partners (/w/<ws>/partners) lists exactly the same carriers as Operations > Carriers with re-ordered columns and the same links into /carriers/<id>. Two sidebar entries, two groups, one data set.",
+      "where": "src/app/(app)/w/[workspace]/partners/page.tsx:8",
+      "how_to_see": "Compare /w/acme/partners with /w/acme/carriers: same rows (carriersFor(workspace)), Partners rows link to the carrier profile.",
+      "needs_browser": false
+    },
+    {
+      "id": "M15",
+      "area": "routing",
+      "summary": "Workspace switcher keeps the current path, including record IDs. Switching workspace on a record page swaps only the slug (pathname.replace), so /w/acme/shipments/SHP-1001 becomes /w/northwind/shipments/SHP-1001, a 404 because records belong to one workspace (ADR 0001). Same for invoices, exceptions, carriers not contracted there, dashboards and reports.",
+      "where": "src/components/WorkspaceSwitcher.tsx:15",
+      "how_to_see": "Open /w/acme/shipments/SHP-1001, use the sidebar switcher to choose Northwind Logistics: 'Page not found'. List pages switch fine.",
+      "needs_browser": true
+    }
+  ],
+  "structural": [
+    {
+      "id": "S1",
+      "summary": "Notification settings are split across three areas by which system sends them: email digests and personal triggers in /account/notifications, workspace alert rules (when an alert fires and who gets it) in /w/<ws>/settings/alerts, and SMS / webhook / Slack channels for exception and invoice events in /org/settings/notifications. Someone asking 'why didn't I get told about this exception?' must visit all three, and the account page only says rules are 'managed by workspace admins' without a link.",
+      "expected_recommendation": "Organize notifications around what people manage: one Notifications area (or a clearly cross-linked set) that starts from the event (exception opened, ETA slip, invoice disputed) and shows rule, recipients and channel together, with the scope (me / this workspace / whole organization) as a property rather than the place. At minimum, cross-link the three pages and name them consistently."
+    },
+    {
+      "id": "S2",
+      "summary": "Insights, Dashboards and Reports overlap. Insights (/w/<ws>/insights with On-time, Lanes, Carriers) and each Dashboard (/w/<ws>/dashboards/<id>) render the same KPIs and charts (on-time %, shipments by status, lane volume, on-time by carrier), and Reports (/w/<ws>/reports/<id>) tabulate the same by-carrier and by-lane numbers. Three sidebar entries plus a rail section for one job; the sidebar even highlights Dashboards on Reports pages (M6).",
+      "expected_recommendation": "Merge into one Analytics section with a clear split by purpose: a single set of standard views (what Insights is now) plus saved/custom dashboards, with export and scheduled delivery as actions on any view instead of a separate Reports list. Retire or redirect the duplicate pages and align rail, sidebar and breadcrumbs to the merged section."
+    }
+  ],
+  "decoys": [
+    {
+      "id": "X1",
+      "what_looks_wrong": "The shipment list's Assign (tender to carrier) dialog has no URL, does not add history, and Back while it is open leaves the list.",
+      "why_it_is_fine": "Deliberate: one-step action dialogs stay out of the URL so they cannot be reopened from history or shared half-filled; reopening one in v1 caused duplicate tenders. Record-presenting dialogs (exception quick view) are routes.",
+      "evidence": "docs/adr/0004-transient-dialogs.md; src/app/(app)/w/[workspace]/shipments/ShipmentsTable.tsx:145",
+      "penalise_if": "The review lists the Assign dialog not being in the URL / not closing on Back as a defect or recommends routing it. Not penalised if it notes the ADR and accepts it, or only flags M13 (the exception modal)."
+    },
+    {
+      "id": "X2",
+      "what_looks_wrong": "/org/shipments duplicates the workspace shipment list at organization level.",
+      "why_it_is_fine": "It is the only cross-workspace view: shows a Workspace column, filters by workspace in the URL, and each row links into its own workspace. Documented in the README.",
+      "evidence": "README.md 'How it is organized'; src/app/(app)/org/shipments/page.tsx:63",
+      "penalise_if": "The review reports /org/shipments as a near-duplicate page or recommends removing/merging it. Contrast with M14 (Partners vs Carriers), which is a real duplicate."
+    },
+    {
+      "id": "X3",
+      "what_looks_wrong": "/track/<ref> is a second URL for a shipment, sits outside the /w/ structure, and is excluded from the auth middleware.",
+      "why_it_is_fine": "It is the link format carriers embed in their status emails, which cannot be changed. It resolves the owning workspace from data and redirects to the protected tracking tab; it exposes nothing itself, and signed-out users still go through /login and return (the destination is a /w/ path without a query, so M2/M3 do not bite).",
+      "evidence": "docs/integrations.md; docs/adr/0002-demo-session.md; src/app/track/[ref]/route.ts:13; src/middleware.ts:17",
+      "penalise_if": "The review calls /track a legacy duplicate to remove, an auth bypass, or a workspace-losing deep link. Recommending /tracking/:id redirect to /track/:id instead (M4 fix) is fine."
+    },
+    {
+      "id": "X4",
+      "what_looks_wrong": "Shipment and carrier record tabs push a history entry per tab, so leaving a record can take several Back presses.",
+      "why_it_is_fine": "Chosen after dispatcher ride-alongs: users go Tracking -> Documents -> Back to Tracking. Each tab is a route segment, deep-linkable and refresh-safe; scroll={false} keeps the header steady.",
+      "evidence": "docs/adr/0003-record-tabs-push-history.md; src/components/RecordTabs.tsx:14",
+      "penalise_if": "The review recommends switching shipment/carrier tabs to replace or says tab history pollutes Back. Not penalised for flagging invoice tabs (M10), which are not in the URL at all."
+    }
+  ],
+  "scoring": "A defect counts as found when the review names either (a) the correct cause (the mechanism in the listed file, e.g. 'draft keyed without shipment id', 'login only accepts /w/ next') or (b) the correct user-visible symptom together with a location precise enough to act on (route or component, e.g. 'notes typed on one shipment appear on the next shipment's Activity tab'). Generic statements ('state may be lost on navigation', 'check breadcrumbs') do not count. One finding can cover only one defect unless it explicitly describes both mechanisms; M4 and M15 both lose the workspace but are separate. Structural items count if the review identifies the overlap/split and gives a recommendation in the spirit of expected_recommendation. Report recall as found/15 defects and found/2 structural. Each decoy whose penalise_if condition is met subtracts one from the defect count found (floor 0) and is reported separately as a false positive; mentioning a decoy neutrally or with its documented rationale is not penalised. Other findings not in this key are neither rewarded nor penalised unless clearly wrong."
+}

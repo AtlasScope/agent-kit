@@ -1,0 +1,18 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, sans-serif; color: #1c1c1c; }
+.topbar { display: flex; gap: 16px; align-items: center; padding: 10px 16px; border-bottom: 1px solid #ddd; }
+.topbar nav { display: flex; gap: 12px; }
+.topbar a.active, .sidebar a.active { font-weight: 700; text-decoration: underline; }
+.shell { display: flex; min-height: calc(100vh - 50px); }
+.sidebar { width: 200px; border-right: 1px solid #ddd; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+main { flex: 1; padding: 16px 24px; }
+.tabs { display: flex; gap: 8px; margin: 12px 0; }
+.tabs button[aria-selected="true"] { font-weight: 700; border-bottom: 2px solid #333; }
+.drawer { position: fixed; top: 0; right: 0; width: 340px; height: 100vh; background: #fff; border-left: 1px solid #ccc; padding: 16px; box-shadow: -4px 0 12px rgba(0,0,0,.1); }
+.banner { background: #fff6d5; padding: 8px 12px; margin-bottom: 12px; display: flex; justify-content: space-between; }
+table { border-collapse: collapse; width: 100%; }
+td, th { border-bottom: 1px solid #eee; padding: 10px; text-align: left; }
+@media (max-width: 767px) {
+  .topbar nav { display: none; }
+  .sidebar { display: none; }
+}

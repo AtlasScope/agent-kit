@@ -1,0 +1,15 @@
+{
+  "name": "experience-architecture",
+  "owner": {
+    "name": "AtlasScope"
+  },
+  "description": "Experience Architecture: diagnose, rethink and verify how a web app hangs together",
+  "plugins": [
+    {
+      "name": "experience-architecture",
+      "source": "./plugins/experience-architecture",
+      "description": "Find out why a web app's navigation, pages, links or Back button feel wrong, decide whether the structure should change, and prove it in a real browser.",
+      "homepage": "https://github.com/AtlasScope/experience-architecture"
+    }
+  ]
+}

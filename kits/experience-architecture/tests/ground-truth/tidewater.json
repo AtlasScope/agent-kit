@@ -1,0 +1,151 @@
+{
+  "app": "tidewater",
+  "structural_verdict": "Tidewater's problem is structural. The coordinators' one job, carrying a single maintenance request from report through triage, vendor scheduling, tenant updates, completion and invoice release, is cut into slices across Intake, Dispatch, Assign Vendor, Vendor Portal Sync, Tenant Comms and Billing Export. Each page shows one back-office system's record type (REQ, WO, VJ, INV) and the only way between them is copying an id and searching for it on the next page (CopyId everywhere, no cross-links; Vendor Portal Sync and Billing Export do not even show the REQ number). The top nav is organised by the systems and desks that existed in 2023 (ADR 0001), but the README says the desks were merged in July 2025 so that one coordinator owns each request end to end, and that their morning question is 'what needs me today?', which no page answers. The data model already links every record to its parent and lookup.ts already assembles a whole request's history (timelineForRequest), used only on the tenant page. The right conclusion is to reorganise around the request: a request record that shows every stage and its actions in one place, plus a work queue (by stage and/or a 'needs me today' view per coordinator), retire the single-action Assign Vendor page and the stale Overview (beta), overturn ADRs 0001 and 0002, and keep the tenant status page, the Approvals queue and the tenant/vendor boundary. A short list of routing or state bugs, however accurate, misses the point.",
+  "expected_structure": "Primary: (1) 'My work' / 'Needs me today' queue as the landing page, per coordinator, built from followUpBy, stage, vendor-reported completions awaiting acceptance, approvals decided, emergencies without a vendor, tenants not updated since a visit was booked; (2) a request queue/list grouped or filterable by stage (Reported, Triaged, Scheduled, In progress, Complete, Invoiced, Closed), filters kept in the URL; (3) one request record at /requests/:requestId with sections or tabs for Triage, Work order and vendor (assign, quote, schedule, approval status), Vendor progress (portal job, note, photos, accept completion with the existing confirm dialog), Tenant updates (thread, send, link to the tenant status page), Invoice; ids shown for reference and cross-system lookup only, with WO/VJ/INV ids resolving to the parent request. Keep Approvals as a separate supervisor queue (coordinators read-only, approval status shown on the request record). Billing Export can survive as a batch view for the 6pm AP export, demoted from a primary nav item or reached from the queue, because building the export file is a genuine batch task. Tenant status page stays separate. Acceptable variants: a single queue page with saved views ('Needs me', 'By stage', 'Emergencies') instead of two pages; stage tabs on the request record instead of sections; keeping Dispatch as a vendor-scheduling board view of the queue rather than a top-level system page; a split-pane queue + record layout. Not acceptable: keeping the system-based nav and only adding cross-links between the existing pages, though adding links is a reasonable first step if the reviewer also names the reorganisation.",
+  "page_verdicts": [
+    {
+      "path": "/intake",
+      "verdict": "merge into the request queue (Reported/Triaged stage filter)",
+      "why": "Shows only the first two stages of a request; a stage-filtered queue replaces it."
+    },
+    {
+      "path": "/intake/:requestId",
+      "verdict": "merge into /requests/:requestId (Triage section)",
+      "why": "Becomes the start of the single request record; currently it dead-ends with a WO id to copy and a link to a different page."
+    },
+    {
+      "path": "/dispatch",
+      "verdict": "demote to a view of the request queue (Scheduled/In progress, by work-order status) or retire",
+      "why": "A board of work orders is the same requests sliced by WO status; useful as a view, not as a system-named top-level page."
+    },
+    {
+      "path": "/dispatch/:workOrderId",
+      "verdict": "merge into /requests/:requestId (Work order and vendor section)",
+      "why": "Holds scheduling for one slice of the request; shows REQ id only as copyable text."
+    },
+    {
+      "path": "/dispatch/assign",
+      "verdict": "retire (move action onto the request record / work order section)",
+      "why": "Page whose only content is one form that asks you to retype a WO number; the work order detail itself links out to it instead of offering the action in place."
+    },
+    {
+      "path": "/vendor-sync",
+      "verdict": "merge into the queue as a 'vendor reported complete / needs review' view, or demote",
+      "why": "Named after an integration that now runs unattended (README: scheduled since mid-2024); coordinators need 'vendor finished, needs my acceptance' items in their queue, keyed by request, not by VJ id."
+    },
+    {
+      "path": "/vendor-sync/:jobId",
+      "verdict": "merge into /requests/:requestId (Vendor progress section)",
+      "why": "Accept completion belongs on the request; keep its confirm dialog."
+    },
+    {
+      "path": "/tenant-comms",
+      "verdict": "merge into /requests/:requestId (Tenant updates section); optional global sent-log view",
+      "why": "Tenant updates are per request and need the visit date/time from another page today; templates ask the coordinator to type [date] and [window] by hand."
+    },
+    {
+      "path": "/billing-export",
+      "verdict": "keep as a batch tool but demote from primary nav; show invoice status on the request record",
+      "why": "Building the nightly AP export is a real batch task across requests; per-invoice status belongs on the request."
+    },
+    {
+      "path": "/approvals",
+      "verdict": "keep",
+      "why": "Decoy D1: separate supervisor queue required by FIN-07 separation of duties (ADR 0004, permissions.ts). Showing approval status on the request record is a good addition."
+    },
+    {
+      "path": "/overview-beta",
+      "verdict": "retire",
+      "why": "Stale 2024 beta (feedback deadline 31 March 2024) that duplicates the Intake list exactly (same reported/triaged filter, fewer columns). It is not a seed of the request-centred view; it does not cover later stages."
+    },
+    {
+      "path": "/status/:token",
+      "verdict": "keep",
+      "why": "Decoy D3: tenant-facing surface protected by ADR 0003; repeats internal stage history so tenants can self-serve."
+    },
+    {
+      "path": "/",
+      "verdict": "move (land on the 'needs me today' queue instead of redirecting to Intake)",
+      "why": "Landing on Intake reflects the old intake-desk role; coordinators' first question is what needs them today."
+    }
+  ],
+  "should_not_exist": [
+    {
+      "path": "/dispatch/assign",
+      "why": "Single action (assign vendor + quote to a WO) that belongs on the work order / request record; requires retyping the WO number; it is in the top nav as if it were a section."
+    },
+    {
+      "path": "/overview-beta",
+      "why": "Stale beta overview from early 2024 that duplicates the Intake list; nobody owns it and its feedback window closed in March 2024."
+    }
+  ],
+  "bugs": [
+    {
+      "id": "B1",
+      "area": "continuity",
+      "summary": "Intake building and priority filters (and the search box) live in component state, so they reset when you open a request and press Back.",
+      "where": "src/pages/intake/IntakeList.tsx:16-18",
+      "how_to_see": "On /intake pick 'Harbor View' and 'Urgent', open a request, press browser Back: filters are back to All."
+    },
+    {
+      "id": "B2",
+      "area": "chrome",
+      "summary": "Top nav uses NavLink with `end` on every item (to stop Dispatch and Assign Vendor both highlighting), so no nav item is shown as current on any detail page (/intake/:id, /dispatch/:id, /vendor-sync/:id).",
+      "where": "src/components/TopNav.tsx:29",
+      "how_to_see": "Open /dispatch/WO-3307 or /intake/REQ-1042: no nav item is highlighted."
+    },
+    {
+      "id": "B3",
+      "area": "routing",
+      "summary": "Tenant Comms request search is case-sensitive and skips the normaliseId() used on every other page, so 'req-1042' finds nothing and shows 'No request req-1042'.",
+      "where": "src/pages/tenant/TenantComms.tsx:24-28",
+      "how_to_see": "On /tenant-comms type req-1042 (lowercase): no thread, no compose box; REQ-1042 works."
+    }
+  ],
+  "decoys": [
+    {
+      "id": "D1",
+      "what_looks_wrong": "Approvals is a second list of the same work orders/requests as Dispatch (filtered to over-limit quotes), and coordinators can see it but not act.",
+      "why_it_is_fine": "Finance policy FIN-07 requires separation of duties for spend over $1,500: only supervisors decide, never on their own request, and the audit samples it. Coordinators get read-only visibility so they can tell tenants what is blocking.",
+      "evidence": "docs/adr/0004-spend-approvals-queue.md; src/lib/permissions.ts (SPEND_APPROVAL_THRESHOLD note and GRANTS); src/pages/approvals/Approvals.tsx (ownRequest check)",
+      "penalise_if": "Recommends merging Approvals into Dispatch or the request record so coordinators can approve, or removing it as a duplicate list, without addressing the separation-of-duties requirement. Showing approval status on the request record while keeping the supervisor queue is fine."
+    },
+    {
+      "id": "D2",
+      "what_looks_wrong": "The 'Accept completion' confirmation dialog is not reflected in the URL, so it cannot be deep-linked and is lost on reload.",
+      "why_it_is_fine": "Accepting releases the vendor invoice into the 6pm AP export; the vendor portal re-sends completion events, so a reload, bookmark or shared link must never arrive with the release step already open. Transient confirm state is correct here.",
+      "evidence": "src/pages/vendor/VendorJobDetail.tsx (note above the confirming state); the dialog copy about the 6pm export",
+      "penalise_if": "Flags the modal as a URL/state continuity defect or recommends putting it in the URL/query string without addressing the double-release risk."
+    },
+    {
+      "id": "D3",
+      "what_looks_wrong": "The tenant status page repeats the stage and visit history coordinators see internally, lives outside the app shell, is not in the nav, and uses a token rather than the REQ id.",
+      "why_it_is_fine": "It is the tenant-facing surface linked from every SMS/email. ADR 0003 makes it a separate surface with a fixed field list, no staff chrome, token access only, and says the repetition is what lets tenants self-serve instead of calling.",
+      "evidence": "docs/adr/0003-tenant-and-vendor-boundary.md; src/pages/status/TenantStatus.tsx header note; src/App.tsx (route outside StaffLayout); README 'Screens'",
+      "penalise_if": "Recommends merging it into the staff request record, adding staff nav to it, switching it to REQ ids, or removing it as duplicate content."
+    }
+  ],
+  "adrs": [
+    {
+      "file": "docs/adr/0001-navigation-by-system.md",
+      "verdict": "overturn",
+      "why": "Original reasons: separate intake/dispatch/AP desks each lived in one legacy tool, and the vendor portal sync was a manual morning job someone had to run and check. The ADR itself says to revisit if the desks change. README: desks merged into end-to-end coordinators in July 2025, AP clerk folded in, sync automatic since mid-2024. The reasons no longer hold."
+    },
+    {
+      "file": "docs/adr/0002-system-ids-no-cross-links.md",
+      "verdict": "overturn",
+      "why": "Original reason: joins came from a stale nightly spreadsheet export that mis-mapped jobs and caused a double payment. README: the spreadsheet was retired in 2024 and Tidewater now holds work orders, jobs and invoices itself with exact parent ids written at creation; lookup.ts already walks them (timelineForRequest). The untrusted join no longer exists, so copy-and-search navigation has no remaining justification."
+    },
+    {
+      "file": "docs/adr/0003-tenant-and-vendor-boundary.md",
+      "verdict": "respect",
+      "why": "Privacy (other tenants' details, access codes) and commercial confidentiality of quotes/invoices still apply. A strong answer keeps the tenant page separate and token-based, keeps vendors in their own portal, and does not leak staff data into tenant views when building the request record."
+    },
+    {
+      "file": "docs/adr/0004-spend-approvals-queue.md",
+      "verdict": "respect",
+      "why": "FIN-07 separation of duties and the audit check are current requirements; keep a supervisor-only decision queue."
+    }
+  ],
+  "scoring": "5/5: names the structural problem (one end-to-end job split by back-office system, joined only by copied ids), cites evidence (README 2025 reorg and 'what needs me today', id chain REQ->WO->VJ->INV with Vendor Sync and Billing lacking REQ, CopyId/no links, data model parent ids and timelineForRequest), proposes a request-centred record plus a stage/needs-me queue, retires /dispatch/assign and /overview-beta, overturns ADR 0001 and 0002 by answering their stated reasons, respects ADR 0003 (and 0004), keeps all three decoys with their justification, and lists the minor bugs as secondary. 4/5: same conclusion with one gap (misses a should-not-exist page, or does not engage the ADRs' reasons, or misses the needs-me queue). 3/5: identifies fragmentation and proposes cross-links or a combined detail page but keeps the system-based nav, or gets the structure right while recommending removal of one decoy. 2/5: mainly a bug list (filter reset, nav highlighting, case-sensitive search) with generic IA remarks, or recommends merging/removing decoys without addressing their justification. 1/5: misses the structural issue entirely or recommends changes that break the tenant/staff boundary."
+}

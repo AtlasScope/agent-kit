@@ -1,0 +1,45 @@
+schema_version: "1.1"
+name: vague-mess
+description: >
+  The headline use case: a vague complaint with no technical cause given. A good answer finds problems across
+  several layers (chrome, IA, routing, state) from the code alone and leads with causes.
+tags: [diagnose, triage]
+plugins: ["../.."]
+runs: 1
+context:
+  add_dirs: [fixture]
+execution:
+  prompt: |
+    The app in the fixture directory is our internal ops tool. People keep saying the navigation feels like a
+    mess. I don't know what's technically wrong. Can you work out what's actually going on and what we should
+    do? Static review only, no running server. Don't change any code.
+  max_turns: 60
+  timeout_seconds: 1500
+  allowed_tools: [Read, Glob, Grep, Skill, Bash, Write, Agent]
+graders:
+  - name: used-plugin-skill
+    type: tool_used
+    tool: Skill
+    input_match: 'diagnose'
+    arm: with-only
+  - name: breadth
+    type: llm
+    weight: 2
+    criteria: >
+      Count how many of these the answer identifies with a correct reason (paraphrase is fine): (1) top bar and
+      sidebar duplicate destinations and compute active state differently (prefix vs exact), so they disagree on
+      nested pages; (2) /reports and /analytics are near-identical pages under different labels; (3) the sidebar's
+      Insights link goes to a route that does not exist; (4) breadcrumbs link to URL prefixes with no page
+      (/settings, /admin, /account); (5) navigation is hidden below 768px with no mobile replacement; (6) the
+      orders status filter is component state, lost on refresh/Back; (7) the customer drawer opens with
+      router.replace so Back leaves the page; (8) the note draft lives in a provider above /customers/[id] and
+      leaks between customers; (9) middleware sends signed-out users to /login without the original path;
+      (10) duplicate team (/settings/team vs /admin/users) or billing (/settings/billing vs /account/billing)
+      pages. Pass if at least 6 are identified.
+  - name: causes-and-recommendation
+    type: llm
+    weight: 1
+    criteria: >
+      Pass if the answer groups symptoms under a small number of structural causes (for example "two nav systems
+      with overlapping jobs", "no rule for which state lives in the URL") and gives a concrete recommended
+      structure, not only a list of bugs. Fail if it is only an unprioritised list.

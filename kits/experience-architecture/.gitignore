@@ -1,0 +1,10 @@
+node_modules/
+.next/
+.artifacts/
+.experience-architecture/
+**/evals/results/
+*.log
+dist/
+.DS_Store
+*.tsbuildinfo
+plugins/*.zip

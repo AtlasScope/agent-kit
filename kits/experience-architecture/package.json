@@ -1,0 +1,14 @@
+{
+  "name": "experience-architecture-dev",
+  "private": true,
+  "type": "module",
+  "description": "Development harness for the experience-architecture Claude Code plugin (tests and fixtures; not shipped).",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "fixtures:install": "npm --prefix fixtures/northwind install && npm --prefix fixtures/fernway install",
+    "package": "sh scripts/package.sh"
+  },
+  "devDependencies": {
+    "playwright": "1.64.1"
+  }
+}

@@ -1,0 +1,240 @@
+{
+  "fixture": "fixtures/lumen",
+  "defects": [
+    {
+      "id": "IA-orphan-insights",
+      "area": "ia",
+      "summary": "The Insights page exists but no nav item, tab or link points to it, so users can only reach it by typing the URL.",
+      "keywords": [
+        "insights",
+        "orphan",
+        "unreachable"
+      ],
+      "detection": "static"
+    },
+    {
+      "id": "IA-members-split-across-branches",
+      "area": "ia",
+      "summary": "People and access are spread over /people, /settings/members and the project Team tab, so a user cannot tell where to find or manage a teammate or their role.",
+      "keywords": [
+        "people",
+        "members",
+        "team",
+        "roles",
+        "settings",
+        "split"
+      ],
+      "detection": "static"
+    },
+    {
+      "id": "IA-my-tasks-duplicates-task-filter",
+      "area": "ia",
+      "summary": "My tasks is a standalone top-level page showing the same task list that the project Tasks view already narrows with its assignee=me filter.",
+      "keywords": [
+        "my-tasks",
+        "tasks",
+        "filter",
+        "assignee",
+        "duplicate"
+      ],
+      "detection": "static"
+    },
+    {
+      "id": "IA-import-under-docs",
+      "area": "ia",
+      "summary": "The CSV import for projects and tasks lives at /docs/import, so a user looking for data import in Settings will not find it.",
+      "keywords": [
+        "import",
+        "docs",
+        "misplaced",
+        "settings"
+      ],
+      "detection": "static"
+    },
+    {
+      "id": "ROUTING-dead-timeline-tab",
+      "area": "routing",
+      "summary": "The project Timeline tab links to /projects/<id>/timeline, which has no page, so clicking it gives a 404.",
+      "keywords": [
+        "timeline",
+        "tab",
+        "404",
+        "dead link"
+      ],
+      "detection": "both"
+    },
+    {
+      "id": "ROUTING-redirect-chain-dashboard",
+      "area": "routing",
+      "summary": "The Home nav item links to /dashboard, which redirects to /overview, which redirects to /home, so every Home click takes two hops and Home never shows as active.",
+      "keywords": [
+        "dashboard",
+        "overview",
+        "home",
+        "redirect chain",
+        "next.config"
+      ],
+      "detection": "both"
+    },
+    {
+      "id": "ROUTING-person-identity-query-vs-path",
+      "area": "routing",
+      "summary": "Task assignee links open /people?person=<id> while the directory opens /people/<id>, so the same person is addressed by query on one route and by path on another.",
+      "keywords": [
+        "person",
+        "query",
+        "path",
+        "identity",
+        "assignee"
+      ],
+      "detection": "static"
+    },
+    {
+      "id": "ROUTING-person-builder-handle-vs-id",
+      "area": "routing",
+      "summary": "personUrl builds /people/<handle> but the route looks people up by id, so the assignee link on task detail, the task modal and the Team tab all 404.",
+      "keywords": [
+        "personUrl",
+        "handle",
+        "personId",
+        "param mismatch",
+        "404"
+      ],
+      "detection": "both"
+    },
+    {
+      "id": "ROUTING-deep-link-lost-on-sign-in",
+      "area": "routing",
+      "summary": "Middleware sends signed-out visitors to /sign-in?next=<path> but the sign-in page ignores next and always lands on /projects, so a shared deep link is lost.",
+      "keywords": [
+        "middleware",
+        "next",
+        "sign-in",
+        "deep link",
+        "redirect"
+      ],
+      "detection": "both"
+    },
+    {
+      "id": "ROUTING-modal-direct-entry-back",
+      "area": "routing",
+      "summary": "The intercepted task modal closes with router.back(); opening the task URL directly or refreshing renders the full page whose Close button also calls back(), which leaves the app or does nothing.",
+      "keywords": [
+        "intercepting route",
+        "modal",
+        "router.back",
+        "refresh",
+        "direct entry",
+        "@modal"
+      ],
+      "detection": "runtime"
+    },
+    {
+      "id": "CHROME-workspace-choice-dropped",
+      "area": "chrome",
+      "summary": "The workspace switcher stores its choice only as ?ws= on the current URL; left nav, tab and in-page links drop it, so the next click silently returns to the first workspace.",
+      "keywords": [
+        "workspace switcher",
+        "ws",
+        "query param",
+        "left nav",
+        "lost"
+      ],
+      "detection": "runtime"
+    },
+    {
+      "id": "CHROME-dual-nav-active-conflict",
+      "area": "chrome",
+      "summary": "The left nav marks items active by exact path match while the settings sub-nav uses prefix match, so on /projects/<id> nothing is active in the left nav and on /settings/members both Profile and Members look active.",
+      "keywords": [
+        "active state",
+        "pathname",
+        "startsWith",
+        "left nav",
+        "settings nav",
+        "conflict"
+      ],
+      "detection": "both"
+    },
+    {
+      "id": "CHROME-tabs-docs-lose-project",
+      "area": "chrome",
+      "summary": "The project Docs tab links to the global /docs, so the user leaves the project, loses the project header and tabs, and the left nav context changes.",
+      "keywords": [
+        "tabs",
+        "docs",
+        "project context",
+        "sub-nav",
+        "projectTabUrl"
+      ],
+      "detection": "both"
+    },
+    {
+      "id": "CHROME-mobile-menu-stays-open",
+      "area": "chrome",
+      "summary": "On a narrow screen the mobile menu panel stays open after a link is tapped because its open state is never reset on navigation, covering the new page.",
+      "keywords": [
+        "mobile menu",
+        "close",
+        "navigation",
+        "open state",
+        "usePathname"
+      ],
+      "detection": "runtime"
+    },
+    {
+      "id": "CONT-task-status-filter-not-in-url",
+      "area": "continuity",
+      "summary": "The Tasks status filter is local component state, so it resets on refresh, Back or when the link is shared.",
+      "keywords": [
+        "filter",
+        "status",
+        "useState",
+        "url state",
+        "tasks"
+      ],
+      "detection": "both"
+    },
+    {
+      "id": "CONT-task-search-leaks-between-projects",
+      "area": "continuity",
+      "summary": "The task search text is kept in a module-level variable shared by all projects, so a query typed in one project pre-fills the search box in another.",
+      "keywords": [
+        "search",
+        "viewState",
+        "module state",
+        "leak",
+        "projects"
+      ],
+      "detection": "runtime"
+    },
+    {
+      "id": "CONT-invite-modal-history",
+      "area": "continuity",
+      "summary": "The Invite dialog opens with router.replace and closes with router.push, so Back cannot close it (it leaves the page) and after closing, Back reopens it.",
+      "keywords": [
+        "invite",
+        "modal",
+        "replace",
+        "push",
+        "history",
+        "back",
+        "forward"
+      ],
+      "detection": "runtime"
+    },
+    {
+      "id": "CONT-tabs-replace-history",
+      "area": "continuity",
+      "summary": "Project tabs navigate with replace, so switching tabs adds no history entries and Back jumps out of the project instead of returning to the previous tab.",
+      "keywords": [
+        "tabs",
+        "replace",
+        "history",
+        "back",
+        "ProjectTabs"
+      ],
+      "detection": "runtime"
+    }
+  ]
+}

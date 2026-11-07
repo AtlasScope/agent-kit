@@ -1,0 +1,25 @@
+{
+  "fixture": "fixtures/northwind",
+  "defects": [
+    { "id": "IA-dup-reports-analytics", "area": "ia", "summary": "/reports and /analytics are near-identical pages, reached from different chrome (top bar says Reports, sidebar says Analytics).", "keywords": ["analytics", "reports"] },
+    { "id": "IA-dup-billing", "area": "ia", "summary": "/settings/billing and /account/billing duplicate billing; only the second shows invoices.", "keywords": ["account/billing", "settings/billing"] },
+    { "id": "IA-dup-team", "area": "ia", "summary": "/settings/team and /admin/users list the same team members.", "keywords": ["admin/users", "settings/team"] },
+    { "id": "IA-orphan-archive", "area": "ia", "summary": "/customers/archive has no inbound links.", "keywords": ["archive"] },
+    { "id": "IA-fragment-customer", "area": "ia", "summary": "Customer is split across /customers/[id], /customers/[id]/notes (duplicates the notes tab) and top-level /customer-activity?id=.", "keywords": ["customer-activity", "notes"] },
+    { "id": "RT-dead-insights", "area": "routing", "summary": "Sidebar links /insights, which has no page and no redirect.", "keywords": ["insights"] },
+    { "id": "RT-dead-settings-index", "area": "routing", "summary": "Breadcrumbs link /settings (and /admin, /account), which have no page.", "keywords": ["/settings", "breadcrumb"] },
+    { "id": "RT-redirect-chain", "area": "routing", "summary": "/dashboard -> /home -> /overview is a two-hop redirect chain; / also redirects in a page.", "keywords": ["dashboard", "chain"] },
+    { "id": "RT-entity-two-urls", "area": "routing", "summary": "A customer has two addresses: /customers?selected=ID (drawer) and /customers/ID.", "keywords": ["selected"] },
+    { "id": "RT-auth-deeplink-lost", "area": "routing", "summary": "Middleware redirects to /login without the original path; after sign-in the user lands on /overview, losing the deep link.", "keywords": ["login", "middleware"] },
+    { "id": "CH-active-state-inconsistent", "area": "chrome", "summary": "Top bar uses prefix match, sidebar exact match: on /customers/1 the top bar highlights Customers and the sidebar highlights nothing.", "keywords": ["active", "startsWith"] },
+    { "id": "CH-duplicate-nav", "area": "chrome", "summary": "Top bar and sidebar both carry Overview/Customers/Orders; plus Team and Billing are in the sidebar and Admin in the top bar.", "keywords": ["duplicat", "sidebar", "top"] },
+    { "id": "CH-mobile-no-nav", "area": "chrome", "summary": "Under 768px both the top bar nav and sidebar are hidden with no replacement; mobile users have no primary navigation.", "keywords": ["mobile"] },
+    { "id": "CH-breadcrumb-raw", "area": "chrome", "summary": "Breadcrumbs echo raw URL segments (ids like '1', route words like 'settings').", "keywords": ["breadcrumb"] },
+    { "id": "ST-tab-history-push", "area": "continuity", "summary": "Customer tabs router.push ?tab=, so Back steps through tabs.", "keywords": ["tab", "push"] },
+    { "id": "ST-filter-not-in-url", "area": "continuity", "summary": "Orders status filter is useState only; lost on refresh, Back and the detail page's back button.", "keywords": ["filter", "useState"] },
+    { "id": "ST-drawer-replace", "area": "continuity", "summary": "Customer drawer opens with router.replace, so Back leaves /customers instead of closing the drawer.", "keywords": ["drawer", "replace"] },
+    { "id": "ST-draft-leak", "area": "continuity", "summary": "Note draft lives in a provider above [id]; text typed for one customer appears on the next customer.", "keywords": ["draft"] },
+    { "id": "ST-template-reset", "area": "continuity", "summary": "(app)/template.jsx remounts on every navigation, so the dismissed banner returns.", "keywords": ["template", "banner"] },
+    { "id": "ST-orders-back-push", "area": "continuity", "summary": "Order detail '← Orders' uses router.push('/orders'): adds a history entry, resets filter and scroll; browser Back then returns to the detail page.", "keywords": ["← Orders", "push('/orders')"] }
+  ]
+}
