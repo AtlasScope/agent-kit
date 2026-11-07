@@ -52,7 +52,7 @@ Repeat `codex plugin add` for each plugin you want.
 
 ## Prompt library
 
-[`library/dist/prompt-library.html`](library/dist/prompt-library.html) is one self-contained page with 216 prompts, commands and recipes, a symptom finder, a prompt composer and stars that stay in your browser. Use it any of these ways:
+[`library/dist/prompt-library.html`](library/dist/prompt-library.html) is one self-contained page with over 200 prompts, commands and recipes, a symptom finder, a prompt composer and stars that stay in your browser. Use it any of these ways:
 
 - Upload it as a Claude artifact.
 - Open it in a browser, or in the side browser in Codex or Cursor.
