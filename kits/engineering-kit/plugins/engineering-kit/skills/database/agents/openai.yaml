@@ -1,0 +1,5 @@
+interface:
+  display_name: "Database"
+  short_description: "Pick and run the right database investigation"
+policy:
+  allow_implicit_invocation: false

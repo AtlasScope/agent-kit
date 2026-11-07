@@ -9,6 +9,7 @@ It is the engineering sibling of [design-kit](../design-kit). Credits, versions 
 | Command | What it does |
 |---|---|
 | `/engineer` | Describe what is going on and get one starting move: an investigation prompt to paste, the skill to run, or a thinking prompt. It suggests and stops; it runs nothing until you say go. Catalog from the Agent Engineering Field Guide. |
+| `/database` | Describe a PostgreSQL problem in plain words (wrong numbers, heavy writes, a crowded schema, cost, a risky migration) and get one database investigation, run read-only when the session can reach the code and database. Works on any Postgres host. Prompts come from the prompt library. |
 | `/diagnosing-bugs` | Hard bugs and performance regressions: build a loop that goes red, minimise, rank hypotheses, instrument, fix with a regression test, clean up. |
 | `/tdd` | Test-first work in vertical slices, with the seams agreed before any test is written. |
 | `/improve-codebase-architecture` | Scans recent hot spots for shallow modules, writes a before/after HTML report to the temp folder, then interviews you on the one you pick. |
@@ -73,6 +74,10 @@ Add this to the repo's `.claude/settings.json`, merged with anything already the
 ## Rebuilding the /engineer catalog
 
 The router's references are generated from the field guide's JSON catalog. When the guide changes, run `node scripts/build_references.cjs <guide.html> plugins/engineering-kit/skills/engineer/references` and land the result through a PR. The script leaves out per-project notes and private commands.
+
+## Rebuilding the /database reference
+
+The `/database` prompts come from `library/library.json`. After editing them there, run `node kits/engineering-kit/scripts/build_database_references.mjs` from the repo root.
 
 ## Updating a vendored skill
 

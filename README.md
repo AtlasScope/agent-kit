@@ -5,7 +5,7 @@ Skills for AI coding agents, plus a prompt library you can open beside any of th
 | Plugin | What it does |
 |---|---|
 | [design-kit](kits/design-kit) | `/design` routes to the right design skill or recipe: typography, color, motion, UX writing, usability, landing copy, native iOS and more. |
-| [engineering-kit](kits/engineering-kit) | `/engineer` routes to bug diagnosis, test-first work, architecture scans, plan interviews, retros and research. |
+| [engineering-kit](kits/engineering-kit) | `/engineer` routes to bug diagnosis, test-first work, architecture scans, plan interviews, retros and research. `/database` picks and runs a read-only PostgreSQL investigation. |
 | [experience-architecture](kits/experience-architecture) | Diagnose, rethink and verify how a web app's pages, navigation, URLs and Back button hang together. |
 | [working-style](kits/working-style) | `/ceo` explains in plain English, `/recommend` makes the call, `/harsh-review` gives direct critique, `/viewport-proof` judges a screen across viewports. |
 
