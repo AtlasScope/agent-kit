@@ -7,8 +7,8 @@ Source, test fixtures and validation for the **Experience Architecture** plugin 
 See the [plugin README](plugins/experience-architecture/README.md#install) for Claude Code, cloud sessions, Codex and Cursor. In short:
 
 ```bash
-claude plugin marketplace add AtlasScope/experience-architecture
-claude plugin install experience-architecture@experience-architecture
+claude plugin marketplace add AtlasScope/agent-kit
+claude plugin install experience-architecture@agent-kit
 ```
 
 For development, `claude --plugin-dir ./plugins/experience-architecture` loads the working copy for one session. `npm run package` writes `dist/experience-architecture-<version>.tgz`, a self-contained marketplace folder for installing without GitHub.

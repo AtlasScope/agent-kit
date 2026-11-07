@@ -4,7 +4,7 @@ description: Use only when the user explicitly invokes /design or $design. Turns
 disable-model-invocation: true
 metadata:
   short-description: Route design work to the right skill
-  author: AtlasScope/design-kit
+  author: AtlasScope/agent-kit
 ---
 
 # Design

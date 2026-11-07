@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- Deliberately no viewport meta: geometry_check.js must report viewport-meta. -->
+<title>Geometry defects</title>
+<style>
+  body { margin: 0; font: 16px/1.4 system-ui, sans-serif; }
+  .wide { width: 1400px; height: 20px; background: #ccc; }
+  .clip { width: 80px; overflow: hidden; white-space: nowrap; }
+  .ellipsis { width: 80px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .tiny { width: 16px; height: 16px; padding: 0; border: 0; }
+  .scanner { width: 300px; overflow-x: auto; }
+  .scanner table { width: 900px; }
+  .stretch { width: 300px; height: 50px; }
+  .cover { position: fixed; left: 0; right: 0; bottom: 0; height: 60vh; background: rgba(0,0,0,.1); }
+  .measure { max-width: none; width: 1300px; }
+</style>
+</head>
+<body>
+  <!-- element-outside-viewport + page-overflow-x (when viewport < 1400) -->
+  <div class="wide" id="wide"></div>
+  <!-- clipped-text warn -->
+  <div class="clip" id="clip">This label is far too long to fit</div>
+  <!-- clipped-text info (ellipsis) -->
+  <div class="ellipsis" id="ellipsis">This label is far too long to fit</div>
+  <!-- small-target -->
+  <button class="tiny" id="tiny" aria-label="Close"></button>
+  <!-- exempt: inline link in running text -->
+  <p>Read the <a href="#terms" id="inline-link">terms</a> before continuing.</p>
+  <!-- horizontal-scroller info (contains a table), must not count as page overflow -->
+  <div class="scanner" id="scanner"><table><tr><td>Wide table cell</td></tr></table></div>
+  <!-- broken-image -->
+  <img id="broken" src="does-not-exist.png" alt="missing">
+  <!-- distorted-image: 1x1 transparent GIF stretched to 300x50 -->
+  <img id="stretch" class="stretch" alt="stretched" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+  <!-- long-measure (at widths >= ~1300) -->
+  <p class="measure" id="measure">Reading text that runs edge to edge is tiring. This paragraph is intentionally long so that the measure check has enough characters to evaluate how many characters fit on one line at a very wide container width, which is the condition the check is meant to catch on wide desktop layouts.</p>
+  <!-- fixed-coverage warn -->
+  <div class="cover" id="cover"></div>
+</body>
+</html>

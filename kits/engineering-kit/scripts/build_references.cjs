@@ -12,7 +12,7 @@ const PACK = {
   ek: ["Engineering kit", "This plugin's commands. All run only when typed."],
   tob: ["Trail of Bits", "Security plugins from trailofbits/skills, installed one at a time (see the README). Some run multi-agent workflows, which cost more than a single pass."],
   have: ["Built in", "Claude Code commands and the ci-optimizer plugin."],
-  xa: ["Experience architecture", "The AtlasScope/experience-architecture plugin (separate install, see its README): how an app's pages, navigation, URLs and state serve its users. Diagnose and Rethink can start on their own when the topic comes up; all three are read-only until the owner picks a change."],
+  xa: ["Experience architecture", "The experience-architecture plugin in AtlasScope/agent-kit (separate install, see its README): how an app's pages, navigation, URLs and state serve its users. Diagnose and Rethink can start on their own when the topic comes up; all three are read-only until the owner picks a change."],
 };
 const DESC = { "/code-review": "Correctness review of a diff or PR at an effort level." };
 const cell = (s) => String(s).replace(/\|/g, "/").replace(/\n/g, " ");

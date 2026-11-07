@@ -61,7 +61,7 @@ Security plugins from trailofbits/skills, installed one at a time (see the READM
 
 ### Experience architecture
 
-The AtlasScope/experience-architecture plugin (separate install, see its README): how an app's pages, navigation, URLs and state serve its users. Diagnose and Rethink can start on their own when the topic comes up; all three are read-only until the owner picks a change.
+The experience-architecture plugin in AtlasScope/agent-kit (separate install, see its README): how an app's pages, navigation, URLs and state serve its users. Diagnose and Rethink can start on their own when the topic comes up; all three are read-only until the owner picks a change.
 
 | Command | What it does | Covers |
 |---|---|---|

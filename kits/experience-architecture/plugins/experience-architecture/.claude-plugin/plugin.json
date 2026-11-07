@@ -21,6 +21,6 @@
   "experimental": {
     "evals": "evals"
   },
-  "homepage": "https://github.com/AtlasScope/experience-architecture",
-  "repository": "https://github.com/AtlasScope/experience-architecture"
+  "homepage": "https://github.com/AtlasScope/agent-kit/tree/main/kits/experience-architecture",
+  "repository": "https://github.com/AtlasScope/agent-kit"
 }

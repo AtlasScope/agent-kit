@@ -2,7 +2,7 @@
 
 Engineering skills for AI coding agents, picked for a solo operator who wants agents to use judgment and only interview, test-first or write reports when asked. Every command here runs only when you type it. Four helper skills (`grilling`, `codebase-design`, `domain-modeling`, `writing-for-agents`) stay reachable so the commands can call them, with descriptions narrowed so they do not start on their own.
 
-It is the engineering sibling of [AtlasScope/design-kit](https://github.com/AtlasScope/design-kit). Credits, versions and licenses are in [THIRD_PARTY.md](THIRD_PARTY.md).
+It is the engineering sibling of [design-kit](../design-kit). Credits, versions and licenses are in [THIRD_PARTY.md](THIRD_PARTY.md).
 
 ## Commands
 
@@ -44,17 +44,17 @@ claude plugin install goal-prompt@trailofbits
 **Claude Code on a computer**
 
 ```sh
-claude plugin marketplace add AtlasScope/engineering-kit
-claude plugin install engineering-kit@engineering-kit
+claude plugin marketplace add AtlasScope/agent-kit
+claude plugin install engineering-kit@agent-kit
 ```
 
-Update with `claude plugin marketplace update engineering-kit` and `claude plugin update engineering-kit@engineering-kit`. Remove with `claude plugin uninstall engineering-kit@engineering-kit`.
+Update with `claude plugin marketplace update agent-kit` and `claude plugin update engineering-kit@agent-kit`. Remove with `claude plugin uninstall engineering-kit@agent-kit`.
 
 **Codex on a computer**
 
 ```sh
-codex plugin marketplace add AtlasScope/engineering-kit
-codex plugin add engineering-kit@engineering-kit
+codex plugin marketplace add AtlasScope/agent-kit
+codex plugin add engineering-kit@agent-kit
 ```
 
 **Cloud Claude Code sessions**
@@ -64,9 +64,9 @@ Add this to the repo's `.claude/settings.json`, merged with anything already the
 ```json
 {
   "extraKnownMarketplaces": {
-    "engineering-kit": { "source": { "source": "github", "repo": "AtlasScope/engineering-kit" } }
+    "agent-kit": { "source": { "source": "github", "repo": "AtlasScope/agent-kit" } }
   },
-  "enabledPlugins": { "engineering-kit@engineering-kit": true }
+  "enabledPlugins": { "engineering-kit@agent-kit": true }
 }
 ```
 

@@ -1,0 +1,56 @@
+{
+  "name": "agent-kit",
+  "interface": {
+    "displayName": "Agent Kit"
+  },
+  "plugins": [
+    {
+      "name": "design-kit",
+      "source": {
+        "source": "local",
+        "path": "./kits/design-kit/plugins/design-kit"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Design"
+    },
+    {
+      "name": "engineering-kit",
+      "source": {
+        "source": "local",
+        "path": "./kits/engineering-kit/plugins/engineering-kit"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Engineering"
+    },
+    {
+      "name": "experience-architecture",
+      "source": {
+        "source": "local",
+        "path": "./kits/experience-architecture/plugins/experience-architecture"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Engineering"
+    },
+    {
+      "name": "working-style",
+      "source": {
+        "source": "local",
+        "path": "./kits/working-style/plugins/working-style"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

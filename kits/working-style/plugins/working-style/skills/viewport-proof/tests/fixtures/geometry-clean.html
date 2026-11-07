@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Geometry clean</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 16px/1.5 system-ui, sans-serif; }
+  header { position: sticky; top: 0; display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: #fff; }
+  header a, header button { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; padding: 0 12px; }
+  main { max-width: 68ch; margin: 0 auto; padding: 16px; }
+  img { width: 100%; height: auto; display: block; }
+  .table-wrap { overflow-x: auto; }
+  .table-wrap table { min-width: 640px; }
+</style>
+</head>
+<body>
+  <header><a href="#">Home</a><button type="button">Menu</button></header>
+  <main>
+    <h1>A tidy page</h1>
+    <p>Reading text stays inside a comfortable measure and wraps at every width. It includes an <a href="#more">inline link</a> that is exempt from target sizing because it sits inside running text, which is how the WCAG inline exception works for links that are part of a sentence.</p>
+    <img alt="square" width="1" height="1" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+    <div class="table-wrap"><table><tr><th>Fund</th><th>Return</th><th>Fee</th></tr></table></div>
+  </main>
+</body>
+</html>

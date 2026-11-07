@@ -1,0 +1,7 @@
+interface:
+  display_name: "Recommend"
+  short_description: "The call, the real options, and why"
+  default_prompt: "Use $recommend to make the call on this decision: lead with what you would do, then the real options, what each costs and risks, and the one thing I need to decide, in plain English."
+
+policy:
+  allow_implicit_invocation: false
