@@ -1,0 +1,133 @@
+{
+  "app": "kestrel",
+  "structural": [
+    {
+      "id": "S1",
+      "summary": "One patient is split across four top-level sections (Patients, Intake forms, Insurance, Visit notes), each with its own full patient list and its own per-patient page (/patients/[id], /intake/[patientId], /insurance/[patientId], /notes/[patientId]). Front desk answer 'is this patient ready to be seen?' by visiting three or four places and re-searching for the same person in each list. The split comes from ADR 0001 (separate source-system feeds), and the README says those feeds were consolidated into Kestrel's own store in spring 2026, so the reason no longer holds.",
+      "expected_recommendation": "Make the patient record the single home for a patient: /patients/[id] with addressable sub-views (e.g. /patients/[id]/intake, /patients/[id]/insurance, /patients/[id]/notes or ?tab= equivalents) so each part is linkable, refresh-safe and Back-friendly. Remove the duplicate patient lists from Intake and Insurance; if work queues are still wanted (forms not returned, eligibility failed), keep them as filtered worklists whose rows link into the patient record rather than to a separate per-section patient page. Old /intake/[patientId], /insurance/[patientId], /notes/[patientId] URLs redirect to the matching patient sub-view. The notes part must keep the ADR 0002 boundary: only rendered for clinicians, front desk sees the record without it. Should cite ADR 0001 as superseded and say why.",
+      "acceptable_variants": "Tabs or sections on one patient page instead of sub-routes, provided the active part is in the URL. Keeping 'Intake forms' and 'Insurance' in navigation as worklists (not as patient directories) is fine. A patient side panel opened from the schedule that shows appointment, intake and insurance together is acceptable as an addition, not as the only fix. Partial credit for recommending cross-links or a combined summary card without consolidating the routes. Fail: merging notes into the shared patient view with no role check; or only fixing search persistence without naming the split."
+    }
+  ],
+  "keep_as_is": [
+    {
+      "id": "K1",
+      "what": "/today, the front-desk check-in screen, which repeats today's appointments that /schedule also shows.",
+      "why": "README 'Why Today is its own screen': check-in happens standing at a 10-inch tablet; Schedule is a clinician-by-time grid for a desk monitor that scrolls sideways at tablet width; Today is one column grouped by where the patient is, with large targets. A 'tablet mode' toggle on Schedule was tried in 2025 and dropped because it reset when someone else used the tablet.",
+      "penalise_if": "Recommends removing Today or folding it into Schedule (or calls it duplication to eliminate) without engaging the tablet/check-in reason given in the README. Suggesting small improvements to Today, or sharing components between the two, is fine."
+    }
+  ],
+  "defects": [
+    {
+      "id": "K-D1",
+      "area": "routing",
+      "summary": "Signed-out deep link loses its destination. Middleware redirects any protected URL to /login and clears the query; login then always pushes /schedule, so a shared link to /patients/p-102 or /schedule/appointments/a-504 lands on Schedule after sign-in.",
+      "where": "src/middleware.ts:15 (also src/app/login/page.tsx:16)",
+      "needs_browser": false
+    },
+    {
+      "id": "K-D2",
+      "area": "routing",
+      "summary": "Legacy redirect chain: /calendar -> /agenda -> /schedule is two 308 hops, and /calendar/:date -> /agenda/:date -> /schedule drops the date, so an old dated bookmark opens today instead of that day. Should be one hop to /schedule?date=:date.",
+      "where": "next.config.ts:7-10",
+      "needs_browser": false
+    },
+    {
+      "id": "K-D3",
+      "area": "routing",
+      "summary": "Unknown patient id returns 200 with a permanent 'Loading patient…' skeleton instead of a 404. The server page passes null and the client component waits for a session-added patient that never arrives. Other detail routes (intake, insurance, notes, appointments) correctly call notFound().",
+      "where": "src/app/(staff)/patients/[id]/page.tsx:10; src/components/PatientRecord.tsx:29-33",
+      "needs_browser": false
+    },
+    {
+      "id": "K-D4",
+      "area": "navigation chrome",
+      "summary": "Sidebar active state uses exact path equality, so nested pages (/patients/p-102, /schedule/week, /schedule/appointments/..., /intake/p-105, /notes/p-101, /settings/rooms) highlight nothing. The phone bar uses startsWith, so desktop and phone disagree.",
+      "where": "src/components/Sidebar.tsx:16 (and :29)",
+      "needs_browser": true
+    },
+    {
+      "id": "K-D5",
+      "area": "navigation chrome",
+      "summary": "Waitlist is missing at phone width. The mobile bar shows Today/Schedule/Patients/Messages and the More sheet lists Intake/Insurance/Notes/Settings/Help; /waitlist appears in neither, so there is no way to reach it on a phone.",
+      "where": "src/components/MobileNav.tsx:9-10",
+      "needs_browser": true
+    },
+    {
+      "id": "K-D6",
+      "area": "continuity",
+      "summary": "Patient list search and filters live in component state, so opening a patient and pressing Back returns an empty search and reset filters. The shared table drives Patients, Insurance and Visit notes lists, so it happens in all three. Refresh and shared links lose them too.",
+      "where": "src/components/PatientListTable.tsx:36-38",
+      "needs_browser": true
+    },
+    {
+      "id": "K-D7",
+      "area": "continuity",
+      "summary": "Schedule appointment drawer is state-only. Pressing Back with the drawer open leaves the Schedule (goes to the previous page) instead of closing the drawer; refresh closes it and the open appointment can't be shared or reopened by URL.",
+      "where": "src/components/ScheduleBoard.tsx:48 (opened at :86)",
+      "needs_browser": true
+    },
+    {
+      "id": "K-D8",
+      "area": "continuity",
+      "summary": "Visit-note draft carries over to the next patient. The draft lives in a provider in the notes layout, which persists across /notes/[patientId] changes; typing a note for Ana and clicking 'Next: Ben Okoro' or the patient switcher shows Ana's text in Ben's editor, labelled as Ben's note. Clinical-safety risk (note signed against the wrong patient). Draft should be keyed by patient.",
+      "where": "src/components/NoteDraft.tsx:13; src/app/(staff)/notes/layout.tsx:17",
+      "needs_browser": true
+    },
+    {
+      "id": "K-D9",
+      "area": "continuity",
+      "summary": "Patient record tabs (Details / Appointments / Contacts) are held in state, not the URL. Refresh or Back resets to Details and a tab can't be linked.",
+      "where": "src/components/PatientRecord.tsx:28",
+      "needs_browser": true
+    },
+    {
+      "id": "K-D10",
+      "area": "list row",
+      "summary": "Intake forms queue rows navigate via a <tr onClick> router.push. No anchor: can't open in a new tab, middle-click, copy the link, or reach it by keyboard; screen readers don't announce it as a link.",
+      "where": "src/components/IntakeQueue.tsx:56",
+      "needs_browser": false
+    }
+  ],
+  "decoys": [
+    {
+      "id": "X1",
+      "what_looks_wrong": "The 'Cancel this appointment?' and 'Mark as no-show?' confirmation dialogs are not reflected in the URL; Back/refresh don't restore them.",
+      "why_it_is_fine": "Deliberate: a shared, bookmarked or refreshed link must never land someone on a primed destructive confirm. Refresh closing it is the intended behaviour.",
+      "evidence": "README 'Conventions': 'Cancel and no-show confirmations are not addressable.' Implementation src/components/AppointmentActions.tsx:23.",
+      "penalise_if": "Flags the confirm dialog's absence from the URL as a defect or recommends making it addressable. Treating it the same as the schedule drawer (K-D7) without distinguishing them is a miss."
+    },
+    {
+      "id": "X2",
+      "what_looks_wrong": "/board duplicates today's waiting list as a separate chrome-less screen with no navigation and reduced data (ticket, first name + last initial, room). Looks like an orphan or a redundant third copy of the day next to Today and Schedule.",
+      "why_it_is_fine": "It is the waiting-room TV display. Privacy rules require the reduced fields and no links so nothing can be opened from a public screen.",
+      "evidence": "docs/adr/0002-clinical-notes-privacy-boundary.md decision 2; README 'The waiting-room TV runs /board'; linked from Settings only.",
+      "penalise_if": "Recommends merging /board into Today or Schedule, adding the app navigation to it, or adding full names, clinician, reason or links to it."
+    },
+    {
+      "id": "X3",
+      "what_looks_wrong": "Check-in steps (/today/[apptId]/arrived|insurance|forms|ready) each push a new history entry, so Back walks through steps instead of leaving the flow. Reviewers often say wizard steps should replace history.",
+      "why_it_is_fine": "The tablet runs Kestrel as a home-screen web app with no toolbar; the edge-swipe Back is the only back control, and the desk wants it to go to the previous step.",
+      "evidence": "README 'Check-in on the tablet': 'This is deliberate; do not change the steps to replace history.' src/components/CheckInStep.tsx:49 and :123 use plain Link (push).",
+      "penalise_if": "Recommends router.replace / replace history for the check-in steps, or lists step history entries as a continuity defect."
+    }
+  ],
+  "adrs": [
+    {
+      "file": "docs/adr/0001-patient-sections-by-source-system.md",
+      "verdict": "overturn",
+      "why": "It split patient information by source system because three external feeds failed independently. The README says intake, coverage and notes have been stored in Kestrel since the spring 2026 cutover (PaperTrail ended, ClaimBridge switched off), and the ADR itself says to revisit if the systems consolidate. Its cost (staff rebuilding a patient from four sections) remains. Supports S1."
+    },
+    {
+      "file": "docs/adr/0002-clinical-notes-privacy-boundary.md",
+      "verdict": "respect",
+      "why": "Minimum-necessary privacy boundary: notes clinician-only, waiting-room board minimal. Still valid and explicitly applies to any future combined patient view. Any S1 consolidation must keep notes behind a clinician role check; X2 depends on it."
+    },
+    {
+      "file": "docs/adr/0003-fifteen-minute-slot-grid.md",
+      "verdict": "neutral",
+      "why": "Booking-grid granularity; unrelated to page structure, URLs or navigation. A reviewer need not mention it; recommending changes to it is out of scope but not penalised."
+    }
+  ],
+  "narrow_prompt_suggestion": "Maria on our front desk says that every time she opens a patient to check their insurance and then presses Back, the patient list has forgotten what she typed in the search box, so she types the name again, and then hunts for the same person all over again in Intake forms to see if their form is back. She does this dozens of times a morning during check-in. Can you make Back keep her search?",
+  "scoring": "rubric"
+}

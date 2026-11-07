@@ -1,0 +1,1 @@
+Meridian (code in this folder, dev copy at http://localhost:5600, sign in at /login with any password). I sent a colleague a link to a filtered shipment list and to a single shipment. She wasn't signed in, and after signing in she ended up somewhere else both times. What's going on and what should we change? Write it up in a markdown file. Don't change the app.

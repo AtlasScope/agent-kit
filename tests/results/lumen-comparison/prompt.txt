@@ -1,0 +1,3 @@
+This web app's navigation feels like a mess. Figure out what's actually wrong and what we should do about it.
+
+The source is in this folder. A running copy is at http://localhost:3300 (sign in at /sign-in with the prefilled demo values). Playwright is installed in node_modules if you want to drive a browser. Don't modify the app's source. Write your full findings and recommendations to report.md in this folder.

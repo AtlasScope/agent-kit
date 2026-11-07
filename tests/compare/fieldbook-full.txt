@@ -1,0 +1,1 @@
+This is Fieldbook, our project tracker. The whole app is in this folder and `python3 server.py --port {{PORT}}` runs it. Coordinators keep telling us it feels disjointed even though every page works. Do a full review of how the app hangs together and tell me what you'd change, structural changes included. Put the write-up in a markdown file.
