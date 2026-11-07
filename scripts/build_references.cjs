@@ -12,6 +12,7 @@ const PACK = {
   ek: ["Engineering kit", "This plugin's commands. All run only when typed."],
   tob: ["Trail of Bits", "Security plugins from trailofbits/skills, installed one at a time (see the README). Some run multi-agent workflows, which cost more than a single pass."],
   have: ["Built in", "Claude Code commands and the ci-optimizer plugin."],
+  xa: ["Experience architecture", "The AtlasScope/experience-architecture plugin (separate install, see its README): how an app's pages, navigation, URLs and state serve its users. Diagnose and Rethink can start on their own when the topic comes up; all three are read-only until the owner picks a change."],
 };
 const DESC = { "/code-review": "Correctness review of a diff or PR at an effort level." };
 const cell = (s) => String(s).replace(/\|/g, "/").replace(/\n/g, " ");
@@ -47,7 +48,7 @@ for (const e of L.entries) {
   if (a !== last) { c += `\n## ${area[a][0]}\n\n${area[a][1]}\n`; last = a; }
   const kit = pub(e.kit);
   c += `\n### ${e.id} ${e.t}\n\n\`\`\`text\n${e.p}\n\`\`\`\n\n`;
-  c += `- Finds: ${e.why}\n- Evidence to ask for: ${e.ev}\n- Skip when: ${e.skip}\n- Watch for: ${e.blind}\n`;
+  c += `- Finds: ${e.why}\n- Evidence to ask for: ${e.ev}\n- Skip when: ${e.skip}\n${e.blind ? `- Watch for: ${e.blind}\n` : ""}`;
   c += `- Mode: ${e.mode}, ${e.top === "split" ? "split" : "single pass"}, ${e.scope} scope. Needs: ${e.tools}\n`;
   if (kit.length) c += `- Skills: ${ids(kit)}\n`;
   if (e.rel && e.rel.length) c += `- Related: ${ids(e.rel)}\n`;
