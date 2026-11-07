@@ -74,7 +74,8 @@
    ],
    "rel": [
     "A05",
-    "M04"
+    "M04",
+    "PG10"
    ],
    "imp": "H",
    "blind": "Agents call thin adapters redundant when they exist to isolate an unstable SDK or give tests a seam.",
@@ -100,7 +101,9 @@
    "rel": [
     "R05",
     "G06",
-    "D02"
+    "D02",
+    "PG05",
+    "PG11"
    ],
    "imp": "H",
    "aka": "Competing sources of truth"
@@ -276,7 +279,8 @@
    "rel": [
     "P01",
     "P05",
-    "P06"
+    "P06",
+    "PG13"
    ],
    "imp": "H",
    "aka": "Query scaling"
@@ -298,7 +302,8 @@
    "kit": [],
    "rel": [
     "A04",
-    "P01"
+    "P01",
+    "PG06"
    ],
    "imp": "H",
    "blind": "A cache is a second source of truth. Any cache proposal must say who invalidates it and when.",
@@ -436,7 +441,8 @@
    "rel": [
     "R05",
     "R06",
-    "D04"
+    "D04",
+    "PG08"
    ],
    "imp": "H",
    "aka": "Retry and idempotency failures"
@@ -534,7 +540,8 @@
    "rel": [
     "A06",
     "A04",
-    "R01"
+    "R01",
+    "PG05"
    ],
    "imp": "H",
    "blind": "Agents list theoretical races freely. Count only the ones with a reproduction.",
@@ -812,7 +819,8 @@
    "kit": [],
    "rel": [
     "G02",
-    "I05"
+    "I05",
+    "PG15"
    ],
    "imp": "H",
    "aka": "Merge-to-production trace"
@@ -978,7 +986,8 @@
    "rel": [
     "D01",
     "D03",
-    "G05"
+    "G05",
+    "PG01"
    ],
    "imp": "H",
    "aka": "Derived-metric provenance"
@@ -1000,7 +1009,8 @@
    "kit": [],
    "rel": [
     "R04",
-    "D02"
+    "D02",
+    "PG04"
    ],
    "imp": "H",
    "aka": "Historically changing meaning"
@@ -1046,7 +1056,8 @@
    ],
    "rel": [
     "D04",
-    "D03"
+    "D03",
+    "PG03"
    ],
    "imp": "H",
    "aka": "Relationship and historical value"
@@ -1118,7 +1129,8 @@
    ],
    "rel": [
     "I02",
-    "S06"
+    "S06",
+    "PG17"
    ],
    "imp": "H",
    "aka": "Migration and rolling-deploy skew"
@@ -1221,6 +1233,702 @@
    "aka": "Optimistic UI rollback failure"
   },
   {
+   "id": "PG00",
+   "sec": "db",
+   "group": "Start here",
+   "gk": "PG",
+   "t": "Make this database easier to trust and operate",
+   "p": "I want this PostgreSQL database to become easier to maintain, faster where it matters, less expensive to operate, and more trustworthy.\n\nStudy how the database actually works today, including its schema, important relationships, data sources, reads, writes, background jobs, migrations and consumers. Use the real database state, repository and operational evidence rather than relying on documentation alone.\n\nFind the few underlying problems responsible for the greatest amount of unnecessary complexity, repeated work, data-quality risk and operational expense.\n\nI care especially about correctness of the underlying data, efficient and reliable writes, duplicated logic, unnecessary database objects, historical accuracy, and changes that make future development easier for coding agents.\n\nRank the opportunities by actual impact. Distinguish demonstrated problems from theoretical concerns, and don't recommend a redesign just because an approach is unconventional.\n\nMake recommendations that simplify the existing system rather than introduce more infrastructure or recurring processes. Reuse evidence already gathered, investigate only what's needed to support a decision, and group related findings around their shared cause.\n\nUse read-only investigation initially. Don't modify production data, schemas or infrastructure. Give me the strongest findings, what proves them, and the smallest changes that would produce meaningful improvements.",
+   "why": "The broad starting point when the database feels hard to trust or costly, and you can't yet name one problem.",
+   "ev": "A short ranked list of confirmed problems, each with the tables, writers and consumers involved, and the proof: query plans, samples, counts or a check against the source.",
+   "skip": "You already know the specific problem. Go straight to the narrower prompt for it.",
+   "avoid": "Turning one look into a standing review, a new process or automated governance.",
+   "mode": "read",
+   "top": "split",
+   "scope": "wide",
+   "tools": "Needs: the repository and read-only database access. Helps: query statistics (pg_stat_statements) and, on Supabase, the built-in Advisors.",
+   "plat": "Any PostgreSQL host: Supabase, Neon, RDS, Cloud SQL or self-hosted.",
+   "rel": [
+    "PG01",
+    "PG05",
+    "PG10",
+    "PG13"
+   ],
+   "tags": "database health, postgres health, simplify database, clean up database, healthier database, overall database review, supabase, neon, start here",
+   "refs": [
+    "supabase",
+    "pgss",
+    "advisors"
+   ]
+  },
+  {
+   "id": "PG01",
+   "sec": "db",
+   "group": "Accuracy and evidence",
+   "gk": "PG",
+   "t": "Can we independently prove these numbers?",
+   "p": "Take a representative set of important figures from this database and independently reconstruct them from their original sources. Don't rely on the existing calculation code to verify itself. Find discrepancies in definitions, source selection, units, dates, classifications, and relationships. Determine which errors are isolated and which come from shared logic, then rank corrections by analytical impact.",
+   "why": "Important figures may be wrong even though their lineage is documented.",
+   "ev": "Samples from the original sources, an independent rebuild of each figure, each disagreement classified, how many records it affects, and the shared causes.",
+   "skip": "The figures are copied straight from the source with no calculation applied.",
+   "avoid": "Checking a value with the same code or source reading that produced it.",
+   "mode": "read",
+   "top": "split",
+   "scope": "wide",
+   "tools": "Needs: the repository, read-only database access and the original source documents.",
+   "plat": "Any PostgreSQL host: Supabase, Neon, RDS, Cloud SQL or self-hosted.",
+   "rel": [
+    "D02",
+    "D01",
+    "PG02",
+    "PG04"
+   ],
+   "tags": "wrong numbers, incorrect numbers, inaccurate data, figures don't match, doesn't match the filings, reconciliation, recompute, verify metrics, data provenance"
+  },
+  {
+   "id": "PG02",
+   "sec": "db",
+   "group": "Accuracy and evidence",
+   "gk": "PG",
+   "t": "Find data that is internally consistent but wrong",
+   "p": "Look for data that passes the database's constraints and ordinary validation but is still analytically wrong. Test cross-table relationships, accounting identities, historical continuity, plausible ranges, source coverage, and independent calculations. Focus on contradictions that existing checks would miss, and distinguish genuine errors from legitimate differences in definitions or reporting periods.",
+   "why": "Every check passes, but totals or outputs still look implausible.",
+   "ev": "Cross-table reconciliations, identities and expected-population comparisons that fail, with source samples and how much data is affected.",
+   "skip": "There is no derived or analytical output, only records stored as entered.",
+   "avoid": "Calling different grains, as-of dates or reporting bases errors without checking their definitions.",
+   "mode": "read",
+   "top": "split",
+   "scope": "wide",
+   "tools": "Needs: the repository and read-only database access. Helps: pgTAP on a local or branch database, to turn confirmed rules into tests.",
+   "plat": "Any PostgreSQL host: Supabase, Neon, RDS, Cloud SQL or self-hosted.",
+   "rel": [
+    "D01",
+    "R03",
+    "PG01",
+    "PG03"
+   ],
+   "tags": "totals are wrong, rows are valid but wrong, inaccurate data, sanity checks, reconciliation, implausible values, missing records",
+   "refs": [
+    "pgtap"
+   ]
+  },
+  {
+   "id": "PG03",
+   "sec": "db",
+   "group": "Accuracy and evidence",
+   "gk": "PG",
+   "t": "Find where records silently change identity",
+   "p": "Trace how real-world entities are identified, matched and connected across imports, source documents and database tables. Find cases where distinct entities are merged, identical entities are duplicated, or historical relationships become disconnected. Identify the matching rule responsible and the affected population before proposing corrections.",
+   "why": "Sources use aliases, changing identifiers, share classes or inconsistent names for the same thing.",
+   "ev": "Likely duplicates and false merges with their source IDs, the matching rule behind each, the records affected and a counterexample you can rerun.",
+   "skip": "Every source shares one stable identifier and nothing is matched by name.",
+   "avoid": "Merging entities just because their names look alike.",
+   "mode": "read",
+   "top": "split",
+   "scope": "wide",
+   "tools": "Repository and read-only database access.",
+   "plat": "Any PostgreSQL host: Supabase, Neon, RDS, Cloud SQL or self-hosted.",
+   "rel": [
+    "D05",
+    "D04",
+    "A02",
+    "PG02"
+   ],
+   "tags": "duplicates, merged records, share classes merged, entity matching, wrong company, identity, dedupe"
+  },
+  {
+   "id": "PG04",
+   "sec": "db",
+   "group": "Accuracy and evidence",
+   "gk": "PG",
+   "t": "Reproduce what the database believed in the past",
+   "p": "Choose important historical records and determine whether the system can reproduce what was known and reported at a specific past date, using the definitions and evidence available then. Distinguish later source corrections from later classification changes. Find where current logic silently rewrites historical meaning and recommend the smallest reliable solution.",
+   "why": "Past reports, backfills, restatements or changed classification rules matter.",
+   "ev": "Two or more past checkpoints, when each record was true and when it was known, the source revisions, and changes you can demonstrate.",
+   "skip": "Nobody needs past results to stay reproducible.",
+   "avoid": "Requiring bitemporal storage everywhere. Work out what is actually needed before choosing a structure.",
+   "mode": "read",
+   "top": "split",
+   "scope": "wide",
+   "tools": "Repository and read-only database access.",
+   "plat": "Any PostgreSQL host: Supabase, Neon, RDS, Cloud SQL or self-hosted.",
+   "rel": [
+    "D03",
+    "R04",
+    "PG01",
+    "PG15"
+   ],
+   "tags": "historical report changed, old data meanings, as-of, restatement, backfill, point in time, history rewritten"
+  },
+  {
+   "id": "PG05",
+   "sec": "db",
+   "group": "Writes and ingestion",
+   "gk": "PG",
+   "t": "Map every place that writes to the database",
+   "p": "Map the actual write paths for the important tables in this application. Identify every script, job, API, function, trigger and agent that can create, update or delete their records. Show who owns each field, which paths overlap, and where two writers can disagree or overwrite each other. Recommend the simplest ownership model supported by the existing system.",
+   "why": "Several jobs, functions, APIs or agents change the same data, or nobody is sure who owns it.",
+   "ev": "A map from each writer to its tables and columns, then to triggers, side effects and consumers, with the cases where writers overlap or conflict.",
+   "skip": "One code path writes each table.",
+   "avoid": "Treating every extra writer as wrong. Find the paths that actually conflict.",
+   "mode": "read",
+   "top": "split",
+   "scope": "wide",
+   "tools": "Repository and read-only database access.",
+   "plat": "Any PostgreSQL host: Supabase, Neon, RDS, Cloud SQL or self-hosted.",
+   "rel": [
+    "A04",
+    "R05",
+    "PG06",
+    "PG09"
+   ],
+   "tags": "what writes to this table, mysterious overwrites, who owns this field, multiple writers, write ownership"
+  },
+  {
+   "id": "PG06",
+   "sec": "db",
+   "group": "Writes and ingestion",
+   "gk": "PG",
+   "t": "Stop rewriting data that hasn't changed",
+   "p": "Investigate how much database write activity actually changes meaningful information. Find repeated upserts, unchanged updates, unnecessary delete-and-reinsert operations, repeated index maintenance and cascading refreshes. Measure their cost where practical and determine which writes can be eliminated without changing correctness, history or recovery behavior.",
+   "why": "Upserts and updates run at high volume, imports are costly, or vacuum and write-ahead log churn look high.",
+   "ev": "Statement counts, the share of writes that really change a row, dead-row and churn figures, index and WAL effects where measurable, and before-and-after tests on a copy.",
+   "skip": "Write volume is small, or every write is a change that has to happen.",
+   "avoid": "Suppressing deliberate last-seen timestamps, trigger side effects, version counters or refreshes that are meant to happen.",
+   "mode": "read",
+   "top": "split",
+   "scope": "wide",
+   "tools": "Needs: the repository and read-only database access. Helps: query statistics (pg_stat_statements).",
+   "plat": "Any PostgreSQL host: Supabase, Neon, RDS, Cloud SQL or self-hosted.",
+   "rel": [
+    "P04",
+    "P09",
+    "PG05",
+    "PG07",
+    "PG13"
+   ],
+   "tags": "too many upserts, write amplification, upserts identical rows, unchanged updates, rewriting everything, nightly reload, dead tuples, wal",
+   "refs": [
+    "pgss",
+    "bestpractices"
+   ]
+  },
+  {
+   "id": "PG07",
+   "sec": "db",
+   "group": "Writes and ingestion",
+   "gk": "PG",
+   "t": "Is our ingestion process more complicated than necessary?",
+   "p": "Trace one complete ingestion cycle from the original source to the final database records. Identify repeated parsing, unnecessary intermediate states, duplicate validation, repeated reads, redundant transformations and writes that could be consolidated. Recommend the simplest workflow that preserves accuracy, traceability, failure recovery and the ability to process corrections.",
+   "why": "The import pipeline is long, slow to correct, or does the same work at several stages.",
+   "ev": "One real trace from source to final rows, the work done twice, the checkpoints, a shorter path, and checks that the shorter path gives the same results and still replays.",
+   "skip": "The pipeline is already one short step from source to table.",
+   "avoid": "Removing evidence, provenance or checkpoints that recovery depends on.",
+   "mode": "read",
+   "top": "split",
+   "scope": "wide",
+   "tools": "Repository and read-only database access.",
+   "plat": "Any PostgreSQL host: Supabase, Neon, RDS, Cloud SQL or self-hosted.",
+   "rel": [
+    "D04",
+    "PG05",
+    "PG06",
+    "PG08",
+    "PG09"
+   ],
+   "tags": "ingestion, etl, import pipeline, simplify pipeline, sprawling pipeline, data pipeline"
+  },
+  {
+   "id": "PG08",
+   "sec": "db",
+   "group": "Writes and ingestion",
+   "gk": "PG",
+   "t": "Can we rerun everything without damaging the data?",
+   "p": "Examine the ingestion and correction workflows under retries, interrupted runs, duplicate source files, out-of-order arrivals and repeated execution. Demonstrate where these cases produce duplicate records, lost corrections, partial results or unnecessary rewrites. Find the smallest durable approach that makes each operation safely repeatable.",
+   "why": "Imports get retried, schedulers overlap, files are replayed, or runs fail halfway.",
+   "ev": "Replay scenarios with their conflict keys, interrupted-run cases, before-and-after data comparisons and a safe way to resume.",
+   "skip": "Every import runs once, by hand, with nothing to retry.",
+   "avoid": "Calling an import safe to rerun just because the SQL has ON CONFLICT.",
+   "mode": "read",
+   "top": "split",
+   "scope": "wide",
+   "tools": "Needs: the repository and read-only database access. Helps: an isolated database for replay tests, and pgTAP.",
+   "plat": "Any PostgreSQL host: Supabase, Neon, RDS, Cloud SQL or self-hosted.",
+   "rel": [
+    "R01",
+    "R06",
+    "PG05",
+    "PG07"
+   ],
+   "tags": "failed run duplicates records, retry, replay, idempotent import, rerun safely, backfill twice, duplicate import",
+   "refs": [
+    "pgtap"
+   ]
+  },
+  {
+   "id": "PG09",
+   "sec": "db",
+   "group": "Writes and ingestion",
+   "gk": "PG",
+   "t": "Find where write logic should live",
+   "p": "Trace how records are validated, transformed and written across application code, database functions, triggers and background jobs. Find rules duplicated in different layers or placed where they are difficult to test and maintain. Recommend the simplest ownership boundary for each rule, without assuming that moving more logic into Postgres is automatically better.",
+   "why": "Business rules are split across SQL, triggers, edge functions, server routes and workers.",
+   "ev": "Each rule with the layers that enforce it, the current owner, duplicated checks, how testable each place is, transaction limits and what a change would touch.",
+   "skip": "Each rule already lives in exactly one place.",
+   "avoid": "Automatically favouring stored procedures, or automatically moving everything out of the database.",
+   "mode": "read",
+   "top": "split",
+   "scope": "wide",
+   "tools": "Repository and read-only database access.",
+   "plat": "Any PostgreSQL host: Supabase, Neon, RDS, Cloud SQL or self-hosted.",
+   "rel": [
+    "A02",
+    "PG05",
+    "PG07",
+    "PG10"
+   ],
+   "tags": "trigger or app code, validation in trigger, business logic in database, edge function, stored procedure, duplicate validation"
+  },
+  {
+   "id": "PG10",
+   "sec": "db",
+   "group": "Schema and dependencies",
+   "gk": "PG",
+   "t": "Which database objects no longer earn their keep?",
+   "p": "Examine the tables, views, functions, triggers, indexes and materialized views in this database. Identify redundant representations, obsolete objects, overlapping responsibilities, unnecessary dependency chains and abstractions that no longer provide meaningful value. Verify actual consumers before recommending removal. Rank opportunities by complexity eliminated, operational savings and migration risk.",
+   "why": "The list of views, functions and triggers has grown hard to reason about.",
+   "ev": "A map of objects, what depends on them and who uses them, the removal candidates, migration risks and how much complexity goes away.",
+   "skip": "The schema is small and every object has a known reader.",
+   "avoid": "Deleting objects that look unused but are called dynamically or by outside clients.",
+   "mode": "read",
+   "top": "split",
+   "scope": "wide",
+   "tools": "Needs: read-only database access to the catalog, plus the repository and any outside clients.",
+   "plat": "Any PostgreSQL host: Supabase, Neon, RDS, Cloud SQL or self-hosted.",
+   "rel": [
+    "A03",
+    "I06",
+    "PG09",
+    "PG11",
+    "PG12"
+   ],
+   "tags": "unused views, dead views, unused functions, schema cleanup, too many views, triggers, database clutter, drop unused",
+   "refs": [
+    "bestpractices"
+   ]
+  },
+  {
+   "id": "PG11",
+   "sec": "db",
+   "group": "Schema and dependencies",
+   "gk": "PG",
+   "t": "Are we storing the same truth multiple times?",
+   "p": "Find concepts and values maintained in multiple tables, materialized views, caches or derived columns. Trace which representation is authoritative, why each copy exists, how it stays synchronized, and what happens when the copies disagree. Recommend which duplication is justified by performance or history and which should be removed.",
+   "why": "Caches, aggregates, materialized views or derived columns drift from the raw facts.",
+   "ev": "The authoritative source and each copy, how each is refreshed, examples of drift, and what each copy costs readers and writers.",
+   "skip": "Each fact is stored once.",
+   "avoid": "Rejecting all denormalisation. Copies kept for speed or history can be worth it.",
+   "mode": "read",
+   "top": "split",
+   "scope": "wide",
+   "tools": "Repository and read-only database access.",
+   "plat": "Any PostgreSQL host: Supabase, Neon, RDS, Cloud SQL or self-hosted.",
+   "rel": [
+    "A04",
+    "D02",
+    "PG05",
+    "PG10"
+   ],
+   "tags": "stale view, materialized view out of date, duplicate data, cache disagrees, derived column, denormalized, source of truth"
+  },
+  {
+   "id": "PG12",
+   "sec": "db",
+   "group": "Schema and dependencies",
+   "gk": "PG",
+   "t": "Can the schema be easier to understand without losing depth?",
+   "p": "Review the database's logical organization from the perspective of a new senior engineer. Identify confusing names, mixed responsibilities, inconsistent conventions, unclear relationships and schemas that obscure the business domain. Recommend structural improvements that make the model easier to understand and maintain without sacrificing useful historical detail or creating unnecessary migrations.",
+   "why": "New developers or agents keep misunderstanding names, concepts or relationships.",
+   "ev": "The specific confusions, the work they affect, a schema map, and the least disruptive naming or boundary fixes.",
+   "skip": "Nobody has misread the schema recently.",
+   "avoid": "Cosmetic renames and broad migrations with no shown maintenance benefit.",
+   "mode": "read",
+   "top": "split",
+   "scope": "wide",
+   "tools": "Needs: the repository and read-only database access. Helps: declarative schema files, if the project uses them.",
+   "plat": "Any PostgreSQL host: Supabase, Neon, RDS, Cloud SQL or self-hosted.",
+   "rel": [
+    "A02",
+    "G01",
+    "PG10",
+    "PG11"
+   ],
+   "tags": "agents can't understand schema, confusing table names, schema map, naming conventions, data model clarity",
+   "refs": [
+    "declarative"
+   ]
+  },
+  {
+   "id": "PG13",
+   "sec": "db",
+   "group": "Performance and maintenance",
+   "gk": "PG",
+   "t": "Find the true sources of database waste",
+   "p": "Measure which tables, indexes, queries and maintenance activities consume the most storage, execution time and write resources. Distinguish useful capacity from avoidable waste, including unused indexes, row churn, bloat, poor plans and excessive scans. Recommend changes based on observed workload and realistic savings, not generic optimization rules.",
+   "why": "The bill is high, CPU or disk usage is high, storage keeps growing, or you suspect bloat.",
+   "ev": "Table and index sizes, the top statements, usage counts, dead-row and maintenance figures, EXPLAIN output and the savings you expect.",
+   "skip": "Usage and cost are small and steady.",
+   "avoid": "Judging an index from a code search alone, or looking only at query time and ignoring write cost.",
+   "mode": "read",
+   "top": "split",
+   "scope": "wide",
+   "tools": "Needs: read-only database access and query statistics (pg_stat_statements). Helps: Supabase Advisors, and HypoPG to test an index without building it.",
+   "plat": "Any PostgreSQL host: Supabase, Neon, RDS, Cloud SQL or self-hosted.",
+   "rel": [
+    "P03",
+    "I03",
+    "PG06",
+    "PG14"
+   ],
+   "tags": "postgres costs, database bill, supabase performance, slow postgres, bloat, unused indexes, high cpu, storage growing",
+   "refs": [
+    "pgss",
+    "advisors",
+    "hypopg",
+    "bestpractices"
+   ]
+  },
+  {
+   "id": "PG14",
+   "sec": "db",
+   "group": "Performance and maintenance",
+   "gk": "PG",
+   "t": "What will become expensive as the database grows?",
+   "p": "Use actual table sizes, row growth, query plans and workload patterns to identify the first database operations likely to become disproportionately expensive as data grows. Evaluate indexing, partitioning, pagination, aggregation and retention only where the evidence justifies them. Show what scale would trigger a change rather than optimizing everything prematurely.",
+   "why": "Fact or history tables are growing fast, or you need to plan capacity.",
+   "ev": "Current row counts and growth rates, the workload assumed, the size at which each operation becomes a bottleneck, and costs before and after at a realistic scale.",
+   "skip": "Data volume is small and flat.",
+   "avoid": "Partitioning or new layers without a measured or credible need.",
+   "mode": "read",
+   "top": "split",
+   "scope": "wide",
+   "tools": "Needs: read-only database access. Helps: query statistics (pg_stat_statements) and HypoPG.",
+   "plat": "Any PostgreSQL host: Supabase, Neon, RDS, Cloud SQL or self-hosted.",
+   "rel": [
+    "P03",
+    "P05",
+    "PG13"
+   ],
+   "tags": "ten times the data, growth, capacity planning, partitioning, scale, slow as it grows",
+   "refs": [
+    "pgss",
+    "hypopg"
+   ]
+  },
+  {
+   "id": "PG15",
+   "sec": "db",
+   "group": "Rebuild and safe change",
+   "gk": "PG",
+   "t": "Can we rebuild this database from its sources?",
+   "p": "Determine whether this database can be reconstructed from the repository, migrations, original source material and retained operational records. Identify anything that exists only in production, any transformations that cannot be reproduced, and data that would be permanently lost. Where possible, test the reconstruction on an isolated database and compare the resulting records and relationships.",
+   "why": "You worry about disaster recovery, production-only state, or whether the data could be rebuilt.",
+   "ev": "The exact inputs needed to rebuild, the migration chain, a sampled comparison of a rebuilt copy against production, and the gaps that can't be recovered.",
+   "skip": "The database is a disposable cache you can refill at any time.",
+   "avoid": "Running a destructive restore against production, or treating a list of backups as proof they restore.",
+   "mode": "read",
+   "top": "split",
+   "scope": "wide",
+   "tools": "Needs: the repository, read-only production access and a separate database you are allowed to build into.",
+   "plat": "Any PostgreSQL host: Supabase, Neon, RDS, Cloud SQL or self-hosted.",
+   "rel": [
+    "I02",
+    "D02",
+    "PG04",
+    "PG17"
+   ],
+   "tags": "backup restore, disaster recovery, rebuild database, outage, reproduce production, restore test",
+   "refs": [
+    "pgtap"
+   ],
+   "iso": true
+  },
+  {
+   "id": "PG17",
+   "sec": "db",
+   "group": "Rebuild and safe change",
+   "gk": "PG",
+   "t": "Are our database changes safe before we merge?",
+   "p": "Review this database change against the live schema, existing consumers, prior migrations and deployment process. Establish whether it preserves current records, supports old and new application versions during rollout, and can be verified on an isolated database. Identify the smallest necessary migration and a realistic recovery path before approving it.",
+   "why": "A migration, or a change to functions, views, RLS, types or column meaning, is about to ship.",
+   "ev": "The migration diff, the consumers it touches, how old and new app versions coexist during rollout, locks and rollback, and a replay on a separate database.",
+   "skip": "The change touches no schema, functions or policies.",
+   "avoid": "Claiming a rollback exists because the application code can be reverted.",
+   "mode": "read",
+   "top": "split",
+   "scope": "wide",
+   "tools": "Needs: the repository, read-only access to the live schema and a separate database to replay the migration. Helps: pgTAP and, on Supabase, Advisors and branches.",
+   "plat": "Any PostgreSQL host: Supabase, Neon, RDS, Cloud SQL or self-hosted.",
+   "rel": [
+    "G02",
+    "I02",
+    "S06",
+    "PG15"
+   ],
+   "tags": "safe migrations, migration review, can this migration ship, schema change, rls change, breaking change, rollback",
+   "refs": [
+    "pgtap",
+    "advisors",
+    "declarative",
+    "bestpractices"
+   ],
+   "iso": true
+  },
+  {
+   "id": "PG16",
+   "sec": "db",
+   "group": "Agent decisions",
+   "gk": "PG",
+   "t": "Which decisions should an expert agent make without me?",
+   "p": "Find recurring database decisions that agents currently escalate to me, including field classification, record matching, write conflicts, source precedence and schema choices. Determine which can be resolved through established standards, existing precedent and authoritative evidence. Make the decision rules reusable, identify their limits, and reserve escalation for genuine product or risk decisions.",
+   "why": "Agents keep asking you to classify fields, match records or pick between sources.",
+   "ev": "The kinds of question that repeat, the standards and precedents that settle them, each rule with its exceptions, and where escalation really belongs.",
+   "skip": "Agents rarely escalate database questions.",
+   "avoid": "Inventing accounting, source-precedence or product policy where no authority exists.",
+   "mode": "read",
+   "top": "split",
+   "scope": "wide",
+   "tools": "Needs: the repository, past agent transcripts or notes, and read-only database access.",
+   "plat": "Any PostgreSQL host: Supabase, Neon, RDS, Cloud SQL or self-hosted.",
+   "rel": [
+    "M05",
+    "M07",
+    "G01",
+    "PG01",
+    "PG09"
+   ],
+   "tags": "agent keeps asking me, stop asking me to classify, escalations, decision rules, classify every record"
+  },
+  {
+   "id": "DBR01",
+   "sec": "db",
+   "group": "Workflows",
+   "t": "Is the data actually right?",
+   "why": "Prove the numbers before fixing anything.",
+   "flow": [
+    [
+     "Start",
+     [
+      "PG01",
+      "PG02"
+     ],
+     "PG01 when a figure disagrees with its source; PG02 when everything validates but still looks wrong."
+    ],
+    [
+     "If needed",
+     [
+      "PG03",
+      "PG04"
+     ],
+     "PG03 for identity gaps; PG04 when the meaning of past records matters."
+    ],
+    [
+     "Change",
+     [],
+     "Fix only the confirmed shared causes, and add SQL or metric tests for them."
+    ],
+    [
+     "Done when",
+     [],
+     "Recomputed examples that now match, an estimate of how much data was affected, and any source limits stated plainly."
+    ]
+   ],
+   "p": "Is the data actually right? Prove the numbers before fixing anything.\nWork through this in order and check in with me after each step. Stay read-only until I approve a change.\n\n1. Start: PG01 when a figure disagrees with its source; PG02 when everything validates but still looks wrong.\n\nCan we independently prove these numbers? (PG01)\nTake a representative set of important figures from this database and independently reconstruct them from their original sources. Don't rely on the existing calculation code to verify itself. Find discrepancies in definitions, source selection, units, dates, classifications, and relationships. Determine which errors are isolated and which come from shared logic, then rank corrections by analytical impact.\n\nFind data that is internally consistent but wrong (PG02)\nLook for data that passes the database's constraints and ordinary validation but is still analytically wrong. Test cross-table relationships, accounting identities, historical continuity, plausible ranges, source coverage, and independent calculations. Focus on contradictions that existing checks would miss, and distinguish genuine errors from legitimate differences in definitions or reporting periods.\n\n2. If needed: PG03 for identity gaps; PG04 when the meaning of past records matters.\n\nFind where records silently change identity (PG03)\nTrace how real-world entities are identified, matched and connected across imports, source documents and database tables. Find cases where distinct entities are merged, identical entities are duplicated, or historical relationships become disconnected. Identify the matching rule responsible and the affected population before proposing corrections.\n\nReproduce what the database believed in the past (PG04)\nChoose important historical records and determine whether the system can reproduce what was known and reported at a specific past date, using the definitions and evidence available then. Distinguish later source corrections from later classification changes. Find where current logic silently rewrites historical meaning and recommend the smallest reliable solution.\n\n3. Change: Fix only the confirmed shared causes, and add SQL or metric tests for them.\n\n4. Done when: Recomputed examples that now match, an estimate of how much data was affected, and any source limits stated plainly.",
+   "rel": [
+    "PG01",
+    "PG02",
+    "PG03",
+    "PG04"
+   ],
+   "tags": "recipe workflow"
+  },
+  {
+   "id": "DBR02",
+   "sec": "db",
+   "group": "Workflows",
+   "t": "Make ingestion simpler and cheaper",
+   "why": "Less work per import, without losing provenance or corrections.",
+   "flow": [
+    [
+     "Start",
+     [
+      "PG05",
+      "PG07"
+     ],
+     "PG05 when it is unclear who writes what; otherwise PG07."
+    ],
+    [
+     "If needed",
+     [
+      "PG06",
+      "PG08",
+      "PG09"
+     ],
+     "PG06 for writes that change nothing; PG08 for replay or correction failures; PG09 for validation done in several places."
+    ],
+    [
+     "Change",
+     [],
+     "Make the smallest change to one cause at a time, keeping provenance and corrections."
+    ],
+    [
+     "Done when",
+     [],
+     "The same results for reference inputs, measurably less work, and retries that do no harm."
+    ]
+   ],
+   "p": "Make ingestion simpler and cheaper Less work per import, without losing provenance or corrections.\nWork through this in order and check in with me after each step. Stay read-only until I approve a change.\n\n1. Start: PG05 when it is unclear who writes what; otherwise PG07.\n\nMap every place that writes to the database (PG05)\nMap the actual write paths for the important tables in this application. Identify every script, job, API, function, trigger and agent that can create, update or delete their records. Show who owns each field, which paths overlap, and where two writers can disagree or overwrite each other. Recommend the simplest ownership model supported by the existing system.\n\nIs our ingestion process more complicated than necessary? (PG07)\nTrace one complete ingestion cycle from the original source to the final database records. Identify repeated parsing, unnecessary intermediate states, duplicate validation, repeated reads, redundant transformations and writes that could be consolidated. Recommend the simplest workflow that preserves accuracy, traceability, failure recovery and the ability to process corrections.\n\n2. If needed: PG06 for writes that change nothing; PG08 for replay or correction failures; PG09 for validation done in several places.\n\nStop rewriting data that hasn't changed (PG06)\nInvestigate how much database write activity actually changes meaningful information. Find repeated upserts, unchanged updates, unnecessary delete-and-reinsert operations, repeated index maintenance and cascading refreshes. Measure their cost where practical and determine which writes can be eliminated without changing correctness, history or recovery behavior.\n\nCan we rerun everything without damaging the data? (PG08)\nExamine the ingestion and correction workflows under retries, interrupted runs, duplicate source files, out-of-order arrivals and repeated execution. Demonstrate where these cases produce duplicate records, lost corrections, partial results or unnecessary rewrites. Find the smallest durable approach that makes each operation safely repeatable.\n\nFind where write logic should live (PG09)\nTrace how records are validated, transformed and written across application code, database functions, triggers and background jobs. Find rules duplicated in different layers or placed where they are difficult to test and maintain. Recommend the simplest ownership boundary for each rule, without assuming that moving more logic into Postgres is automatically better.\n\n3. Change: Make the smallest change to one cause at a time, keeping provenance and corrections.\n\n4. Done when: The same results for reference inputs, measurably less work, and retries that do no harm.",
+   "rel": [
+    "PG05",
+    "PG06",
+    "PG07",
+    "PG08",
+    "PG09"
+   ],
+   "tags": "recipe workflow"
+  },
+  {
+   "id": "DBR03",
+   "sec": "db",
+   "group": "Workflows",
+   "t": "Simplify a crowded schema",
+   "why": "Fewer objects with the same outcomes.",
+   "flow": [
+    [
+     "Start",
+     [
+      "PG10"
+     ],
+     "Inventory objects and their real consumers."
+    ],
+    [
+     "If needed",
+     [
+      "PG11",
+      "PG12",
+      "PG17"
+     ],
+     "PG11 for copies of the same fact; PG12 for confusing names; PG17 before any schema change ships."
+    ],
+    [
+     "Change",
+     [],
+     "Confirm consumers before retiring anything, and keep old and new versions working during rollout."
+    ],
+    [
+     "Done when",
+     [],
+     "Less complexity with unchanged results for users and data."
+    ]
+   ],
+   "p": "Simplify a crowded schema Fewer objects with the same outcomes.\nWork through this in order and check in with me after each step. Stay read-only until I approve a change.\n\n1. Start: Inventory objects and their real consumers.\n\nWhich database objects no longer earn their keep? (PG10)\nExamine the tables, views, functions, triggers, indexes and materialized views in this database. Identify redundant representations, obsolete objects, overlapping responsibilities, unnecessary dependency chains and abstractions that no longer provide meaningful value. Verify actual consumers before recommending removal. Rank opportunities by complexity eliminated, operational savings and migration risk.\n\n2. If needed: PG11 for copies of the same fact; PG12 for confusing names; PG17 before any schema change ships.\n\nAre we storing the same truth multiple times? (PG11)\nFind concepts and values maintained in multiple tables, materialized views, caches or derived columns. Trace which representation is authoritative, why each copy exists, how it stays synchronized, and what happens when the copies disagree. Recommend which duplication is justified by performance or history and which should be removed.\n\nCan the schema be easier to understand without losing depth? (PG12)\nReview the database's logical organization from the perspective of a new senior engineer. Identify confusing names, mixed responsibilities, inconsistent conventions, unclear relationships and schemas that obscure the business domain. Recommend structural improvements that make the model easier to understand and maintain without sacrificing useful historical detail or creating unnecessary migrations.\n\nAre our database changes safe before we merge? (PG17)\nReview this database change against the live schema, existing consumers, prior migrations and deployment process. Establish whether it preserves current records, supports old and new application versions during rollout, and can be verified on an isolated database. Identify the smallest necessary migration and a realistic recovery path before approving it.\n\n3. Change: Confirm consumers before retiring anything, and keep old and new versions working during rollout.\n\n4. Done when: Less complexity with unchanged results for users and data.",
+   "rel": [
+    "PG10",
+    "PG11",
+    "PG12",
+    "PG17"
+   ],
+   "tags": "recipe workflow"
+  },
+  {
+   "id": "DBR04",
+   "sec": "db",
+   "group": "Workflows",
+   "t": "Reduce PostgreSQL resource cost",
+   "why": "Spend less where the measurements say the money goes.",
+   "flow": [
+    [
+     "Start",
+     [
+      "PG13"
+     ],
+     "Measure the top consumers first."
+    ],
+    [
+     "If needed",
+     [
+      "PG06",
+      "PG14",
+      "P03"
+     ],
+     "PG06 for write churn; PG14 when growth is the driver; P03 for one slow query."
+    ],
+    [
+     "Change",
+     [],
+     "Take the biggest measured savings first. No speculative indexes or partitions."
+    ],
+    [
+     "Done when",
+     [],
+     "Workload figures before and after, with no loss of correctness."
+    ]
+   ],
+   "p": "Reduce PostgreSQL resource cost Spend less where the measurements say the money goes.\nWork through this in order and check in with me after each step. Stay read-only until I approve a change.\n\n1. Start: Measure the top consumers first.\n\nFind the true sources of database waste (PG13)\nMeasure which tables, indexes, queries and maintenance activities consume the most storage, execution time and write resources. Distinguish useful capacity from avoidable waste, including unused indexes, row churn, bloat, poor plans and excessive scans. Recommend changes based on observed workload and realistic savings, not generic optimization rules.\n\n2. If needed: PG06 for write churn; PG14 when growth is the driver; P03 for one slow query.\n\nStop rewriting data that hasn't changed (PG06)\nInvestigate how much database write activity actually changes meaningful information. Find repeated upserts, unchanged updates, unnecessary delete-and-reinsert operations, repeated index maintenance and cascading refreshes. Measure their cost where practical and determine which writes can be eliminated without changing correctness, history or recovery behavior.\n\nWhat will become expensive as the database grows? (PG14)\nUse actual table sizes, row growth, query plans and workload patterns to identify the first database operations likely to become disproportionately expensive as data grows. Evaluate indexing, partitioning, pagination, aggregation and retention only where the evidence justifies them. Show what scale would trigger a change rather than optimizing everything prematurely.\n\nQueries that grow badly (P03)\nFind database queries whose cost grows disproportionately with records, tenants, or relationships. Examine execution plans, indexes, joins, pagination, and application-side filtering.\n\n3. Change: Take the biggest measured savings first. No speculative indexes or partitions.\n\n4. Done when: Workload figures before and after, with no loss of correctness.",
+   "rel": [
+    "PG06",
+    "PG13",
+    "PG14",
+    "P03"
+   ],
+   "tags": "recipe workflow"
+  },
+  {
+   "id": "DBR05",
+   "sec": "db",
+   "group": "Workflows",
+   "t": "Ship or recover safely",
+   "why": "A schema change or a restore you have actually tested.",
+   "flow": [
+    [
+     "Start",
+     [
+      "PG17",
+      "PG15"
+     ],
+     "PG17 for a change about to ship; PG15 for rebuilding or recovery."
+    ],
+    [
+     "If needed",
+     [
+      "G02",
+      "R06",
+      "PG04"
+     ],
+     "G02 for deploy timing; R06 for half-finished failures; PG04 when past results must not move."
+    ],
+    [
+     "Change",
+     [],
+     "Run migrations and restores on a separate database, check compatibility, and plan the recovery."
+    ],
+    [
+     "Done when",
+     [],
+     "A migration or restore tested on a separate database, and no claim about production that wasn't proved."
+    ]
+   ],
+   "p": "Ship or recover safely A schema change or a restore you have actually tested.\nWork through this in order and check in with me after each step. Stay read-only until I approve a change.\n\n1. Start: PG17 for a change about to ship; PG15 for rebuilding or recovery.\n\nAre our database changes safe before we merge? (PG17)\nReview this database change against the live schema, existing consumers, prior migrations and deployment process. Establish whether it preserves current records, supports old and new application versions during rollout, and can be verified on an isolated database. Identify the smallest necessary migration and a realistic recovery path before approving it.\n\nCan we rebuild this database from its sources? (PG15)\nDetermine whether this database can be reconstructed from the repository, migrations, original source material and retained operational records. Identify anything that exists only in production, any transformations that cannot be reproduced, and data that would be permanently lost. Where possible, test the reconstruction on an isolated database and compare the resulting records and relationships.\n\n2. If needed: G02 for deploy timing; R06 for half-finished failures; PG04 when past results must not move.\n\nDatabase changes during a deploy (G02)\nTrace what happens during the deployment window when a new database migration or API schema change goes live while previous client bundles, active background workers, or queue consumers are still running. Identify column renames, non-nullable additions, or contract changes that break backwards compatibility before the old code finishes draining.\n\nHalf-finished failures (R06)\nTrace error, timeout and cancellation paths for transactions, locks, file handles, temporary files, worker jobs and network connections. Identify paths that leave resources held or state half-committed, and demonstrate them with controlled failure injection where practical.\n\nReproduce what the database believed in the past (PG04)\nChoose important historical records and determine whether the system can reproduce what was known and reported at a specific past date, using the definitions and evidence available then. Distinguish later source corrections from later classification changes. Find where current logic silently rewrites historical meaning and recommend the smallest reliable solution.\n\n3. Change: Run migrations and restores on a separate database, check compatibility, and plan the recovery.\n\n4. Done when: A migration or restore tested on a separate database, and no claim about production that wasn't proved.",
+   "rel": [
+    "PG04",
+    "PG15",
+    "PG17",
+    "G02",
+    "R06"
+   ],
+   "tags": "recipe workflow"
+  },
+  {
    "id": "M01",
    "sec": "think",
    "group": "Thinking prompts",
@@ -1263,7 +1971,10 @@
    "t": "Let the expert decide",
    "p": "Treat the technical decisions as yours to make. Apply established engineering standards, investigate uncertainties, and escalate only genuine product or risk decisions.",
    "use": "Use it when an agent keeps asking you technical questions you can't judge.",
-   "aka": "Expert delegation"
+   "aka": "Expert delegation",
+   "rel": [
+    "PG16"
+   ]
   },
   {
    "id": "M06",
@@ -1281,7 +1992,10 @@
    "t": "Spec without the interview",
    "p": "Turn my request into a compact working specification: desired outcome, actual scope, meaningful exclusions, observable acceptance criteria, and stopping point. Resolve technical ambiguity from the repository and authoritative references yourself; ask me only for product preferences, permissions, or genuine tradeoffs you cannot determine independently. Then execute if the task is authorized and ready.",
    "use": "The default way to start a real task. The opposite of /grill-me.",
-   "aka": "Outcome-bound spec without needless interview"
+   "aka": "Outcome-bound spec without needless interview",
+   "rel": [
+    "PG16"
+   ]
   },
   {
    "id": "M08",
@@ -1321,8 +2035,8 @@
    "id": "EC01",
    "sec": "ecmd",
    "group": "Engineering kit",
-   "gnote": "The engineering-kit plugin in AtlasScope/agent-kit: the /engineer router plus 14 of Matt Pocock's skills, each read in full, pinned to a reviewed commit, and set to run only when you type them. Install it in Claude Code or Codex, or enable it for cloud sessions in a repo's .claude/settings.json.",
-   "badge": "plugin · v1.2.0",
+   "gnote": "The engineering-kit plugin in AtlasScope/agent-kit: the /engineer and /database routers plus 14 of Matt Pocock's skills, each read in full, pinned to a reviewed commit, and set to run only when you type them. Install it in Claude Code or Codex, or enable it for cloud sessions in a repo's .claude/settings.json.",
+   "badge": "plugin · v1.3.0",
    "t": "/engineer",
    "cmd": "/engineer",
    "p": "/engineer",
@@ -1330,11 +2044,42 @@
    "rel": []
   },
   {
+   "id": "EC35",
+   "sec": "ecmd",
+   "group": "Engineering kit",
+   "gnote": "The engineering-kit plugin in AtlasScope/agent-kit: the /engineer and /database routers plus 14 of Matt Pocock's skills, each read in full, pinned to a reviewed commit, and set to run only when you type them. Install it in Claude Code or Codex, or enable it for cloud sessions in a repo's .claude/settings.json.",
+   "badge": "plugin · v1.3.0",
+   "t": "/database",
+   "cmd": "/database",
+   "p": "/database",
+   "why": "Describe a PostgreSQL problem in plain words and it picks one database prompt from this library, says why, and runs it read-only when it can reach the code and database. In Codex it's $database.",
+   "rel": [
+    "PG00",
+    "PG01",
+    "PG02",
+    "PG03",
+    "PG04",
+    "PG05",
+    "PG06",
+    "PG07",
+    "PG08",
+    "PG09",
+    "PG10",
+    "PG11",
+    "PG12",
+    "PG13",
+    "PG14",
+    "PG15",
+    "PG17",
+    "PG16"
+   ]
+  },
+  {
    "id": "EC02",
    "sec": "ecmd",
    "group": "Engineering kit",
    "gnote": "The engineering-kit plugin in AtlasScope/agent-kit: the /engineer router plus 14 of Matt Pocock's skills, each read in full, pinned to a reviewed commit, and set to run only when you type them. Install it in Claude Code or Codex, or enable it for cloud sessions in a repo's .claude/settings.json.",
-   "badge": "plugin · v1.2.0",
+   "badge": "plugin · v1.3.0",
    "t": "/diagnosing-bugs",
    "cmd": "/diagnosing-bugs",
    "p": "/diagnosing-bugs",
@@ -1351,7 +2096,7 @@
    "sec": "ecmd",
    "group": "Engineering kit",
    "gnote": "The engineering-kit plugin in AtlasScope/agent-kit: the /engineer router plus 14 of Matt Pocock's skills, each read in full, pinned to a reviewed commit, and set to run only when you type them. Install it in Claude Code or Codex, or enable it for cloud sessions in a repo's .claude/settings.json.",
-   "badge": "plugin · v1.2.0",
+   "badge": "plugin · v1.3.0",
    "t": "/tdd",
    "cmd": "/tdd",
    "p": "/tdd",
@@ -1367,7 +2112,7 @@
    "sec": "ecmd",
    "group": "Engineering kit",
    "gnote": "The engineering-kit plugin in AtlasScope/agent-kit: the /engineer router plus 14 of Matt Pocock's skills, each read in full, pinned to a reviewed commit, and set to run only when you type them. Install it in Claude Code or Codex, or enable it for cloud sessions in a repo's .claude/settings.json.",
-   "badge": "plugin · v1.2.0",
+   "badge": "plugin · v1.3.0",
    "t": "/improve-codebase-architecture",
    "cmd": "/improve-codebase-architecture",
    "p": "/improve-codebase-architecture",
@@ -1383,7 +2128,7 @@
    "sec": "ecmd",
    "group": "Engineering kit",
    "gnote": "The engineering-kit plugin in AtlasScope/agent-kit: the /engineer router plus 14 of Matt Pocock's skills, each read in full, pinned to a reviewed commit, and set to run only when you type them. Install it in Claude Code or Codex, or enable it for cloud sessions in a repo's .claude/settings.json.",
-   "badge": "plugin · v1.2.0",
+   "badge": "plugin · v1.3.0",
    "t": "/grill-me",
    "cmd": "/grill-me",
    "p": "/grill-me",
@@ -1397,7 +2142,7 @@
    "sec": "ecmd",
    "group": "Engineering kit",
    "gnote": "The engineering-kit plugin in AtlasScope/agent-kit: the /engineer router plus 14 of Matt Pocock's skills, each read in full, pinned to a reviewed commit, and set to run only when you type them. Install it in Claude Code or Codex, or enable it for cloud sessions in a repo's .claude/settings.json.",
-   "badge": "plugin · v1.2.0",
+   "badge": "plugin · v1.3.0",
    "t": "/grill-with-docs",
    "cmd": "/grill-with-docs",
    "p": "/grill-with-docs",
@@ -1412,7 +2157,7 @@
    "sec": "ecmd",
    "group": "Engineering kit",
    "gnote": "The engineering-kit plugin in AtlasScope/agent-kit: the /engineer router plus 14 of Matt Pocock's skills, each read in full, pinned to a reviewed commit, and set to run only when you type them. Install it in Claude Code or Codex, or enable it for cloud sessions in a repo's .claude/settings.json.",
-   "badge": "plugin · v1.2.0",
+   "badge": "plugin · v1.3.0",
    "t": "/research",
    "cmd": "/research",
    "p": "/research",
@@ -1424,7 +2169,7 @@
    "sec": "ecmd",
    "group": "Engineering kit",
    "gnote": "The engineering-kit plugin in AtlasScope/agent-kit: the /engineer router plus 14 of Matt Pocock's skills, each read in full, pinned to a reviewed commit, and set to run only when you type them. Install it in Claude Code or Codex, or enable it for cloud sessions in a repo's .claude/settings.json.",
-   "badge": "plugin · v1.2.0",
+   "badge": "plugin · v1.3.0",
    "t": "/retro",
    "cmd": "/retro",
    "p": "/retro",
@@ -1438,7 +2183,7 @@
    "sec": "ecmd",
    "group": "Engineering kit",
    "gnote": "The engineering-kit plugin in AtlasScope/agent-kit: the /engineer router plus 14 of Matt Pocock's skills, each read in full, pinned to a reviewed commit, and set to run only when you type them. Install it in Claude Code or Codex, or enable it for cloud sessions in a repo's .claude/settings.json.",
-   "badge": "plugin · v1.2.0",
+   "badge": "plugin · v1.3.0",
    "t": "/wizard",
    "cmd": "/wizard",
    "p": "/wizard",
@@ -1450,7 +2195,7 @@
    "sec": "ecmd",
    "group": "Engineering kit",
    "gnote": "The engineering-kit plugin in AtlasScope/agent-kit: the /engineer router plus 14 of Matt Pocock's skills, each read in full, pinned to a reviewed commit, and set to run only when you type them. Install it in Claude Code or Codex, or enable it for cloud sessions in a repo's .claude/settings.json.",
-   "badge": "plugin · v1.2.0",
+   "badge": "plugin · v1.3.0",
    "t": "/to-questionnaire",
    "cmd": "/to-questionnaire",
    "p": "/to-questionnaire",
@@ -1462,7 +2207,7 @@
    "sec": "ecmd",
    "group": "Engineering kit",
    "gnote": "The engineering-kit plugin in AtlasScope/agent-kit: the /engineer router plus 14 of Matt Pocock's skills, each read in full, pinned to a reviewed commit, and set to run only when you type them. Install it in Claude Code or Codex, or enable it for cloud sessions in a repo's .claude/settings.json.",
-   "badge": "plugin · v1.2.0",
+   "badge": "plugin · v1.3.0",
    "t": "/wait-what",
    "cmd": "/wait-what",
    "p": "/wait-what",
@@ -3954,7 +4699,8 @@
     "D01",
     "D02",
     "A04",
-    "G05"
+    "G05",
+    "PG01"
    ]
   ],
   [
@@ -4779,7 +5525,15 @@
   "Testing and security": "What the tests really prove, and where input from outside can reach something sensitive.",
   "Infrastructure and environment": "The path from a merged change to the live site, what automated checks cost, and the computer the agents run on.",
   "Data integrity and analytics": "Telling missing from zero, knowing where each number came from, and records whose meaning changes over time.",
-  "Agent harness and modern stack": "Newer kinds of trouble: out-of-date agent instructions, old and new versions running at once after a deploy, data leaking into pages, outside services going down, rounding errors, and screens that show a change before it is saved."
+  "Agent harness and modern stack": "Newer kinds of trouble: out-of-date agent instructions, old and new versions running at once after a deploy, data leaking into pages, outside services going down, rounding errors, and screens that show a change before it is saved.",
+  "Start here": "One broad look when the database feels hard to trust or costly. If you can already name the problem, skip it and pick the narrower prompt.",
+  "Accuracy and evidence": "Proves the data is right, not just valid: rebuilt figures, whole populations, stable identities and past results that still reproduce.",
+  "Writes and ingestion": "Who writes what, how often it changes nothing, and whether imports survive retries and corrections.",
+  "Schema and dependencies": "Fewer objects, one home for each fact, and a model a new engineer or agent can read.",
+  "Performance and maintenance": "Where storage, time and write cost actually go, and what grows expensive first. Every claim needs a measurement.",
+  "Rebuild and safe change": "Changes and restores proved on a separate database before anyone relies on them.",
+  "Agent decisions": "Turns questions agents keep asking you into rules they can apply themselves.",
+  "Workflows": "Short routes through the database prompts for a whole job. Start with the first step and only take the optional ones when the evidence points there."
  },
  "sources": {
   "intro": "Collected from two field guides, one for agent engineering and one for design skills, plus a set of everyday saved prompts. The skills it points to ship in this repo as plugins.",
@@ -4790,5 +5544,113 @@
     "The design, engineering, experience-architecture and working-style plugins this library refers to, and the source of this page."
    ]
   ]
- }
+ },
+ "dbSymptoms": [
+  [
+   "The numbers don't match their source",
+   [
+    "PG01",
+    "PG02",
+    "D02"
+   ]
+  ],
+  [
+   "Records are merged, duplicated or lose history",
+   [
+    "PG03",
+    "PG04",
+    "D05"
+   ]
+  ],
+  [
+   "Imports rewrite everything or run twice",
+   [
+    "PG06",
+    "PG08",
+    "PG07"
+   ]
+  ],
+  [
+   "Nobody knows what writes to a table",
+   [
+    "PG05",
+    "PG09",
+    "R05"
+   ]
+  ],
+  [
+   "Too many views, functions and triggers",
+   [
+    "PG10",
+    "PG11",
+    "PG12"
+   ]
+  ],
+  [
+   "Postgres is slow or costs too much",
+   [
+    "PG13",
+    "PG14",
+    "P03"
+   ]
+  ],
+  [
+   "A migration is about to ship, or a restore is untested",
+   [
+    "PG17",
+    "PG15",
+    "G02"
+   ]
+  ],
+  [
+   "Agents keep asking me to decide",
+   [
+    "PG16",
+    "M05"
+   ]
+  ]
+ ],
+ "dbTools": {
+  "supabase": [
+   "Supabase agent skills",
+   "https://github.com/supabase/agent-skills",
+   "Official skills for Supabase and Postgres work. Install with: claude plugin marketplace add supabase/agent-skills, then claude plugin install supabase@supabase-agent-skills. Other agents: npx skills add supabase/agent-skills."
+  ],
+  "bestpractices": [
+   "Postgres best practices skill (Supabase)",
+   "https://github.com/supabase/agent-skills/blob/main/skills/supabase-postgres-best-practices/SKILL.md",
+   "Rules for queries, indexes, connections, locking and RLS. Works on any Postgres, not only Supabase. Install with: claude plugin install postgres-best-practices@supabase-agent-skills."
+  ],
+  "pgss": [
+   "pg_stat_statements",
+   "https://supabase.com/docs/guides/database/extensions/pg_stat_statements",
+   "Postgres extension that counts how often each statement runs and how long it takes. Check it is enabled before trusting its numbers."
+  ],
+  "advisors": [
+   "Supabase Advisors",
+   "https://supabase.com/docs/guides/observability/advisors",
+   "Built-in security and performance checks in the Supabase dashboard. Read their output rather than running another scanner."
+  ],
+  "hypopg": [
+   "HypoPG",
+   "https://supabase.com/docs/guides/database/extensions/hypopg",
+   "Tests whether an index would help without building it. Optional, and not needed for most investigations."
+  ],
+  "pgtap": [
+   "pgTAP database tests",
+   "https://supabase.com/docs/guides/local-development/testing/overview",
+   "SQL tests for rules and RLS policies. Run them on a local or branch database, never production."
+  ],
+  "declarative": [
+   "Declarative schemas (Supabase)",
+   "https://supabase.com/docs/guides/local-development/declarative-database-schemas",
+   "Keep the desired schema in files and generate migrations from it. Weigh it against the migration workflow you already have."
+  ],
+  "pgdocs": [
+   "PostgreSQL documentation",
+   "https://www.postgresql.org/docs/current/",
+   "The reference for exact behaviour. Check the version your database runs."
+  ]
+ },
+ "dbToolsVerified": "2026-11-07"
 }

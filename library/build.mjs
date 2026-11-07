@@ -48,7 +48,7 @@ if (template.split("__LIBRARY_DATA__").length !== 2) throw new Error("template.h
 const data = JSON.stringify(lib).replace(/</g, "\\u003c");
 const html = `<!doctype html>\n<html lang="en">\n${template.replace("__LIBRARY_DATA__", () => data)}</html>\n`;
 
-const SECTION_NAMES = { inv: "Investigations", think: "Thinking prompts", ecmd: "Engineering commands", dcmd: "Design commands", recipe: "Recipes", desk: "Desk only" };
+const SECTION_NAMES = { inv: "Investigations", db: "Database", think: "Thinking prompts", ecmd: "Engineering commands", dcmd: "Design commands", recipe: "Recipes", desk: "Desk only" };
 const md = ["# Prompt Library", "", `${lib.entries.length} prompts, commands and recipes for coding and design agents. Open prompt-library.html for search, stars and the prompt composer.`, ""];
 for (const [sec, name] of Object.entries(SECTION_NAMES)) {
   const list = lib.entries.filter((e) => e.sec === sec);
