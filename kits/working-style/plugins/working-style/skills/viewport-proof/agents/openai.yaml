@@ -1,0 +1,7 @@
+interface:
+  display_name: "Viewport Proof"
+  short_description: "Production-readiness verdict for rendered UI, with a visual proof sheet"
+  default_prompt: "Use $viewport-proof to judge this rendered UI across representative viewports. Prove the server runs this commit, save the frames, run the geometry checks, and give me the verdict with a proof sheet I can open."
+
+policy:
+  allow_implicit_invocation: false

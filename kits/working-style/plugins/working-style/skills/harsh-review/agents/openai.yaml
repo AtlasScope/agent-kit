@@ -1,0 +1,7 @@
+interface:
+  display_name: "Harsh Review"
+  short_description: "Blunt ranked critique, then ship the small certain fixes"
+  default_prompt: "Use $harsh-review on this work: rank what is actually wrong with evidence for each item, fix and verify the small certain ones now, and list what still needs my call."
+
+policy:
+  allow_implicit_invocation: false

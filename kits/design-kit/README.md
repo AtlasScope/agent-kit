@@ -18,17 +18,17 @@ The router also routes to skills that ship as their own plugins. Install the one
 **Claude Code on a computer (Mac, Windows, Linux)**
 
 ```sh
-claude plugin marketplace add AtlasScope/design-kit
-claude plugin install design-kit@design-kit
+claude plugin marketplace add AtlasScope/agent-kit
+claude plugin install design-kit@agent-kit
 ```
 
-Update later with `claude plugin marketplace update design-kit` and `claude plugin update design-kit@design-kit`.
+Update later with `claude plugin marketplace update agent-kit` and `claude plugin update design-kit@agent-kit`.
 
 **Codex on a computer**
 
 ```sh
-codex plugin marketplace add AtlasScope/design-kit
-codex plugin add design-kit@design-kit
+codex plugin marketplace add AtlasScope/agent-kit
+codex plugin add design-kit@agent-kit
 ```
 
 Update with `codex plugin marketplace upgrade design-kit`.
@@ -40,11 +40,11 @@ Cloud sessions only get what the repo declares. Add this to the repo's `.claude/
 ```json
 {
   "extraKnownMarketplaces": {
-    "design-kit": { "source": { "source": "github", "repo": "AtlasScope/design-kit" } },
+    "agent-kit": { "source": { "source": "github", "repo": "AtlasScope/agent-kit" } },
     "impeccable": { "source": { "source": "github", "repo": "pbakaus/impeccable" } }
   },
   "enabledPlugins": {
-    "design-kit@design-kit": true,
+    "design-kit@agent-kit": true,
     "impeccable@impeccable": true
   }
 }
@@ -69,7 +69,7 @@ Plugins install per computer, not per account, so a second account on a computer
 **Hermes Agent**
 
 ```sh
-hermes skills install AtlasScope/design-kit/plugins/design-kit/skills/<name> --category design
+hermes skills install AtlasScope/agent-kit/kits/design-kit/plugins/design-kit/skills/<name> --category design
 ```
 
 ## Updating the library

@@ -4,7 +4,7 @@ description: Use only when the user explicitly invokes /engineer or $engineer. T
 disable-model-invocation: true
 metadata:
   short-description: Suggest the right investigation or skill
-  author: AtlasScope/engineering-kit
+  author: AtlasScope/agent-kit
 ---
 
 # Engineer

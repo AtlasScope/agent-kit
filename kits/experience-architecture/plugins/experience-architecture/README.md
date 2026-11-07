@@ -11,35 +11,35 @@ The plugin works in Claude Code (on your computer and in cloud sessions), Codex 
 **Claude Code**
 
 ```bash
-claude plugin marketplace add AtlasScope/experience-architecture
-claude plugin install experience-architecture@experience-architecture
+claude plugin marketplace add AtlasScope/agent-kit
+claude plugin install experience-architecture@agent-kit
 ```
 
-Update with `claude plugin marketplace update experience-architecture` and `claude plugin update experience-architecture@experience-architecture`.
+Update with `claude plugin marketplace update agent-kit` and `claude plugin update experience-architecture@agent-kit`.
 
 **Claude Code cloud sessions.** Add this to the repo's `.claude/settings.json`, merged with anything already there:
 
 ```json
 {
   "extraKnownMarketplaces": {
-    "experience-architecture": { "source": { "source": "github", "repo": "AtlasScope/experience-architecture" } }
+    "agent-kit": { "source": { "source": "github", "repo": "AtlasScope/agent-kit" } }
   },
-  "enabledPlugins": { "experience-architecture@experience-architecture": true }
+  "enabledPlugins": { "experience-architecture@agent-kit": true }
 }
 ```
 
 **Codex**
 
 ```bash
-codex plugin marketplace add AtlasScope/experience-architecture
-codex plugin add experience-architecture@experience-architecture
+codex plugin marketplace add AtlasScope/agent-kit
+codex plugin add experience-architecture@agent-kit
 ```
 
 **Cursor.** Cursor reads plain skill folders, so a script copies the skills into `~/.cursor/skills`. Run it from a clone; the same command works on Windows:
 
 ```bash
-git clone https://github.com/AtlasScope/experience-architecture.git
-node experience-architecture/plugins/experience-architecture/scripts/install-skills.mjs
+git clone https://github.com/AtlasScope/agent-kit.git
+node agent-kit/kits/experience-architecture/plugins/experience-architecture/scripts/install-skills.mjs
 ```
 
 It installs `/experience-architecture-diagnose`, `-rethink` and `-verify`, and keeps the plugin's files in `~/.experience-architecture/plugin`. Rerun it after a `git pull` to update; add `--uninstall` to remove only what it installed. `--codex` writes the same folders to `~/.codex/skills` if you prefer that to the Codex plugin, and `--dir <path>` targets any other tool that reads skill folders.
