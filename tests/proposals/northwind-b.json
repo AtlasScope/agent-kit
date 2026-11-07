@@ -1,0 +1,11 @@
+{
+  "name": "B · Customer-centred workspace",
+  "summary": "Orders become part of the customer record; a top bar holds three destinations.",
+  "chrome": { "primary": "topbar", "mobile": "bottom-bar" },
+  "sections": [
+    { "label": "Today", "path": "/overview", "purpose": "Open orders and customers needing attention, in one queue." },
+    { "label": "Customers", "path": "/customers", "children": [{ "label": "Customer", "path": "/customers/:id", "tabs": ["Summary", "Orders", "Notes", "Billing"], "overlays": [{ "label": "Order detail", "url": "/customers/:id/orders/:orderId" }] }] },
+    { "label": "Revenue", "path": "/reports", "absorbs": ["/analytics"] }
+  ],
+  "utility": [{ "label": "Settings", "path": "/settings", "children": [{ "label": "Team", "path": "/settings/team" }, { "label": "Billing", "path": "/settings/billing" }] }]
+}

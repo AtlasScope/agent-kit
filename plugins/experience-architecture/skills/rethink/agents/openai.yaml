@@ -1,0 +1,5 @@
+interface:
+  display_name: "Rethink (experience architecture)"
+  short_description: "Decide what pages and navigation should exist"
+policy:
+  allow_implicit_invocation: true

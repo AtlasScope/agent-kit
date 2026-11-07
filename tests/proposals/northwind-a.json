@@ -1,0 +1,20 @@
+{
+  "name": "A · One sidebar, records own their tabs",
+  "summary": "Keep the section model, remove the top bar, fold duplicates into their owners.",
+  "chrome": { "primary": "sidebar", "mobile": "bottom-bar", "utilityLabel": "Workspace" },
+  "sections": [
+    { "label": "Overview", "path": "/overview" },
+    { "label": "Customers", "path": "/customers", "views": [{ "label": "Active", "key": "active" }, { "label": "Archived", "key": "archived" }], "viewParam": "status", "viewHistory": "push", "absorbs": ["/customers/archive"],
+      "children": [{ "label": "Customer", "path": "/customers/:id", "tabs": ["Overview", "Orders", "Notes", "Activity"], "tabHistory": "replace", "absorbs": ["/customers/:id/notes", "/customer-activity"] }] },
+    { "label": "Orders", "path": "/orders", "views": [{ "label": "All", "key": "all" }, { "label": "Open", "key": "open" }, { "label": "Shipped", "key": "shipped" }, { "label": "Closed", "key": "closed" }], "viewParam": "status", "viewHistory": "replace",
+      "children": [{ "label": "Order", "path": "/orders/:id" }] },
+    { "label": "Reports", "path": "/reports", "absorbs": ["/analytics"] }
+  ],
+  "utility": [
+    { "label": "Settings", "path": "/settings", "children": [
+      { "label": "Profile", "path": "/settings/profile" },
+      { "label": "Team", "path": "/settings/team", "absorbs": ["/admin/users"] },
+      { "label": "Billing", "path": "/settings/billing", "absorbs": ["/account/billing"] } ] }
+  ],
+  "retire": [{ "path": "/insights", "to": "/reports", "reason": "Never built; the sidebar item pointed at nothing" }]
+}

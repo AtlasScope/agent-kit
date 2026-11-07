@@ -1,0 +1,3 @@
+#!/bin/sh
+# experience-architecture toolkit entry point (plugin bin/ is on the Bash PATH while the plugin is enabled)
+exec node "$(dirname "$0")/../scripts/ea.mjs" "$@"

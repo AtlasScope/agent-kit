@@ -1,0 +1,1 @@
+Quick one about Tidewater (code in this folder, dev copy at http://localhost:5500). Coordinators asked us to add a "Tenant updates" tab to the work order page under Dispatch so they stop switching to Tenant Comms. Should we just add that tab? Write your answer in a markdown file. Don't change the app.

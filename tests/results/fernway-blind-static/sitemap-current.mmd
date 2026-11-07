@@ -1,0 +1,51 @@
+%% current
+flowchart LR
+  n__["<small>/</small>"]
+  n__archive["<small>/archive</small>"]
+  n__ --> n__archive
+  n__customers["<small>/customers</small>"]
+  n__ --> n__customers
+  n__customers__customerId["<small>/customers/:customerId</small>"]
+  n__customers --> n__customers__customerId
+  n__inbox["<small>/inbox</small>"]
+  n__ --> n__inbox
+  n__knowledge["<small>/knowledge</small>"]
+  n__ --> n__knowledge
+  n__knowledge__slug["<small>/knowledge/:slug</small>"]
+  n__knowledge --> n__knowledge__slug
+  n__knowledge_saved_replies["<small>/knowledge/saved-replies</small>"]
+  n__knowledge --> n__knowledge_saved_replies
+  n__settings["/settings<br/><i>no page</i>"]
+  n__ --> n__settings
+  n__settings_macros["<small>/settings/macros</small>"]
+  n__settings --> n__settings_macros
+  n__settings_notifications["<small>/settings/notifications</small>"]
+  n__settings --> n__settings_notifications
+  n__settings_profile["<small>/settings/profile</small>"]
+  n__settings --> n__settings_profile
+  n__reports["<small>/reports</small>"]
+  n__ --> n__reports
+  n__reports_billing["<small>/reports/billing</small>"]
+  n__reports --> n__reports_billing
+  n__sign_in["<small>/sign-in</small>"]
+  n__ --> n__sign_in
+  n__settings_team["<small>/settings/team</small>"]
+  n__settings --> n__settings_team
+  n__tickets["<small>/tickets</small>"]
+  n__ --> n__tickets
+  n__tickets__ticketId["<small>/tickets/:ticketId</small>"]
+  n__tickets --> n__tickets__ticketId
+  n__tickets_status["/tickets/status<br/><i>no page</i>"]
+  n__tickets --> n__tickets_status
+  n__tickets_status__status["<small>/tickets/status/:status</small>"]
+  n__tickets_status --> n__tickets_status__status
+  classDef orphan fill:#fde68a
+  classDef dead fill:#fecaca
+  classDef ghost fill:#f3f4f6,stroke-dasharray:4
+  classDef merge fill:#ddd6fe
+  classDef retire fill:#fecaca
+  classDef new fill:#bbf7d0
+  classDef move fill:#bfdbfe
+  class n__archive orphan
+  class n__settings ghost
+  class n__tickets_status ghost

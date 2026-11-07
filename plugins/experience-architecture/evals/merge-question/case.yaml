@@ -1,0 +1,31 @@
+schema_version: "1.1"
+name: merge-question
+description: >
+  A narrow IA question. /reports and /analytics render the same data under different labels from two nav
+  systems. A good answer says merge, gives evidence, and covers the old URL and both nav entries.
+tags: [ia, focused]
+plugins: ["../.."]
+runs: 1
+context:
+  add_dirs: [fixture]
+execution:
+  prompt: |
+    In the app in the fixture directory, should /reports and /analytics be one page? Give me a recommendation
+    and what it would take. Don't change any code.
+  max_turns: 25
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill, Bash]
+graders:
+  - name: used-plugin-skill
+    type: tool_used
+    tool: Skill
+    input_match: 'diagnose|rethink'
+    arm: with-only
+  - name: recommendation
+    type: llm
+    weight: 2
+    criteria: >
+      Pass if the answer recommends merging, backed by evidence that both pages render the same revenue-by-month
+      and top-customers content from the same data; notes the top bar labels it "Reports" and the sidebar
+      "Analytics"; and covers redirecting the retired URL and updating in-code links (overview links /reports).
+      Fail if it recommends keeping both without a distinct purpose for each.
