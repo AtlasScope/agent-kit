@@ -48,7 +48,7 @@ Repeat `codex plugin add` for each plugin you want.
 
 **Cursor** reads plain skill folders. Clone this repo and run `scripts/install-local.sh` (Mac and Linux), which links the skills into `~/.cursor/skills`.
 
-**Working from a clone.** `scripts/install-local.sh` points Claude Code, Codex and Cursor at your clone, so an edit shows up in the next session without pushing first. Run it once after cloning; rerun it after adding or removing a skill.
+**Working from a clone.** `scripts/install-local.sh` points Claude Code, Codex and Cursor at your clone, so an edit shows up in the next session without pushing first. Claude Code keeps a copy of each plugin, so rerun the script after editing (a session-start hook can run it for you); it reinstalls only when the clone has changed.
 
 ## Prompt library
 
