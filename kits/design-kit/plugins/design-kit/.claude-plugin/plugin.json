@@ -1,0 +1,10 @@
+{
+  "name": "design-kit",
+  "description": "A design library for AI coding agents: a /design router that picks the right skill or recipe, plus vetted skills for typography, color, motion, UX writing, usability, landing copy, native iOS and more.",
+  "version": "1.0.0",
+  "author": { "name": "AtlasScope" },
+  "homepage": "https://github.com/AtlasScope/design-kit",
+  "repository": "https://github.com/AtlasScope/design-kit",
+  "license": "MIT",
+  "skills": "./skills/"
+}

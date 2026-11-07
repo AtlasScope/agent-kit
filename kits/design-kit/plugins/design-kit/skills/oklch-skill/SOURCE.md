@@ -1,0 +1,1 @@
+Third-party skill. Source: https://github.com/jakubkrehel/oklch-skill at commit 0e81f040e16d48fcc61d3e1b7ea548542371321f. Copied by hand on 2026-11-02 after a read of every file; no auto-update. To update, re-vet and copy again.
