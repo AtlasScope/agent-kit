@@ -59,7 +59,6 @@ Find places where two systems can disagree about the same truth. Trace their own
 - Finds: Finds data held in two places (a cache and a table, a client and a server) that can quietly disagree.
 - Evidence to ask for: Pairs of stores with the field, who writes each, how they sync, and a sequence of events that makes them diverge.
 - Skip when: Read-only mirrors that are rebuilt from scratch on every load.
-- Watch for: undefined
 - Mode: read, split, wide scope. Needs: Repository and read-only database access.
 - Skills: `/audit-context-building`
 - Related: `R05`, `G06`, `D02`
@@ -73,7 +72,6 @@ Look for architectural decisions that were reasonable when this project was smal
 - Finds: Separates choices that now cost real time or bugs from ones that are only out of fashion.
 - Evidence to ask for: Each decision with the original reason, the current cost (incidents, workarounds, slow paths) and evidence for that cost.
 - Skip when: Projects younger than a few months.
-- Watch for: undefined
 - Mode: read, single pass, wide scope. Needs: Repository, git history.
 - Skills: `/improve-codebase-architecture`
 - Related: `A03`, `P05`
@@ -87,7 +85,6 @@ Identify asynchronous operations whose correctness depends on events happening i
 - Finds: Finds code that only works because things usually happen in the right order.
 - Evidence to ask for: The assumed order, what can reorder it (retry, webhook, slow network), and a reproduction for the worst case.
 - Skip when: Strictly sequential scripts with no concurrency.
-- Watch for: undefined
 - Mode: repro, split, wide scope. Needs: Repository; a way to run the code locally for the reproduction.
 - Skills: `/diagnosing-bugs`
 - Related: `R05`, `A01`, `G04`
@@ -101,10 +98,23 @@ Map external side effects and resource lifecycles across this application: conne
 - Finds: Finds timers, listeners and connections nobody clearly owns or closes.
 - Evidence to ask for: Each resource with where it is created, who should release it, and the path where it is not released.
 - Skip when: Short-lived scripts and serverless handlers with no long-lived state.
-- Watch for: undefined
 - Mode: read, single pass, wide scope. Needs: Repository access; heap snapshots help confirm.
 - Skills: `/audit-context-building`
 - Related: `P07`, `R06`
+
+### A08 Structure that fights the users' work
+
+```text
+Map this application's pages, navigation and URLs against the jobs its users actually do. Find pages that should merge, become a tab or panel, or go away; navigation systems that compete for the same destinations; and jobs users have to assemble by hand across screens. Say whether the structure itself causes the problems, and if it does, name the end state it should reach.
+```
+
+- Finds: Finds when confusing screens are a symptom of how the product is organised rather than a list of separate bugs.
+- Evidence to ask for: A verdict per page (keep, merge, demote, retire) with the evidence for each, the two to five causes behind the symptoms, and today's site map next to the proposed one.
+- Skip when: Products with a handful of pages, or right after a navigation redesign nobody has used yet.
+- Watch for: Agents propose a redesign for every complaint. Ask whether one structural cause explains two or more findings; if none does, the structure is sound and the fixes are local.
+- Mode: read, split, wide scope. Needs: Repository; the app running locally with test accounts for the browser checks.
+- Skills: `/experience-architecture:diagnose`, `/experience-architecture:rethink`
+- Related: `A05`, `R07`, `A02`
 
 ## Performance and scale
 
@@ -147,7 +157,6 @@ Find database queries whose cost grows disproportionately with records, tenants,
 - Finds: Finds the queries that will be the first to hurt as tables grow.
 - Evidence to ask for: EXPLAIN ANALYZE output for each suspect query at realistic row counts, plus the index or rewrite and its new plan.
 - Skip when: Tables that will stay small (settings, lookup lists).
-- Watch for: undefined
 - Mode: read, single pass, narrow scope. Needs: Read-only database access with EXPLAIN. Neon or Supabase branch for anything heavier.
 - Related: `P01`, `P05`, `P06`
 
@@ -173,7 +182,6 @@ Investigate what happens when this application's data volume and concurrent user
 - Finds: Names the first thing to break if the project takes off, before it does.
 - Evidence to ask for: Current sizes and rates, the projected tenfold numbers, and the limit each bottleneck hits (pool size, plan limit, query cost).
 - Skip when: Products with no growth in sight; revisit quarterly.
-- Watch for: undefined
 - Mode: read, single pass, wide scope. Needs: Database stats, hosting plan limits, current traffic numbers.
 - Related: `P03`, `P09`
 
@@ -199,7 +207,6 @@ Investigate sustained memory growth and allocation pressure. Look for unbounded 
 - Finds: Finds why a page or process gets slower or crashes the longer it runs.
 - Evidence to ask for: Two heap snapshots over a repeated action, with the growing object type and what retains it.
 - Skip when: When memory is flat over a long session.
-- Watch for: undefined
 - Mode: read, single pass, narrow scope. Needs: Chrome DevTools heap snapshots or Node --inspect.
 - Skills: `/diagnosing-bugs`
 - Related: `A07`
@@ -213,7 +220,6 @@ Find synchronous work performed in latency-sensitive asynchronous handlers, incl
 - Finds: Finds one slow synchronous step that stalls every other request.
 - Evidence to ask for: Event-loop delay or long-task measurements tied to the specific handler.
 - Skip when: Background scripts where nothing else shares the process.
-- Watch for: undefined
 - Mode: read, single pass, narrow scope. Needs: Node profiler or browser Performance panel.
 - Related: `P01`, `P04`
 
@@ -226,7 +232,6 @@ Examine places where work is parallelized or queued without explicit limits. Fin
 - Finds: Finds parallel work with no ceiling that can flood a pool or an API.
 - Evidence to ask for: Each fan-out with its maximum width at realistic input, the downstream limit, and a load test with a bound.
 - Skip when: Fan-outs over a fixed, small list.
-- Watch for: undefined
 - Mode: read, single pass, narrow scope. Needs: Repository; a load script against a non-production target.
 - Related: `P02`, `G04`
 
@@ -243,7 +248,6 @@ Find operations that cannot safely be retried. Examine duplicate events, partial
 - Finds: Finds actions that do damage when they run twice: double sends, double charges, duplicate rows.
 - Evidence to ask for: Each operation with its trigger, what a second run does, and whether a key or constraint prevents it.
 - Skip when: Pure reads.
-- Watch for: undefined
 - Mode: read, split, wide scope. Needs: Repository and read-only database schema.
 - Skills: `/diagnosing-bugs`
 - Related: `R05`, `R06`, `D04`
@@ -257,7 +261,6 @@ Trace every place the application silently substitutes a default, null, stale va
 - Finds: Finds screens that show a confident zero or an empty list when the real answer is 'we could not load this'.
 - Evidence to ask for: Each fallback with its trigger, what the user sees, and whether anything tells them it is a fallback.
 - Skip when: Fallbacks that are already labelled in the UI.
-- Watch for: undefined
 - Mode: read, single pass, wide scope. Needs: Repository; the app running to see what users see.
 - Skills: `/insecure-defaults:audit`
 - Related: `D01`, `T05`, `S06`
@@ -271,7 +274,6 @@ Identify business invariants the system assumes but never enforces. Find the app
 - Finds: Finds the rules everyone assumes (one owner per task, no negative balance) that nothing actually checks.
 - Evidence to ask for: Each invariant, where it is assumed, where it could be enforced (constraint, schema, server check) and a test that breaks it today.
 - Skip when: Invariants already backed by database constraints.
-- Watch for: undefined
 - Mode: repro, single pass, wide scope. Needs: Repository; a test database or branch.
 - Skills: `/property-based-testing`, `/tdd`
 - Related: `A01`, `T02`
@@ -285,7 +287,6 @@ Analyze the system's handling of time: time zones, daylight saving, expiration, 
 - Finds: Finds the date bugs that show up twice a year, at midnight, or in another time zone.
 - Evidence to ask for: Each time-sensitive path with the zone it assumes, and a test at a DST boundary and at midnight in Memphis and UTC.
 - Skip when: Features that never show or compare dates.
-- Watch for: undefined
 - Mode: repro, single pass, wide scope. Needs: Repository; tests with a pinned clock.
 - Skills: `/property-based-testing`
 - Related: `D03`
@@ -313,10 +314,23 @@ Trace error, timeout and cancellation paths for transactions, locks, file handle
 - Finds: Finds what is left behind when something fails halfway.
 - Evidence to ask for: Each failure path with the resource left held, shown by injecting the failure.
 - Skip when: Code with no resources beyond a single request.
-- Watch for: undefined
 - Mode: repro, single pass, wide scope. Needs: Repository; ability to inject errors in tests.
 - Skills: `/diagnosing-bugs`
 - Related: `A07`, `R01`, `I04`
+
+### R07 Lost place: Back, refresh and shared links
+
+```text
+Check whether this application keeps the user's place. In a real browser, open lists, filters, tabs, panels and records, then press Back and Forward, refresh, open links in a new tab, and open shared links in a fresh browser both signed out and as another account. Find where users lose a filter, scroll position, draft or open panel, or land somewhere other than what was shared, and trace each case to where that state lives.
+```
+
+- Finds: Finds the everyday friction where Back closes the wrong thing, a filter resets, or a pasted link opens the wrong view.
+- Evidence to ask for: Each case as a recorded journey (start, action, expected, observed) with the file and line that owns the state, and the journey runner's verdict: PASS, FAIL or EXPLORATORY.
+- Skip when: Static sites with no filters, panels or signed-in pages.
+- Watch for: Blocking data-changing requests does not make a browser run read-only, because some apps change data on an ordinary page load. Never point it at production with real accounts.
+- Mode: read, single pass, narrow scope. Needs: The app running locally or on staging with test accounts; Playwright, which the plugin looks for and asks before installing.
+- Skills: `/experience-architecture:diagnose`, `/experience-architecture:verify`
+- Related: `T01`, `A08`, `G06`
 
 ## Testing and security
 
@@ -331,7 +345,6 @@ Find critical user journeys that have extensive unit-test coverage but insuffici
 - Finds: Finds features that are green in CI and still break for real people.
 - Evidence to ask for: Each journey with what the tests cover, what they skip (real auth, real DB, real browser), and the one added check.
 - Skip when: Journeys already covered by a browser test.
-- Watch for: undefined
 - Mode: repro, single pass, wide scope. Needs: Playwright or the in-app browser for the end-to-end check.
 - Skills: `/tdd`
 - Related: `T02`, `T06`, `I02`
@@ -345,7 +358,6 @@ Find tests that would continue passing if the underlying feature stopped working
 - Finds: Finds tests that pass no matter what.
 - Evidence to ask for: For each suspect test, break the feature on purpose and show the test still passes.
 - Skip when: Brand-new suites written test-first.
-- Watch for: undefined
 - Mode: repro, single pass, wide scope. Needs: Repository and the test runner.
 - Skills: `/property-based-testing`, `/tdd`
 - Related: `T06`, `T01`
@@ -359,7 +371,6 @@ Trace every external input from entry point to sensitive operation. Investigate 
 - Finds: Follows untrusted input to the places it can do harm.
 - Evidence to ask for: Each path: entry point, checks along the way, sensitive operation, and the missing check if any, with file:line.
 - Skip when: Never skip for anything that holds other people's data or money.
-- Watch for: undefined
 - Mode: read, split, wide scope. Needs: Repository access.
 - Skills: `/security-review`, `/audit-context-building`, `/differential-review:diff-review`
 - Related: `T05`, `S06`, `G03`
@@ -373,7 +384,6 @@ Review dependency and CI supply-chain exposure: install scripts, untrusted pull 
 - Finds: Checks what a malicious package or pull request could reach.
 - Evidence to ask for: Advisories matched to installed versions, install scripts present, workflow permissions and which secrets each job can read.
 - Skip when: Rarely; run after adding dependencies or CI jobs.
-- Watch for: undefined
 - Mode: read, single pass, narrow scope. Needs: Lockfile, CI workflow files, npm audit or the auditor skill.
 - Skills: `/supply-chain-risk-auditor`, `/agentic-actions-auditor`, `/ci-optimizer:ci-check`
 - Related: `I06`, `I03`
@@ -387,7 +397,6 @@ Search for security-sensitive behavior that fails open when configuration is mis
 - Finds: Finds checks that let people in when something goes wrong.
 - Evidence to ask for: Each check with what happens on missing config, thrown error and malformed input, shown with a request or test.
 - Skip when: Never skip for sign-in, keys or owner checks.
-- Watch for: undefined
 - Mode: read, single pass, narrow scope. Needs: Repository; the app running locally in demo mode.
 - Skills: `/insecure-defaults:audit`, `/sharp-edges`
 - Related: `S06`, `T03`, `R02`
@@ -401,7 +410,6 @@ Choose critical features and ask what the existing tests truly prove. Identify m
 - Finds: Asks what each test really proves, then adds one check that would catch a real regression.
 - Evidence to ask for: For each feature, the claim the tests make, what they actually exercise, and a new check that fails when the feature is broken.
 - Skip when: Features with an existing end-to-end check that has caught a real bug.
-- Watch for: undefined
 - Mode: repro, single pass, narrow scope. Needs: Repository and test runner.
 - Skills: `/tdd`, `/property-based-testing`
 - Related: `T02`, `T01`, `M06`
@@ -446,7 +454,6 @@ Trace a change from commit to production, including builds, migrations, deployme
 - Finds: Lists every way 'merged' can fail to mean 'live'.
 - Evidence to ask for: The real pipeline as steps with their config files, and for each, how it can skip or fail without anyone noticing.
 - Skip when: Right after the same trace, unless the pipeline changed.
-- Watch for: undefined
 - Mode: read, single pass, narrow scope. Needs: CI and Vercel config, deployment history (read-only).
 - Related: `G02`, `I05`
 
@@ -459,7 +466,6 @@ Analyze CI and deployment costs against actual failures detected. Find repeated 
 - Finds: Finds CI minutes spent on checks that never catch anything.
 - Evidence to ask for: Per job: run count, minutes, failures that were real bugs, and what else would have caught them.
 - Skip when: When CI bills are small and runs are fast.
-- Watch for: undefined
 - Mode: read, single pass, narrow scope. Needs: GitHub Actions run history via gh.
 - Skills: `/ci-optimizer:ci-timings`, `/ci-optimizer:ci-check`
 - Related: `T04`
@@ -473,7 +479,6 @@ Find background jobs that can block other work or leave partially updated data. 
 - Finds: Finds crons and workers that can hang, overlap or stop halfway.
 - Evidence to ask for: Each job with its trigger, timeout, what happens if two run at once, and what happens if it dies midway.
 - Skip when: Projects with no background jobs.
-- Watch for: undefined
 - Mode: read, single pass, narrow scope. Needs: Repository, vercel.json crons, logs.
 - Related: `R06`, `R01`, `G02`
 
@@ -486,7 +491,6 @@ Compare declared infrastructure configuration with the running environment and i
 - Finds: Finds where the dashboard and the repo disagree.
 - Evidence to ask for: Each setting declared in the repo next to its live value, with the source of each.
 - Skip when: Infrastructure that is fully managed from the repo.
-- Watch for: undefined
 - Mode: read, single pass, narrow scope. Needs: Vercel and database dashboards or MCP tools, read-only.
 - Related: `S06`, `I02`
 
@@ -530,7 +534,6 @@ Identify where the application confuses missing, zero, unavailable, estimated, s
 - Finds: Finds where 'we don't know' turns into 0 and then into a wrong total.
 - Evidence to ask for: Each field with how each absence state is stored, how calculations treat it, and how it displays.
 - Skip when: Data with no optional values.
-- Watch for: undefined
 - Mode: read, split, wide scope. Needs: Repository and read-only database access.
 - Skills: `/spec-to-code-compliance`
 - Related: `R02`, `D02`, `G05`
@@ -544,7 +547,6 @@ Trace every derived metric to its raw evidence, transformation logic, assumption
 - Finds: Checks that every number on screen can be traced back to a source document.
 - Evidence to ask for: For each metric: raw inputs, formula with file:line, and an independent recomputation for one real record.
 - Skip when: Metrics that are raw values with no transformation.
-- Watch for: undefined
 - Mode: read, split, wide scope. Needs: Repository, read-only database, the source filings.
 - Skills: `/spec-to-code-compliance`, `/dimensional-analysis`
 - Related: `D01`, `D03`, `G05`
@@ -558,7 +560,6 @@ Find historical records whose meanings change when current classifications or sc
 - Finds: Finds old records that read differently once today's rules are applied to them.
 - Evidence to ask for: Each classification with when it changed, which records predate it, and how the app reads them now.
 - Skip when: Data with no history or no classifications.
-- Watch for: undefined
 - Mode: read, single pass, wide scope. Needs: Read-only database access, migration history.
 - Related: `R04`, `D02`
 
@@ -571,7 +572,6 @@ Audit data ingestion for records that could be duplicated, overwritten, silently
 - Finds: Finds rows that go missing or land on the wrong entity without an error.
 - Evidence to ask for: Each ingestion step with its matching key, conflict rule and what it logs, plus counts in versus counts stored.
 - Skip when: Manual entry only.
-- Watch for: undefined
 - Mode: read, single pass, narrow scope. Needs: Repository, ingestion logs, read-only database.
 - Related: `R01`, `D05`
 
@@ -584,7 +584,6 @@ Identify where data relationships have greater analytical value than isolated fi
 - Finds: Finds links between entities worth adding, and ones the evidence does not support.
 - Evidence to ask for: Each relationship with its source evidence, current coverage, and gaps.
 - Skip when: When the data model is still changing weekly.
-- Watch for: undefined
 - Mode: read, single pass, wide scope. Needs: Read-only database access, source documents.
 - Skills: `/grill-with-docs`
 - Related: `D04`, `D03`
@@ -598,7 +597,6 @@ Perform a focused code-health audit calibrated to this repository's own conventi
 - Finds: A general health check that refuses findings without evidence.
 - Evidence to ask for: A ranked list of under fifteen issues, each with file:line or a command, confidence and impact.
 - Skip when: When a narrower investigation above already fits the symptom.
-- Watch for: undefined
 - Mode: read, single pass, wide scope. Needs: Repository access.
 - Skills: `/code-review`
 - Related: `M02`, `T06`
@@ -616,7 +614,6 @@ Compare every agent instruction and documentation file in this repository (CLAUD
 - Finds: Finds instructions that send agents to files and patterns that no longer exist.
 - Evidence to ask for: Each stale line with the file it lives in and the current fact it contradicts.
 - Skip when: Right after an instruction-file cleanup.
-- Watch for: undefined
 - Mode: read, single pass, narrow scope. Needs: Repository access.
 - Skills: `/retro`
 - Related: `M10`
@@ -630,7 +627,6 @@ Trace what happens during the deployment window when a new database migration or
 - Finds: Checks that each migration works with the code that is still live while the deploy finishes.
 - Evidence to ask for: Each recent migration checked against the previous release's queries, with any break shown.
 - Skip when: Changes with no schema or API contract change.
-- Watch for: undefined
 - Mode: read, single pass, narrow scope. Needs: Repository, migrations folder, previous release tag.
 - Skills: `/differential-review:diff-review`
 - Related: `I02`, `S06`
@@ -644,7 +640,6 @@ Inspect API responses, Server Component and SSR serialization payloads, and RPC 
 - Finds: Finds data sent to the browser that the UI hides but anyone can read.
 - Evidence to ask for: Each payload with the fields sent, the fields used, and any field that should never leave the server.
 - Skip when: Static pages with no user data.
-- Watch for: undefined
 - Mode: read, single pass, narrow scope. Needs: Browser network panel or curl against a local server.
 - Skills: `/security-review`
 - Related: `T03`, `A02`
@@ -658,7 +653,6 @@ Assume each external API, LLM provider, or webhook source this application depen
 - Finds: Asks what happens to the app when Google, the AI Gateway or a webhook source goes down.
 - Evidence to ask for: Each dependency with its timeout, retry policy, what is held open while waiting, and the user-visible result.
 - Skip when: Features with no outside calls.
-- Watch for: undefined
 - Mode: read, single pass, wide scope. Needs: Repository; fault injection in a local run.
 - Skills: `/diagnosing-bugs`
 - Related: `P09`, `A06`, `R02`
@@ -672,7 +666,6 @@ Trace calculations involving currency, percentages, basis points, share counts, 
 - Finds: Finds money and percentage values that change scale or lose precision along the way.
 - Evidence to ask for: Each value's unit at every hop, with any hop where the unit or rounding changes.
 - Skip when: Apps with no money, rates or counts.
-- Watch for: undefined
 - Mode: read, single pass, wide scope. Needs: Repository and read-only database schema.
 - Skills: `/dimensional-analysis`
 - Related: `D02`, `D01`
@@ -686,7 +679,6 @@ Trace every flow where the client updates UI state or local cache optimistically
 - Finds: Finds screens that keep showing a change the server refused.
 - Evidence to ask for: Each optimistic flow with a forced rejection and a screenshot or test of what the screen then shows.
 - Skip when: Flows that wait for the server before updating.
-- Watch for: undefined
 - Mode: repro, single pass, narrow scope. Needs: In-app browser or Playwright with request interception.
 - Skills: `/diagnosing-bugs`
 - Related: `A04`, `A01`

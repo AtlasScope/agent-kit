@@ -1,7 +1,7 @@
 {
   "name": "engineering-kit",
   "description": "Engineering skills for AI coding agents, vetted and pinned: bug diagnosis, test-first work, architecture scans, plan interviews, retros, primary-source research and setup wizards. Every command runs only when you call it.",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": { "name": "AtlasScope" },
   "homepage": "https://github.com/AtlasScope/engineering-kit",
   "repository": "https://github.com/AtlasScope/engineering-kit",

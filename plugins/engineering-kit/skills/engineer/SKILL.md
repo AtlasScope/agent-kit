@@ -9,12 +9,12 @@ metadata:
 
 # Engineer
 
-The user types `/engineer` and what is going on, in their own words. They have 48 investigations, 10 thinking prompts and two dozen skills, and do not want to remember which fits. They get one starting move and one line on why. This router suggests; it does not run a workflow.
+The user types `/engineer` and what is going on, in their own words. They have 50 investigations, 10 thinking prompts and two dozen skills, and do not want to remember which fits. They get one starting move and one line on why. This router suggests; it does not run a workflow.
 
 The library is in two references, generated from the guide:
 
 - `references/start-here.md`: symptoms mapped to investigations, every skill with the investigations it covers, the thinking prompts in full, and how to wrap an investigation prompt. Read it first, every time.
-- `references/investigations.md`: all 48 investigations with the prompt, what it finds, the evidence to ask for, when to skip it, and the usual agent blind spot. Read only the entries you are weighing.
+- `references/investigations.md`: all 50 investigations with the prompt, what it finds, the evidence to ask for, when to skip it, and the usual agent blind spot. Read only the entries you are weighing.
 
 ## Choose one move
 

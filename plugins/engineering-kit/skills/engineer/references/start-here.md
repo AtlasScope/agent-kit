@@ -17,6 +17,7 @@ What the user says, mapped to the investigations that usually explain it, best f
 | Worried about who can see or change what | `T03`, `T05`, `G03`, `S06` |
 | The app hangs when an outside service is down | `G04`, `P09`, `R02`, `R06` |
 | This Mac is full or browser tests are flaky | `I07`, `I01`, `T01` |
+| Users get lost, or Back and shared links misbehave | `R07`, `A08`, `A01`, `T01` |
 
 ## Skills
 
@@ -28,6 +29,7 @@ This plugin's commands. All run only when typed.
 
 | Command | What it does | Covers |
 |---|---|---|
+| `/engineer` | Say what's going on; it picks one starting move from this guide (an investigation prompt, an installed skill, or a plain prompt with nothing to install) and says why. $engineer in Codex. |  |
 | `/diagnosing-bugs` | Hard bugs and slowdowns: build a check that goes red on this bug, shrink it, rank hypotheses, instrument, fix with a regression test, clean up. | `P01`, `R05`, `A06`, `G06` |
 | `/tdd` | Test-first in vertical slices. Agrees the test seams with you before writing any test. | `R03`, `T02`, `T06` |
 | `/improve-codebase-architecture` | Scans recent hot spots for shallow modules, writes a before/after HTML report to the temp folder, then interviews you on one. | `A01`, `A03`, `A05` |
@@ -56,6 +58,16 @@ Security plugins from trailofbits/skills, installed one at a time (see the READM
 | `/spec-to-code-compliance` | Checks code against the document that specifies it, one requirement at a time. | `D01`, `D02`, `A02` |
 | `/audit-context-building` | Reads code function by function, recording what each assumes, before any bug hunt. | `T03`, `A04`, `A07` |
 | `/goal-prompt` | Drafts /goal commands with verifiable completion conditions and stop bounds. |  |
+
+### Experience architecture
+
+The AtlasScope/experience-architecture plugin (separate install, see its README): how an app's pages, navigation, URLs and state serve its users. Diagnose and Rethink can start on their own when the topic comes up; all three are read-only until the owner picks a change.
+
+| Command | What it does | Covers |
+|---|---|---|
+| `/experience-architecture:diagnose` | Start here for any complaint about navigation, Back, filters, shared links or too many pages. Finds the causes, says whether the structure is the problem, and checks its own file references before reporting. | `A08`, `R07`, `A01` |
+| `/experience-architecture:rethink` | Should this page exist, where should a feature live, should we add this tab. Gives a recommendation, and for a real structural problem two or three options with a clickable prototype and a migration plan that keeps old links working. | `A08`, `A05` |
+| `/experience-architecture:verify` | Proves behaviour in a browser and keeps the journeys as a regression check that ends PASS, FAIL or EXPLORATORY, with typed values and secrets kept out of the logs. | `R07`, `T01`, `G06` |
 
 ### Built in
 
