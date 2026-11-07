@@ -5,8 +5,9 @@
 //   prompt-library.md    the same entries as a plain cheat sheet you can search in an editor
 //
 // Usage: node library/build.mjs [--overlay <private.json>] [--out <dir>]
-//   --overlay  merges extra fields into the public data (per-entry fields under "entries", plus
-//              any top-level keys). Use it for a private copy; never commit its output here.
+//   --overlay  merges extra fields into the public data: per-entry fields under "entries",
+//              private-only entries under "extraEntries" ({ after, entry }), and any other
+//              top-level keys. Use it for a private copy; never commit its output here.
 //   --out      output folder, default library/dist
 import fs from "node:fs";
 import path from "node:path";
@@ -27,7 +28,12 @@ if (overlayPath) {
     if (!e) throw new Error(`Overlay names entry ${id}, which library.json does not have`);
     Object.assign(e, fields);
   }
-  for (const [k, v] of Object.entries(ov)) if (k !== "entries") lib[k] = v;
+  for (const { after, entry } of ov.extraEntries || []) {
+    const at = lib.entries.findIndex((e) => e.id === after);
+    if (at < 0) throw new Error(`Overlay adds ${entry.id} after ${after}, which library.json does not have`);
+    lib.entries.splice(at + 1, 0, entry);
+  }
+  for (const [k, v] of Object.entries(ov)) if (k !== "entries" && k !== "extraEntries") lib[k] = v;
 }
 
 const ids = new Set();
