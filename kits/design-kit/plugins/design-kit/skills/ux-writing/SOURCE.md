@@ -1,0 +1,1 @@
+Third-party skill. Source: https://github.com/content-designer/ux-writing-skill at commit 98cacde4ba2dd10ed28df43a8d53eef1e321c539. Copied by hand on 2026-11-02 after a read of every file; no auto-update. To update, re-vet and copy again.
