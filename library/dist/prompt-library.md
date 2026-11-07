@@ -1,6 +1,6 @@
 # Prompt Library
 
-216 prompts, commands and recipes for coding and design agents. Open prompt-library.html for search, stars and the prompt composer.
+214 prompts, commands and recipes for coding and design agents. Open prompt-library.html for search, stars and the prompt composer.
 
 ## Investigations
 
@@ -200,7 +200,7 @@ Audit settings that differ between local development, CI, preview and production
 
 ### Infrastructure and environment
 
-**I01 · Duplicate tools and stale caches** Finds disk space and confusion spent on duplicate developer tools and stale saved files on this Mac.
+**I01 · Duplicate tools and stale caches** Finds disk space and confusion spent on duplicate developer tools and stale saved files on your computer.
 
 ```text
 Inventory the development environment's browser runtimes, caches, SDKs, package managers, and duplicate installations. Identify obsolete or wasteful components, assess dependencies, and propose a safe cleanup.
@@ -546,9 +546,9 @@ Be thorough in your analysis and bold in your recommendations
 /experience-architecture:verify
 ```
 
-### Already on this Mac
+### Other commands that help
 
-**EC26 · /code-review** Checks a set of changes or a PR for bugs, at an effort level you pick. Desk requires it (high or above) before a PR is marked ready.
+**EC26 · /code-review** Checks a set of changes or a PR for bugs, at an effort level you pick. Run it at high or above before marking a PR ready.
 
 ```text
 /code-review
@@ -578,7 +578,7 @@ Be thorough in your analysis and bold in your recommendations
 /ci-optimizer:ci-timings
 ```
 
-**EC31 · /harsh-review** Your own blunt critique, ranked by how serious each problem is, then the small fixes it's sure of.
+**EC31 · /harsh-review** Blunt critique, ranked by how serious each problem is, then the small fixes it is sure of.
 
 ```text
 /harsh-review
@@ -588,12 +588,6 @@ Be thorough in your analysis and bold in your recommendations
 
 ```text
 /viewport-proof
-```
-
-**EC33 · /pre-compact** Full session handoff before compacting: current state, a commit, memory notes and a prompt to resume from.
-
-```text
-/pre-compact
 ```
 
 **EC34 · /recommend** Lays out the options and tradeoffs, then recommends one.
@@ -768,24 +762,18 @@ Be thorough in your analysis and bold in your recommendations
 /impeccable pin audit
 ```
 
-### Your own skills
+### Routers and working-style
 
 **UI028 · /design** One command for any design work. Say what you want and it picks the one right skill or recipe from this guide, tells you why, and starts it. /design next picks a recipe back up.
 
 ```text
-/design the Desk inbox feels cluttered on my phone
+/design the inbox feels cluttered on my phone
 ```
 
 **UI029 · /harsh-review** A blunt review of code or product work, with problems ranked by how serious they are and proof for each one. It then makes the small fixes it is sure of and checks them.
 
 ```text
-/harsh-review the Desk settings page
-```
-
-**UI030 · /image** Makes an image from your description, or edits one you give it, using the Codex app you are signed into. No API key and no extra bill.
-
-```text
-/image a quiet desk at dawn, wide, for the sign-in page
+/harsh-review the settings page
 ```
 
 **UI031 · /viewport-proof** Takes screenshots of the real page at phone, tablet and desktop sizes, checks the layout automatically, and gives one of three ship verdicts with a sheet of proof. Heavier than /impeccable audit, so save it for a final check on a big page.
@@ -799,7 +787,7 @@ Be thorough in your analysis and bold in your recommendations
 **UI032 · /dataviz** Picks the right kind of chart, builds a color set that works for everyone and checks it with a tool, then sets the shapes, axes and hover labels.
 
 ```text
-/dataviz a weekly task-completion chart for Desk
+/dataviz a weekly task-completion chart
 ```
 
 ### Wondelai UX design
@@ -831,7 +819,7 @@ Be thorough in your analysis and bold in your recommendations
 **UI037 · /ios-hig-design** Designs iPhone and iPad screens that follow Apple's Human Interface Guidelines.
 
 ```text
-/ios-hig-design the Desk iPhone tab bar
+/ios-hig-design the iPhone tab bar
 ```
 
 **UI038 · /ux-heuristics** Checks how easy something is to use against Nielsen's well-known usability rules, and walks through it step by step as a new user would.
@@ -875,7 +863,7 @@ Be thorough in your analysis and bold in your recommendations
 **UI044 · /oklch-skill** Converts colors to OKLCH, a color system, then builds color scales and dark mode, fixes text that is hard to read against its background, and writes Tailwind v4 color settings.
 
 ```text
-/oklch-skill build a 10-step scale from the Desk accent
+/oklch-skill build a 10-step scale from the brand accent
 ```
 
 **UI045 · /color-expert** Answers color questions: contrast checks (APCA and WCAG), ways to build a palette, and color names and history.
@@ -897,13 +885,13 @@ Be thorough in your analysis and bold in your recommendations
 **UI047 · /product-marketing** Asks you questions once and writes the product-marketing file that /copywriting and /cro both read.
 
 ```text
-/product-marketing for Pullwise
+/product-marketing for the app
 ```
 
 **UI048 · /copywriting** Writes or rewrites the words on a page. It bans phrases that sound written by AI and asks you to back up every claim.
 
 ```text
-/copywriting the Pullwise landing hero
+/copywriting the landing page hero
 ```
 
 **UI049 · /cro** Finds why a page or form doesn't get people to sign up or buy, and what to change first.
@@ -1149,7 +1137,7 @@ example-skills:web-artifacts-builder a multi-view artifact with routing
 **UI086 · /vale:triage** Turns a huge first run into a decision for each rule: fix, downgrade or switch off. Gives a short plan in order.
 
 ```text
-/vale:triage vale is too noisy in pullwise
+/vale:triage vale is too noisy in this repo
 ```
 
 **UI087 · /vale:fix** Runs Vale and fixes the error-level problems, one pull request per file. Leaves warnings and suggestions for you.
@@ -1161,7 +1149,7 @@ example-skills:web-artifacts-builder a multi-view artifact with routing
 **UI088 · /vale:vocab** Adds your own terms (product names, APIs, jargon) to a word list so spell check stops flagging them.
 
 ```text
-/vale:vocab stop flagging Pullwise and AltHarbor
+/vale:vocab stop flagging our product names
 ```
 
 **UI089 · /vale:ci** Sets Vale to run automatically: in GitHub Actions, as a check before each commit, or in another runner.
@@ -1181,7 +1169,7 @@ vale docs/
 **UI091 · /stop-slop** Writes or rewrites text under its rules: no filler openers, no not-X-but-Y, no passive voice, no lists of three, varied sentence length.
 
 ```text
-/stop-slop write the launch tweet for Pullwise
+/stop-slop write the launch post
 ```
 
 ### Sepia
