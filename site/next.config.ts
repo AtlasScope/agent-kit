@@ -14,6 +14,10 @@ const config: NextConfig = {
   async redirects() {
     return idRedirects();
   },
+  // Preview and *.vercel.app hosts serve the same pages as www.atlasscope.dev; keep them out of search results.
+  async headers() {
+    return [{ source: "/:path*", has: [{ type: "host", value: "(?<sub>.*)\\.vercel\\.app" }], headers: [{ key: "X-Robots-Tag", value: "noindex" }] }];
+  },
   async rewrites() {
     // Every page has a markdown twin at the same URL plus .md, for agents and AI search.
     return {

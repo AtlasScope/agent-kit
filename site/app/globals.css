@@ -194,3 +194,31 @@ details.lic-text pre { white-space: pre-wrap; font-size: 0.75rem; color: var(--c
   .links { display: flex; grid-area: links; overflow-x: auto; scrollbar-width: none; gap: var(--space-lg); padding-block: var(--space-xs); }
   .links a { white-space: nowrap; }
 }
+
+/* Hero reveal (chosen 2026-11-08): the prompt-box look. Drafts are typed into an agent input, then the headline lands. */
+:root { --ease-reveal: cubic-bezier(0.23, 1, 0.32, 1); }
+.hero h1 { max-width: 15ch; min-height: 2.1em; display: grid; place-items: center; font: 600 clamp(2.75rem, 5.6vw + 0.5rem, 5.5rem)/1.02 var(--font-body); letter-spacing: -0.045em; }
+.hero .lead { max-width: 50ch; }
+.type { display: inline; }
+.type.draft { display: block; text-align: left; padding-right: 40px; font: 400 clamp(1.125rem, 1.6vw + 0.6rem, 1.75rem)/1.4 var(--font-mono); letter-spacing: 0; color: var(--color-muted); max-width: 34ch; }
+.type.draft.sel { background: oklch(40% 0.06 250 / 0.55); color: var(--color-ink); }
+.type .cur { display: inline-block; width: 0.08em; min-width: 2px; height: 1em; margin-left: 0.06em; vertical-align: -0.12em; background: currentColor; }
+.type.draft .cur { width: 0.55ch; height: 1.1em; opacity: 0.7; }
+.type .cur.out { opacity: 0; transition: opacity 300ms var(--ease-reveal); }
+.shell { position: relative; display: inline-block; max-width: 100%; }
+.js-reveal .shell { width: min(36rem, calc(100vw - 72px)); }
+.shell::before, .shell::after { content: ""; position: absolute; pointer-events: none; opacity: 0; transition: opacity 320ms var(--ease-reveal); }
+.shell::before { inset: -14px -18px; border: 1px solid var(--color-rule-2); border-radius: 18px; background: var(--color-paper-2); z-index: -1; }
+.shell::after { right: -8px; top: 50%; width: 30px; height: 30px; margin-top: -15px; border-radius: 999px; background: var(--color-ink) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23111' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 19V5M5 12l7-7 7 7'/%3E%3C/svg%3E") center / 16px no-repeat; }
+.js-reveal h1:not(.final) .shell::before, .js-reveal h1:not(.final) .shell::after { opacity: 1; }
+.js-reveal:not(.typing) .hero .type { visibility: hidden; }
+.rise { transition: opacity 600ms var(--ease-reveal), transform 600ms var(--ease-reveal); }
+.js-reveal .rise { opacity: 0; transform: translateY(8px); pointer-events: none; }
+.js-reveal.settled .rise { opacity: 1; transform: none; pointer-events: auto; }
+.js-reveal.settled .lead { transition-delay: 60ms; } .js-reveal.settled .install { transition-delay: 120ms; } .js-reveal.settled .run-wrap { transition-delay: 180ms; }
+.run-wrap { width: 100%; }
+.credits-row { display: flex; flex-wrap: wrap; gap: var(--space-xs) var(--space-md); align-items: baseline; font-size: var(--text-sm); color: var(--color-muted); }
+.credits-row a { color: var(--color-ink-2); text-decoration-color: var(--color-rule-2); text-underline-offset: 0.2em; }
+.credits-row a:hover { color: var(--color-ink); }
+@media (max-width: 400px) { .badge { display: inline-block; min-height: 0; padding: 6px 14px; border-radius: 16px; line-height: 1.4; text-align: center; } }
+@media (prefers-reduced-motion: reduce) { .js-reveal .rise { opacity: 1; transform: none; pointer-events: auto; } }

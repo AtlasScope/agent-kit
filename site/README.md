@@ -1,6 +1,6 @@
 # Agent Kit site
 
-The public library at atlasscope.dev: one page per prompt, skill, kit and problem, a markdown twin of each, search files for crawlers, optional accounts, and a read-only MCP server. Next.js on Vercel.
+The public library at www.atlasscope.dev: one page per prompt, skill, kit and problem, a markdown twin of each, search files for crawlers, optional accounts, and a read-only MCP server. Next.js on Vercel.
 
 ## Run it
 
@@ -53,4 +53,4 @@ The server at `/mcp` is public and read-only. Four limits keep a runaway client 
 ## Vercel project settings
 
 - Root directory: `site`. Framework: Next.js. Keep "Include files outside the root directory" on, since the content build reads `library/` and `kits/`.
-- `NEXT_PUBLIC_SITE_URL`: the production URL, once the domain is bought (defaults to `https://atlasscope.dev`).
+- Domain: `atlasscope.dev` redirects to `www.atlasscope.dev`, so pages use `https://www.atlasscope.dev` as their canonical URL. If the redirect is flipped to the bare domain, set `NEXT_PUBLIC_SITE_URL=https://atlasscope.dev`.

@@ -24,10 +24,16 @@ export function RunDemo() {
   useEffect(() => {
     const mq = matchMedia("(prefers-reduced-motion: reduce)");
     const on = () => setStill(mq.matches);
-    on(); mq.addEventListener("change", on);
+    // While the hero reveal plays, the run waits and starts shortly after it settles.
+    const root = document.documentElement;
+    const waiting = root.classList.contains("js-reveal") && !root.classList.contains("settled");
+    let t: ReturnType<typeof setTimeout> | undefined;
+    const go = () => { t = setTimeout(on, 700); };
+    if (waiting) addEventListener("hero-settled", go, { once: true }); else on();
+    mq.addEventListener("change", on);
     const io = new IntersectionObserver(([e]) => { visible.current = e.isIntersecting; });
     if (ref.current) io.observe(ref.current);
-    return () => { mq.removeEventListener("change", on); io.disconnect(); };
+    return () => { clearTimeout(t); removeEventListener("hero-settled", go); mq.removeEventListener("change", on); io.disconnect(); };
   }, []);
 
   useEffect(() => {

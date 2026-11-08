@@ -2,13 +2,17 @@
 export const SITE = {
   name: "Agent Kit",
   byline: "by AtlasScope",
-  url: (process.env.NEXT_PUBLIC_SITE_URL || "https://atlasscope.dev").replace(/\/$/, ""),
+  url: (process.env.NEXT_PUBLIC_SITE_URL || "https://www.atlasscope.dev").replace(/\/$/, ""),
   repo: "https://github.com/AtlasScope/agent-kit",
   repoSlug: "AtlasScope/agent-kit",
 };
 
+// Chosen 2026-11-08 ("Senior team"). The drafts are the false starts the reveal types and deletes.
 export const HERO = {
-  headline: ["Describe the job.", "Agent Kit picks the skill."],
+  headline: "Build like you have a senior team.",
+  subhead: "Agent Kit gives your coding agent the playbooks experienced designers and engineers use. Ask in plain words and it works from the right one.",
+  license: "Works in Claude Code, Codex, Cursor and 70 more agents. Free, and each skill keeps its author’s license.",
+  drafts: ["act as a senior designer and audit", "make it less generic, you know?"],
   badge: { text: "New:", code: "/database", rest: "for PostgreSQL investigations", href: "/skills/database" },
 };
 
