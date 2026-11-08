@@ -2,6 +2,8 @@
 
 Skills for AI coding agents, plus a prompt library you can open beside any of them. Every command runs only when you call it.
 
+Most of these skills are other people's work: 49 of the 60 come from Emil Kowalski, Matt Pocock, Wondel.ai and seven other authors. Agent Kit routes between them and adds 11 of its own. See [CREDITS.md](CREDITS.md).
+
 | Plugin | What it does |
 |---|---|
 | [design-kit](kits/design-kit) | `/design` routes to the right design skill or recipe: typography, color, motion, UX writing, usability, landing copy, native iOS and more. |
@@ -50,6 +52,10 @@ Repeat `codex plugin add` for each plugin you want.
 
 **Working from a clone.** `scripts/install-local.sh` points Claude Code, Codex and Cursor at your clone, so an edit shows up in the next session without pushing first. Run it once after cloning; rerun it after adding or removing a skill.
 
+## Website
+
+`site/` is the public library: one page for every prompt, skill and kit, a read-only MCP server, and optional accounts for Starred and collections. It is a Next.js app deployed on Vercel; see [`site/README.md`](site/README.md) to run it.
+
 ## Prompt library
 
 [`library/dist/prompt-library.html`](library/dist/prompt-library.html) is one self-contained page with over 200 prompts, commands and recipes, a symptom finder, a prompt composer and stars that stay in your browser. Use it any of these ways:
@@ -72,4 +78,4 @@ Each kit keeps its own README, credits, licenses and build scripts under `kits/<
 
 ## License
 
-MIT, except third-party skills, which keep their own licenses as listed in each kit's `THIRD_PARTY.md`.
+MIT, except third-party skills, which keep their own licenses as listed in [CREDITS.md](CREDITS.md) and each kit's `THIRD_PARTY.md`.
