@@ -1,8 +1,9 @@
-# Required check "codex-review": passes once Codex has reviewed the pull request.
-# Codex either leaves a review (with inline findings) or, when it finds nothing,
-# a comment or a thumbs-up on the PR. Findings are inline review threads, and the
-# branch rules require every thread to be resolved before merge, so "fixed or
-# dismissed" is enforced there, not here.
+# Required check "codex-review": passes once a Codex review has finished.
+# Codex keeps one summary comment on the PR with a hidden state block
+# (codex-review-state:v1) and edits it from "running" to done; it also leaves a
+# review with inline findings, or a thumbs-up when it finds nothing. Findings
+# are review threads, and main requires every thread resolved before merge, so
+# "fixed or dismissed" is enforced there, not here.
 name: Codex review
 
 on:
@@ -11,7 +12,7 @@ on:
   pull_request_review:
     types: [submitted]
   issue_comment:
-    types: [created]
+    types: [created, edited]
 
 permissions:
   contents: read
@@ -37,11 +38,20 @@ jobs:
         run: |
           api() { gh api --paginate "repos/$GITHUB_REPOSITORY/$1" --jq "$2"; }
           reviews=$(api "pulls/$PR/reviews" "[.[] | select(.user.login == env.CODEX_LOGIN)] | length")
-          comments=$(api "issues/$PR/comments" "[.[] | select(.user.login == env.CODEX_LOGIN)] | length")
           thumbs=$(api "issues/$PR/reactions" "[.[] | select(.user.login == env.CODEX_LOGIN and .content == \"+1\")] | length")
-          echo "Codex reviews: $reviews, comments: $comments, thumbs-up: $thumbs"
-          if [ $((reviews + comments + thumbs)) -gt 0 ]; then
-            echo "Codex has reviewed this PR. Unresolved findings still block merge until resolved."
+          # Status of the latest code review in the summary comment's state block.
+          status=$(api "issues/$PR/comments" '.[] | select(.user.login == env.CODEX_LOGIN) | .body' \
+            | sed 's/&#123;/{/g; s/&#125;/}/g' \
+            | grep -o 'codex-review-state:v1 {.*} -->' | tail -1 \
+            | sed 's/^codex-review-state:v1 //; s/ -->$//' \
+            | jq -r '.code_review.status // ""' 2>/dev/null || true)
+          echo "Codex reviews: $reviews, thumbs-up: $thumbs, summary status: ${status:-none}"
+          case "$status" in
+            running|queued|pending|in_progress)
+              echo "::error::Codex is still reviewing this PR."; exit 1 ;;
+          esac
+          if [ -n "$status" ] || [ $((reviews + thumbs)) -gt 0 ]; then
+            echo "Codex has finished reviewing. Unresolved findings still block merge until resolved."
             exit 0
           fi
           echo "::error::Waiting for a Codex review. If none arrives, comment '@codex review' on the PR."
