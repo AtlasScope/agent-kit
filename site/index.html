@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Agent Kit: 60 skills and 238 prompts for Claude Code, Codex and Cursor.">
+<title>Agent Kit by AtlasScope</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Geist:wght@400;500&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Hallmark · shape: Centred stage · genre: modern-minimal · theme: custom (by request: Resend-style) · job: try · idea: "the router is the product: you type what you want and it picks the skill" · vibe: "black, quiet, exact, one serif voice"
+ * paper: oklch(9% 0.004 270) · accent: oklch(93% 0.01 270), ink as the signal · display: Instrument Serif · body: Geist · hero: a badge for the newest skill, centred serif head, one sentence, the install command with six agent tabs as the primary action, View on GitHub second, the /design run playing below with a pause control · nav: wordmark with byline left, links centred, GitHub right · footer: none (hero study) · imagery: the product, a real /design route · signature: a real /design run that types itself out, the route and its five steps
+ * axes: dark/roman-serif/neutral · posture: restrained · contrast: pass · fold: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P2 H2 E2 S2 R2 V2 · weakest: E, centred head is the Resend register the user asked for */
+:root {
+  color-scheme: dark;
+  --color-paper: oklch(9% 0.004 270); --color-paper-2: oklch(13% 0.006 270); --color-paper-3: oklch(17% 0.008 270);
+  --color-ink: oklch(96% 0.004 270); --color-ink-2: oklch(80% 0.008 270); --color-muted: oklch(62% 0.01 270);
+  --color-rule: oklch(22% 0.008 270); --color-rule-2: oklch(32% 0.01 270);
+  --color-accent: oklch(96% 0.004 270); --color-accent-ink: oklch(12% 0.006 270); --color-focus: oklch(85% 0.08 250);
+  --color-cmd: oklch(84% 0.07 250);
+  --font-display: "Instrument Serif", ui-serif, Georgia, serif; --font-body: "Geist", ui-sans-serif, system-ui, sans-serif; --font-mono: "Geist Mono", ui-monospace, monospace;
+  --text-sm: 0.875rem; --text-md: 1rem; --text-lead: clamp(1.0625rem, 0.4vw + 1rem, 1.25rem);
+  --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px; --space-xl: 40px; --space-2xl: 64px;
+  --radius: 10px; --container: 1200px; --gutter: 64px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --dur-micro: 120ms; --dur-short: 220ms; --dur-long: 600ms;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { overflow-x: clip; }
+body { margin: 0; background: var(--color-paper); color: var(--color-ink); font: 400 var(--text-md)/1.55 var(--font-body); -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+a { color: inherit; }
+h1 { margin: 0; font: 400 clamp(2.75rem, 5.2vw + 0.5rem, 5.25rem)/1 var(--font-display); letter-spacing: -0.02em; text-wrap: balance; overflow-wrap: break-word; min-width: 0; }
+p { margin: 0; }
+.container { max-width: var(--container); margin-inline: auto; padding-inline: var(--gutter); }
+
+.nav { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; min-height: 72px; }
+.wordmark { display: inline-flex; align-items: baseline; gap: var(--space-xs); font: 500 var(--text-md)/1 var(--font-body); text-decoration: none; letter-spacing: -0.01em; }
+.wordmark span { color: var(--color-muted); font-weight: 400; font-size: var(--text-sm); }
+.links { display: flex; gap: var(--space-lg); margin: 0; padding: 0; list-style: none; font-size: var(--text-sm); color: var(--color-ink-2); }
+.links a { text-decoration: none; transition: color var(--dur-short) var(--ease-out); }
+.links a:hover { color: var(--color-ink); }
+.nav__end { justify-self: end; }
+
+.btn { display: inline-flex; align-items: center; gap: var(--space-xs); min-height: 40px; padding: 0 var(--space-md); border: 1px solid var(--color-rule-2); border-radius: 999px; background: transparent; color: var(--color-ink); font: 500 var(--text-sm)/1 var(--font-body); text-decoration: none; cursor: pointer; white-space: nowrap; transition: background-color var(--dur-short) var(--ease-out), transform var(--dur-micro) var(--ease-out); }
+.btn:hover { background: var(--color-paper-3); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+::selection { background: var(--color-rule-2); }
+html { scrollbar-color: var(--color-rule-2) var(--color-paper); }
+.btn--lg { min-height: 48px; padding: 0 var(--space-lg); font-size: var(--text-md); }
+
+.hero { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; gap: var(--space-lg); padding-block: var(--space-2xl) var(--space-xl); }
+.hero h1 { max-width: 22ch; }
+.h1-2 { display: block; }
+.lead { font-size: var(--text-lead); color: var(--color-ink-2); max-width: 52ch; text-wrap: pretty; }
+.badge { display: inline-flex; align-items: center; min-height: 32px; padding: 0 var(--space-md); border: 1px solid var(--color-rule-2); border-radius: 999px; color: var(--color-ink-2); font-size: var(--text-sm); text-decoration: none; transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out); }
+.badge:hover { background: var(--color-paper-3); color: var(--color-ink); }
+.badge code { font: 500 0.8125rem/1 var(--font-mono); color: var(--color-cmd); }
+.also { font-size: var(--text-sm); color: var(--color-muted); }
+.also code { font: 400 0.8125rem/1 var(--font-mono); color: var(--color-ink-2); }
+.install { display: grid; justify-items: center; gap: var(--space-sm); margin-top: var(--space-xs); max-width: 100%; min-width: 0; }
+.tabs { display: inline-flex; max-width: 100%; overflow-x: auto; scrollbar-width: none; gap: 2px; padding: 4px; border: 1px solid var(--color-rule); border-radius: 999px; }
+.tabs button { min-height: 32px; padding: 0 var(--space-md); border: 0; border-radius: 999px; background: none; color: var(--color-muted); font: 500 0.8125rem/1 var(--font-body); white-space: nowrap; flex: 0 0 auto; cursor: pointer; transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out); }
+.tabs button:hover { color: var(--color-ink); }
+.tabs button[aria-selected="true"] { background: var(--color-paper-3); color: var(--color-ink); }
+.actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-sm); max-width: 100%; min-width: 0; }
+.cmd { display: inline-flex; align-items: center; justify-content: space-between; width: min(100%, 44rem); gap: var(--space-md); min-height: 48px; padding: 0 var(--space-xs) 0 var(--space-lg); border-radius: 999px; background: var(--color-accent); color: var(--color-accent-ink); font: 500 var(--text-sm)/1 var(--font-mono); max-width: 100%; }
+.cmd code { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.copy { min-height: 34px; padding: 0 var(--space-sm); border: 0; border-radius: 999px; background: var(--color-accent-ink); color: var(--color-ink); font: 500 0.8125rem/1 var(--font-body); cursor: pointer; transition: background-color var(--dur-short) var(--ease-out); }
+.copy:hover { background: var(--color-paper-3); }
+.cmd code::before { content: "$ "; color: var(--color-muted); }
+
+.run { width: 100%; max-width: 880px; margin: var(--space-lg) auto 0; text-align: left; background: var(--color-paper-2); border: 1px solid var(--color-rule); border-radius: var(--radius); font: 400 var(--text-sm)/1.7 var(--font-mono); color: var(--color-ink-2); overflow: hidden; }
+.run__head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-md); padding: var(--space-xs) var(--space-xs) var(--space-xs) var(--space-lg); border-bottom: 1px solid var(--color-rule); color: var(--color-muted); font-family: var(--font-body); }
+.run__body { padding: var(--space-lg); display: grid; gap: var(--space-md); overflow-x: auto; }
+.run__ctl { display: flex; align-items: center; gap: var(--space-sm); }
+.pause { min-height: 30px; padding: 0 var(--space-sm); border: 1px solid var(--color-rule-2); border-radius: 999px; background: none; color: var(--color-ink-2); font: 500 0.8125rem/1 var(--font-body); cursor: pointer; transition: background-color var(--dur-short) var(--ease-out); }
+.pause:hover { background: var(--color-paper-3); color: var(--color-ink); }
+.pause[hidden] { display: none; }
+.prompt { color: var(--color-ink); min-height: 1.7em; }
+.caret { display: inline-block; width: 0.55em; height: 1.1em; margin-left: 2px; vertical-align: -0.15em; background: var(--color-ink-2); opacity: 0; }
+.js .playing .caret { animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 1; } }
+.js .playing .line { opacity: 0; transform: translateY(4px); transition: opacity var(--dur-long) var(--ease-out), transform var(--dur-long) var(--ease-out); }
+.js .playing .line.on { opacity: 1; transform: none; }
+.prompt b { color: var(--color-cmd); font-weight: 500; }
+.route { font-family: var(--font-body); font-size: var(--text-md); color: var(--color-ink); line-height: 1.5; }
+.route strong { font-weight: 500; }
+.steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+.steps li { display: grid; grid-template-columns: 2ch 24ch minmax(0, 1fr); gap: var(--space-md); }
+.steps .n { color: var(--color-muted); }
+.steps .c { color: var(--color-cmd); }
+.tag { margin-left: var(--space-xs); padding: 2px var(--space-xs); border: 1px solid var(--color-rule-2); border-radius: 4px; font: 400 0.75rem/1 var(--font-body); color: var(--color-muted); white-space: nowrap; }
+.run__note { padding: 0 var(--space-lg) var(--space-md); font: 400 var(--text-sm)/1.5 var(--font-body); color: var(--color-muted); }
+.lic { text-decoration-color: var(--color-rule-2); text-underline-offset: 0.2em; }
+.lic:hover { color: var(--color-ink); text-decoration-color: var(--color-ink-2); }
+.steps li:first-child .c::after { content: ""; }
+.steps li.now { color: var(--color-ink); }
+.steps li.now .n { color: var(--color-cmd); }
+
+@media (max-width: 60rem) { .links { display: none; } .nav { grid-template-columns: 1fr auto; } :root { --gutter: 24px; } }
+@media (max-width: 40rem) {
+  :root { --gutter: 16px; }
+  .steps li { grid-template-columns: 2ch minmax(0, 1fr); }
+  .steps .d { grid-column: 2; color: var(--color-muted); }
+  .steps li { gap: 0 var(--space-md); }
+  .cmd { width: 100%; }
+  .cmd code { font-size: 0.75rem; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition-duration: 0.01ms !important; animation: none !important; } }
+@media (max-width: 40rem) { .tabs button { padding: 0 var(--space-sm); } }
+</style>
+</head>
+<body>
+<div class="container">
+  <header class="nav">
+    <a class="wordmark" href="#">Agent Kit <span>by AtlasScope</span></a>
+    <ul class="links">
+      <li><a href="#">Plugins</a></li>
+      <li><a href="#">Prompt library</a></li>
+      <li><a href="#">Docs</a></li>
+    </ul>
+    <a class="btn nav__end" href="https://github.com/AtlasScope/agent-kit">GitHub</a>
+  </header>
+
+  <main class="hero">
+    <a class="badge" href="https://github.com/AtlasScope/agent-kit/tree/main/kits/engineering-kit">New:&nbsp;<code>/database</code>&nbsp;for PostgreSQL investigations</a>
+    <h1>Describe the job. <span class="h1-2">Agent&nbsp;Kit picks the skill.</span></h1>
+    <p class="lead">60 skills and 238 prompts for design, engineering and code review. Emil Kowalski, Matt Pocock, Wondel.ai and seven other authors wrote 49 of the skills. Works in Claude Code, Codex, Cursor and any agent that supports Agent Skills. <a class="lic" href="https://github.com/AtlasScope/agent-kit/blob/main/CREDITS.md">Free, and each skill keeps its author’s license.</a></p>
+    <div class="install">
+      <div class="tabs" role="tablist" aria-label="Your agent">
+        <button type="button" role="tab" id="t-any" data-cmd="npx skills add AtlasScope/agent-kit" aria-selected="true">Any agent</button>
+        <button type="button" role="tab" id="t-claude" data-cmd="claude plugin marketplace add AtlasScope/agent-kit" aria-selected="false">Claude Code</button>
+        <button type="button" role="tab" id="t-codex" data-cmd="codex plugin marketplace add AtlasScope/agent-kit" aria-selected="false">Codex</button>
+        <button type="button" role="tab" id="t-cursor" data-cmd="npx skills add AtlasScope/agent-kit -a cursor" aria-selected="false">Cursor</button>
+        <button type="button" role="tab" id="t-gemini" data-cmd="npx skills add AtlasScope/agent-kit -a gemini-cli" aria-selected="false">Gemini CLI</button>
+        <button type="button" role="tab" id="t-copilot" data-cmd="npx skills add AtlasScope/agent-kit -a github-copilot" aria-selected="false">GitHub Copilot</button>
+      </div>
+      <div class="actions">
+        <span class="cmd" role="tabpanel"><code id="cmd">npx skills add AtlasScope/agent-kit</code><button class="copy" type="button" id="copy">Copy</button></span>
+        <a class="btn btn--lg" href="https://github.com/AtlasScope/agent-kit">View on GitHub</a>
+      </div>
+      <p class="also">Also Windsurf, OpenCode, Cline, Amp and 70 more agents through <code>npx skills</code>.</p>
+    </div>
+
+    <section class="run" aria-label="A real run of the /design command">
+      <div class="run__head"><span>Claude Code, design-kit</span><span class="run__ctl"><button class="pause" type="button" id="pause" hidden>Pause</button></span></div>
+      <div class="run__body" id="run">
+        <p class="prompt"><b>/design</b> <span id="ask">new landing page for our CLI</span><span class="caret" aria-hidden="true"></span></p>
+        <p class="route line"><strong>Route:</strong> the New landing page recipe, because a page built from blank should not look templated.</p>
+        <ol class="steps">
+          <li class="line"><span class="n">1</span><span class="c">/impeccable init</span><span class="d">once per project, so later passes know the brand <span class="tag">Impeccable plugin</span></span></li>
+          <li class="line"><span class="n">2</span><span class="c">/hallmark</span><span class="d">build the page in a chosen genre</span></li>
+          <li class="line"><span class="n">3</span><span class="c">/break-ui</span><span class="d">stress the hero and cards with ugly data</span></li>
+          <li class="line"><span class="n">4</span><span class="c">/web-design-guidelines</span><span class="d">rule check before shipping <span class="tag">Vercel plugin</span></span></li>
+          <li class="line"><span class="n">5</span><span class="c">/impeccable polish</span><span class="d">final spacing and detail pass <span class="tag">Impeccable plugin</span></span></li>
+        </ol>
+      </div>
+      <p class="run__note">Steps 1, 4 and 5 use companion plugins that install separately.</p>
+    </section>
+  </main>
+</div>
+<script>
+const cmd = document.getElementById('cmd');
+const tabs = [...document.querySelectorAll('.tabs button')];
+function pick(t, save) {
+  tabs.forEach((x) => x.setAttribute('aria-selected', x === t));
+  cmd.textContent = t.dataset.cmd;
+  if (save) { try { localStorage.setItem('agent-kit:agent', t.id); } catch {} }
+}
+tabs.forEach((t) => t.addEventListener('click', () => pick(t, true)));
+try { const last = document.getElementById(localStorage.getItem('agent-kit:agent') || ''); if (last && tabs.includes(last)) pick(last, false); } catch {}
+document.getElementById('copy').addEventListener('click', async (e) => {
+  const b = e.currentTarget;
+  try { await navigator.clipboard.writeText(cmd.textContent); b.textContent = 'Copied'; }
+  catch { const r = document.createRange(); r.selectNodeContents(cmd); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected'; }
+  setTimeout(() => { b.textContent = 'Copy'; }, 1600);
+});
+
+// The run plays once the page is idle, then loops. Without script, or with reduced motion, it stays complete and still.
+const run = document.getElementById('run'), ask = document.getElementById('ask'), pause = document.getElementById('pause');
+const full = ask.textContent, lines = [...run.querySelectorAll('.line')], steps = [...run.querySelectorAll('.steps li')];
+const still = matchMedia('(prefers-reduced-motion: reduce)');
+document.documentElement.classList.add('js');
+let timer = null, paused = false, offscreen = false, queue = [];
+function wait(ms, fn) { queue.push([ms, fn]); }
+function halt() { clearTimeout(timer); timer = null; }
+function tick() {
+  if (paused || offscreen || timer || !queue.length) return;
+  const [ms, fn] = queue[0];
+  timer = setTimeout(() => { timer = null; queue.shift(); fn(); tick(); }, ms);
+}
+function play() {
+  halt(); queue = []; run.classList.add('playing'); ask.textContent = '';
+  lines.forEach((l) => l.classList.remove('on')); steps.forEach((l) => l.classList.remove('now'));
+  for (let i = 1; i <= full.length; i++) wait(i === 1 ? 500 : 45, () => { ask.textContent = full.slice(0, i); });
+  wait(500, () => lines[0].classList.add('on'));
+  lines.slice(1).forEach((l) => wait(260, () => l.classList.add('on')));
+  steps.forEach((s, i) => wait(i ? 700 : 600, () => { steps.forEach((x) => x.classList.remove('now')); s.classList.add('now'); }));
+  wait(3200, play);
+  tick();
+}
+function stop() { halt(); queue = []; run.classList.remove('playing'); ask.textContent = full; steps.forEach((x) => x.classList.remove('now')); }
+pause.addEventListener('click', () => {
+  paused = !paused; pause.textContent = paused ? 'Play' : 'Pause';
+  if (paused) halt(); else tick();
+});
+function start() { if (still.matches) { pause.hidden = true; stop(); } else { pause.hidden = false; paused = false; pause.textContent = 'Pause'; play(); } }
+still.addEventListener('change', start);
+new IntersectionObserver(([e]) => { offscreen = !e.isIntersecting; if (offscreen) halt(); else tick(); }).observe(run);
+start();
+</script>
+</body>
+</html>
