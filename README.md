@@ -2,6 +2,8 @@
 
 Skills for AI coding agents, plus a prompt library you can open beside any of them. Every command runs only when you call it.
 
+Most of these skills are other people's work: 49 of the 60 come from Emil Kowalski, Matt Pocock, Wondel.ai and seven other authors. Agent Kit routes between them and adds 11 of its own. See [CREDITS.md](CREDITS.md).
+
 | Plugin | What it does |
 |---|---|
 | [design-kit](kits/design-kit) | `/design` routes to the right design skill or recipe: typography, color, motion, UX writing, usability, landing copy, native iOS and more. |
@@ -72,4 +74,4 @@ Each kit keeps its own README, credits, licenses and build scripts under `kits/<
 
 ## License
 
-MIT, except third-party skills, which keep their own licenses as listed in each kit's `THIRD_PARTY.md`.
+MIT, except third-party skills, which keep their own licenses as listed in [CREDITS.md](CREDITS.md) and each kit's `THIRD_PARTY.md`.
