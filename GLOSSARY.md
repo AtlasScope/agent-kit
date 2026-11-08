@@ -27,5 +27,9 @@ _Avoid_: App, dashboard, catalog (for the site)
 ## Accounts
 
 **Collection**:
-A named list of prompts and skills saved by one person, private unless they share it; a shared collection has its own public page.
-_Avoid_: Folder, playlist, board
+A named list of prompts and skills saved by one person, private unless they share it; a shared collection has its own public page, and one that holds skills also shows a single install command for them.
+_Avoid_: Folder, playlist, board, personal kit, custom kit
+
+**Starred**:
+The built-in collection every person has, which starring a prompt or skill adds to.
+_Avoid_: Favorites, likes, bookmarks
