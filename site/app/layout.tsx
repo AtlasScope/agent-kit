@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Instrument_Serif, Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Nav, Footer } from "@/components/Nav";
@@ -17,6 +17,9 @@ export const metadata: Metadata = {
   openGraph: { siteName: SITE.name, type: "website" },
   alternates: { types: { "text/markdown": "/index.md" } },
 };
+
+// viewport-fit=cover lets the page run under the notch in landscape; the container pads back with safe-area insets.
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#050506", colorScheme: "dark" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const body = (
