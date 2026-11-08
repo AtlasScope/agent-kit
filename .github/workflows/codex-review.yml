@@ -1,7 +1,8 @@
 # Required check "codex-review": passes once a Codex review has finished.
 # Codex keeps one summary comment on the PR with a hidden state block
 # (codex-review-state:v1) and edits it from "running" to done; it also leaves a
-# review with inline findings, or a thumbs-up when it finds nothing. Findings
+# review with inline findings, or a thumbs-up when it finds nothing. A Codex
+# security review, when one runs, must finish with no unresolved findings. Findings
 # are review threads, and main requires every thread resolved before merge, so
 # "fixed or dismissed" is enforced there, not here.
 name: Codex review
@@ -39,17 +40,24 @@ jobs:
           api() { gh api --paginate "repos/$GITHUB_REPOSITORY/$1" --jq "$2"; }
           reviews=$(api "pulls/$PR/reviews" "[.[] | select(.user.login == env.CODEX_LOGIN)] | length")
           thumbs=$(api "issues/$PR/reactions" "[.[] | select(.user.login == env.CODEX_LOGIN and .content == \"+1\")] | length")
-          # Status of the latest code review in the summary comment's state block.
-          status=$(api "issues/$PR/comments" '.[] | select(.user.login == env.CODEX_LOGIN) | .body' \
+          # Latest state block from Codex's summary comment (code review and security review).
+          state=$(api "issues/$PR/comments" '.[] | select(.user.login == env.CODEX_LOGIN) | .body' \
             | sed 's/&#123;/{/g; s/&#125;/}/g' \
             | grep -o 'codex-review-state:v1 {.*} -->' | tail -1 \
-            | sed 's/^codex-review-state:v1 //; s/ -->$//' \
-            | jq -r '.code_review.status // ""' 2>/dev/null || true)
-          echo "Codex reviews: $reviews, thumbs-up: $thumbs, summary status: ${status:-none}"
-          case "$status" in
-            running|queued|pending|in_progress)
+            | sed 's/^codex-review-state:v1 //; s/ -->$//')
+          field() { [ -n "$state" ] && printf '%s' "$state" | jq -r "$1 // \"\"" 2>/dev/null || true; }
+          status=$(field .code_review.status)
+          sec_status=$(field .security_review.status)
+          sec_open=$(field .security_review.has_unresolved_findings)
+          echo "Codex reviews: $reviews, thumbs-up: $thumbs, code review: ${status:-none}, security review: ${sec_status:-none} (unresolved findings: ${sec_open:-n/a})"
+          case "$status:$sec_status" in
+            running:*|queued:*|pending:*|in_progress:*|*:running|*:queued|*:pending|*:in_progress)
               echo "::error::Codex is still reviewing this PR."; exit 1 ;;
           esac
+          if [ "$sec_open" = "true" ]; then
+            echo "::error::Codex security review has unresolved findings. Fix them or resolve them on the PR."
+            exit 1
+          fi
           if [ -n "$status" ] || [ $((reviews + thumbs)) -gt 0 ]; then
             echo "Codex has finished reviewing. Unresolved findings still block merge until resolved."
             exit 0
