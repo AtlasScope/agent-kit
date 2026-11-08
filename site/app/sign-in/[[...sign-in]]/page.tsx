@@ -6,5 +6,5 @@ export const metadata = { title: "Sign in", robots: { index: false } };
 
 export default function SignInPage() {
   if (!authEnabled()) notFound();
-  return <main className="page" style={{ justifyItems: "center" }}><SignIn /></main>;
+  return <main className="page" style={{ justifyItems: "center" }}><SignIn withSignUp /></main>;
 }

@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 import fs from "node:fs";
 import path from "node:path";
 
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.atlasscope.dev").replace(/\/$/, "");
+
 // Old links by entry id (/prompts/A01) keep working: each id redirects to its readable slug.
 function idRedirects() {
   const file = path.join(process.cwd(), "content", "generated.json");
@@ -12,7 +14,13 @@ function idRedirects() {
 
 const config: NextConfig = {
   async redirects() {
-    return idRedirects();
+    // Clerk's production instance only runs on atlasscope.dev, so account pages on *.vercel.app
+    // hosts (production alias and previews) send people to the real site.
+    const vercelHost = [{ type: "host" as const, value: "(?<sub>.*)\\.vercel\\.app" }];
+    const toSite = ["/sign-in/:path*", "/account", "/collections/:path*"].map((source) => ({
+      source, has: vercelHost, destination: `${SITE_URL}${source}`, permanent: false,
+    }));
+    return [...toSite, ...idRedirects()];
   },
   // Preview and *.vercel.app hosts serve the same pages as www.atlasscope.dev; keep them out of search results.
   async headers() {

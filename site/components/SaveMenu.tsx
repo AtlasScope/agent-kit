@@ -24,7 +24,7 @@ export function SaveMenu({ kind, refId, title }: { kind: "prompt" | "skill"; ref
   }, [open]);
 
   if (!isLoaded) return <button className="btn btn--sm" type="button" disabled>Star</button>;
-  if (!isSignedIn) return <SignInButton mode="modal"><button className="btn btn--sm" type="button">Star</button></SignInButton>;
+  if (!isSignedIn) return <SignInButton mode="modal" withSignUp><button className="btn btn--sm" type="button">Star</button></SignInButton>;
 
   const starred = me?.collections?.find((c) => c.is_starred);
   const inC = (id?: string) => Boolean(id && me?.items?.some((i) => i.collection_id === id && i.kind === kind && i.ref === refId));
