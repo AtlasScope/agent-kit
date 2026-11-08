@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Geist:wght@400;500&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* Hallmark · shape: Centred stage · genre: modern-minimal · theme: custom (by request: Resend-style) · job: try · idea: "the router is the product: you type what you want and it picks the skill" · vibe: "black, quiet, exact, one serif voice"
- * paper: oklch(9% 0.004 270) · accent: oklch(93% 0.01 270), ink as the signal · display: Instrument Serif · body: Geist · hero: centred serif head, one sentence, the install command with Claude Code, Codex and Cursor tabs as the primary action, View on GitHub second, the /design run playing below with a pause control · nav: wordmark with byline left, links centred, GitHub right · footer: none (hero study) · imagery: the product, a real /design route · signature: a real /design run that types itself out, the route and its five steps
+ * paper: oklch(9% 0.004 270) · accent: oklch(93% 0.01 270), ink as the signal · display: Instrument Serif · body: Geist · hero: a badge for the newest skill, centred serif head, one sentence, the install command with six agent tabs as the primary action, View on GitHub second, the /design run playing below with a pause control · nav: wordmark with byline left, links centred, GitHub right · footer: none (hero study) · imagery: the product, a real /design route · signature: a real /design run that types itself out, the route and its five steps
  * axes: dark/roman-serif/neutral · posture: restrained · contrast: pass · fold: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P2 H2 E2 S2 R2 V2 · weakest: E, centred head is the Resend register the user asked for */
 :root {
@@ -31,7 +31,7 @@ html, body { overflow-x: clip; }
 body { margin: 0; background: var(--color-paper); color: var(--color-ink); font: 400 var(--text-md)/1.55 var(--font-body); -webkit-font-smoothing: antialiased; }
 :focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 a { color: inherit; }
-h1 { margin: 0; font: 400 clamp(3rem, 6.4vw + 0.5rem, 6rem)/0.98 var(--font-display); letter-spacing: -0.02em; text-wrap: balance; overflow-wrap: break-word; min-width: 0; }
+h1 { margin: 0; font: 400 clamp(2.75rem, 5.2vw + 0.5rem, 5.25rem)/1 var(--font-display); letter-spacing: -0.02em; text-wrap: balance; overflow-wrap: break-word; min-width: 0; }
 p { margin: 0; }
 .container { max-width: var(--container); margin-inline: auto; padding-inline: var(--gutter); }
 
@@ -52,11 +52,17 @@ html { scrollbar-color: var(--color-rule-2) var(--color-paper); }
 .btn--lg { min-height: 48px; padding: 0 var(--space-lg); font-size: var(--text-md); }
 
 .hero { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; gap: var(--space-lg); padding-block: var(--space-2xl) var(--space-xl); }
-.hero h1 { max-width: 12ch; }
-.lead { font-size: var(--text-lead); color: var(--color-ink-2); max-width: 40ch; }
+.hero h1 { max-width: 16ch; }
+.h1-2 { display: block; }
+.lead { font-size: var(--text-lead); color: var(--color-ink-2); max-width: 52ch; text-wrap: pretty; }
+.badge { display: inline-flex; align-items: center; min-height: 32px; padding: 0 var(--space-md); border: 1px solid var(--color-rule-2); border-radius: 999px; color: var(--color-ink-2); font-size: var(--text-sm); text-decoration: none; transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out); }
+.badge:hover { background: var(--color-paper-3); color: var(--color-ink); }
+.badge code { font: 500 0.8125rem/1 var(--font-mono); color: var(--color-cmd); }
+.also { font-size: var(--text-sm); color: var(--color-muted); }
+.also code { font: 400 0.8125rem/1 var(--font-mono); color: var(--color-ink-2); }
 .install { display: grid; justify-items: center; gap: var(--space-sm); margin-top: var(--space-xs); max-width: 100%; min-width: 0; }
-.tabs { display: inline-flex; gap: 2px; padding: 4px; border: 1px solid var(--color-rule); border-radius: 999px; }
-.tabs button { min-height: 32px; padding: 0 var(--space-md); border: 0; border-radius: 999px; background: none; color: var(--color-muted); font: 500 0.8125rem/1 var(--font-body); cursor: pointer; transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out); }
+.tabs { display: inline-flex; max-width: 100%; overflow-x: auto; scrollbar-width: none; gap: 2px; padding: 4px; border: 1px solid var(--color-rule); border-radius: 999px; }
+.tabs button { min-height: 32px; padding: 0 var(--space-md); border: 0; border-radius: 999px; background: none; color: var(--color-muted); font: 500 0.8125rem/1 var(--font-body); white-space: nowrap; flex: 0 0 auto; cursor: pointer; transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out); }
 .tabs button:hover { color: var(--color-ink); }
 .tabs button[aria-selected="true"] { background: var(--color-paper-3); color: var(--color-ink); }
 .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-sm); max-width: 100%; min-width: 0; }
@@ -116,18 +122,23 @@ html { scrollbar-color: var(--color-rule-2) var(--color-paper); }
   </header>
 
   <main class="hero">
-    <h1>Give your coding agent taste.</h1>
-    <p class="lead">60 skills and 238 prompts for Claude Code, Codex and Cursor.</p>
+    <a class="badge" href="https://github.com/AtlasScope/agent-kit/tree/main/kits/engineering-kit">New:&nbsp;<code>/database</code>&nbsp;for PostgreSQL investigations</a>
+    <h1>Describe the job. <span class="h1-2">Agent&nbsp;Kit picks the skill.</span></h1>
+    <p class="lead">60 skills and a library of 238 prompts for design, engineering and code review. Works in Claude Code, Codex, Cursor and any agent that supports Agent Skills. Free and MIT licensed.</p>
     <div class="install">
       <div class="tabs" role="tablist" aria-label="Your agent">
-        <button type="button" role="tab" id="t-claude" data-cmd="claude plugin marketplace add AtlasScope/agent-kit" aria-selected="true">Claude Code</button>
+        <button type="button" role="tab" id="t-any" data-cmd="npx skills add AtlasScope/agent-kit" aria-selected="true">Any agent</button>
+        <button type="button" role="tab" id="t-claude" data-cmd="claude plugin marketplace add AtlasScope/agent-kit" aria-selected="false">Claude Code</button>
         <button type="button" role="tab" id="t-codex" data-cmd="codex plugin marketplace add AtlasScope/agent-kit" aria-selected="false">Codex</button>
-        <button type="button" role="tab" id="t-cursor" data-cmd="git clone https://github.com/AtlasScope/agent-kit &amp;&amp; agent-kit/scripts/install-local.sh" aria-selected="false">Cursor</button>
+        <button type="button" role="tab" id="t-cursor" data-cmd="npx skills add AtlasScope/agent-kit -a cursor" aria-selected="false">Cursor</button>
+        <button type="button" role="tab" id="t-gemini" data-cmd="npx skills add AtlasScope/agent-kit -a gemini-cli" aria-selected="false">Gemini CLI</button>
+        <button type="button" role="tab" id="t-copilot" data-cmd="npx skills add AtlasScope/agent-kit -a github-copilot" aria-selected="false">GitHub Copilot</button>
       </div>
       <div class="actions">
-        <span class="cmd" role="tabpanel"><code id="cmd">claude plugin marketplace add AtlasScope/agent-kit</code><button class="copy" type="button" id="copy">Copy</button></span>
+        <span class="cmd" role="tabpanel"><code id="cmd">npx skills add AtlasScope/agent-kit</code><button class="copy" type="button" id="copy">Copy</button></span>
         <a class="btn btn--lg" href="https://github.com/AtlasScope/agent-kit">View on GitHub</a>
       </div>
+      <p class="also">Also Windsurf, OpenCode, Cline, Amp and 70 more agents through <code>npx skills</code>.</p>
     </div>
 
     <section class="run" aria-label="A real run of the /design command">
@@ -148,10 +159,14 @@ html { scrollbar-color: var(--color-rule-2) var(--color-paper); }
 </div>
 <script>
 const cmd = document.getElementById('cmd');
-document.querySelectorAll('.tabs button').forEach((t) => t.addEventListener('click', () => {
-  document.querySelectorAll('.tabs button').forEach((x) => x.setAttribute('aria-selected', x === t));
+const tabs = [...document.querySelectorAll('.tabs button')];
+function pick(t, save) {
+  tabs.forEach((x) => x.setAttribute('aria-selected', x === t));
   cmd.textContent = t.dataset.cmd;
-}));
+  if (save) { try { localStorage.setItem('agent-kit:agent', t.id); } catch {} }
+}
+tabs.forEach((t) => t.addEventListener('click', () => pick(t, true)));
+try { const last = document.getElementById(localStorage.getItem('agent-kit:agent') || ''); if (last && tabs.includes(last)) pick(last, false); } catch {}
 document.getElementById('copy').addEventListener('click', async (e) => {
   const b = e.currentTarget;
   try { await navigator.clipboard.writeText(cmd.textContent); b.textContent = 'Copied'; }
