@@ -105,6 +105,7 @@ function PromptPage({ p }: { p: Prompt }) {
 
       <dl className="facts">
         {facts.filter(([, v]) => v).map(([k, v]) => [<dt key={k + "t"}>{k}</dt>, <dd key={k + "d"}>{v}</dd>])}
+        {p.src && <><dt>Original post</dt><dd><a href={p.src} rel="noopener">{p.src.replace(/^https?:\/\//, "")}</a></dd></>}
       </dl>
 
       {p.skills.length > 0 && (
