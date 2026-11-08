@@ -52,7 +52,7 @@ html { scrollbar-color: var(--color-rule-2) var(--color-paper); }
 .btn--lg { min-height: 48px; padding: 0 var(--space-lg); font-size: var(--text-md); }
 
 .hero { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; gap: var(--space-lg); padding-block: var(--space-2xl) var(--space-xl); }
-.hero h1 { max-width: 16ch; }
+.hero h1 { max-width: 22ch; }
 .h1-2 { display: block; }
 .lead { font-size: var(--text-lead); color: var(--color-ink-2); max-width: 52ch; text-wrap: pretty; }
 .badge { display: inline-flex; align-items: center; min-height: 32px; padding: 0 var(--space-md); border: 1px solid var(--color-rule-2); border-radius: 999px; color: var(--color-ink-2); font-size: var(--text-sm); text-decoration: none; transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out); }
@@ -92,6 +92,10 @@ html { scrollbar-color: var(--color-rule-2) var(--color-paper); }
 .steps li { display: grid; grid-template-columns: 2ch 24ch minmax(0, 1fr); gap: var(--space-md); }
 .steps .n { color: var(--color-muted); }
 .steps .c { color: var(--color-cmd); }
+.tag { margin-left: var(--space-xs); padding: 2px var(--space-xs); border: 1px solid var(--color-rule-2); border-radius: 4px; font: 400 0.75rem/1 var(--font-body); color: var(--color-muted); white-space: nowrap; }
+.run__note { padding: 0 var(--space-lg) var(--space-md); font: 400 var(--text-sm)/1.5 var(--font-body); color: var(--color-muted); }
+.lic { text-decoration-color: var(--color-rule-2); text-underline-offset: 0.2em; }
+.lic:hover { color: var(--color-ink); text-decoration-color: var(--color-ink-2); }
 .steps li:first-child .c::after { content: ""; }
 .steps li.now { color: var(--color-ink); }
 .steps li.now .n { color: var(--color-cmd); }
@@ -124,7 +128,7 @@ html { scrollbar-color: var(--color-rule-2) var(--color-paper); }
   <main class="hero">
     <a class="badge" href="https://github.com/AtlasScope/agent-kit/tree/main/kits/engineering-kit">New:&nbsp;<code>/database</code>&nbsp;for PostgreSQL investigations</a>
     <h1>Describe the job. <span class="h1-2">Agent&nbsp;Kit picks the skill.</span></h1>
-    <p class="lead">60 skills and a library of 238 prompts for design, engineering and code review. Works in Claude Code, Codex, Cursor and any agent that supports Agent Skills. Free and MIT licensed.</p>
+    <p class="lead">60 skills and 238 prompts for design, engineering and code review. Emil Kowalski, Matt Pocock, Wondel.ai and seven other authors wrote 49 of the skills. Works in Claude Code, Codex, Cursor and any agent that supports Agent Skills. <a class="lic" href="https://github.com/AtlasScope/agent-kit/blob/main/CREDITS.md">Free, and each skill keeps its author’s license.</a></p>
     <div class="install">
       <div class="tabs" role="tablist" aria-label="Your agent">
         <button type="button" role="tab" id="t-any" data-cmd="npx skills add AtlasScope/agent-kit" aria-selected="true">Any agent</button>
@@ -147,13 +151,14 @@ html { scrollbar-color: var(--color-rule-2) var(--color-paper); }
         <p class="prompt"><b>/design</b> <span id="ask">new landing page for our CLI</span><span class="caret" aria-hidden="true"></span></p>
         <p class="route line"><strong>Route:</strong> the New landing page recipe, because a page built from blank should not look templated.</p>
         <ol class="steps">
-          <li class="line"><span class="n">1</span><span class="c">/impeccable init</span><span class="d">once per project, so later passes know the brand</span></li>
+          <li class="line"><span class="n">1</span><span class="c">/impeccable init</span><span class="d">once per project, so later passes know the brand <span class="tag">Impeccable plugin</span></span></li>
           <li class="line"><span class="n">2</span><span class="c">/hallmark</span><span class="d">build the page in a chosen genre</span></li>
           <li class="line"><span class="n">3</span><span class="c">/break-ui</span><span class="d">stress the hero and cards with ugly data</span></li>
-          <li class="line"><span class="n">4</span><span class="c">/web-design-guidelines</span><span class="d">rule check before shipping</span></li>
-          <li class="line"><span class="n">5</span><span class="c">/impeccable polish</span><span class="d">final spacing and detail pass</span></li>
+          <li class="line"><span class="n">4</span><span class="c">/web-design-guidelines</span><span class="d">rule check before shipping <span class="tag">Vercel plugin</span></span></li>
+          <li class="line"><span class="n">5</span><span class="c">/impeccable polish</span><span class="d">final spacing and detail pass <span class="tag">Impeccable plugin</span></span></li>
         </ol>
       </div>
+      <p class="run__note">Steps 1, 4 and 5 use companion plugins that install separately.</p>
     </section>
   </main>
 </div>
