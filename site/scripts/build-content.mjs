@@ -11,6 +11,20 @@ import YAML from "yaml";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "../..");
 const out = path.resolve(here, "../content/generated.json");
+// Skill text comes from other authors, so raw HTML in a SKILL.md is shown as text, never rendered,
+// and links keep only http(s), mailto and relative targets.
+const escHtml = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+marked.use({
+  renderer: {
+    html({ text }) { return escHtml(text); },
+    link({ href, title, tokens }) {
+      const label = this.parser.parseInline(tokens);
+      if (!/^(https?:|mailto:|#|\/|\.{0,2}\/?[\w-])/i.test(href) || /^\s*(javascript|data|vbscript):/i.test(href)) return label;
+      return `<a href="${escHtml(href)}"${title ? ` title="${escHtml(title)}"` : ""} rel="nofollow noopener">${label}</a>`;
+    },
+    image({ href, text }) { return /^https:/i.test(href) ? `<img src="${escHtml(href)}" alt="${escHtml(text)}" loading="lazy">` : escHtml(text); },
+  },
+});
 const read = (p) => fs.readFileSync(path.join(root, p), "utf8");
 
 export const slugify = (s) =>
