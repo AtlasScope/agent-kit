@@ -1,6 +1,6 @@
 # Prompt Library
 
-238 prompts, commands and recipes for coding and design agents. Open prompt-library.html for search, stars and the prompt composer.
+239 prompts, commands and recipes for coding and design agents. Open prompt-library.html for search, stars and the prompt composer.
 
 ## Investigations
 
@@ -665,6 +665,12 @@ Prepare a compact, self-contained technical checkpoint so a fresh agent session 
 
 ```text
 Be thorough in your analysis and bold in your recommendations
+```
+
+**M12 · Deepen modules, simplify interfaces**
+
+```text
+Deepen modules and simplify interfaces.
 ```
 
 ## Engineering commands
