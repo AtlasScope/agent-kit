@@ -23,6 +23,7 @@ export function promptMd(p: Prompt) {
     ["Sessions", p.top ? TOPO[p.top] : undefined], ["Notes", p.note],
   ];
   for (const [k, v] of facts) if (v) out.push(`**${k}:** ${v}`, "");
+  if (p.src) out.push(`**Original post:** ${p.src}`, "");
   if (p.skills.length) out.push("## Skills", "", ...p.skills.map(skillLink), "");
   if (p.related.length) out.push("## Related", "", ...p.related.map(promptLink), "");
   out.push(`Source: ${u(`/prompts/${p.slug}`)}`);

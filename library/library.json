@@ -2039,6 +2039,7 @@
    "p": "Deepen modules and simplify interfaces.",
    "use": "Use it as a cleanup pass on each pull request, or on a schedule for overdue maintenance. It pushes the agent to merge duplicated code, put core logic in one place and cut lines. Shared by Chris (@_khrus) on X on 7 Nov 2026; the idea is John Ousterhout's, from A Philosophy of Software Design, and Matt Pocock pointed him to it. /improve-codebase-architecture is the longer version: a scan, a report and an interview.",
    "aka": "Deep modules (Ousterhout)",
+   "src": "https://x.com/_khrus/status/2118971805885239777",
    "rel": [
     "EC04",
     "A03",

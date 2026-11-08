@@ -33,9 +33,9 @@ Commit hashes and the few changes made to these skills are listed in [design-kit
 | Interface Design | Dammyjay93 | [Dammyjay93/interface-design](https://github.com/Dammyjay93/interface-design) |
 | Humanizer | blader | [blader/humanizer](https://github.com/blader/humanizer) |
 | Sepia | Nanako0129 | [Nanako0129/sepia](https://github.com/Nanako0129/sepia) |
-| Web Design Guidelines | Vercel | |
+| Web Design Guidelines | Vercel | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills) (rules: [vercel-labs/web-interface-guidelines](https://github.com/vercel-labs/web-interface-guidelines)) |
 | example-skills | Anthropic | |
 | Vale | errata-ai | [errata-ai/vale](https://github.com/errata-ai/vale) |
-| slop-guard | | |
+| slop-guard | Eric Tramel | [eric-tramel/slop-guard](https://github.com/eric-tramel/slop-guard) |
 
 engineering-kit's README also recommends [Trail of Bits' security skills](https://github.com/trailofbits/skills).
