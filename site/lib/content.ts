@@ -3,7 +3,7 @@ import data from "@/content/generated.json";
 export type Prompt = {
   id: string; slug: string; sec: string; group: string; area: string; t: string; p?: string;
   why?: string; ev?: string; skip?: string; avoid?: string; tools?: string; plat?: string; blind?: string;
-  aka?: string; use?: string; cmd?: string; sub?: string; gnote?: string; best?: string; skipw?: string; note?: string;
+  aka?: string; src?: string; use?: string; cmd?: string; sub?: string; gnote?: string; best?: string; skipw?: string; note?: string;
   badge?: string; dmode?: string; mode?: string; top?: string; scope?: string; iso?: boolean;
   steps?: [string, string][]; flow?: [string, string, string][]; tags?: string;
   related: string[]; skills: string[];
