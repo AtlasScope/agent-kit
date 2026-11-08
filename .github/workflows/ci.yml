@@ -1,0 +1,62 @@
+# Fast checks for pull requests. One job, named "ci", which branch rules require.
+# It always reports, and skips the steps whose files the PR does not touch, so a
+# docs-only PR finishes in seconds. Vercel builds the site on every commit, so the
+# Next.js build is not repeated here.
+name: CI
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Find changed areas
+        id: changes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          files=$(gh pr diff "$PR" --repo "$GITHUB_REPOSITORY" --name-only)
+          printf '%s\n' "$files"
+          has() { printf '%s\n' "$files" | grep -qE "$1" && echo true || echo false; }
+          all=$(has '^\.github/workflows/')
+          site=$(has '^(site|library|kits)/')
+          library=$(has '^(library|kits/engineering-kit)/')
+          [ "$all" = true ] && site=true library=true
+          echo "site=$site" >> "$GITHUB_OUTPUT"
+          echo "library=$library" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v5
+        if: steps.changes.outputs.site == 'true' || steps.changes.outputs.library == 'true'
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v5
+        if: steps.changes.outputs.site == 'true' || steps.changes.outputs.library == 'true'
+        with:
+          node-version: 22
+          cache: ${{ hashFiles('site/package-lock.json') != '' && 'npm' || '' }}
+          cache-dependency-path: site/package-lock.json
+
+      - name: Check the prompt library
+        if: steps.changes.outputs.library == 'true'
+        run: node library/check.mjs
+
+      - name: Typecheck the site
+        if: steps.changes.outputs.site == 'true' && hashFiles('site/package.json') != ''
+        working-directory: site
+        run: |
+          npm ci --prefer-offline --no-audit --no-fund
+          npm run content
+          npm run typecheck

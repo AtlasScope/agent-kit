@@ -1,0 +1,73 @@
+# Required check "codex-review": passes once Codex has reviewed the pull request.
+# Codex either leaves a review (with inline findings) or, when it finds nothing,
+# a comment or a thumbs-up on the PR. Findings are inline review threads, and the
+# branch rules require every thread to be resolved before merge, so "fixed or
+# dismissed" is enforced there, not here.
+name: Codex review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  pull_request_review:
+    types: [submitted]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  CODEX_LOGIN: chatgpt-codex-connector[bot]
+
+jobs:
+  codex-review:
+    name: codex-review
+    if: github.event_name != 'issue_comment'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    concurrency:
+      group: codex-review-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Look for a Codex review
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          api() { gh api --paginate "repos/$GITHUB_REPOSITORY/$1" --jq "$2"; }
+          reviews=$(api "pulls/$PR/reviews" "[.[] | select(.user.login == env.CODEX_LOGIN)] | length")
+          comments=$(api "issues/$PR/comments" "[.[] | select(.user.login == env.CODEX_LOGIN)] | length")
+          thumbs=$(api "issues/$PR/reactions" "[.[] | select(.user.login == env.CODEX_LOGIN and .content == \"+1\")] | length")
+          echo "Codex reviews: $reviews, comments: $comments, thumbs-up: $thumbs"
+          if [ $((reviews + comments + thumbs)) -gt 0 ]; then
+            echo "Codex has reviewed this PR. Unresolved findings still block merge until resolved."
+            exit 0
+          fi
+          echo "::error::Waiting for a Codex review. If none arrives, comment '@codex review' on the PR."
+          exit 1
+
+  # A Codex comment or thumbs-up does not fire pull_request_review, and checks from
+  # issue_comment runs land on main rather than the PR. So when Codex comments,
+  # re-run the PR's latest check run instead.
+  rerun-on-codex-comment:
+    if: >-
+      github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request &&
+      github.event.comment.user.login == 'chatgpt-codex-connector[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      actions: write
+      pull-requests: read
+    steps:
+      - name: Re-run codex-review for the PR head
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.issue.number }}
+        run: |
+          sha=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq .head.sha)
+          run=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/codex-review.yml/runs?head_sha=$sha&per_page=20" \
+            --jq '[.workflow_runs[] | select(.event != "issue_comment")][0].id // empty')
+          if [ -z "$run" ]; then echo "No codex-review run for $sha yet"; exit 0; fi
+          gh run rerun "$run" --repo "$GITHUB_REPOSITORY"
