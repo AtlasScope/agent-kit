@@ -2032,6 +2032,20 @@
    "use": "Add it to any prompt when you want depth and a firm recommendation."
   },
   {
+   "id": "M12",
+   "sec": "think",
+   "group": "Thinking prompts",
+   "t": "Deepen modules, simplify interfaces",
+   "p": "Deepen modules and simplify interfaces.",
+   "use": "Use it as a cleanup pass on each pull request, or on a schedule for overdue maintenance. It pushes the agent to merge duplicated code, put core logic in one place and cut lines. Shared by Chris (@_khrus) on X on 7 Nov 2026; the idea is John Ousterhout's, from A Philosophy of Software Design, and Matt Pocock pointed him to it. /improve-codebase-architecture is the longer version: a scan, a report and an interview.",
+   "aka": "Deep modules (Ousterhout)",
+   "rel": [
+    "EC04",
+    "A03",
+    "M04"
+   ]
+  },
+  {
    "id": "EC01",
    "sec": "ecmd",
    "group": "Engineering kit",
@@ -2120,7 +2134,8 @@
    "rel": [
     "A01",
     "A03",
-    "A05"
+    "A05",
+    "M12"
    ]
   },
   {
@@ -5468,6 +5483,22 @@
    "idea": "Small composable skills split into ones you type and ones the agent reaches for.",
    "str": "Primary source code",
    "st": "Repo read in full for the kit, 6 Nov"
+  },
+  {
+   "t": "A Philosophy of Software Design",
+   "by": "John Ousterhout",
+   "url": "https://web.stanford.edu/~ouster/cgi-bin/book.php",
+   "idea": "Deep modules (a lot of behavior behind a small interface) and designing it twice. The source of M12; Matt Pocock's codebase-design skill builds on both ideas.",
+   "str": "Primary, book",
+   "st": "Not checked from here; open it yourself"
+  },
+  {
+   "t": "“Deepen modules and simplify interfaces”",
+   "by": "Chris (@_khrus), 7 Nov 2026",
+   "url": "https://x.com/_khrus",
+   "idea": "The one-line prompt in M12, run on every pull request and nightly. Credits Ousterhout's book and Matt Pocock.",
+   "str": "Practitioner post, author's claims",
+   "st": "Profile link; the post is from 7 Nov 2026"
   },
   {
    "t": "Trail of Bits skills",
