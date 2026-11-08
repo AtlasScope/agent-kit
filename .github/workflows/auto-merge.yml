@@ -1,0 +1,30 @@
+# Turns on auto-merge (squash) for the owner's pull requests when they open or
+# leave draft. GitHub then merges once every required check and rule on main is
+# satisfied. Off unless the repository variable AUTO_MERGE is "on" (the kill
+# switch: Settings > Secrets and variables > Actions > Variables). Add the label
+# "no-auto-merge" to keep a PR open; drafts are skipped.
+name: Auto-merge
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, unlabeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  enable:
+    if: >-
+      vars.AUTO_MERGE == 'on' &&
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login == github.repository_owner &&
+      !contains(github.event.pull_request.labels.*.name, 'no-auto-merge')
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge "$URL" --auto --squash --delete-branch
