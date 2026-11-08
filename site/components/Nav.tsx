@@ -1,17 +1,13 @@
 import Link from "next/link";
 import { SITE, authEnabled } from "@/lib/site";
 import { AuthNav } from "./AuthNav";
+import { NavLinks } from "./NavLinks";
 
 export function Nav() {
   return (
     <header className="nav">
       <Link className="wordmark" href="/">{SITE.name} <span>{SITE.byline}</span></Link>
-      <ul className="links">
-        <li><Link href="/prompts">Prompts</Link></li>
-        <li><Link href="/skills">Skills</Link></li>
-        <li><Link href="/kits">Kits</Link></li>
-        <li><Link href="/fix">Fix a problem</Link></li>
-      </ul>
+      <NavLinks />
       <div className="nav__end">
         {authEnabled() && <AuthNav />}
         <a className="btn" href={SITE.repo}>GitHub</a>
