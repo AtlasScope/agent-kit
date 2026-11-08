@@ -16,7 +16,7 @@ export function InstallTabs({ children, note, className = "" }: { children?: Rea
       <div className="tabs" role="tablist" aria-label="Your agent">
         {AGENTS.map((a) => (
           <button key={a.id} type="button" role="tab" id={`t-${a.id}`} aria-selected={a.id === cur}
-            onClick={() => { setCur(a.id); try { localStorage.setItem(KEY, a.id); } catch {} }}>
+            onClick={(e) => { setCur(a.id); e.currentTarget.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" }); try { localStorage.setItem(KEY, a.id); } catch {} }}>
             {a.label}
           </button>
         ))}
