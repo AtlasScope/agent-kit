@@ -79,3 +79,9 @@ test("read-only entries that test on a copy may change the copy, not production"
     assert.ok(!out.includes(MODE_RULE.read), `${p.id} still forbids changing the separate copy`);
   }
 });
+
+test("read-only entries that ask for tests on a copy are marked as isolated", () => {
+  const asks = /\bon a copy\b|separate database|before-and-after|replay/i;
+  const missed = data.prompts.filter((p) => p.mode === "read" && !p.flow && !p.iso && asks.test(`${p.p || ""} ${p.ev || ""}`));
+  assert.deepEqual(missed.map((p) => p.id), []);
+});

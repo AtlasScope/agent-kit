@@ -1398,7 +1398,7 @@
    "mode": "read",
    "top": "split",
    "scope": "wide",
-   "tools": "Needs: the repository and read-only database access. Helps: query statistics (pg_stat_statements).",
+   "tools": "Needs: the repository, read-only database access and a separate copy for before-and-after tests. Helps: query statistics (pg_stat_statements).",
    "plat": "Any PostgreSQL host: Supabase, Neon, RDS, Cloud SQL or self-hosted.",
    "rel": [
     "P04",
@@ -1411,7 +1411,8 @@
    "refs": [
     "pgss",
     "bestpractices"
-   ]
+   ],
+   "iso": true
   },
   {
    "id": "PG07",
@@ -1427,7 +1428,7 @@
    "mode": "read",
    "top": "split",
    "scope": "wide",
-   "tools": "Repository and read-only database access.",
+   "tools": "Needs: the repository, read-only database access and a separate copy to check the shorter path against.",
    "plat": "Any PostgreSQL host: Supabase, Neon, RDS, Cloud SQL or self-hosted.",
    "rel": [
     "D04",
@@ -1436,7 +1437,8 @@
     "PG08",
     "PG09"
    ],
-   "tags": "ingestion, etl, import pipeline, simplify pipeline, sprawling pipeline, data pipeline"
+   "tags": "ingestion, etl, import pipeline, simplify pipeline, sprawling pipeline, data pipeline",
+   "iso": true
   },
   {
    "id": "PG08",
@@ -1463,7 +1465,8 @@
    "tags": "failed run duplicates records, retry, replay, idempotent import, rerun safely, backfill twice, duplicate import",
    "refs": [
     "pgtap"
-   ]
+   ],
+   "iso": true
   },
   {
    "id": "PG09",
