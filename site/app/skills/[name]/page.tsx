@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Crumbs, JsonLd } from "@/components/Crumbs";
-import { PromptList } from "@/components/Cards";
+import { PromptCards } from "@/components/Cards";
 import { CopyButton } from "@/components/CopyButton";
 import { SaveMenu } from "@/components/SaveMenu";
 import { SITE, authEnabled } from "@/lib/site";
@@ -76,7 +76,7 @@ export default async function SkillPage({ params }: { params: Promise<{ name: st
       </div>
 
       {s.prompts.length > 0 && (
-        <section className="section"><h2>Prompts that use it</h2><PromptList slugs={s.prompts} /></section>
+        <section className="section"><h2>Prompts that use it</h2><PromptCards slugs={s.prompts} /></section>
       )}
 
       {s.license && (

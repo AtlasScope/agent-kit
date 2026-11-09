@@ -17,12 +17,12 @@ export default function Kits() {
         <h1>Kits</h1>
         <p className="lead ink2">Each kit is one plugin you install as a group. Install a single skill from its own page instead.</p>
       </div>
-      <div className="grid">
+      <div className="tiles tiles--start">
         {kits.map((k) => (
-          <Link key={k.name} className="card" href={`/kits/${k.name}`}>
-            <span className="card__t">{k.title}</span>
-            <span className="card__d">{k.description}</span>
-            <span className="card__m">{k.skills.length} skills · v{k.version}</span>
+          <Link key={k.name} className="tile" href={`/kits/${k.name}`}>
+            <span className="tile__t">{k.title}</span>
+            <span className="tile__d">{k.description}</span>
+            <span className="tile__m">{k.skills.length} skills · v{k.version}</span>
           </Link>
         ))}
       </div>
