@@ -1,12 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Instrument_Serif, Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Nav, Footer } from "@/components/Nav";
 import { SITE, authEnabled } from "@/lib/site";
 import { counts } from "@/lib/content";
 import "./globals.css";
 
-const serif = Instrument_Serif({ weight: "400", subsets: ["latin"], variable: "--font-instrument", display: "swap" });
 const sans = Geist({ subsets: ["latin"], variable: "--font-geist", display: "swap" });
 const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono", display: "swap" });
 
@@ -19,19 +18,19 @@ export const metadata: Metadata = {
 };
 
 // viewport-fit=cover lets the page run under the notch in landscape; the container pads back with safe-area insets.
-export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#050506", colorScheme: "dark" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: [{ media: "(prefers-color-scheme: light)", color: "#ECEAE4" }, { media: "(prefers-color-scheme: dark)", color: "#0A0A09" }], colorScheme: "light dark" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const body = (
-    <html lang="en" suppressHydrationWarning className={`${serif.variable} ${sans.variable} ${mono.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${sans.variable} ${mono.variable}`}>
       <body>
+        <Nav />
         <div className="container">
-          <Nav />
           {children}
           <Footer />
         </div>
       </body>
     </html>
   );
-  return authEnabled() ? <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-in" appearance={{ variables: { colorPrimary: "#f3f3f5" } }}>{body}</ClerkProvider> : body;
+  return authEnabled() ? <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-in" appearance={{ variables: { colorPrimary: "#0B0A08" } }}>{body}</ClerkProvider> : body;
 }

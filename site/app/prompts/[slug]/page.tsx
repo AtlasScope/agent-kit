@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Crumbs } from "@/components/Crumbs";
-import { PromptList, SkillCards } from "@/components/Cards";
+import { PromptCards, SkillCards } from "@/components/Cards";
 import { CopyButton } from "@/components/CopyButton";
 import { SaveMenu } from "@/components/SaveMenu";
 import { authEnabled } from "@/lib/site";
@@ -45,11 +45,11 @@ function AreaPage({ a }: { a: Area }) {
     <main className="page">
       <div className="page-head">
         <Crumbs items={[["Prompts", "/prompts"], [a.title, `/prompts/${a.slug}`]]} />
-        <p className="kicker">{s.title}</p>
+        <p className="kicker" data-sec={a.sec}><i className="dot" />{s.title}</p>
         <h1>{a.title}</h1>
         <p className="lead ink2">{a.blurb || s.blurb}</p>
       </div>
-      <PromptList slugs={a.prompts} />
+      <PromptCards slugs={a.prompts} />
     </main>
   );
 }
@@ -75,13 +75,13 @@ function PromptPage({ p }: { p: Prompt }) {
     <main className="page">
       <div className="page-head">
         <Crumbs items={[["Prompts", "/prompts"], [a.title, `/prompts/${a.slug}`], [p.t, `/prompts/${p.slug}`]]} />
-        <p className="kicker"><span>{kindLabel(p)}</span><span>·</span><span>{p.group}</span>{p.badge && <><span>·</span><span>{p.badge}</span></>}<span>·</span><code>{p.id}</code></p>
+        <p className="kicker" data-sec={p.sec}><i className="dot" /><span>{kindLabel(p)}</span><span>·</span><span>{p.group}</span>{p.badge && <><span>·</span><span>{p.badge}</span></>}<span>·</span><code>{p.id}</code></p>
         <h1>{p.t}</h1>
         {(p.why || p.use) && <p className="lead ink2">{p.why || p.use}</p>}
         <div className="toolbar">
-          <CopyButton className="btn btn--solid btn--sm" text={text} label={p.steps ? "Copy recipe" : p.sec === "ecmd" ? "Copy command" : "Copy prompt"} />
+          <CopyButton className="btn btn--solid" text={text} label={p.steps ? "Copy recipe" : p.sec === "ecmd" ? "Copy command" : "Copy prompt"} icon />
           {authEnabled() && <SaveMenu kind="prompt" refId={p.id} title={p.t} />}
-          <a className="btn btn--sm" href={`/prompts/${p.slug}.md`}>Markdown</a>
+          <a className="btn btn--sm btn--ghost" href={`/prompts/${p.slug}.md`}>Markdown</a>
         </div>
       </div>
 
@@ -112,7 +112,7 @@ function PromptPage({ p }: { p: Prompt }) {
         <section className="section"><h2>Skills it uses</h2><SkillCards names={p.skills} /></section>
       )}
       {p.related.length > 0 && (
-        <section className="section"><h2>Related prompts</h2><PromptList slugs={p.related} /></section>
+        <section className="section"><h2>Related prompts</h2><PromptCards slugs={p.related} /></section>
       )}
       <p className="note">More in <Link className="lic" href={`/prompts/${a.slug}`}>{a.title}</Link>.</p>
     </main>

@@ -5,7 +5,7 @@ import { HeroHeadline } from "@/components/HeroHeadline";
 import { revealBootScript } from "@/lib/reveal";
 import { JsonLd } from "@/components/Crumbs";
 import { HERO, SITE } from "@/lib/site";
-import { counts, fixes, kits, authors } from "@/lib/content";
+import { counts, fixes, kits, authors, skills } from "@/lib/content";
 
 export default function Home() {
   const a = authors();
@@ -21,6 +21,21 @@ export default function Home() {
       </section>
 
       <section className="page" aria-label="Browse the library">
+        <nav className="tiles tiles--start" aria-label="Start here">
+          <Link className="tile tile--lead" data-sec="inv" href="/fix"><span className="tile__t"><i className="dot" />Fix a problem</span><span className="tile__d">Pick what you see and get the prompts that look into it, best first.</span></Link>
+          <Link className="tile" data-sec="think" href="/prompts"><span className="tile__t"><i className="dot" />Browse prompts</span><span className="tile__d">{counts.prompts} prompts, commands and recipes, each with a Copy button.</span></Link>
+          <Link className="tile" data-sec="dcmd" href="/skills"><span className="tile__t"><i className="dot" />Agent skills</span><span className="tile__d">{skills.length} skills with their full instructions and one-line installs.</span></Link>
+          <Link className="tile" data-sec="db" href="/kits"><span className="tile__t"><i className="dot" />Kits</span><span className="tile__d">{kits.length} plugins that install a set of skills together.</span></Link>
+        </nav>
+        <div className="section">
+          <h2>Something is wrong in the code</h2>
+          <p className="note">Pick what you see. Each opens the prompts to try, best first.</p>
+          <div className="rows">
+            {fixes.filter((f) => f.scope === "code").map((f) => (
+              <Link key={f.slug} className="row" href={`/fix/${f.slug}`}><span>{f.title}</span><svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg></Link>
+            ))}
+          </div>
+        </div>
         <div className="section">
           <h2>Who wrote the skills</h2>
           <p className="credits-row">
@@ -28,25 +43,6 @@ export default function Home() {
             {a.map((x) => <a key={x.author} href={x.url}>{x.author} ({x.skills.length})</a>)}
             <a href={`${SITE.repo}/blob/main/CREDITS.md`}>Full credits</a>
           </p>
-        </div>
-        <div className="section">
-          <h2>Fix a problem</h2>
-          <p className="note">Start from what you see. Each page lists the prompts to try first.</p>
-          <div className="chips">
-            {fixes.map((f) => <Link key={f.slug} className="chip" href={`/fix/${f.slug}`}>{f.title}</Link>)}
-          </div>
-        </div>
-        <div className="section">
-          <h2>Kits</h2>
-          <div className="grid">
-            {kits.map((k) => (
-              <Link key={k.name} className="card" href={`/kits/${k.name}`}>
-                <span className="card__t">{k.title}</span>
-                <span className="card__d">{k.description}</span>
-                <span className="card__m">{k.skills.length} skills</span>
-              </Link>
-            ))}
-          </div>
         </div>
         <div className="section">
           <h2>Use it from your agent</h2>
