@@ -9,6 +9,7 @@ import { chromium } from "playwright";
 import { composeCopy } from "../../lib/copy.ts";
 import { AGENTS } from "../../lib/site.ts";
 import { STEPS, REQUEST } from "../../lib/start.ts";
+import { LESSONS } from "../../lib/lessons.ts";
 
 const require = createRequire(import.meta.url);
 const data = require("../../content/generated.json");
@@ -111,6 +112,15 @@ for (const size of SIZES) {
         assert.equal(await clipboard(page), REQUEST);
       }
       if (i < STEPS.length - 1) await page.getByRole("link", { name: `Next: ${STEPS[i + 1].title}` }).click();
+    }
+    // The guide hands off to the lessons, and each lesson copies its action.
+    await page.getByRole("link", { name: "Next: five short lessons" }).click();
+    await page.waitForURL(/\/learn$/);
+    for (const l of LESSONS) {
+      await page.goto(`${base}/learn/${l.slug}`);
+      await noSideScroll(page, `/learn/${l.slug}`);
+      await page.getByRole("button", { name: l.action.label }).click();
+      assert.equal(await clipboard(page), l.action.text, `${l.slug} copies its action`);
     }
     assert.deepEqual(errors, []);
     await ctx.close();

@@ -65,7 +65,7 @@ export default async function StartStep({ params }: { params: Promise<{ step: st
 
       <nav className="start-nav" aria-label="Guide steps">
         {prev ? <Link className="btn" href={`/start/${prev.slug}`}>Back: {prev.title}</Link> : <Link className="btn" href="/start">All steps</Link>}
-        {next ? <Link className="btn btn--solid" href={`/start/${next.slug}`}>Next: {next.title}</Link> : <Link className="btn btn--solid" href="/prompts">Find your next prompt</Link>}
+        {next ? <Link className="btn btn--solid" href={`/start/${next.slug}`}>Next: {next.title}</Link> : <Link className="btn btn--solid" href="/learn">Next: five short lessons</Link>}
       </nav>
     </main>
   );
