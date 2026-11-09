@@ -7,12 +7,16 @@ export type Me = { signedIn: boolean; collections?: { id: string; name: string; 
 // One shared copy of the signed-in state, so every star on a page loads it once and updates together.
 let me: Me | null = null;
 let inflight: Promise<Me> | null = null;
+let startedAt = 0;
 const subs = new Set<() => void>();
 const emit = () => subs.forEach((f) => f());
 export const subscribe = (f: () => void) => { subs.add(f); return () => { subs.delete(f); }; };
 export const getMe = () => me;
+// Cards mounted together share one request; a later mount (after navigating back, or after
+// changing collections on /account) fetches again so stars never show stale state.
 export function loadMe(fresh = false) {
-  if (!fresh && inflight) return inflight;
+  if (!fresh && inflight && Date.now() - startedAt < 2000) return inflight;
+  startedAt = Date.now();
   inflight = fetch("/api/me", { cache: "no-store" }).then((r) => r.json() as Promise<Me>).catch(() => ({ signedIn: false }))
     .then((m) => { me = m; emit(); return m; });
   return inflight;
@@ -46,7 +50,7 @@ function StarInner({ kind, refId, title, label }: { kind: "prompt" | "skill"; re
   const m = useMe();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  useEffect(() => { if (isSignedIn && !getMe()) loadMe(); }, [isSignedIn]);
+  useEffect(() => { if (isSignedIn) loadMe(); }, [isSignedIn]);
 
   const cls = `star${label ? " star--label" : ""}`;
   if (!isLoaded || !isSignedIn) {

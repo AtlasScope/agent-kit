@@ -1,7 +1,7 @@
 "use client";
 import { useAuth } from "@clerk/nextjs";
 import { useEffect, useRef, useState } from "react";
-import { Star, useMe, loadMe, getMe, saveItem, isIn } from "./Star";
+import { Star, useMe, loadMe, saveItem, isIn } from "./Star";
 
 // Star plus "Save to collection" for one prompt or skill page.
 export function SaveMenu({ kind, refId, title }: { kind: "prompt" | "skill"; refId: string; title: string }) {
@@ -12,7 +12,7 @@ export function SaveMenu({ kind, refId, title }: { kind: "prompt" | "skill"; ref
   const [error, setError] = useState("");
   const pop = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { if (isSignedIn && !getMe()) loadMe(); }, [isSignedIn]);
+  useEffect(() => { if (isSignedIn) loadMe(); }, [isSignedIn]);
   useEffect(() => {
     if (!open) return;
     const close = (e: MouseEvent | KeyboardEvent) => { if (e instanceof KeyboardEvent ? e.key === "Escape" : !pop.current?.contains(e.target as Node)) setOpen(false); };

@@ -437,11 +437,13 @@ svg.i { width: 16px; height: 16px; flex: none; }
   .nav { display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "brand links end" "search search search"; padding-block: 10px; row-gap: 10px; }
   .wordmark { grid-area: brand; } .links { grid-area: links; overflow-x: auto; scrollbar-width: none; justify-content: flex-start; padding: 0; }
   .nav__end { grid-area: end; } .nav .search { grid-area: search; flex: none; margin: 0; }
+  .section { scroll-margin-top: 140px; }
 }
 @media (max-width: 40rem) {
   :root { --gutter: 16px; }
   .nav { grid-template-columns: 1fr auto; grid-template-areas: "brand end" "links links" "search search"; }
   .hide-sm, .kbd { display: none; }
+  .section { scroll-margin-top: 180px; }
   .tiles:not(.tiles--start) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-xs); }
   .tiles:not(.tiles--start) .tile { padding: 12px; box-shadow: none; }
   .page { padding-top: var(--space-lg); gap: var(--space-lg); }
