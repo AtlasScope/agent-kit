@@ -13,6 +13,8 @@ The full inventory is `library/dist/inventory.csv`, rebuilt by `node library/bui
   - Database workflows (DBR01 to DBR05) say "Stay read-only until I approve a change": Asks before changing.
   - EC04 /improve-codebase-architecture, EC06 /grill-with-docs, EC07 /research, EC10 /to-questionnaire,
     EC21 and M10 write notes, glossaries or decision records but not app code: Writes notes only.
+  - EC24 /experience-architecture:rethink writes proposal files and a prototype, and changes the app
+    only after the owner picks an option: Asks before changing.
   - Thinking prompts that only change how the agent works (M01, M05, M11) and the /engineer router
     take on whatever the task does: Depends on the task.
   - Workflows list what all of their prompts need, not just the first one's.
