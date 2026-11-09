@@ -17,13 +17,16 @@ function rpcError(status: number, message: string, headers: Record<string, strin
   });
 }
 
+// consistentRead skips the copy of Edge Config the platform keeps next to the function and reads
+// the live value, so flipping the switch takes effect without a redeploy. The 10s cache below
+// keeps this to one read per instance every 10 seconds.
 let switchCache: { on: boolean; at: number } | null = null;
 async function enabled() {
   if (process.env.MCP_ENABLED === "false") return false;
   if (!process.env.EDGE_CONFIG) return true;
   if (switchCache && Date.now() - switchCache.at < 10_000) return switchCache.on;
   let on = true;
-  try { on = (await get("mcp_enabled")) !== false; }
+  try { on = (await get("mcp_enabled", { consistentRead: true })) !== false; }
   catch (e) { console.error("mcp: Edge Config read failed, staying on", e); }
   switchCache = { on, at: Date.now() };
   return on;
