@@ -1,7 +1,7 @@
 # Fast checks for pull requests. One job, named "ci", which branch rules require.
 # It always reports, and skips the steps whose files the PR does not touch, so a
-# docs-only PR finishes in seconds. Vercel builds the site on every commit, so the
-# Next.js build is not repeated here.
+# docs-only PR finishes in seconds. Site changes also get a production build and
+# browser smoke journeys (home, prompt, skill) at desktop and phone sizes.
 name: CI
 
 on:
@@ -19,7 +19,7 @@ jobs:
   ci:
     name: ci
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Find changed areas
         id: changes
@@ -34,18 +34,20 @@ jobs:
           site=$(has '^(site|library|kits)/')
           library=$(has '^(library|kits/engineering-kit)/')
           public=$(has '^(kits/|library/|scripts/check-public|[A-Z]+\.md$)')
-          [ "$all" = true ] && site=true library=true public=true
+          catalog=$(has '^(kits/|\.claude-plugin/|\.agents/|scripts/check-catalog)')
+          [ "$all" = true ] && site=true library=true public=true catalog=true
           echo "site=$site" >> "$GITHUB_OUTPUT"
           echo "library=$library" >> "$GITHUB_OUTPUT"
           echo "public=$public" >> "$GITHUB_OUTPUT"
+          echo "catalog=$catalog" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v5
-        if: steps.changes.outputs.site == 'true' || steps.changes.outputs.library == 'true' || steps.changes.outputs.public == 'true'
+        if: steps.changes.outputs.site == 'true' || steps.changes.outputs.library == 'true' || steps.changes.outputs.public == 'true' || steps.changes.outputs.catalog == 'true'
         with:
           persist-credentials: false
 
       - uses: actions/setup-node@v5
-        if: steps.changes.outputs.site == 'true' || steps.changes.outputs.library == 'true' || steps.changes.outputs.public == 'true'
+        if: steps.changes.outputs.site == 'true' || steps.changes.outputs.library == 'true' || steps.changes.outputs.public == 'true' || steps.changes.outputs.catalog == 'true'
         with:
           node-version: 22
           cache: ${{ hashFiles('site/package-lock.json') != '' && 'npm' || '' }}
@@ -54,6 +56,10 @@ jobs:
       - name: Check shipped files for personal references
         if: steps.changes.outputs.public == 'true'
         run: node scripts/check-public.mjs
+
+      - name: Check the plugin catalogs, manifests and skill folders
+        if: steps.changes.outputs.catalog == 'true'
+        run: node scripts/check-catalog.mjs
 
       - name: Check the prompt library
         if: steps.changes.outputs.library == 'true'
@@ -67,3 +73,11 @@ jobs:
           npm run content
           npm run typecheck
           node --test "tests/**/*.test.mjs"
+
+      - name: Build the site and run browser smoke journeys
+        if: steps.changes.outputs.site == 'true' && hashFiles('site/package.json') != ''
+        working-directory: site
+        run: |
+          npx playwright install --with-deps chromium
+          npx next build
+          npm run smoke
