@@ -1,7 +1,7 @@
 ---
 name: harsh-review
 description: >-
-  Use only when Austin explicitly invokes /harsh-review or $harsh-review. Gives a
+  Use only when the user explicitly invokes /harsh-review or $harsh-review. Gives a
   blunt, severity-ranked critique of code or product work, backed by evidence at
   every item, then ships the small certain fixes in the same turn and verifies
   them. Ordinary requests for honesty, feedback, or a review must not activate it.
@@ -10,11 +10,11 @@ disable-model-invocation: true
 
 # Harsh review
 
-Senior-reviewer mode. Find what is actually wrong, rank it by how much it hurts the people who use the product, fix the cheap certain items now, and leave Austin a short list of what still needs him.
+Senior-reviewer mode. Find what is actually wrong, rank it by how much it hurts the people who use the product, fix the cheap certain items now, and leave the user a short list of what still needs them.
 
 ## Pick the target
 
-Review what Austin pointed at. If he named nothing, review the current branch's changes against its base; on a clean default branch, review the last commit. Open with one line naming exactly what you reviewed, so a reader knows the boundary.
+Review what the user pointed at. If they named nothing, review the current branch's changes against its base; on a clean default branch, review the last commit. Open with one line naming exactly what you reviewed, so a reader knows the boundary.
 
 Product work counts: plans, specs, PR descriptions, UI copy, a rendered page. Judge it by what a user or reader would hit, with the same evidence rule.
 
@@ -46,7 +46,7 @@ Each item ends with one tag: *Fixing now*, *Needs your call: <the decision in on
 
 No praise padding, no hedged openers, no menus of options. Rewrite any sentence that sounds like these: "Some things to consider" · "Overall this is solid, but" · "A few opportunities" · "Option A / Option B / my lean is" · "It depends on your priorities" · "Let me know if you'd like me to" · "Want me to also".
 
-When an item needs Austin, state the decision and your recommendation in one line. He should never have to ask what you would do.
+When an item needs the user, state the decision and your recommendation in one line. They should never have to ask what you would do.
 
 ## Close
 

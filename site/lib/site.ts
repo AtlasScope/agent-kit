@@ -10,8 +10,8 @@ export const SITE = {
 // Chosen 2026-11-08 ("Senior team"). The drafts are the false starts the reveal types and deletes.
 export const HERO = {
   headline: "Build like you have a senior team.",
-  subhead: "Agent Kit gives your coding agent the playbooks experienced designers and engineers use. Ask in plain words and it works from the right one.",
-  license: "Works in Claude Code, Codex, Cursor and 70 more agents. Free, and each skill keeps its author’s license.",
+  subhead: "Agent Kit gives your coding agent the playbooks experienced designers and engineers use. Type /design, /engineer or /database, describe the job in plain words, and it picks the right one.",
+  license: "Built for Claude Code, Codex and Cursor. Free, and each skill keeps its author’s license.",
   drafts: ["act as a senior designer and audit", "make it less generic, you know?"],
   badge: { text: "New:", code: "/database", rest: "for PostgreSQL investigations", href: "/skills/database" },
 };

@@ -2,7 +2,19 @@
 
 Skills for AI coding agents, plus a prompt library you can open beside any of them. Every command runs only when you call it.
 
+It's for people who already use a coding agent such as Claude Code, Codex or Cursor and want it to do design, engineering and database work the way an experienced person would.
+
 Most of these skills are other people's work: 49 of the 60 come from Emil Kowalski, Matt Pocock, Wondel.ai and seven other authors. Agent Kit routes between them and adds 11 of its own. See [CREDITS.md](CREDITS.md).
+
+## Get one result
+
+In Claude Code:
+
+1. `claude plugin marketplace add AtlasScope/agent-kit` registers the catalog. It doesn't install anything yet.
+2. `claude plugin install design-kit@agent-kit` installs one kit. Start a new session so it loads.
+3. Type `/design` followed by the job, for example `/design the settings page looks generic, fix the hierarchy`. It names the skill it picked and why in one line, then starts.
+
+Some `/design` recipes hand steps to plugins Agent Kit doesn't ship, such as Impeccable. Those are listed under [Plugins the routers call but don't ship](CREDITS.md#plugins-the-routers-call-but-dont-ship) and install separately.
 
 | Plugin | What it does |
 |---|---|
@@ -76,6 +88,10 @@ node library/build.mjs
 
 Each kit keeps its own README, credits, licenses and build scripts under `kits/<name>/`, with the plugin itself in `kits/<name>/plugins/<name>/`. The catalogs at `.claude-plugin/marketplace.json` (Claude Code) and `.agents/plugins/marketplace.json` (Codex) list all four. design-kit, engineering-kit and experience-architecture were separate repos until November 2026 and keep their history here.
 
+## Contributing and security
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) to add or improve a prompt or skill, and [SECURITY.md](SECURITY.md) to report a problem privately.
+
 ## License
 
-MIT, except third-party skills, which keep their own licenses as listed in [CREDITS.md](CREDITS.md) and each kit's `THIRD_PARTY.md`.
+[MIT](LICENSE) covers what was written for Agent Kit: the routers, the 11 original skills, the prompt library and the website. Third-party skills keep their own licenses (MIT, and CC BY 4.0 for `color-expert`), shipped in each skill's folder and listed in [CREDITS.md](CREDITS.md) and each kit's `THIRD_PARTY.md`. The MIT license here does not replace them.

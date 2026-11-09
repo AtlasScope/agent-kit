@@ -249,7 +249,7 @@ Rewrites AI-sounding prose so it reads like a person wrote it, without changing 
 
 ## Vale
 
-A prose linter for Markdown in a repo, using the ai-tells package (about 140 rules for AI writing patterns). On this Mac, Pullwise and AltsData have a .vale.ini.
+A prose linter for Markdown in a repo, using the ai-tells package (about 140 rules for AI writing patterns).
 
 - Best for: Checking every doc in a repo at once, and stopping new AI-sounding prose from creeping in.
 - Skip it for: Rewriting one paragraph by feel. Humanizer is quicker for that.
