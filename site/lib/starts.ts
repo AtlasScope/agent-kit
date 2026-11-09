@@ -1,7 +1,7 @@
 // Best starting points: one recommended entry for each common job, in the words a visitor would
 // use, with alternatives and when to choose them. Each card answers the same four questions in the
 // same order. "changes" must agree with the entry's own mode (see tests/starts.test.mjs).
-export type Change = "no" | "asks" | "test" | "yes";
+export type Change = "no" | "asks" | "docs" | "test" | "yes";
 export type Start = {
   slug: string;
   job: string;        // the visitor's words
@@ -16,6 +16,7 @@ export type Start = {
 export const CHANGES: Record<Change, string> = {
   no: "No. It only reads and reports.",
   asks: "Not until you approve. It reports first.",
+  docs: "Not your code. It may add terms to GLOSSARY.md as you talk, and offers to record decisions.",
   test: "Only a test that shows the problem. It asks before fixing.",
   yes: "Yes. Review what it changed before you keep it.",
 };
@@ -67,7 +68,7 @@ export const STARTS: Start[] = [
     useWhen: "Small changes take too long, or the agent keeps getting lost in the code.",
     youGet: "Modules that add little, a before-and-after report, and a conversation about one change.",
     requires: "engineering-kit installed.",
-    changes: "no",
+    changes: "docs",
     alts: [
       { id: "A03", when: "You want a plain prompt that finds layers you could delete, with nothing to install." },
       { id: "M12", when: "You already know the area and want it simplified." },
