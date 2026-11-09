@@ -2247,7 +2247,7 @@
    "p": "/to-questionnaire",
    "why": "Turns a decision you can't make alone into a questionnaire for the person who can.",
    "rel": [],
-   "dmode": "Advice"
+   "dmode": "Writes notes only"
   },
   {
    "id": "EC11",
