@@ -516,7 +516,7 @@ function card(e, opts = {}) {
   const meta = h("div", { class: "c-meta" }, h("span", { class: "badge" }, e.id));
   if (opts.best) meta.append(h("span", { class: "best-label" }, opts.label || "Best first"));
   if (e.desk) meta.append(h("span", { class: "tag" }, "In Desk"));
-  const mode = e.flow ? null : INVLIKE.has(e.sec) ? modeLabel(e) : e.sec === "dcmd" ? e.dmode : null;
+  const mode = INVLIKE.has(e.sec) && !e.flow ? modeLabel(e) : e.dmode || null;
   if (mode) meta.append(h("span", { class: RISKY.has(mode) ? "risk" : null }, mode));
   if (e.sec === "ecmd" && e.rel?.length) meta.append(h("span", {}, "Used in " + e.rel.length + (e.rel.length === 1 ? " investigation" : " investigations")));
   if (e.sec === "recipe") meta.append(h("span", {}, e.steps.length + " steps"));
@@ -876,6 +876,7 @@ function drawSheet() {
     box.append(h("p", { class: "prompt" }, e.p));
     box.append(h("div", { class: "acts" }, copyBtn("Copy whole recipe", e.p, { primary: true, id: e.id, toast: "Copied " + e.t })));
   }
+  if (e.dmode && e.sec !== "dcmd") box.append(facts([["What it does", e.dmode]]));
   const rel = e.flow ? [] : (e.rel || []).filter(id => BY[id]);
   if (rel.length) box.append(sub(e.sec === "ecmd" ? "Prompts it helps with" : "Related", relChips(rel)));
   if (INVLIKE.has(e.sec)) {

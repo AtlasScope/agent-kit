@@ -71,8 +71,11 @@ const csv = (v) => (/[",\n]/.test(String(v ?? "")) ? `"${String(v).replace(/"/g,
 const inv = [["id", "section", "family", "title", "changes", "needs", "source", "purpose", "you_get", "reviewed"]];
 for (const e of lib.entries) {
   const changes = e.mode ? (e.iso ? "Tests on a copy" : MODE_LABEL[e.mode]) : e.dmode;
-  const needs = e.tools || (e.badge ? e.badge : e.cmd ? "a plugin or skill" : "nothing");
-  inv.push([e.id, e.sec, e.group, e.t, changes, needs, e.badge || e.src || "Agent Kit", e.why || e.use || "", e.ev || e.best || "", e.reviewed || ""]);
+  // Recipes need the skills their steps run; workflows need what their prompts need.
+  const stepCmds = (e.steps || []).map(([c]) => c.split(/\s/)[0]).filter((c, i, a) => a.indexOf(c) === i);
+  const flowTools = (e.flow || []).flatMap(([, ids]) => ids).map((id) => lib.entries.find((x) => x.id === id)?.tools).find(Boolean);
+  const needs = e.tools || flowTools || (stepCmds.length ? "Installed: " + stepCmds.join(", ") : e.cmd ? "Installed: " + e.cmd.split(/\s/)[0] : "nothing");
+  inv.push([e.id, e.sec, e.group, e.t, changes, needs, e.badge ? `${e.group} (${e.badge})` : e.src || "Agent Kit", e.why || e.use || "", e.ev || e.best || "", e.reviewed || ""]);
 }
 
 fs.mkdirSync(outDir, { recursive: true });
