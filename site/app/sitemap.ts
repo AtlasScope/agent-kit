@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { execSync } from "node:child_process";
 import { SITE } from "@/lib/site";
 import { prompts, areas, skills, kits, fixes } from "@/lib/content";
+import { STEPS } from "@/lib/start";
 
 // Last-changed dates come from git when the build has history; otherwise the build time.
 function gitDate(p: string) {
@@ -16,6 +17,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: u("/"), lastModified: now, priority: 1 },
     ...["/prompts", "/skills", "/kits", "/fix"].map((p) => ({ url: u(p), lastModified: lib, priority: 0.8 })),
+    { url: u("/start"), lastModified: now, priority: 0.9 },
+    ...STEPS.map((s) => ({ url: u(`/start/${s.slug}`), lastModified: now, priority: 0.7 })),
     ...fixes.map((f) => ({ url: u(`/fix/${f.slug}`), lastModified: lib, priority: 0.8 })),
     ...kits.map((k) => ({ url: u(`/kits/${k.name}`), lastModified: gitDate(`kits/${k.name}`) || now, priority: 0.7 })),
     ...areas.map((a) => ({ url: u(`/prompts/${a.slug}`), lastModified: lib, priority: 0.6 })),

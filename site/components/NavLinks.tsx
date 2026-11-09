@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const LINKS = [["/prompts", "Prompts"], ["/skills", "Skills"], ["/kits", "Kits"], ["/fix", "Fix a problem"]] as const;
+const LINKS = [["/start", "Start"], ["/prompts", "Prompts"], ["/skills", "Skills"], ["/kits", "Kits"], ["/fix", "Fix a problem"]] as const;
 
 // Marks the section you are in, so a deep page still shows where it sits.
 export function NavLinks() {
