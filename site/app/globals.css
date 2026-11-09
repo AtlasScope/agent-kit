@@ -68,6 +68,7 @@ code, pre { font-family: var(--font-mono); }
 .badge code { font: 500 0.8125rem/1 var(--font-mono); color: var(--color-cmd); }
 .also { font-size: var(--text-sm); color: var(--color-muted); }
 .also code { font: 400 0.8125rem/1 var(--font-mono); color: var(--color-ink-2); }
+.also { display: grid; gap: 4px; max-width: 36rem; text-align: center; } .also p { margin: 0; } .also p:first-child code { white-space: nowrap; }
 .install { display: grid; justify-items: center; gap: var(--space-sm); margin-top: var(--space-xs); max-width: 100%; min-width: 0; }
 .tabs { display: inline-flex; max-width: 100%; overflow-x: auto; scrollbar-width: none; gap: 2px; padding: 4px; border: 1px solid var(--color-rule); border-radius: 999px; }
 .tabs button { min-height: 32px; padding: 0 var(--space-md); border: 0; border-radius: 999px; background: none; color: var(--color-muted); font: 500 0.8125rem/1 var(--font-body); white-space: nowrap; flex: 0 0 auto; cursor: pointer; transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out); }

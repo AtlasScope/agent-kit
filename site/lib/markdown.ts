@@ -78,7 +78,7 @@ export function homeMd() {
   return [
     `# ${SITE.name} ${SITE.byline}`, "",
     `${counts.skills} skills and ${counts.prompts} prompts for AI coding agents. ${counts.borrowed} of the skills were written by other authors and keep their licenses.`, "",
-    "## Install", "", ...AGENTS.map((a) => `- ${a.label}: \`${a.cmd}\``), "",
+    "## Install", "", ...AGENTS.map((a) => `- ${a.label}: ${a.steps.map((c) => `\`${c}\``).join(", then ")}. ${a.check}${a.tested ? ` Tested with ${a.tested}.` : " Not tested yet."}`), "",
     "## Sections", "", `- [Prompts](${u("/prompts")})`, `- [Skills](${u("/skills")})`, `- [Kits](${u("/kits")})`, `- [Fix a problem](${u("/fix")})`, "",
     `MCP server: ${u("/mcp")}`,
   ].join("\n");

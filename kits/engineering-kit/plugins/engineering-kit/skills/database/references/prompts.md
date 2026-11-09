@@ -124,8 +124,8 @@ Investigate how much database write activity actually changes meaningful informa
 - Evidence to ask for: Statement counts, the share of writes that really change a row, dead-row and churn figures, index and WAL effects where measurable, and before-and-after tests on a copy.
 - Skip when: Write volume is small, or every write is a change that has to happen.
 - Avoid: Suppressing deliberate last-seen timestamps, trigger side effects, version counters or refreshes that are meant to happen.
-- Needs: the repository and read-only database access. Helps: query statistics (pg_stat_statements).
-- Mode: read-only.
+- Needs: the repository, read-only database access and a separate copy for before-and-after tests. Helps: query statistics (pg_stat_statements).
+- Mode: read-only on production; any rebuild, replay or migration test runs on a separate database the user approves.
 - Tools that can help: pg_stat_statements, Postgres best practices skill (Supabase)
 - Related: `P04`, `P09`, `PG05`, `PG07`, `PG13`
 
@@ -139,8 +139,8 @@ Trace one complete ingestion cycle from the original source to the final databas
 - Evidence to ask for: One real trace from source to final rows, the work done twice, the checkpoints, a shorter path, and checks that the shorter path gives the same results and still replays.
 - Skip when: The pipeline is already one short step from source to table.
 - Avoid: Removing evidence, provenance or checkpoints that recovery depends on.
-- Needs: Repository and read-only database access.
-- Mode: read-only.
+- Needs: the repository, read-only database access and a separate copy to check the shorter path against.
+- Mode: read-only on production; any rebuild, replay or migration test runs on a separate database the user approves.
 - Related: `D04`, `PG05`, `PG06`, `PG08`, `PG09`
 
 ### PG08 Can we rerun everything without damaging the data?
@@ -154,7 +154,7 @@ Examine the ingestion and correction workflows under retries, interrupted runs, 
 - Skip when: Every import runs once, by hand, with nothing to retry.
 - Avoid: Calling an import safe to rerun just because the SQL has ON CONFLICT.
 - Needs: the repository and read-only database access. Helps: an isolated database for replay tests, and pgTAP.
-- Mode: read-only.
+- Mode: read-only on production; any rebuild, replay or migration test runs on a separate database the user approves.
 - Tools that can help: pgTAP database tests
 - Related: `R01`, `R06`, `PG05`, `PG07`
 

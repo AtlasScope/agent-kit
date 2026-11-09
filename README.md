@@ -60,6 +60,10 @@ codex plugin add design-kit@agent-kit
 
 Repeat `codex plugin add` for each plugin you want.
 
+**Any agent that reads Agent Skills.** `npx skills add AtlasScope/agent-kit` copies the skill folders into the current project's `.agents/skills`, and `npx skills remove --all` takes them out again (tested with skills 1.7.6). That copies files only. It doesn't register the slash commands the way a plugin install does, and it doesn't install the companion plugins that some recipes call.
+
+Tested on 9 Nov 2026 in a clean config: the Claude Code steps above, plus `claude plugin update` and `claude plugin uninstall` (Claude Code 2.1.321), and `npx skills add` and `remove` (skills 1.7.6). The Codex, Cursor, Gemini CLI and Copilot paths are documented but haven't been tested yet.
+
 **Cursor** reads plain skill folders. Clone this repo and run `scripts/install-local.sh` (Mac and Linux), which links the skills into `~/.cursor/skills`.
 
 **Working from a clone.** `scripts/install-local.sh` points Claude Code, Codex and Cursor at your clone, so an edit shows up in the next session without pushing first. Claude Code keeps a copy of each plugin, so rerun the script after editing (a session-start hook can run it for you); it reinstalls only when the clone has changed.

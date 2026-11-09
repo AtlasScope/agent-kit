@@ -66,3 +66,4 @@ jobs:
           npm ci --prefer-offline --no-audit --no-fund
           npm run content
           npm run typecheck
+          node --test "tests/**/*.test.mjs"
