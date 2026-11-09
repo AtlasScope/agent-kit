@@ -21,6 +21,11 @@ export type Step = {
 export const REQUEST =
   "In this folder, make a reading-list web app as a single index.html file, with no build step and no packages. I can add a book with its title and author, mark it as read, and delete it. Save the list in the browser's localStorage so it survives a refresh. When you're done, tell me how to open it in my browser.";
 
+// The desktop app's Code tab has no /plugin command, so the agent runs the CLI for the reader.
+// The CLI and the app read the same settings, so a user-scope install shows up in both.
+export const INSTALL =
+  "Add the Agent Kit plugin marketplace and install design-kit for my user account by running `claude plugin marketplace add AtlasScope/agent-kit` and then `claude plugin install design-kit@agent-kit`. If the claude command isn't available, stop and tell me.";
+
 export const IMPROVE = "/design the reading list feels cramped on my phone";
 
 export const FEATURE =
@@ -88,15 +93,17 @@ export const STEPS: Step[] = [
     goal: "Install design-kit and use /design to fix one concrete problem.",
     body: [
       "A skill is a set of reusable instructions that teaches the agent how an expert would do one kind of job. A kit, also called a plugin, is a group of skills you install together. design-kit is the one to start with. It adds /design, which reads your request and picks the right design skill for it, so you don't have to know their names.",
-      "Paste the two install lines into the chat box one at a time. Then start a new session in the same folder, so the agent loads the new skills.",
+      "Typing /plugin in the app's chat box doesn't work; that command is for a terminal. Instead, paste the install request below. The agent asks before it runs the two install commands; allow them. Afterwards design-kit also appears under + next to the prompt box, then Add plugins (or Plugins), where you can turn it off later.",
+      "Start a new session in the same folder, so the agent loads the new skills.",
       "Make the browser window narrow, about as wide as a phone, and look at the list. Then type the /design request below.",
     ],
     actions: [
-      { kind: "copy", label: "Copy the install lines", text: "/plugin marketplace add AtlasScope/agent-kit\n/plugin install design-kit@agent-kit" },
+      { kind: "copy", label: "Copy the install request", text: INSTALL },
       { kind: "copy", label: "Copy the /design request", text: IMPROVE },
     ],
     expect: "The agent's first line names the skill it picked and why. It changes index.html. Refresh the browser at the same narrow width, and the list has more room and larger tap targets.",
     wrong: [
+      ["The agent says the claude command isn't available.", "Install design-kit from the plugin browser instead: + next to the prompt box, then Add plugins. If Agent Kit isn't listed there, use the Claude Code tab on the home page from a terminal once; the app picks it up."],
       ["/design isn't recognized.", "Start a new session in the reading-list folder. Skills load when a session starts."],
       ["The agent says a skill it wanted isn't installed.", "That's fine. It uses the closest installed skill and tells you which one. You don't need to install anything else."],
       ["You don't like the change.", "Reply: \"Undo that change.\" Nothing is saved to GitHub until you commit in step 5."],
