@@ -64,4 +64,4 @@ Use the repo's own location instead if its AGENTS.md or CLAUDE.md names one. In 
 
 A frame with no `path` is allowed and shows as "inspected in session, no saved image". Use it only when no tool could write the image; the sheet states the count so nobody mistakes it for saved evidence.
 
-Write `title`, `summary`, issue titles, and `detail` for Austin: what a person sees and why it matters. Selectors and CSS go in `element` and `fix`.
+Write `title`, `summary`, issue titles, and `detail` for the user: what a person sees and why it matters. Selectors and CSS go in `element` and `fix`.

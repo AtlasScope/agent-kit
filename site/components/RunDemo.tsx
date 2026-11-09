@@ -57,9 +57,9 @@ export function RunDemo() {
   }, [still, paused]);
 
   return (
-    <section className="run" aria-label="A real run of the /design command" ref={ref}>
+    <section className="run" aria-label="An example workflow for the /design command" ref={ref}>
       <div className="run__head">
-        <span>Claude Code, design-kit</span>
+        <span>Example workflow, Claude Code, design-kit</span>
         {!still && <button className="pause" type="button" onClick={() => setPaused((p) => !p)}>{paused ? "Play" : "Pause"}</button>}
       </div>
       <div className={`run__body${playing ? " playing" : ""}`}>

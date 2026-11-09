@@ -1,7 +1,7 @@
 ---
 name: viewport-proof
 description: >-
-  Use only when Austin explicitly invokes /viewport-proof or $viewport-proof.
+  Use only when the user explicitly invokes /viewport-proof or $viewport-proof.
   Judges a real rendered UI across representative viewports for production
   readiness: it works, stays consistent across device sizes, and looks
   deliberately composed. Delivers one of three verdicts with a visual proof sheet
@@ -12,7 +12,7 @@ disable-model-invocation: true
 
 # Viewport Proof
 
-Austin needs to know whether a screen can ship, and to see why without reading code. Deliver one verdict, **production ready**, **minor fixes required**, or **not production ready**, backed by a proof sheet he can open and look at.
+The user needs to know whether a screen can ship, and to see why without reading code. Deliver one verdict, **production ready**, **minor fixes required**, or **not production ready**, backed by a proof sheet they can open and look at.
 
 This is quality assurance against a bar; redesign is out of scope. When a surface misses the bar because its direction is wrong, record that as a material issue with the exact symptom, and stop. Proposing a new direction belongs to a design pass.
 
@@ -24,7 +24,7 @@ The proof is the same everywhere: saved frames, `scripts/geometry_check.js` resu
 
 | Harness | Look and interact | Save frames to disk | Deliver the sheet |
 |---|---|---|---|
-| **Claude Code** | Browser pane: `resize_window` (custom width and height), `computer` screenshot and `zoom`, `javascript_tool` for the geometry script. Claude in Chrome when the page needs Austin's signed-in session | Pane screenshots reach you, not the disk. Save frames with the project's Playwright runner or a short Playwright script through the shell | **Publish `index.html` with the `Artifact` tool**, passing the printed `files` map so the frames ship with it. Load the artifact guidance first. Keep the local run folder |
+| **Claude Code** | Browser pane: `resize_window` (custom width and height), `computer` screenshot and `zoom`, `javascript_tool` for the geometry script. Claude in Chrome when the page needs the user's signed-in session | Pane screenshots reach you, not the disk. Save frames with the project's Playwright runner or a short Playwright script through the shell | **Publish `index.html` with the `Artifact` tool**, passing the printed `files` map so the frames ship with it. Load the artifact guidance first. Keep the local run folder |
 | **Codex** | Codex's browser, or Playwright | Playwright (`page.screenshot`, `page.evaluate` for the geometry script) | Serve the run folder on a spare local port, open it, and give the URL and path |
 | **Cursor** | Cursor's browser tool (evaluate the geometry script on the tab) | Playwright | Same as Codex |
 
