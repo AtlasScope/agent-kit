@@ -1,0 +1,12 @@
+# Keeps the actions in .github/workflows current. Security fixes for npm
+# packages come from Dependabot security updates (a repo setting), so npm
+# version-update PRs are left off to keep the PR queue quiet.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
