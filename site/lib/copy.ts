@@ -20,7 +20,7 @@ export function copyFormat(e: CopyFields): CopyFormat {
 
 // How each mode limits what the agent may do. Written to the agent, not about it.
 export const MODE_RULE: Record<string, string> = {
-  read: "Read-only: don't change code, data or settings. Report what you find.",
+  read: "Read-only: don't change the live code, data or settings. If getting the evidence means trying something, do it on a separate copy or branch. Report what you find.",
   repro: "Don't fix anything yet. You may add a test or make a temporary change that shows the problem; undo any temporary change and leave everything else as it was.",
   change: "Show the evidence before you change anything, and ask me before you apply a fix.",
 };
