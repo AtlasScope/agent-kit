@@ -20,11 +20,11 @@ export default function Fix() {
       {(["code", "database"] as const).map((scope) => (
         <section key={scope} className="section">
           <h2>{scope === "code" ? "In your app" : "In your PostgreSQL database"}</h2>
-          <ul className="list">
+          <div className="rows">
             {fixes.filter((f) => f.scope === scope).map((f) => (
-              <li key={f.slug}><Link href={`/fix/${f.slug}`}><span className="list__t">{f.title}</span><span className="list__n">{f.prompts.length} prompts</span></Link></li>
+              <Link key={f.slug} className="row" href={`/fix/${f.slug}`}><span>{f.title}</span><span className="row__n">{f.prompts.length}</span></Link>
             ))}
-          </ul>
+          </div>
         </section>
       ))}
     </main>

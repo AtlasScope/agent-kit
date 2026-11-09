@@ -1,7 +1,13 @@
 "use client";
 import { useState } from "react";
 
-export function CopyButton({ text, label = "Copy", className = "copy" }: { text: string; label?: string; className?: string }) {
+const CopyIcon = () => (
+  <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
+  </svg>
+);
+
+export function CopyButton({ text, label = "Copy", className = "copy", icon = false }: { text: string; label?: string; className?: string; icon?: boolean }) {
   const [state, setState] = useState(label);
   return (
     <button
@@ -13,7 +19,7 @@ export function CopyButton({ text, label = "Copy", className = "copy" }: { text:
         setTimeout(() => setState(label), 1600);
       }}
     >
-      {state}
+      {icon && <CopyIcon />}<span aria-live="polite">{state}</span>
     </button>
   );
 }
