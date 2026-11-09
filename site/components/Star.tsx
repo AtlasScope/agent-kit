@@ -8,6 +8,7 @@ export type Me = { signedIn: boolean; collections?: { id: string; name: string; 
 let me: Me | null = null;
 let inflight: Promise<Me> | null = null;
 let startedAt = 0;
+let gen = 0;
 const subs = new Set<() => void>();
 const emit = () => subs.forEach((f) => f());
 export const subscribe = (f: () => void) => { subs.add(f); return () => { subs.delete(f); }; };
@@ -17,8 +18,10 @@ export const getMe = () => me;
 export function loadMe(fresh = false) {
   if (!fresh && inflight && Date.now() - startedAt < 2000) return inflight;
   startedAt = Date.now();
+  const mine = ++gen;
+  // Only the newest request may update the snapshot, so a slow older read can't undo a newer star.
   inflight = fetch("/api/me", { cache: "no-store" }).then((r) => r.json() as Promise<Me>).catch(() => ({ signedIn: false }))
-    .then((m) => { me = m; emit(); return m; });
+    .then((m) => { if (mine === gen) { me = m; emit(); } return m; });
   return inflight;
 }
 export async function saveItem(body: Record<string, unknown>) {
