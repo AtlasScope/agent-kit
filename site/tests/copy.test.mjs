@@ -3,7 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { composeCopy, copyFormat, MODE_RULE, RECIPE_FALLBACK } from "../lib/copy.ts";
+import { composeCopy, copyFormat, ISO_READ_RULE, MODE_RULE, RECIPE_FALLBACK } from "../lib/copy.ts";
 
 const data = JSON.parse(fs.readFileSync(new URL("../content/generated.json", import.meta.url), "utf8"));
 const byId = new Map(data.prompts.map((p) => [p.id, p]));
@@ -65,7 +65,17 @@ test("every entry copies non-empty text that starts with its body", () => {
 });
 
 test("every read-only investigation says so in the copied text", () => {
-  const read = data.prompts.filter((p) => copyFormat(p) === "investigation" && p.mode === "read" && !p.flow);
+  const read = data.prompts.filter((p) => copyFormat(p) === "investigation" && p.mode === "read" && !p.flow && !p.iso);
   assert.ok(read.length > 20);
   for (const p of read) assert.ok(composeCopy(p).includes(MODE_RULE.read), `${p.id} loses its read-only rule`);
+});
+
+test("read-only entries that test on a copy may change the copy, not production", () => {
+  const iso = data.prompts.filter((p) => copyFormat(p) === "investigation" && p.mode === "read" && p.iso && !p.flow);
+  assert.ok(iso.some((p) => p.id === "PG15") && iso.some((p) => p.id === "PG17"));
+  for (const p of iso) {
+    const out = composeCopy(p);
+    assert.ok(out.includes(ISO_READ_RULE), `${p.id} lacks the separate-copy rule`);
+    assert.ok(!out.includes(MODE_RULE.read), `${p.id} still forbids changing the separate copy`);
+  }
 });

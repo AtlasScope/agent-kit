@@ -25,6 +25,9 @@ export const MODE_RULE: Record<string, string> = {
   change: "Show the evidence before you change anything, and ask me before you apply a fix.",
 };
 const ISO_RULE = "Work on a separate copy or branch, never on the live system.";
+// Read-only entries that ask for a rebuild or replay: production stays untouched, the separate copy may change.
+export const ISO_READ_RULE =
+  "Don't change code, data or settings on the live system. Run any rebuild, replay or test on a separate copy you're allowed to change, and report what you find.";
 export const RECIPE_FALLBACK = "If a command in these steps isn't installed, tell me which one and stop before that step.";
 
 const clean = (s?: string) => (s || "").trim();
@@ -39,7 +42,7 @@ export function composeCopy(e: CopyFields): string {
   const extra: string[] = [];
   const rule = e.mode && MODE_RULE[e.mode];
   // Workflow entries (flow) already carry their own step-by-step rules in the body.
-  if (rule && !e.flow) extra.push(e.iso ? `${rule} ${ISO_RULE}` : rule);
+  if (rule && !e.flow) extra.push(!e.iso ? rule : e.mode === "read" ? ISO_READ_RULE : `${rule} ${ISO_RULE}`);
   if (clean(e.ev)) extra.push(`Give me: ${sentence(clean(e.ev))}`);
   const trap = clean(e.avoid) || clean(e.blind);
   if (trap) extra.push(`${e.avoid ? "Avoid" : "Watch for"}: ${sentence(trap)}`);
