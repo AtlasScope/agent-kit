@@ -32,6 +32,8 @@ export default function Start() {
           ))}
         </ol>
       </section>
+
+      <p className="note">Done, or already past this? <Link className="lic" href="/learn">Five short lessons</Link> explain prompts, skills and how to check a change, using the same app.</p>
     </main>
   );
 }

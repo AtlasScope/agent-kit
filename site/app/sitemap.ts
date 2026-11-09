@@ -3,6 +3,7 @@ import { execSync } from "node:child_process";
 import { SITE } from "@/lib/site";
 import { prompts, areas, skills, kits, fixes } from "@/lib/content";
 import { STEPS } from "@/lib/start";
+import { LESSONS } from "@/lib/lessons";
 
 // Last-changed dates come from git when the build has history; otherwise the build time.
 function gitDate(p: string) {
@@ -19,6 +20,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...["/prompts", "/skills", "/kits", "/fix"].map((p) => ({ url: u(p), lastModified: lib, priority: 0.8 })),
     { url: u("/start"), lastModified: now, priority: 0.9 },
     ...STEPS.map((s) => ({ url: u(`/start/${s.slug}`), lastModified: now, priority: 0.7 })),
+    { url: u("/learn"), lastModified: now, priority: 0.8 },
+    ...LESSONS.map((l) => ({ url: u(`/learn/${l.slug}`), lastModified: now, priority: 0.6 })),
     ...fixes.map((f) => ({ url: u(`/fix/${f.slug}`), lastModified: lib, priority: 0.8 })),
     ...kits.map((k) => ({ url: u(`/kits/${k.name}`), lastModified: gitDate(`kits/${k.name}`) || now, priority: 0.7 })),
     ...areas.map((a) => ({ url: u(`/prompts/${a.slug}`), lastModified: lib, priority: 0.6 })),
