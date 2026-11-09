@@ -1,6 +1,6 @@
 import { createMcpHandler } from "mcp-handler";
 import { z } from "zod";
-import { guard } from "@/lib/mcp-guard";
+import { guard, switchSource } from "@/lib/mcp-guard";
 import { SITE } from "@/lib/site";
 import { areas, fixes, getArea, getFix, getPrompt, getPromptById, getSkill, search, counts } from "@/lib/content";
 import { promptMd, skillMd, areaMd, fixMd } from "@/lib/markdown";
@@ -80,7 +80,9 @@ const handler = createMcpHandler(
 );
 
 async function guarded(req: Request) {
-  return (await guard(req)) ?? handler(req);
+  const res = (await guard(req)) ?? (await handler(req));
+  try { res.headers.set("x-mcp-switch", switchSource()); } catch { /* immutable headers */ }
+  return res;
 }
 
 export { guarded as GET, guarded as POST, guarded as DELETE };
