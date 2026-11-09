@@ -21,13 +21,21 @@ function rpcError(status: number, message: string, headers: Record<string, strin
 // the live value, so flipping the switch takes effect without a redeploy. The 10s cache below
 // keeps this to one read per instance every 10 seconds.
 let switchCache: { on: boolean; at: number } | null = null;
+// Where the last on/off answer came from, sent as the x-mcp-switch header so a stuck switch can
+// be diagnosed from outside: env, no-edge-config, edge-config, edge-config-missing-key or
+// edge-config-error. It holds no secrets.
+let source = "unknown";
+export const switchSource = () => source;
 async function enabled() {
-  if (process.env.MCP_ENABLED === "false") return false;
-  if (!process.env.EDGE_CONFIG) return true;
+  if (process.env.MCP_ENABLED === "false") { source = "env"; return false; }
+  if (!process.env.EDGE_CONFIG) { source = "no-edge-config"; return true; }
   if (switchCache && Date.now() - switchCache.at < 10_000) return switchCache.on;
   let on = true;
-  try { on = (await get("mcp_enabled", { consistentRead: true })) !== false; }
-  catch (e) { console.error("mcp: Edge Config read failed, staying on", e); }
+  try {
+    const value = await get("mcp_enabled", { consistentRead: true });
+    source = value === undefined ? "edge-config-missing-key" : "edge-config";
+    on = value !== false;
+  } catch (e) { source = "edge-config-error"; console.error("mcp: Edge Config read failed, staying on", e); }
   switchCache = { on, at: Date.now() };
   return on;
 }
