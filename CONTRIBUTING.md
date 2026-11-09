@@ -25,7 +25,9 @@ Agent Kit is a curated library, so a new entry has to earn its place. Before add
 ```sh
 node scripts/check-public.mjs   # no personal names, paths or machine notes in shipped files
 node library/check.mjs          # prompt library IDs, links and required fields
-cd site && npm ci && npm run content && npm run typecheck
+node scripts/check-catalog.mjs  # both plugin catalogs, kit manifests and skill folders agree
+cd site && npm ci && npm run typecheck && npm test
+npx playwright install chromium && npx next build && npm run smoke   # browser journeys
 ```
 
 CI runs the same checks on every pull request.
