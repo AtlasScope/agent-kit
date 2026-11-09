@@ -9,6 +9,7 @@ import { chromium } from "playwright";
 import { composeCopy } from "../../lib/copy.ts";
 import { AGENTS } from "../../lib/site.ts";
 import { STEPS, REQUEST } from "../../lib/start.ts";
+import { STARTS } from "../../lib/starts.ts";
 import { LESSONS } from "../../lib/lessons.ts";
 
 const require = createRequire(import.meta.url);
@@ -81,6 +82,20 @@ for (const size of SIZES) {
     // The page's main button (related prompts further down have their own).
     await page.locator("button.btn--solid", { hasText: "Copy prompt" }).first().click();
     assert.equal(await clipboard(page), composeCopy(p));
+    assert.deepEqual(errors, []);
+    await ctx.close();
+  });
+
+  test(`${size.name}: the prompt hub leads with best starting points that copy`, async () => {
+    const { page, ctx, errors } = await open(size, "/prompts");
+    await noSideScroll(page, "/prompts");
+    const cards = page.locator(".scard");
+    assert.equal(await cards.count(), STARTS.length);
+    for (let i = 0; i < STARTS.length; i++) {
+      const p = data.prompts.find((x) => x.id === STARTS[i].pick);
+      await cards.nth(i).locator(".pcard__a button").click();
+      assert.equal(await clipboard(page), composeCopy(p), `${STARTS[i].slug} copies ${p.id}`);
+    }
     assert.deepEqual(errors, []);
     await ctx.close();
   });
