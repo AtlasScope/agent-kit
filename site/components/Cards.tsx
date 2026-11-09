@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { getPrompt, getSkill, copyText, MODES, type Prompt } from "@/lib/content";
+import { getPrompt, getPromptById, getSkill, copyText, MODES, type Prompt } from "@/lib/content";
+import { CHANGES, type Start } from "@/lib/starts";
 import { CopyButton } from "./CopyButton";
 import { Star } from "./Star";
 
@@ -50,5 +51,39 @@ export function SkillCards({ names }: { names: string[] }) {
         </article>
       ))}
     </div>
+  );
+}
+
+// A best-starting-point card: the visitor's job, the recommended entry, the same four answers in the
+// same order, then alternatives with when to choose each.
+export function StartCard({ s }: { s: Start }) {
+  const p = getPromptById(s.pick);
+  if (!p) return null;
+  return (
+    <article className="pcard scard" data-sec={p.sec} id={s.slug}>
+      <p className="scard__job">{s.job}</p>
+      <div className="pcard__top">
+        <h3 className="pcard__t"><Link href={`/prompts/${p.slug}`}>{p.t}</Link></h3>
+        <Star kind="prompt" refId={p.id} title={p.t} />
+      </div>
+      <dl className="scard__qa">
+        <dt>Use when</dt><dd>{s.useWhen}</dd>
+        <dt>You get</dt><dd>{s.youGet}</dd>
+        <dt>Requires</dt><dd>{s.requires}</dd>
+        <dt>Changes code?</dt><dd>{CHANGES[s.changes]}</dd>
+      </dl>
+      <div className="pcard__a">
+        <CopyButton className="btn btn--tint" text={copyText(p)} label={copyLabel(p)} icon />
+        <Link className="btn" href={`/prompts/${p.slug}`}>Details</Link>
+      </div>
+      {s.alts.length > 0 && (
+        <ul className="scard__alts">
+          {s.alts.map((a) => {
+            const x = getPromptById(a.id);
+            return x ? <li key={a.id}><Link href={`/prompts/${x.slug}`}>{x.t}</Link>: {a.when}</li> : null;
+          })}
+        </ul>
+      )}
+    </article>
   );
 }

@@ -399,6 +399,14 @@ svg.i { width: 16px; height: 16px; flex: none; }
 .pcard__d { color: var(--color-ink-2); font-size: 0.9375rem; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .pcard__a { display: flex; gap: var(--space-xs); margin-top: auto; padding-top: 4px; }
 .pcard__a .btn { min-height: 36px; font-size: var(--text-sm); }
+.scard__job { margin: 0; font-size: var(--text-sm); font-weight: 650; color: var(--tone, var(--color-ink-2)); }
+.scard__qa { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 12px; margin: 0; font-size: 0.875rem; line-height: 1.45; }
+.scard__qa dt { color: var(--color-muted); }
+.scard__qa dd { margin: 0; color: var(--color-ink-2); }
+.scard .pcard__a { margin-top: 0; }
+.scard__alts { margin: auto 0 0; padding: 10px 0 0; border-top: 1px solid var(--color-rule); list-style: none; display: grid; gap: 6px; font-size: 0.8125rem; line-height: 1.45; color: var(--color-muted); }
+.scard__alts a { color: var(--color-ink-2); font-weight: 600; }
+@media (max-width: 30rem) { .scard__qa { grid-template-columns: minmax(0, 1fr); gap: 0; } .scard__qa dd { margin-bottom: 6px; } }
 .chip { background: var(--color-paper-2); border-color: var(--color-rule-2); gap: 6px; font-weight: 500; }
 .chip__n { font: 400 0.75rem/1 var(--font-mono); color: var(--color-muted); }
 

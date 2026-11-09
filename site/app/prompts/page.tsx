@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Crumbs } from "@/components/Crumbs";
-import { PromptCards } from "@/components/Cards";
+import { PromptCards, StartCard } from "@/components/Cards";
+import { STARTS } from "@/lib/starts";
 import { areas, sections, prompts, counts } from "@/lib/content";
 
 export const metadata: Metadata = {
@@ -18,6 +19,14 @@ export default function Prompts() {
         <h1>Prompts for AI coding agents</h1>
         <p className="lead">{counts.prompts} prompts, commands and recipes. Copy one and paste it into your agent, or star it to find it later.</p>
       </div>
+      <section className="section" aria-labelledby="h-starts">
+        <h2 id="h-starts">Best starting points</h2>
+        <p className="note">Pick the job you have. Each card names one place to start and when to choose something else. Anything that changes code should run on a branch or a copy, never straight on production.</p>
+        <div className="pgrid">
+          {STARTS.map((s) => <StartCard key={s.slug} s={s} />)}
+        </div>
+      </section>
+      <h2 className="h2">The full library</h2>
       <nav className="tiles" aria-label="Prompt sections">
         {sections.map((s) => (
           <a key={s.id} className="tile" data-sec={s.id} href={`#${s.id}`}>
