@@ -1,4 +1,5 @@
 import data from "@/content/generated.json";
+import { composeCopy } from "./copy";
 
 export type Prompt = {
   id: string; slug: string; sec: string; group: string; area: string; t: string; p?: string;
@@ -54,11 +55,8 @@ export const authors = () => {
   return [...m.values()].sort((a, b) => b.skills.length - a.skills.length);
 };
 
-// The text a person copies from a prompt page.
-export function copyText(p: Prompt) {
-  if (p.sec === "ecmd" && p.cmd) return p.cmd;
-  return p.p || p.cmd || p.t;
-}
+// The text a person copies from a prompt page; shown in full on the page so the two always match.
+export const copyText = (p: Prompt) => composeCopy(p);
 export const isCommand = (p: Prompt) => p.sec === "ecmd" || p.sec === "dcmd";
 export const kindLabel = (p: Prompt) =>
   ({ ecmd: "Command", dcmd: "Command", recipe: "Recipe", think: "Thinking prompt" } as Record<string, string>)[p.sec] || "Prompt";

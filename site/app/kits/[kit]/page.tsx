@@ -41,6 +41,7 @@ export default async function KitPage({ params }: { params: Promise<{ kit: strin
         <div className="block"><div className="block__head"><span>Claude Code</span><CopyButton text={claude} /></div><pre>{claude}</pre></div>
         <div className="block"><div className="block__head"><span>Codex</span><CopyButton text={codex} /></div><pre>{codex}</pre></div>
       </div>
+      <p className="note">In Claude Code, <code>claude plugin update {k.name}@agent-kit</code> updates the kit and <code>claude plugin uninstall {k.name}@agent-kit</code> removes it. Installing a kit doesn’t install the companion plugins its recipes call; those are listed in the kit’s README.</p>
       <section className="section"><h2>Skills</h2><SkillCards names={k.skills} /></section>
       <p className="note"><a className="lic" href={`${SITE.repo}/blob/main/${k.readmePath}`}>Read the kit’s README</a> for setup notes and companion plugins.</p>
     </main>

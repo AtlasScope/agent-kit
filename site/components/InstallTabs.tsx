@@ -22,10 +22,14 @@ export function InstallTabs({ children, note, className = "" }: { children?: Rea
         ))}
       </div>
       <div className="actions">
-        <span className="cmd" role="tabpanel" aria-labelledby={`t-${cur}`}><code>{agent.cmd}</code><CopyButton text={agent.cmd} /></span>
+        <span className="cmd" role="tabpanel" aria-labelledby={`t-${cur}`}><code>{agent.cmd}</code><CopyButton key={agent.id} text={agent.steps.join("\n")} label={agent.steps.length > 1 ? `Copy ${agent.steps.length} steps` : "Copy"} /></span>
         {children}
       </div>
-      <p className="also">{note ?? <>Other agents that read Agent Skills, such as Windsurf, OpenCode, Cline and Amp, can load the files through <code>npx skills</code>. We have not tested them.</>}</p>
+      <div className="also" aria-live="polite">
+        {agent.steps.slice(1).map((s) => <p key={s}>Then <code>{s}</code></p>)}
+        <p>{agent.check} {agent.tested ? <>Tested with {agent.tested}.</> : <>Not tested yet.</>}</p>
+        <p>{note ?? <>Other agents that read Agent Skills, such as Windsurf, OpenCode, Cline and Amp, can load the files through <code>npx skills</code>. We have not tested them.</>}</p>
+      </div>
     </div>
   );
 }
