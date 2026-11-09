@@ -25,7 +25,7 @@ export function InstallTabs({ children, note, className = "" }: { children?: Rea
         <span className="cmd" role="tabpanel" aria-labelledby={`t-${cur}`}><code>{agent.cmd}</code><CopyButton text={agent.cmd} /></span>
         {children}
       </div>
-      <p className="also">{note ?? <>Also Windsurf, OpenCode, Cline, Amp and 70 more agents through <code>npx skills</code>.</>}</p>
+      <p className="also">{note ?? <>Other agents that read Agent Skills, such as Windsurf, OpenCode, Cline and Amp, can load the files through <code>npx skills</code>. We have not tested them.</>}</p>
     </div>
   );
 }

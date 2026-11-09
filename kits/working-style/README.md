@@ -9,6 +9,6 @@ Four commands for working with a coding agent. Each runs only when you type it.
 | `/harsh-review` | Direct critique of a product or change, ranked by how much it hurts users, with the cheap certain fixes made and the rest listed. |
 | `/viewport-proof` | Screenshots a screen at phone, tablet and desktop sizes and gives a verdict (production ready, minor fixes, or not ready) with a proof sheet. |
 
-The skills are written for one person, Austin, and say so; swap the name for yours if you fork them.
+The skills speak about "the user": whoever invokes them. Put personal preferences in your own project instructions rather than editing these files.
 
 Install with the rest of [agent-kit](../../README.md#install): `claude plugin install working-style@agent-kit`.

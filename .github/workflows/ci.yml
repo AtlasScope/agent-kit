@@ -33,21 +33,27 @@ jobs:
           all=$(has '^\.github/workflows/')
           site=$(has '^(site|library|kits)/')
           library=$(has '^(library|kits/engineering-kit)/')
-          [ "$all" = true ] && site=true library=true
+          public=$(has '^(kits/|library/|scripts/check-public|[A-Z]+\.md$)')
+          [ "$all" = true ] && site=true library=true public=true
           echo "site=$site" >> "$GITHUB_OUTPUT"
           echo "library=$library" >> "$GITHUB_OUTPUT"
+          echo "public=$public" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v5
-        if: steps.changes.outputs.site == 'true' || steps.changes.outputs.library == 'true'
+        if: steps.changes.outputs.site == 'true' || steps.changes.outputs.library == 'true' || steps.changes.outputs.public == 'true'
         with:
           persist-credentials: false
 
       - uses: actions/setup-node@v5
-        if: steps.changes.outputs.site == 'true' || steps.changes.outputs.library == 'true'
+        if: steps.changes.outputs.site == 'true' || steps.changes.outputs.library == 'true' || steps.changes.outputs.public == 'true'
         with:
           node-version: 22
           cache: ${{ hashFiles('site/package-lock.json') != '' && 'npm' || '' }}
           cache-dependency-path: site/package-lock.json
+
+      - name: Check shipped files for personal references
+        if: steps.changes.outputs.public == 'true'
+        run: node scripts/check-public.mjs
 
       - name: Check the prompt library
         if: steps.changes.outputs.library == 'true'

@@ -438,11 +438,11 @@ The path from merge to production, the cost of CI, and the machine the agents ru
 Inventory the development environment's browser runtimes, caches, SDKs, package managers, and duplicate installations. Identify obsolete or wasteful components, assess dependencies, and propose a safe cleanup.
 ```
 
-- Finds: Finds disk and confusion spent on duplicate SDKs and stale caches on this Mac.
+- Finds: Finds disk space and confusion spent on duplicate developer tools and stale saved files on your computer.
 - Evidence to ask for: Each component with size, version, what depends on it, and whether deleting it is safe and reversible.
 - Skip when: When disk is fine and builds are stable.
 - Watch for: Treat every deletion as a proposal. Shared runtimes break other apps silently.
-- Mode: read, single pass, narrow scope. Needs: Shell on this Mac.
+- Mode: read, single pass, narrow scope. Needs: A terminal on your computer.
 - Related: `I07`
 
 ### I02 Merge-to-production trace
@@ -518,7 +518,7 @@ Inventory actual versions and dependencies of Playwright, Puppeteer, system Chro
 - Evidence to ask for: Each runtime with version, owner app, support status from the vendor, size, and a rollback path.
 - Skip when: When browser tests are stable and disk is fine.
 - Watch for: Do not delete shared runtimes or force a system Chrome until every dependent app is known.
-- Mode: read, single pass, narrow scope. Needs: Shell on this Mac; vendor release pages.
+- Mode: read, single pass, narrow scope. Needs: A terminal on your computer; vendor release pages.
 - Related: `I01`
 
 ## Data integrity and analytics
