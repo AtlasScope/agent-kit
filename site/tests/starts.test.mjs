@@ -11,6 +11,7 @@ const byId = new Map(data.prompts.map((p) => [p.id, p]));
 const ALLOWED = {
   read: ["no", "asks"], repro: ["test"], change: ["yes", "asks"],
   "Report only": ["no"], Advice: ["no"], "Changes code": ["yes"],
+  "Asks before changing": ["asks"], "Writes notes only": ["docs"], "Depends on the task": ["no", "asks", "yes"],
 };
 
 test("there are 8 to 12 starting points with unique slugs and picks", () => {

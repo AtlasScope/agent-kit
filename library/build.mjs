@@ -64,7 +64,19 @@ for (const [sec, name] of Object.entries(SECTION_NAMES)) {
   }
 }
 
+// Inventory for the editorial audit: one row per entry, grouped by section and family. "reviewed" stays
+// empty until a person has read and tested the entry; the audit fills it in.
+const MODE_LABEL = { read: "Report only", repro: "Adds a test that shows it", change: "Suggests a fix" };
+const csv = (v) => (/[",\n]/.test(String(v ?? "")) ? `"${String(v).replace(/"/g, '""')}"` : String(v ?? ""));
+const inv = [["id", "section", "family", "title", "changes", "needs", "source", "purpose", "you_get", "reviewed"]];
+for (const e of lib.entries) {
+  const changes = e.mode ? (e.iso ? "Tests on a copy" : MODE_LABEL[e.mode]) : e.dmode;
+  const needs = e.tools || (e.badge ? e.badge : e.cmd ? "a plugin or skill" : "nothing");
+  inv.push([e.id, e.sec, e.group, e.t, changes, needs, e.badge || e.src || "Agent Kit", e.why || e.use || "", e.ev || e.best || "", e.reviewed || ""]);
+}
+
 fs.mkdirSync(outDir, { recursive: true });
+fs.writeFileSync(path.join(outDir, "inventory.csv"), inv.map((r) => r.map(csv).join(",")).join("\n") + "\n");
 fs.writeFileSync(path.join(outDir, "prompt-library.html"), html);
 fs.writeFileSync(path.join(outDir, "prompt-library.md"), md.join("\n"));
 console.log(`Built ${lib.entries.length} entries into ${outDir}${overlayPath ? " (with private overlay)" : ""}`);

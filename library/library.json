@@ -1753,7 +1753,8 @@
     "PG03",
     "PG04"
    ],
-   "tags": "recipe workflow"
+   "tags": "recipe workflow",
+   "dmode": "Asks before changing"
   },
   {
    "id": "DBR02",
@@ -1798,7 +1799,8 @@
     "PG08",
     "PG09"
    ],
-   "tags": "recipe workflow"
+   "tags": "recipe workflow",
+   "dmode": "Asks before changing"
   },
   {
    "id": "DBR03",
@@ -1841,7 +1843,8 @@
     "PG12",
     "PG17"
    ],
-   "tags": "recipe workflow"
+   "tags": "recipe workflow",
+   "dmode": "Asks before changing"
   },
   {
    "id": "DBR04",
@@ -1884,7 +1887,8 @@
     "PG14",
     "P03"
    ],
-   "tags": "recipe workflow"
+   "tags": "recipe workflow",
+   "dmode": "Asks before changing"
   },
   {
    "id": "DBR05",
@@ -1929,7 +1933,8 @@
     "G02",
     "R06"
    ],
-   "tags": "recipe workflow"
+   "tags": "recipe workflow",
+   "dmode": "Asks before changing"
   },
   {
    "id": "M01",
@@ -1938,7 +1943,8 @@
    "t": "Deeper, not bigger",
    "p": "I want the professional-grade version of this task, not a larger version. Look at what I'm trying to accomplish and tell me what a genuinely excellent practitioner would notice, investigate, or verify that I've overlooked. Start with the original evidence instead of just relying on existing summaries. Identify the methods that would materially improve the result and the independent evidence that would establish whether it's correct. Then improve the assignment accordingly. Keep the objective and scope intact. Don't add process or complexity just to make the work sound more sophisticated.",
    "use": "Use it before you hand an agent a task you only half know how to describe.",
-   "aka": "Professional-grade, not larger"
+   "aka": "Professional-grade, not larger",
+   "dmode": "Depends on the task"
   },
   {
    "id": "M02",
@@ -1947,7 +1953,8 @@
    "t": "Prove it wrong",
    "p": "Assume the proposed solution is wrong. Find the strongest evidence against it before recommending we proceed.",
    "use": "Use it when an agent's plan sounds right and you can't see why it might be wrong.",
-   "aka": "Falsification"
+   "aka": "Falsification",
+   "dmode": "Asks before changing"
   },
   {
    "id": "M03",
@@ -1956,7 +1963,8 @@
    "t": "Root cause first",
    "p": "Don't fix the visible symptom yet. Work backward through the system until you can explain why it occurred and what other behavior shares that cause.",
    "use": "Use it the second time the same kind of bug shows up.",
-   "aka": "Root cause"
+   "aka": "Root cause",
+   "dmode": "Report only"
   },
   {
    "id": "M04",
@@ -1965,7 +1973,8 @@
    "t": "Simpler first",
    "p": "Solve this by making the existing system simpler. First determine whether we can remove a layer, rule, dependency, or special case rather than add something.",
    "use": "Use it when the proposed fix adds a new setting, table or service.",
-   "aka": "Complexity reduction"
+   "aka": "Complexity reduction",
+   "dmode": "Changes code"
   },
   {
    "id": "M05",
@@ -1977,7 +1986,8 @@
    "aka": "Expert delegation",
    "rel": [
     "PG16"
-   ]
+   ],
+   "dmode": "Depends on the task"
   },
   {
    "id": "M06",
@@ -1986,7 +1996,8 @@
    "t": "Check it independently",
    "p": "Design a way to prove your solution works that doesn't depend on the assumptions, code, or tests you just created.",
    "use": "Use it before you accept 'tests pass' as proof that something works.",
-   "aka": "Independent verification"
+   "aka": "Independent verification",
+   "dmode": "Changes code"
   },
   {
    "id": "M07",
@@ -1998,7 +2009,8 @@
    "aka": "Outcome-bound spec without needless interview",
    "rel": [
     "PG16"
-   ]
+   ],
+   "dmode": "Changes code"
   },
   {
    "id": "M08",
@@ -2006,7 +2018,8 @@
    "group": "Thinking prompts",
    "t": "Reproduce, measure, prove",
    "p": "Before repairing a suspected defect or performance problem, establish a reproducible failing case or measurable baseline. Find the root cause, implement the narrowest defensible fix, rerun an independent check, and report the before/after evidence. If you can't measure or reproduce it, say what evidence is missing instead of claiming a win.",
-   "use": "Use it in the second session, after a read-only investigation found a real problem."
+   "use": "Use it in the second session, after a read-only investigation found a real problem.",
+   "dmode": "Changes code"
   },
   {
    "id": "M09",
@@ -2015,7 +2028,8 @@
    "t": "Compare three options",
    "p": "Do not implement the first viable approach you find. Present three genuinely distinct ways to solve this problem: (1) the smallest, most conservative patch to the existing code, (2) the cleanest long-term structural design, and (3) a subtractive approach that removes an existing constraint, layer, or edge case. Compare their blast radius, testability, and failure modes, recommend one, and wait for my decision.",
    "use": "Use it for decisions that will be expensive to undo.",
-   "aka": "Three-way tradeoff"
+   "aka": "Three-way tradeoff",
+   "dmode": "Asks before changing"
   },
   {
    "id": "M10",
@@ -2024,7 +2038,8 @@
    "t": "Handoff note before you stop",
    "p": "Prepare a compact, self-contained technical checkpoint so a fresh agent session can resume this work cold. Document only: (1) verified facts and current system state, (2) approaches already tested and why they were ruled out, (3) exact files and uncommitted changes in flight, and (4) the single next falsifiable step. Summarize system ground truth, not our conversation history.",
    "use": "Use it before the agent compacts (shrinks its memory of the chat) or a long session ends. /pre-compact does the full version.",
-   "aka": "Cold-start handoff checkpoint"
+   "aka": "Cold-start handoff checkpoint",
+   "dmode": "Writes notes only"
   },
   {
    "id": "M11",
@@ -2032,7 +2047,8 @@
    "group": "Thinking prompts",
    "t": "Thorough and bold",
    "p": "Be thorough in your analysis and bold in your recommendations",
-   "use": "Add it to any prompt when you want depth and a firm recommendation."
+   "use": "Add it to any prompt when you want depth and a firm recommendation.",
+   "dmode": "Depends on the task"
   },
   {
    "id": "M12",
@@ -2047,7 +2063,8 @@
     "EC04",
     "A03",
     "M04"
-   ]
+   ],
+   "dmode": "Changes code"
   },
   {
    "id": "EC01",
@@ -2059,7 +2076,8 @@
    "cmd": "/engineer",
    "p": "/engineer",
    "why": "Describe what's going on and it picks one starting move from this guide (an investigation prompt, an installed skill, or a plain prompt with nothing to install) and says why. In Codex it's $engineer.",
-   "rel": []
+   "rel": [],
+   "dmode": "Depends on the task"
   },
   {
    "id": "EC35",
@@ -2090,7 +2108,8 @@
     "PG15",
     "PG17",
     "PG16"
-   ]
+   ],
+   "dmode": "Report only"
   },
   {
    "id": "EC02",
@@ -2107,7 +2126,8 @@
     "R05",
     "A06",
     "G06"
-   ]
+   ],
+   "dmode": "Changes code"
   },
   {
    "id": "EC03",
@@ -2123,7 +2143,8 @@
     "R03",
     "T02",
     "T06"
-   ]
+   ],
+   "dmode": "Changes code"
   },
   {
    "id": "EC04",
@@ -2140,7 +2161,8 @@
     "A03",
     "A05",
     "M12"
-   ]
+   ],
+   "dmode": "Writes notes only"
   },
   {
    "id": "EC05",
@@ -2154,7 +2176,8 @@
    "why": "Asks rounds of numbered questions, each with a suggested answer, until every open question in a plan is settled. For product direction, not routine fixes.",
    "rel": [
     "A01"
-   ]
+   ],
+   "dmode": "Advice"
   },
   {
    "id": "EC06",
@@ -2169,7 +2192,8 @@
    "rel": [
     "A02",
     "D05"
-   ]
+   ],
+   "dmode": "Writes notes only"
   },
   {
    "id": "EC07",
@@ -2181,7 +2205,8 @@
    "cmd": "/research",
    "p": "/research",
    "why": "A background agent answers a question from original sources and saves a Markdown note with citations in the repo.",
-   "rel": []
+   "rel": [],
+   "dmode": "Writes notes only"
   },
   {
    "id": "EC08",
@@ -2195,7 +2220,8 @@
    "why": "Reviews a session and suggests changes to the agent's setup: how it finds its way around, its checks, its instruction files and what its tools cost.",
    "rel": [
     "G01"
-   ]
+   ],
+   "dmode": "Advice"
   },
   {
    "id": "EC09",
@@ -2207,7 +2233,8 @@
    "cmd": "/wizard",
    "p": "/wizard",
    "why": "Writes a bash script that walks you through the steps only you can do, like dashboards, secrets and switchovers.",
-   "rel": []
+   "rel": [],
+   "dmode": "Changes code"
   },
   {
    "id": "EC10",
@@ -2219,7 +2246,8 @@
    "cmd": "/to-questionnaire",
    "p": "/to-questionnaire",
    "why": "Turns a decision you can't make alone into a questionnaire for the person who can.",
-   "rel": []
+   "rel": [],
+   "dmode": "Advice"
   },
   {
    "id": "EC11",
@@ -2231,7 +2259,8 @@
    "cmd": "/wait-what",
    "p": "/wait-what",
    "why": "Asks the agent to explain its last message again in plain words.",
-   "rel": []
+   "rel": [],
+   "dmode": "Advice"
   },
   {
    "id": "EC12",
@@ -2247,7 +2276,8 @@
     "T05",
     "S06",
     "R02"
-   ]
+   ],
+   "dmode": "Report only"
   },
   {
    "id": "EC13",
@@ -2262,7 +2292,8 @@
    "rel": [
     "T04",
     "I06"
-   ]
+   ],
+   "dmode": "Report only"
   },
   {
    "id": "EC14",
@@ -2276,7 +2307,8 @@
    "why": "Checks GitHub Actions that run Claude, Codex or Gemini for exposed tokens and prompt injection (hidden instructions in issues and PRs that the AI might follow).",
    "rel": [
     "T04"
-   ]
+   ],
+   "dmode": "Report only"
   },
   {
    "id": "EC15",
@@ -2291,7 +2323,8 @@
    "rel": [
     "T03",
     "G02"
-   ]
+   ],
+   "dmode": "Report only"
   },
   {
    "id": "EC16",
@@ -2305,7 +2338,8 @@
    "why": "Finds APIs that are easy to misuse and configuration options that are dangerous.",
    "rel": [
     "T05"
-   ]
+   ],
+   "dmode": "Report only"
   },
   {
    "id": "EC17",
@@ -2319,7 +2353,8 @@
    "why": "After one bug is found, hunts for the other places with the same root cause.",
    "rel": [
     "M03"
-   ]
+   ],
+   "dmode": "Report only"
   },
   {
    "id": "EC18",
@@ -2335,7 +2370,8 @@
     "R03",
     "R04",
     "T02"
-   ]
+   ],
+   "dmode": "Changes code"
   },
   {
    "id": "EC19",
@@ -2350,7 +2386,8 @@
    "rel": [
     "G05",
     "D02"
-   ]
+   ],
+   "dmode": "Report only"
   },
   {
    "id": "EC20",
@@ -2366,7 +2403,8 @@
     "D01",
     "D02",
     "A02"
-   ]
+   ],
+   "dmode": "Report only"
   },
   {
    "id": "EC21",
@@ -2382,7 +2420,8 @@
     "T03",
     "A04",
     "A07"
-   ]
+   ],
+   "dmode": "Writes notes only"
   },
   {
    "id": "EC22",
@@ -2394,7 +2433,8 @@
    "cmd": "/goal-prompt",
    "p": "/goal-prompt",
    "why": "Drafts /goal commands with a checkable finish line and limits on when to stop.",
-   "rel": []
+   "rel": [],
+   "dmode": "Advice"
   },
   {
    "id": "EC23",
@@ -2410,7 +2450,8 @@
     "A08",
     "R07",
     "A01"
-   ]
+   ],
+   "dmode": "Report only"
   },
   {
    "id": "EC24",
@@ -2425,7 +2466,8 @@
    "rel": [
     "A08",
     "A05"
-   ]
+   ],
+   "dmode": "Advice"
   },
   {
    "id": "EC25",
@@ -2441,7 +2483,8 @@
     "R07",
     "T01",
     "G06"
-   ]
+   ],
+   "dmode": "Changes code"
   },
   {
    "id": "EC26",
@@ -2455,7 +2498,8 @@
    "why": "Checks a set of changes or a PR for bugs, at an effort level you pick. Run it at high or above before marking a PR ready.",
    "rel": [
     "D06"
-   ]
+   ],
+   "dmode": "Report only"
   },
   {
    "id": "EC27",
@@ -2470,7 +2514,8 @@
    "rel": [
     "T03",
     "G03"
-   ]
+   ],
+   "dmode": "Report only"
   },
   {
    "id": "EC28",
@@ -2484,7 +2529,8 @@
    "why": "Looks over changed code for things to reuse or simplify, and makes the fixes.",
    "rel": [
     "A03"
-   ]
+   ],
+   "dmode": "Changes code"
   },
   {
    "id": "EC29",
@@ -2499,7 +2545,8 @@
    "rel": [
     "I03",
     "T04"
-   ]
+   ],
+   "dmode": "Report only"
   },
   {
    "id": "EC30",
@@ -2513,7 +2560,8 @@
    "why": "Finds the slowest jobs and steps, and flaky tests (ones that pass and fail at random), from recent CI runs.",
    "rel": [
     "I03"
-   ]
+   ],
+   "dmode": "Report only"
   },
   {
    "id": "EC31",
@@ -2527,7 +2575,8 @@
    "why": "Blunt critique, ranked by how serious each problem is, then the small fixes it is sure of.",
    "rel": [
     "D06"
-   ]
+   ],
+   "dmode": "Changes code"
   },
   {
    "id": "EC32",
@@ -2541,7 +2590,8 @@
    "why": "Takes screenshots at phone, tablet and desktop sizes and says whether it's ready to ship.",
    "rel": [
     "T01"
-   ]
+   ],
+   "dmode": "Report only"
   },
   {
    "id": "EC34",
@@ -2556,7 +2606,8 @@
    "rel": [
     "A05",
     "M09"
-   ]
+   ],
+   "dmode": "Advice"
   },
   {
    "id": "UI001",
@@ -4150,7 +4201,8 @@
      "final spacing and detail pass"
     ]
    ],
-   "p": "New landing page. From blank to a shipped page that does not look templated.\nRun these in order, and check in with me between steps:\n1. /impeccable init: once per project, so later passes know the brand\n2. /hallmark <prompt>: build the page in a chosen genre\n3. /break-ui: stress the hero and cards with ugly data\n4. /web-design-guidelines <path>: rule check before shipping\n5. /impeccable polish: final spacing and detail pass"
+   "p": "New landing page. From blank to a shipped page that does not look templated.\nRun these in order, and check in with me between steps:\n1. /impeccable init: once per project, so later passes know the brand\n2. /hallmark <prompt>: build the page in a chosen genre\n3. /break-ui: stress the hero and cards with ugly data\n4. /web-design-guidelines <path>: rule check before shipping\n5. /impeccable polish: final spacing and detail pass",
+   "dmode": "Changes code"
   },
   {
    "id": "RC02",
@@ -4180,7 +4232,8 @@
      "strict approval pass"
     ]
    ],
-   "p": "New dashboard or tool. Product UI with a system that stays consistent next session.\nRun these in order, and check in with me between steps:\n1. /impeccable shape: agree the screen's job and layout first\n2. /interface-design: build it and save system.md\n3. /break-ui: long names, zero rows, huge numbers\n4. /impeccable harden: error, loading and empty states\n5. /interface-design:design-review: strict approval pass"
+   "p": "New dashboard or tool. Product UI with a system that stays consistent next session.\nRun these in order, and check in with me between steps:\n1. /impeccable shape: agree the screen's job and layout first\n2. /interface-design: build it and save system.md\n3. /break-ui: long names, zero rows, huge numbers\n4. /impeccable harden: error, loading and empty states\n5. /interface-design:design-review: strict approval pass",
+   "dmode": "Changes code"
   },
   {
    "id": "RC03",
@@ -4210,7 +4263,8 @@
      "tidy up after the bigger passes"
     ]
    ],
-   "p": "This page kind of stinks. Find out why, then fix the worst of it. Stays inside your design system.\nRun these in order, and check in with me between steps:\n1. /impeccable critique <page>: scored review: what's wrong and what to fix first\n2. /impeccable typeset: if the critique flagged hierarchy or type\n3. /impeccable layout: if it flagged spacing or structure\n4. /impeccable colorize: if it flagged flat or muddy color\n5. /impeccable polish: tidy up after the bigger passes"
+   "p": "This page kind of stinks. Find out why, then fix the worst of it. Stays inside your design system.\nRun these in order, and check in with me between steps:\n1. /impeccable critique <page>: scored review: what's wrong and what to fix first\n2. /impeccable typeset: if the critique flagged hierarchy or type\n3. /impeccable layout: if it flagged spacing or structure\n4. /impeccable colorize: if it flagged flat or muddy color\n5. /impeccable polish: tidy up after the bigger passes",
+   "dmode": "Changes code"
   },
   {
    "id": "RC04",
@@ -4236,7 +4290,8 @@
      "save the new look as the design system"
     ]
    ],
-   "p": "Rethink it, rules off. Let it suggest new fonts, colors and hierarchy even if that breaks the design system.\nRun these in order, and check in with me between steps:\n1. /impeccable critique <page>, ignore DESIGN.md and suggest new fonts, colors and hierarchy: a critique that isn't held to the current system\n2. /prototype <page> x3: three different directions to look at side by side\n3. /impeccable bolder: push the winner further\n4. /impeccable document: save the new look as the design system"
+   "p": "Rethink it, rules off. Let it suggest new fonts, colors and hierarchy even if that breaks the design system.\nRun these in order, and check in with me between steps:\n1. /impeccable critique <page>, ignore DESIGN.md and suggest new fonts, colors and hierarchy: a critique that isn't held to the current system\n2. /prototype <page> x3: three different directions to look at side by side\n3. /impeccable bolder: push the winner further\n4. /impeccable document: save the new look as the design system",
+   "dmode": "Changes code"
   },
   {
    "id": "RC05",
@@ -4262,7 +4317,8 @@
      "tidy what the bigger passes left"
     ]
    ],
-   "p": "It looks AI-generated. Rescue a bland or generic screen without starting over.\nRun these in order, and check in with me between steps:\n1. /interface-design:design-deslop: strip the generic tells\n2. /impeccable typeset: real type hierarchy\n3. /impeccable bolder: give it a point of view\n4. /impeccable polish: tidy what the bigger passes left"
+   "p": "It looks AI-generated. Rescue a bland or generic screen without starting over.\nRun these in order, and check in with me between steps:\n1. /interface-design:design-deslop: strip the generic tells\n2. /impeccable typeset: real type hierarchy\n3. /impeccable bolder: give it a point of view\n4. /impeccable polish: tidy what the bigger passes left",
+   "dmode": "Changes code"
   },
   {
    "id": "RC06",
@@ -4288,7 +4344,8 @@
      "only if anything drops frames"
     ]
    ],
-   "p": "Motion done properly. Add animation where it helps and nowhere else.\nRun these in order, and check in with me between steps:\n1. /find-animation-opportunities: read-only list of where motion earns its place\n2. /animate: build the chosen ones\n3. /review-animations: check against the ten standards\n4. /animation-performance: only if anything drops frames"
+   "p": "Motion done properly. Add animation where it helps and nowhere else.\nRun these in order, and check in with me between steps:\n1. /find-animation-opportunities: read-only list of where motion earns its place\n2. /animate: build the chosen ones\n3. /review-animations: check against the ten standards\n4. /animation-performance: only if anything drops frames",
+   "dmode": "Changes code"
   },
   {
    "id": "RC07",
@@ -4314,7 +4371,8 @@
      "fix what the reports found"
     ]
    ],
-   "p": "Pre-ship check. Catch problems before users do. The first three only report.\nRun these in order, and check in with me between steps:\n1. /impeccable audit: accessibility, performance, theming, scored\n2. /web-design-guidelines <path>: file:line rule findings\n3. example-skills:webapp-testing: click through the real flow in a browser\n4. /impeccable polish: fix what the reports found"
+   "p": "Pre-ship check. Catch problems before users do. The first three only report.\nRun these in order, and check in with me between steps:\n1. /impeccable audit: accessibility, performance, theming, scored\n2. /web-design-guidelines <path>: file:line rule findings\n3. example-skills:webapp-testing: click through the real flow in a browser\n4. /impeccable polish: fix what the reports found",
+   "dmode": "Changes code"
   },
   {
    "id": "RC08",
@@ -4336,7 +4394,8 @@
      "gestures, sheets and springs where it matters"
     ]
    ],
-   "p": "Feels right on a phone. Make a web app feel installed rather than browsed.\nRun these in order, and check in with me between steps:\n1. /impeccable adapt: layout across screen sizes\n2. /mobile-native: tap, notch, 100vh and input-zoom fixes\n3. /apple-design: gestures, sheets and springs where it matters"
+   "p": "Feels right on a phone. Make a web app feel installed rather than browsed.\nRun these in order, and check in with me between steps:\n1. /impeccable adapt: layout across screen sizes\n2. /mobile-native: tap, notch, 100vh and input-zoom fixes\n3. /apple-design: gestures, sheets and springs where it matters",
+   "dmode": "Changes code"
   },
   {
    "id": "RC09",
@@ -4358,7 +4417,8 @@
      "refine the winner in the running app"
     ]
    ],
-   "p": "Explore before committing. See real options instead of arguing about one.\nRun these in order, and check in with me between steps:\n1. /impeccable shape: write the brief\n2. /prototype <component> x3: three genuinely different versions\n3. /impeccable live: refine the winner in the running app"
+   "p": "Explore before committing. See real options instead of arguing about one.\nRun these in order, and check in with me between steps:\n1. /impeccable shape: write the brief\n2. /prototype <component> x3: three genuinely different versions\n3. /impeccable live: refine the winner in the running app",
+   "dmode": "Changes code"
   },
   {
    "id": "RC10",
@@ -4384,7 +4444,8 @@
      "rewrite the pages that still read as machine-made"
     ]
    ],
-   "p": "Clean up a repo's docs. Get a noisy first Vale run down to something worth fixing.\nRun these in order, and check in with me between steps:\n1. /vale:triage: decide per rule: fix, downgrade or switch off\n2. /vale:vocab: teach it your product names\n3. /vale:fix: fix the error-level alerts that remain\n4. /humanizer: rewrite the pages that still read as machine-made"
+   "p": "Clean up a repo's docs. Get a noisy first Vale run down to something worth fixing.\nRun these in order, and check in with me between steps:\n1. /vale:triage: decide per rule: fix, downgrade or switch off\n2. /vale:vocab: teach it your product names\n3. /vale:fix: fix the error-level alerts that remain\n4. /humanizer: rewrite the pages that still read as machine-made",
+   "dmode": "Changes code"
   },
   {
    "id": "RC11",
@@ -4410,7 +4471,8 @@
      "score again; it should go up"
     ]
    ],
-   "p": "Write prose that doesn't sound like AI. One piece of prose from draft to sendable.\nRun these in order, and check in with me between steps:\n1. /stop-slop: draft it with the anti-AI rules on\n2. /slop-guard: get a score and the list of AI phrases\n3. /humanizer: rewrite those phrases, facts unchanged\n4. /slop-guard: score again; it should go up"
+   "p": "Write prose that doesn't sound like AI. One piece of prose from draft to sendable.\nRun these in order, and check in with me between steps:\n1. /stop-slop: draft it with the anti-AI rules on\n2. /slop-guard: get a score and the list of AI phrases\n3. /humanizer: rewrite those phrases, facts unchanged\n4. /slop-guard: score again; it should go up",
+   "dmode": "Changes code"
   },
   {
    "id": "RC12",
@@ -4436,7 +4498,8 @@
      "check contrast and theming held up"
     ]
    ],
-   "p": "Type and color system from scratch. Fonts, a palette scale and dark mode, saved so every later pass uses them.\nRun these in order, and check in with me between steps:\n1. /web-typography: pick and pair the faces, set the type scale\n2. /oklch-skill: palette scale, dark mode, contrast, Tailwind tokens\n3. /impeccable document: save both as DESIGN.md\n4. /impeccable audit: check contrast and theming held up"
+   "p": "Type and color system from scratch. Fonts, a palette scale and dark mode, saved so every later pass uses them.\nRun these in order, and check in with me between steps:\n1. /web-typography: pick and pair the faces, set the type scale\n2. /oklch-skill: palette scale, dark mode, contrast, Tailwind tokens\n3. /impeccable document: save both as DESIGN.md\n4. /impeccable audit: check contrast and theming held up",
+   "dmode": "Changes code"
   },
   {
    "id": "RC13",
@@ -4470,7 +4533,8 @@
      "the blunt pass before you share it"
     ]
    ],
-   "p": "Landing page that converts. From positioning to a page that is checked for conversion.\nRun these in order, and check in with me between steps:\n1. /product-marketing: once per product: audience, claims, voice\n2. /copywriting: headline, value props, calls to action\n3. /hallmark <prompt>: build the page around that copy\n4. /image: a real hero image if the page needs one\n5. /cro: what will stop people converting, in order\n6. /harsh-review: the blunt pass before you share it"
+   "p": "Landing page that converts. From positioning to a page that is checked for conversion.\nRun these in order, and check in with me between steps:\n1. /product-marketing: once per product: audience, claims, voice\n2. /copywriting: headline, value props, calls to action\n3. /hallmark <prompt>: build the page around that copy\n4. /image: a real hero image if the page needs one\n5. /cro: what will stop people converting, in order\n6. /harsh-review: the blunt pass before you share it",
+   "dmode": "Changes code"
   },
   {
    "id": "RC14",
@@ -4496,7 +4560,8 @@
      "native accessibility and platform rules"
     ]
    ],
-   "p": "Native iPhone screen. SwiftUI that a fluent iPhone user would trust.\nRun these in order, and check in with me between steps:\n1. /ios-hig-design: the platform patterns this screen should use\n2. /impeccable shape: agree the screen's job first\n3. /swiftui-pro: review the SwiftUI against modern practice\n4. /impeccable audit: native accessibility and platform rules"
+   "p": "Native iPhone screen. SwiftUI that a fluent iPhone user would trust.\nRun these in order, and check in with me between steps:\n1. /ios-hig-design: the platform patterns this screen should use\n2. /impeccable shape: agree the screen's job first\n3. /swiftui-pro: review the SwiftUI against modern practice\n4. /impeccable audit: native accessibility and platform rules",
+   "dmode": "Changes code"
   },
   {
    "id": "RC15",
@@ -4522,7 +4587,8 @@
      "labels and errors that explain themselves"
     ]
    ],
-   "p": "Usability rescue. People get lost or make mistakes. Find out where, then fix it.\nRun these in order, and check in with me between steps:\n1. /ux-heuristics: usability audit by Nielsen's rules\n2. /design-everyday-things: the why: affordances, feedback, mapping\n3. /impeccable distill: cut what is in the way\n4. /ux-writing: labels and errors that explain themselves"
+   "p": "Usability rescue. People get lost or make mistakes. Find out where, then fix it.\nRun these in order, and check in with me between steps:\n1. /ux-heuristics: usability audit by Nielsen's rules\n2. /design-everyday-things: the why: affordances, feedback, mapping\n3. /impeccable distill: cut what is in the way\n4. /ux-writing: labels and errors that explain themselves",
+   "dmode": "Changes code"
   },
   {
    "id": "RC16",
@@ -4548,7 +4614,8 @@
      "the last detail pass"
     ]
    ],
-   "p": "Brutal pre-launch review. Every critical lens at once, then the fixes. Only when you ask for it.\nRun these in order, and check in with me between steps:\n1. /harsh-review: blunt, evidence-backed, ships the small fixes\n2. /steve-jobs-design-review: what to cut for focus\n3. /viewport-proof: proof it works at every screen size\n4. /impeccable polish: the last detail pass"
+   "p": "Brutal pre-launch review. Every critical lens at once, then the fixes. Only when you ask for it.\nRun these in order, and check in with me between steps:\n1. /harsh-review: blunt, evidence-backed, ships the small fixes\n2. /steve-jobs-design-review: what to cut for focus\n3. /viewport-proof: proof it works at every screen size\n4. /impeccable polish: the last detail pass",
+   "dmode": "Changes code"
   },
   {
    "id": "RC17",
@@ -4574,7 +4641,8 @@
      "screenshots of both themes at each size"
     ]
    ],
-   "p": "Dark mode done right. Colors that hold contrast and character in both themes.\nRun these in order, and check in with me between steps:\n1. /oklch-skill: build the dark scale in OKLCH\n2. /impeccable colorize: apply it with intent, not inversion\n3. /impeccable audit: contrast and theming checks\n4. /viewport-proof: screenshots of both themes at each size"
+   "p": "Dark mode done right. Colors that hold contrast and character in both themes.\nRun these in order, and check in with me between steps:\n1. /oklch-skill: build the dark scale in OKLCH\n2. /impeccable colorize: apply it with intent, not inversion\n3. /impeccable audit: contrast and theming checks\n4. /viewport-proof: screenshots of both themes at each size",
+   "dmode": "Changes code"
   },
   {
    "id": "RC18",
@@ -4600,7 +4668,8 @@
      "only if anything drops frames"
     ]
    ],
-   "p": "Interactions that feel alive. Feedback on every action, motion that earns its place.\nRun these in order, and check in with me between steps:\n1. /microinteractions: design the trigger, rule and feedback\n2. /animate: build the motion properly\n3. /review-animations: check against the ten standards\n4. /animation-performance: only if anything drops frames"
+   "p": "Interactions that feel alive. Feedback on every action, motion that earns its place.\nRun these in order, and check in with me between steps:\n1. /microinteractions: design the trigger, rule and feedback\n2. /animate: build the motion properly\n3. /review-animations: check against the ten standards\n4. /animation-performance: only if anything drops frames",
+   "dmode": "Changes code"
   },
   {
    "id": "RC19",
@@ -4626,7 +4695,8 @@
      "a return habit, checked for manipulation"
     ]
    ],
-   "p": "People sign up and drift away. Activation and return visits, designed rather than hoped for.\nRun these in order, and check in with me between steps:\n1. /improve-retention: where the drop happens and why\n2. /impeccable onboard: first run and empty states\n3. /ux-writing: the words on those screens\n4. /hooked-ux: a return habit, checked for manipulation"
+   "p": "People sign up and drift away. Activation and return visits, designed rather than hoped for.\nRun these in order, and check in with me between steps:\n1. /improve-retention: where the drop happens and why\n2. /impeccable onboard: first run and empty states\n3. /ux-writing: the words on those screens\n4. /hooked-ux: a return habit, checked for manipulation",
+   "dmode": "Changes code"
   },
   {
    "id": "RC20",
@@ -4652,7 +4722,8 @@
      "keep the image from slowing the page"
     ]
    ],
-   "p": "Image-led hero. A page built around a real image instead of a gradient.\nRun these in order, and check in with me between steps:\n1. /image: make the image, sized for where it goes\n2. /impeccable shape: plan the hero around it\n3. /hallmark redesign <path>: rebuild the page to match\n4. /impeccable optimize: keep the image from slowing the page"
+   "p": "Image-led hero. A page built around a real image instead of a gradient.\nRun these in order, and check in with me between steps:\n1. /image: make the image, sized for where it goes\n2. /impeccable shape: plan the hero around it\n3. /hallmark redesign <path>: rebuild the page to match\n4. /impeccable optimize: keep the image from slowing the page",
+   "dmode": "Changes code"
   },
   {
    "id": "RC21",
@@ -4682,7 +4753,8 @@
      "check it on a phone"
     ]
    ],
-   "p": "Cinematic launch page. A memorable launch moment that still loads fast.\nRun these in order, and check in with me between steps:\n1. /top-design: scroll story, dramatic type, motion plan\n2. /image: the key visuals\n3. /animate: each motion built in the right order\n4. /animation-performance: hold the frame rate\n5. /viewport-proof: check it on a phone"
+   "p": "Cinematic launch page. A memorable launch moment that still loads fast.\nRun these in order, and check in with me between steps:\n1. /top-design: scroll story, dramatic type, motion plan\n2. /image: the key visuals\n3. /animate: each motion built in the right order\n4. /animation-performance: hold the frame rate\n5. /viewport-proof: check it on a phone",
+   "dmode": "Changes code"
   },
   {
    "id": "RC22",
@@ -4708,7 +4780,8 @@
      "tidy the details"
     ]
    ],
-   "p": "Hierarchy fix in an hour. The page works but looks amateur.\nRun these in order, and check in with me between steps:\n1. /refactoring-ui: hierarchy, spacing, color and depth\n2. /impeccable layout: rhythm and structure\n3. /impeccable typeset: type sizes and weights\n4. /impeccable polish: tidy the details"
+   "p": "Hierarchy fix in an hour. The page works but looks amateur.\nRun these in order, and check in with me between steps:\n1. /refactoring-ui: hierarchy, spacing, color and depth\n2. /impeccable layout: rhythm and structure\n3. /impeccable typeset: type sizes and weights\n4. /impeccable polish: tidy the details",
+   "dmode": "Changes code"
   }
  ],
  "symptoms": [

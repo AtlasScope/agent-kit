@@ -40,6 +40,13 @@ for (const [a, list] of Object.entries(both)) for (const b of list) {
   if (!(BY.get(a)?.rel || []).includes(b)) fail(`${a} should link to ${b}`);
   if (!(BY.get(b)?.rel || []).includes(a)) fail(`${b} should link back to ${a}`);
 }
+// Every entry says whether it changes code: investigations and database prompts with mode,
+// everything else with dmode from a fixed list, so cards and filters can answer "Changes code?".
+const MODES = ["read", "repro", "change"];
+const DMODES = ["Changes code", "Report only", "Advice", "Asks before changing", "Writes notes only", "Depends on the task"];
+for (const e of E) {
+  if (e.mode ? !MODES.includes(e.mode) : !DMODES.includes(e.dmode)) fail(`${e.id} needs mode (${MODES.join("/")}) or dmode (${DMODES.join(" / ")})`);
+}
 // Portable entries must not carry one person's setup.
 for (const e of E) {
   const text = JSON.stringify(e);
@@ -49,7 +56,7 @@ for (const e of E) {
 // The built files match the source.
 const tmp = fs.mkdtempSync(path.join(fs.realpathSync(process.env.TMPDIR || process.env.TEMP || "/tmp"), "plcheck-"));
 execFileSync(process.execPath, [path.join(here, "build.mjs"), "--out", tmp], { stdio: "ignore" });
-for (const f of ["prompt-library.html", "prompt-library.md"]) {
+for (const f of ["prompt-library.html", "prompt-library.md", "inventory.csv"]) {
   const built = fs.readFileSync(path.join(tmp, f), "utf8");
   const dist = fs.readFileSync(path.join(here, "dist", f), "utf8");
   if (built !== dist) fail(`library/dist/${f} is out of date: run node library/build.mjs`);
