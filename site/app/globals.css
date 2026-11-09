@@ -436,7 +436,7 @@ svg.i { width: 16px; height: 16px; flex: none; }
 /* Header on tablets and phones: search takes its own row, section links scroll. */
 @media (max-width: 64rem) {
   .nav { display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "brand links end" "search search search"; padding-block: 10px; row-gap: 10px; }
-  .wordmark { grid-area: brand; } .links { grid-area: links; overflow-x: auto; scrollbar-width: none; justify-content: flex-start; padding: 0; }
+  .wordmark { grid-area: brand; } .links { grid-area: links; overflow-x: auto; scrollbar-width: none; justify-content: flex-start; padding: 0; } .links a { white-space: nowrap; }
   .nav__end { grid-area: end; } .nav .search { grid-area: search; flex: none; margin: 0; }
   .section { scroll-margin-top: 140px; }
 }
@@ -450,3 +450,12 @@ svg.i { width: 16px; height: 16px; flex: none; }
   .page { padding-top: var(--space-lg); gap: var(--space-lg); }
   .pgrid { gap: var(--space-sm); }
 }
+
+/* /start guide */
+.start-body { max-width: var(--measure); margin: 0; }
+.start-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-xs); max-width: var(--measure); }
+.start-list a { display: grid; grid-template-columns: 3ch minmax(0, 1fr); gap: var(--space-md); align-items: baseline; padding: var(--space-sm) 0; border-bottom: 1px solid var(--color-rule); color: var(--color-ink); text-decoration: none; }
+.start-list a > span:last-child { display: grid; gap: 2px; }
+.start-list__n { font: 500 var(--text-sm)/1 var(--font-mono); color: var(--color-muted); }
+.start-nav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-sm); max-width: var(--measure); }
+.start-nav .btn { white-space: normal; text-align: left; }

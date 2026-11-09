@@ -8,6 +8,7 @@ import { createRequire } from "node:module";
 import { chromium } from "playwright";
 import { composeCopy } from "../../lib/copy.ts";
 import { AGENTS } from "../../lib/site.ts";
+import { STEPS, REQUEST } from "../../lib/start.ts";
 
 const require = createRequire(import.meta.url);
 const data = require("../../content/generated.json");
@@ -22,7 +23,8 @@ const SIZES = [
 
 before(async () => {
   if (!base) {
-    server = spawn("npx", ["next", "start", "-p", String(PORT)], { cwd: new URL("../..", import.meta.url), stdio: "ignore" });
+    // Its own process group, so after() can stop next and the server process it starts.
+    server = spawn("npx", ["next", "start", "-p", String(PORT)], { cwd: new URL("../..", import.meta.url), stdio: "ignore", detached: true });
     base = `http://localhost:${PORT}`;
     for (let i = 0; i < 60; i++) {
       try { if ((await fetch(base)).ok) break; } catch {}
@@ -34,7 +36,7 @@ before(async () => {
 
 after(async () => {
   await browser?.close();
-  server?.kill();
+  if (server) process.kill(-server.pid, "SIGTERM");
 });
 
 async function open(size, path) {
@@ -92,6 +94,24 @@ for (const size of SIZES) {
     assert.equal(await clipboard(page), `npx skills add AtlasScope/agent-kit --skill ${s.name}`);
     await copies.nth(1).click();
     assert.equal(await clipboard(page), `claude plugin marketplace add AtlasScope/agent-kit\nclaude plugin install ${s.kit}@agent-kit`);
+    assert.deepEqual(errors, []);
+    await ctx.close();
+  });
+
+  test(`${size.name}: the first-app guide walks every step and copies the request`, async () => {
+    const { page, ctx, errors } = await open(size, "/start");
+    await noSideScroll(page, "/start");
+    await page.getByRole("link", { name: /haven.t installed an agent/ }).click();
+    for (let i = 0; i < STEPS.length; i++) {
+      await page.waitForURL(new RegExp(`/start/${STEPS[i].slug}$`));
+      await noSideScroll(page, `/start/${STEPS[i].slug}`);
+      assert.equal(await page.getByRole("heading", { level: 1 }).textContent(), STEPS[i].title);
+      if (STEPS[i].slug === "create") {
+        await page.getByRole("button", { name: "Copy the request" }).click();
+        assert.equal(await clipboard(page), REQUEST);
+      }
+      if (i < STEPS.length - 1) await page.getByRole("link", { name: `Next: ${STEPS[i + 1].title}` }).click();
+    }
     assert.deepEqual(errors, []);
     await ctx.close();
   });
