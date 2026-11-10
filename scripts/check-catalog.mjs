@@ -51,6 +51,11 @@ for (const p of claude.plugins) {
   }
   // Each skill folder has a SKILL.md whose name matches the folder.
   const sdir = path.join(root, dir, "skills");
+  // The plugin directory lists only the plugin folder and blocks one without a README of 40+ words.
+  const readme = path.join(root, dir, "README.md");
+  if (!fs.existsSync(readme)) fail(`${dir}: no README.md in the plugin folder (the directory requires one)`);
+  else if (fs.readFileSync(readme, "utf8").replace(/^```[\s\S]*?^```/gm, "").split(/\s+/).filter(Boolean).length < 40)
+    fail(`${dir}/README.md: under 40 words outside code blocks (the directory requires 40)`);
   if (!fs.existsSync(sdir)) { fail(`${p.name}: no skills folder`); continue; }
   for (const s of fs.readdirSync(sdir)) {
     const full = path.join(sdir, s);
