@@ -43,12 +43,12 @@ jobs:
           echo "catalog=$catalog" >> "$GITHUB_OUTPUT"
           echo "motion=$motion" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         if: steps.changes.outputs.site == 'true' || steps.changes.outputs.library == 'true' || steps.changes.outputs.public == 'true' || steps.changes.outputs.catalog == 'true'
         with:
           persist-credentials: false
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         if: steps.changes.outputs.site == 'true' || steps.changes.outputs.library == 'true' || steps.changes.outputs.public == 'true' || steps.changes.outputs.catalog == 'true'
         with:
           node-version: 22
