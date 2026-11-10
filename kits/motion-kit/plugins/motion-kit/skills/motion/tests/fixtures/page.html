@@ -20,6 +20,10 @@
   #menu.open { display: block; animation: menu-in 160ms cubic-bezier(0.22, 1, 0.36, 1); }
   @keyframes menu-in { from { opacity: 0; transform: translateY(6px); } }
 
+  /* Starts late: a one-second delay before a height change. */
+  #late { height: 0; overflow: hidden; width: 240px; background: #8a4b00; transition: height 300ms linear 1000ms; }
+  #late.open { height: 80px; }
+
   /* Script-driven: no CSS or Web Animations, only requestAnimationFrame. */
   #js { width: 40px; height: 40px; background: #00704a; margin-top: 24px; }
 </style>
@@ -30,6 +34,8 @@
 <button id="open-menu" onclick="document.getElementById('menu').classList.add('open')">Menu</button>
 <a id="next" href="entrance.html">Next page</a>
 <div id="menu" role="menu">Menu item</div>
+<button id="open-late" onclick="document.getElementById('late').classList.add('open')">Late</button>
+<div id="late">Late panel</div>
 <div id="good">Panel</div>
 <div id="bad">Panel</div>
 <div id="js"></div>

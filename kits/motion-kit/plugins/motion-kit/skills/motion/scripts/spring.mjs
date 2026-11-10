@@ -4,7 +4,7 @@
 // Reanimated and raw stiffness and damping. No dependencies. Motion gets stiffness and damping, because
 // its own duration-based options do not describe the same spring as SwiftUI's.
 //
-//   node spring.mjs --duration 0.4 --bounce 0.2 [--points 32] [--json]
+//   node spring.mjs --duration 0.4 --bounce 0.2 [--points <n>] [--json]
 //
 // duration: seconds until the movement looks finished (the spring keeps settling a little after that).
 // bounce:   0 is no overshoot, 0.3 passes the target by about 5%, 0.5 by about 16%. Above 0.5 is rarely right
@@ -13,7 +13,7 @@ const args = process.argv.slice(2);
 const num = (name, fallback) => { const i = args.indexOf(name); const v = i >= 0 ? Number(args[i + 1]) : fallback; return Number.isFinite(v) ? v : fallback; };
 const duration = num("--duration", 0.4);
 const bounce = num("--bounce", 0);
-const points = Math.max(8, Math.min(80, Math.round(num("--points", 32))));
+const asked = args.includes("--points") ? Math.max(8, Math.min(240, Math.round(num("--points", 32)))) : 0;
 if (duration <= 0 || duration > 5 || bounce < 0 || bounce >= 1) { console.error("Use --duration between 0 and 5 seconds and --bounce from 0 up to (not including) 1."); process.exit(2); }
 
 // The duration-and-bounce form SwiftUI documents, for a mass of 1:
@@ -36,11 +36,16 @@ let settle = duration;
 for (let t = horizon; t > 0; t -= 0.001) if (Math.abs(1 - position(t)) > 0.001) { settle = t + 0.001; break; }
 settle = Math.round(settle * 1000) / 1000;
 
+// A bouncy spring swings many times before it settles. Sample each swing at least twelve times, or the
+// recording loses its peaks.
+const swings = zeta < 1 ? (settle * w0 * Math.sqrt(1 - zeta * zeta)) / (2 * Math.PI) : 0;
+const points = asked || Math.max(32, Math.min(240, Math.ceil(swings * 12)));
 const stops = Array.from({ length: points + 1 }, (_, i) => position((i / points) * settle));
 stops[0] = 0; stops[points] = 1;
 const fmt = (n) => String(Math.round(n * 1000) / 1000).replace(/^0\./, ".").replace(/^-0\./, "-.");
 const linear = `linear(${stops.map(fmt).join(", ")})`;
-const overshoot = Math.max(...stops) - 1;
+// The first peak of an underdamped spring, from the formula and not from the samples.
+const overshoot = zeta < 1 ? Math.exp((-Math.PI * zeta) / Math.sqrt(1 - zeta * zeta)) : 0;
 const r = (n, d = 1) => Math.round(n * 10 ** d) / 10 ** d;
 
 const out = {

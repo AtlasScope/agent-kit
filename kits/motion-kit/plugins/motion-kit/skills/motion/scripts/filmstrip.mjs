@@ -181,6 +181,9 @@ async function capture(pw) {
   page.on("pageerror", (e) => errors.push(String(e.message).slice(0, 160)));
   await page.clock.install();
   const isLoad = parseAction(trigger).kind === "load";
+  // A page entrance has to be stepped from its first frame, so script time is frozen before the page loads.
+  // Timers and requestAnimationFrame then only move when the capture advances them.
+  if (isLoad) await page.clock.pauseAt(Date.now() + 1000);
   await page.goto(url, { waitUntil: isLoad ? "domcontentloaded" : "load", timeout: 30000 });
   if (opt("--wait")) await page.locator(opt("--wait")).first().waitFor({ timeout: 10000 });
   if (!isLoad) await settle(page);
@@ -202,7 +205,7 @@ async function capture(pw) {
   let before = isLoad || lateClip ? null : await shot("frames/before.png");
   // pauseAt can only move forward, and the page's clock keeps running while we ask it the time, so aim a
   // little ahead and widen the margin if the clock got there first.
-  for (let margin = 100, tries = 0; ; margin *= 3, tries++) {
+  for (let margin = 100, tries = 0; !isLoad; margin *= 3, tries++) {
     try { await page.clock.pauseAt((await page.evaluate(() => Date.now())) + margin); break; }
     catch (e) { if (tries >= 3) throw e; }
   }
@@ -245,7 +248,7 @@ async function capture(pw) {
     : "nothing changed on screen after the action") + clipNote;
   const meta = { url, action: trigger, instant, clip: clip || null, before: before ? "frames/before.png" : null, viewport: { width: vp.width, height: vp.height }, reducedMotion: flag("--reduced"), windowMs, frames, framesChanged: moved, animations: animations.map(({ start, ...a }) => ({ ...a, startedAt: start })), note, errors };
 
-  if (flag("--perf")) meta.perf = await perf(browser, actions);
+  if (flag("--perf")) meta.perf = await perf(browser, actions, windowMs);
 
   const cols = Math.min(FRAMES, vp.width <= 500 && !clip ? 6 : 4);
   fs.writeFileSync(path.join(outDir, "sheet.html"), sheetHtml(meta, frames, cols));
@@ -258,7 +261,7 @@ async function capture(pw) {
 }
 
 // A second run in real time: how many frames the browser produced, and how much layout and style work it did.
-async function perf(browser, actions) {
+async function perf(browser, actions, captured) {
   const context = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, isMobile: !!vp.isMobile, hasTouch: !!vp.hasTouch, reducedMotion: flag("--reduced") ? "reduce" : "no-preference" });
   const page = await context.newPage();
   const cdp = await context.newCDPSession(page);
@@ -287,7 +290,7 @@ async function perf(browser, actions) {
     before = await metrics();
     await act(page, trigger);
   }
-  const windowMs = CAP || 600;
+  const windowMs = CAP || Math.max(600, captured || 0); // cover the same stretch of time the frames show
   await new Promise((r) => setTimeout(r, windowMs + 100));
   const after = await metrics();
   const gaps = await page.evaluate(() => { cancelAnimationFrame(window.__raf); return (window.__gaps || []).slice(1); }).catch(() => []);

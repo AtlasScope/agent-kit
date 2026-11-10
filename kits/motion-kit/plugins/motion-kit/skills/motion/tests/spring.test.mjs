@@ -40,6 +40,13 @@ test("a slow, bouncy spring is followed until it really settles", () => {
   assert.ok(Math.abs(stops.at(-2) - 1) < 0.01, "the recording ends at rest without a forced jump");
 });
 
+test("a very bouncy spring keeps its peaks in the CSS recording", () => {
+  const s = spring("--duration", "0.4", "--bounce", "0.9");
+  assert.ok(Math.abs(s.overshootPercent - 72.9) < 0.2, `first peak is about 72.9%, reported ${s.overshootPercent}`);
+  const stops = s.css.easing.slice(7, -1).split(", ").map(Number);
+  assert.ok(Math.max(...stops) > 1.7, `the recording should reach the peak, its highest stop is ${Math.max(...stops)}`);
+});
+
 test("values outside the range are refused", () => {
   assert.equal(spawnSync(process.execPath, [script, "--bounce", "2"]).status, 2);
 });

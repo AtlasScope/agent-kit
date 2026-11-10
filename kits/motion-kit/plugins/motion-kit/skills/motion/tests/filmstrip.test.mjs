@@ -48,6 +48,22 @@ test("a page entrance is measured while it plays, not after it has finished", { 
   assert.ok(m.perf.layouts > 10, `the entrance animates height for 500ms, yet only ${m.perf.layouts} layouts were counted`);
 });
 
+test("a short script-driven entrance is captured from its first frame", { skip }, () => {
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), "filmstrip-test-"));
+  const r = spawnSync(process.execPath, [script, path.join(here, "fixtures/entrance-script.html"), "--out", out, "--json", "--do", "load", "--ms", "120", "--frames", "4"], { encoding: "utf8", timeout: 120000 });
+  assert.equal(r.status, 0, r.stderr);
+  const m = JSON.parse(r.stdout);
+  assert.ok(m.framesChanged >= 2, `the 80ms entrance should still be moving in the frames, saw ${m.framesChanged} changes`);
+});
+
+test("the real-time run lasts as long as the animation the frames show", { skip }, () => {
+  const { json: m, status, stderr } = run("--do", "click:#open-late", "--perf", "--throttle", "1", "--frames", "3");
+  assert.equal(status, 0, stderr);
+  assert.equal(m.windowMs, 1300);
+  assert.ok(m.perf.windowMs >= 1300, `perf ran for ${m.perf.windowMs}ms`);
+  assert.ok(m.perf.layouts > 5, `the delayed height animation should be counted, saw ${m.perf.layouts} layouts`);
+});
+
 test("reduced motion: the good panel drops its movement, the bad one does not", { skip }, () => {
   const good = run("--do", "click:#open-good", "--reduced").json;
   assert.deepEqual(good.animations.map((a) => a.properties.join()), ["opacity"]);
