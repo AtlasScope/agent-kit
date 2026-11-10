@@ -9,7 +9,7 @@ import http from 'node:http';
 import zlib from 'node:zlib';
 import { execFileSync } from 'node:child_process';
 import { buildSheet, pairCaptures, pngSize } from '../plugins/experience-architecture/scripts/lib/sheet.mjs';
-import { shotName, loadPlaywright } from '../plugins/experience-architecture/scripts/lib/browser.mjs';
+import { shotName, shotNames, loadPlaywright } from '../plugins/experience-architecture/scripts/lib/browser.mjs';
 
 const EA = path.resolve('plugins/experience-architecture/scripts/ea.mjs');
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'ea-capture-'));
@@ -37,6 +37,25 @@ test('capture file names depend only on the URL and the width, and hide secret p
   assert.equal(shotName('/', 'desktop'), 'home-desktop.png');
   assert.equal(shotName('http://localhost:3000/orders/1003?tab=notes', '560x900'), 'orders-1003-tab-notes-560x900.png');
   assert.ok(!shotName('/invite?token=abc123SECRET', 'mobile').includes('abc123'));
+  assert.notEqual(shotName('/app#/inbox', 'desktop'), shotName('/app#/sent', 'desktop'), 'hash routes keep their own names');
+});
+
+test('URLs that reduce to the same name keep separate files, the same way on every run', () => {
+  const urls = ['/', '/users/jane.doe', '/users/jane-doe', '/users/jane.doe'];
+  const n = shotNames(urls, 'desktop');
+  assert.equal(n[0], 'home-desktop.png');
+  assert.match(n[1], /^users-jane-doe-[0-9a-f]{6}-desktop\.png$/);
+  assert.notEqual(n[1], n[2]);
+  assert.equal(n[1], n[3], 'the same URL twice is one file');
+  assert.deepEqual(n, shotNames(urls, 'desktop'));
+});
+
+test('sheet image paths are URL-encoded, so a folder with # or % in its name still loads', () => {
+  const root = tmp(); const b = path.join(root, 'before#1'), a = path.join(root, 'after 100%');
+  fs.mkdirSync(b); fs.mkdirSync(a);
+  for (const d of [b, a]) fs.writeFileSync(path.join(d, 'home-desktop.png'), png(4, 4, 90));
+  const r = buildSheet(b, a, { outFile: path.join(root, 'sheet.html') });
+  assert.ok(r.html.includes('src="before%231/home-desktop.png"') && r.html.includes('src="after%20100%25/home-desktop.png"'));
 });
 
 test('a sheet pairs by file name, links the full-size files and reports what did not pair', () => {
@@ -90,12 +109,14 @@ test('capture writes one full-page screen per URL and width, blocks writes and r
   const dir = path.join(tmp(), 'before');
   try {
     const { execFile } = await import('node:child_process');
-    const out = await new Promise((resolve, reject) => execFile('node', [EA, 'capture', '/', '/orders?tab=open', '/gone', '--base', base, '--widths', 'desktop,mobile', '--out', dir, '--revision', 'test-rev'], (e, so, se) => (e ? reject(new Error(se || so)) : resolve(so))));
+    const out = await new Promise((resolve) => execFile('node', [EA, 'capture', '/', '/orders?tab=open', '/gone', 'http://127.0.0.1:9/elsewhere', '--base', base, '--widths', 'desktop,mobile', '--out', dir, '--revision', 'test-rev'], (e, so) => resolve(so)));
     assert.match(out, /6 capture\(s\) at desktop, mobile/);
     assert.match(out, /check: \/gone at desktop returned 404/);
     const m = JSON.parse(fs.readFileSync(path.join(dir, 'capture.json'), 'utf8'));
     assert.equal(m.revision, 'test-rev');
-    assert.equal(m.shots.length, 6);
+    assert.equal(m.shots.length, 8);
+    assert.equal(m.shots.filter((x) => /outside/.test(x.error || '')).length, 2, 'a URL on another origin is reported and not visited');
+    assert.ok(!JSON.stringify(m).includes('Open orders'), 'no page text in capture.json');
     assert.deepEqual(pngSize(path.join(dir, 'home-mobile.png')).width, 390);
     assert.ok(pngSize(path.join(dir, 'orders-tab-open-desktop.png')).height > 1500, 'full page, not only the first view');
     assert.ok(m.blockedWrites.includes('POST /save') && !hits.some((h) => h.startsWith('POST')), 'the page could not write');

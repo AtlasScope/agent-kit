@@ -1,5 +1,6 @@
 // Playwright-driven crawl and journey runner. Playwright is resolved at runtime and never installed silently.
 import fs from 'node:fs';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import os from 'node:os';
 import { createRequire } from 'node:module';
@@ -462,27 +463,38 @@ export function redactLog(log) { for (const r of log.runs || []) for (const st o
 // Still screens of given URLs at given widths, for looking at and for pairing before and after a change.
 // One context per width; writes are blocked as in crawl. File names depend only on the URL and the width,
 // so two runs into different folders pair up by name.
-export const shotName = (url, width) => {
-  let p = url; try { const u = new URL(url, 'http://x'); p = u.pathname + u.search; } catch { /* keep */ }
+export const shotName = (url, width, tag = '') => {
+  let p = url; try { const u = new URL(url, 'http://x'); p = u.pathname + u.search + u.hash; } catch { /* keep */ }
   const slug = scrubUrls(p).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'home';
-  return `${slug}-${width}.png`;
+  return `${slug}${tag ? '-' + tag : ''}-${width}.png`;
 };
+// Two URLs in one run can reduce to the same readable name (/users/jane.doe and /users/jane-doe). Those get a
+// short hash of the URL added, so neither overwrites the other and the names stay the same from run to run.
+export function shotNames(urls, width) {
+  const plain = urls.map((u) => shotName(u, width));
+  const clash = (i) => new Set(urls.filter((_, j) => plain[j] === plain[i])).size > 1;
+  return urls.map((u, i) => (clash(i) ? shotName(u, width, createHash('sha256').update(u).digest('hex').slice(0, 6)) : plain[i]));
+}
 export async function capture(urls, { widths = ['desktop', 'mobile'], dir, base, storageState, cookies, foldOnly = false } = {}) {
   const pw = await loadPlaywright();
   const abs = (u) => (/^https?:/.test(u) ? u : new URL(u, base).href);
-  const origin = new URL(abs(urls[0])).origin;
+  // One app per run: every URL must be http(s) on the origin of --base, or of the first URL when no base is given.
+  const origin = new URL(base || abs(urls[0])).origin;
+  const allowed = (u) => { try { const x = new URL(abs(u)); return /^https?:$/.test(x.protocol) && x.origin === origin; } catch { return false; } };
   const shots = []; const blocked = new Set(); let browser;
   try {
     for (const w of widths) {
       const c = await newContext(pw, { viewport: w, storageState, cookies, base: origin, allowWrites: false, browser });
       browser = c.browser;
       const page = await c.ctx.newPage();
-      for (const u of urls) {
-        const file = shotName(u, w); const rec = { url: scrubUrls(u), width: w, file };
+      const names = shotNames(urls, w);
+      for (const [i, u] of urls.entries()) {
+        const file = names[i]; const rec = { url: scrubUrls(u), width: w, file };
+        if (!allowed(u)) { rec.error = `not captured: outside ${origin}. One run covers one origin`; delete rec.file; shots.push(rec); continue; }
         try {
           const res = await page.goto(abs(u), { waitUntil: 'domcontentloaded', timeout: 20000 });
           await settle(page);
-          rec.status = res?.status(); rec.title = await page.title();
+          rec.status = res?.status();
           const final = new URL(page.url()); if (final.href !== abs(u)) rec.landedOn = scrubUrls(final.pathname + final.search);
           await page.screenshot({ path: path.join(dir, file), fullPage: !foldOnly });
         } catch (e) { rec.error = scrubUrls(String(e.message || e).split('\n')[0]); delete rec.file; }

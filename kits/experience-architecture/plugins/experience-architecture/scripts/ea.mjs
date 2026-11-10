@@ -155,7 +155,7 @@ async function main() {
       let revision = typeof opts.revision === 'string' ? opts.revision : null;
       if (!revision) { try { const { execFileSync } = await import('node:child_process'); revision = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim() + (execFileSync('git', ['status', '--porcelain'], { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim() ? ' with uncommitted changes' : ''); } catch { /* not a git folder */ } }
       const { scrubUrls } = await import('./lib/browser.mjs');
-      write(dir, 'capture.json', { base: scrubUrls(opts.base || new URL(opts._[0]).origin), revision, capturedAt: new Date().toISOString(), widths, fullPage: !opts.fold, ...res });
+      write(dir, 'capture.json', { base: scrubUrls(new URL(opts.base || opts._[0]).origin), revision, capturedAt: new Date().toISOString(), widths, fullPage: !opts.fold, ...res });
       const failed = res.shots.filter((x) => x.error);
       console.log(`${res.shots.length - failed.length} capture(s) at ${widths.join(', ')}${failed.length ? `, ${failed.length} failed` : ''}. Revision: ${revision || 'not recorded (pass --revision)'}.\nWrote ${dir}/ (PNG files and capture.json)`);
       for (const x of failed) console.log(`  failed: ${x.url} at ${x.width}: ${x.error}`);

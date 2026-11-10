@@ -26,7 +26,7 @@ export function buildSheet(beforeDir, afterDir, { outFile, title, blind = false,
   const { pairs, onlyBefore, onlyAfter } = pairCaptures(beforeDir, afterDir);
   title = title || (blind ? 'Comparison' : 'Before and after');
   const embed = blind || inline;
-  const src = (dir, f) => (embed ? `data:image/png;base64,${fs.readFileSync(path.join(dir, f)).toString('base64')}` : esc(path.relative(path.dirname(outFile), path.join(dir, f)).split(path.sep).join('/')));
+  const src = (dir, f) => (embed ? `data:image/png;base64,${fs.readFileSync(path.join(dir, f)).toString('base64')}` : esc(path.relative(path.dirname(outFile), path.join(dir, f)).split(path.sep).map((seg) => (seg === '..' ? seg : encodeURIComponent(seg))).join('/')));
   const mb = manifest(beforeDir), ma = manifest(afterDir);
   const key = []; const rows = []; const notes = [];
   for (const f of pairs) {
