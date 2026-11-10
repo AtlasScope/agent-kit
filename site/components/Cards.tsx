@@ -37,7 +37,7 @@ export function PromptCards({ slugs, rank }: { slugs: string[]; rank?: boolean }
 }
 
 // The first whole sentence of a skill's description, so a card never stops mid-thought.
-const firstSentence = (d: string) => {
+export const firstSentence = (d: string) => {
   const parts = d.split(/(?<=[.!?])\s+(?=[A-Z/"(])/);
   // A very short opener ("Stop.", "Test-driven development.") reads better with the sentence after it.
   const s = parts[0].length < 30 && parts[1] ? `${parts[0]} ${parts[1]}` : parts[0];

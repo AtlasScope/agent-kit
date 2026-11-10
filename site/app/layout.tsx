@@ -5,6 +5,7 @@ import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { SITE, authEnabled } from "@/lib/site";
 import { counts } from "@/lib/content";
+import { clerkAppearance } from "@/lib/clerk-appearance";
 import "./globals.css";
 
 const sans = Geist({ subsets: ["latin"], variable: "--font-geist", display: "swap" });
@@ -34,5 +35,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </body>
     </html>
   );
-  return authEnabled() ? <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-in" appearance={{ variables: { colorPrimary: "#0B0C12" } }}>{body}</ClerkProvider> : body;
+  return authEnabled() ? <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-in" appearance={clerkAppearance}>{body}</ClerkProvider> : body;
 }
