@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Spring calculator. Describe a spring the way a person feels it (how long it takes, how much it bounces)
 // and get the same spring for every platform: a CSS linear() easing with its duration, Motion, SwiftUI,
-// Reanimated and raw stiffness and damping. No dependencies.
+// Reanimated and raw stiffness and damping. No dependencies. Motion gets stiffness and damping, because
+// its own duration-based options do not describe the same spring as SwiftUI's.
 //
 //   node spring.mjs --duration 0.4 --bounce 0.2 [--points 32] [--json]
 //
@@ -15,7 +16,7 @@ const bounce = num("--bounce", 0);
 const points = Math.max(8, Math.min(80, Math.round(num("--points", 32))));
 if (duration <= 0 || duration > 5 || bounce < 0 || bounce >= 1) { console.error("Use --duration between 0 and 5 seconds and --bounce from 0 up to (not including) 1."); process.exit(2); }
 
-// The duration-and-bounce form used by SwiftUI and Motion, for a mass of 1:
+// The duration-and-bounce form SwiftUI documents, for a mass of 1:
 // stiffness = (2π / duration)², damping = 4π (1 − bounce) / duration.
 const stiffness = (2 * Math.PI / duration) ** 2;
 const damping = (4 * Math.PI * (1 - bounce)) / duration;
@@ -44,8 +45,9 @@ const out = {
   duration, bounce, settleMs: Math.round(settle * 1000), overshootPercent: r(Math.max(0, overshoot) * 100),
   stiffness: r(stiffness), damping: r(damping), mass: 1,
   css: { easing: linear, duration: `${Math.round(settle * 1000)}ms` },
-  motion: `{ type: "spring", visualDuration: ${duration}, bounce: ${bounce} }`,
-  motionPhysics: `{ type: "spring", stiffness: ${r(stiffness)}, damping: ${r(damping)}, mass: 1 }`,
+  // Motion's own visualDuration and bounce options use a different conversion (it stretches the duration by
+  // 1.2 and maps bounce its own way), so the same numbers there give a slower spring. The physical values are exact.
+  motion: `{ type: "spring", stiffness: ${r(stiffness)}, damping: ${r(damping)}, mass: 1 }`,
   swiftui: `.spring(duration: ${duration}, bounce: ${bounce})`,
   reanimated: `withSpring(value, { stiffness: ${r(stiffness)}, damping: ${r(damping)}, mass: 1 })`,
 };
@@ -59,7 +61,6 @@ CSS
   transition-timing-function: ${linear};
 
 Motion      ${out.motion}
-            ${out.motionPhysics}
 SwiftUI     ${out.swiftui}
 Reanimated  ${out.reanimated}
 

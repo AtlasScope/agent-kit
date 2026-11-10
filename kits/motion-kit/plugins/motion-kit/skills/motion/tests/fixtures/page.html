@@ -15,6 +15,11 @@
   #bad { height: 0; overflow: hidden; transition: height 600ms ease-in; background: #b42318; color: #fff; width: 240px; }
   #bad.open { height: 120px; }
 
+  /* Hidden until opened, so it has no box before the click. */
+  #menu { display: none; position: absolute; left: 400px; top: 300px; width: 160px; padding: 12px; background: #5a2fc2; color: #fff; }
+  #menu.open { display: block; animation: menu-in 160ms cubic-bezier(0.22, 1, 0.36, 1); }
+  @keyframes menu-in { from { opacity: 0; transform: translateY(6px); } }
+
   /* Script-driven: no CSS or Web Animations, only requestAnimationFrame. */
   #js { width: 40px; height: 40px; background: #00704a; margin-top: 24px; }
 </style>
@@ -22,6 +27,9 @@
 <button id="open-bad">Open bad</button>
 <button id="run-js">Run script</button>
 <button id="snap" onclick="this.style.background='#111'; this.style.color='#fff'">Snap</button>
+<button id="open-menu" onclick="document.getElementById('menu').classList.add('open')">Menu</button>
+<a id="next" href="entrance.html">Next page</a>
+<div id="menu" role="menu">Menu item</div>
 <div id="good">Panel</div>
 <div id="bad">Panel</div>
 <div id="js"></div>

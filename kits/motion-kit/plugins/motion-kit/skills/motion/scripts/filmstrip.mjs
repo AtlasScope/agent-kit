@@ -170,15 +170,20 @@ async function capture(pw) {
   if (!isLoad) await settle(page);
   for (const a of [...all("--before"), ...actions.slice(0, -1)]) { await act(page, a); await settle(page); }
 
-  let clip;
-  if (opt("--clip")) {
+  const clipBox = async () => {
     const box = await page.locator(opt("--clip")).first().boundingBox().catch(() => null);
-    if (box) { const pad = 24; const x = Math.max(0, box.x - pad), y = Math.max(0, box.y - pad); clip = { x, y, width: Math.min(vp.width - x, box.width + pad * 2), height: Math.min(vp.height - y, box.height + pad * 2) }; }
-  }
+    if (!box || !box.width || !box.height) return undefined;
+    const pad = 24; const x = Math.max(0, box.x - pad), y = Math.max(0, box.y - pad);
+    return { x, y, width: Math.max(1, Math.min(vp.width - x, box.width + pad * 2)), height: Math.max(1, Math.min(vp.height - y, box.height + pad * 2)) };
+  };
+  let clip = opt("--clip") ? await clipBox() : undefined;
+  // An element the action reveals (a menu that is display: none, or not mounted yet) has no box until
+  // after the trigger. In that case the crop is taken from its resting place once it exists.
+  const lateClip = !!opt("--clip") && !clip;
 
   // Freeze script time, trigger, then let two frames of script run so libraries can start their animations.
   const shot = (file) => page.screenshot({ path: path.join(outDir, file), clip, animations: "allow", caret: "hide" });
-  const before = isLoad ? null : await shot("frames/before.png");
+  let before = isLoad || lateClip ? null : await shot("frames/before.png");
   // pauseAt can only move forward, and the page's clock keeps running while we ask it the time, so aim a
   // little ahead and widen the margin if the clock got there first.
   for (let margin = 100, tries = 0; ; margin *= 3, tries++) {
@@ -188,6 +193,12 @@ async function capture(pw) {
   if (!isLoad) await act(page, trigger);
   await page.clock.runFor(34);
   const animations = await page.evaluate(scrub, 0);
+  if (lateClip) {
+    const ends = animations.filter((x) => x.end != null).map((x) => x.end);
+    if (ends.length) await page.evaluate(scrub, Math.max(...ends)); // measure it where it comes to rest
+    clip = await clipBox();
+    if (ends.length) await page.evaluate(scrub, 0);
+  }
   const finite = animations.filter((a) => a.end != null).map((a) => a.end);
   const windowMs = CAP || Math.min(4000, Math.max(200, finite.length ? Math.max(...finite) : 600));
   const step = windowMs / (FRAMES - 1);
@@ -210,12 +221,13 @@ async function capture(pw) {
 
   const moved = frames.filter((f) => f.i > 0 && !f.same).length;
   const instant = !!before && moved === 0 && !before.equals(fs.readFileSync(path.join(outDir, frames[0].file)));
-  const note = animations.length
+  const clipNote = !opt("--clip") ? "" : !clip ? `; --clip "${opt("--clip")}" matched nothing visible, so frames show the whole viewport` : lateClip ? "; the crop was taken after the action revealed its target, so there is no before frame" : "";
+  const note = (animations.length
     ? `${animations.length} animation${animations.length === 1 ? "" : "s"} stepped frame by frame`
     : moved ? "no CSS or Web Animations found; script-driven motion stepped with a paused clock"
     : instant ? "the change was instant: the first frame already differs from before the action, and nothing moves after it"
-    : "nothing changed on screen after the action";
-  const meta = { url, action: trigger, instant, before: before ? "frames/before.png" : null, viewport: { width: vp.width, height: vp.height }, reducedMotion: flag("--reduced"), windowMs, frames, framesChanged: moved, animations: animations.map(({ start, ...a }) => ({ ...a, startedAt: start })), note, errors };
+    : "nothing changed on screen after the action") + clipNote;
+  const meta = { url, action: trigger, instant, clip: clip || null, before: before ? "frames/before.png" : null, viewport: { width: vp.width, height: vp.height }, reducedMotion: flag("--reduced"), windowMs, frames, framesChanged: moved, animations: animations.map(({ start, ...a }) => ({ ...a, startedAt: start })), note, errors };
 
   if (flag("--perf")) meta.perf = await perf(browser, actions);
 
@@ -253,6 +265,8 @@ async function perf(browser, actions) {
     await settle(page);
     for (const a of [...all("--before"), ...actions.slice(0, -1)]) { await act(page, a); await settle(page); }
     if (throttle > 1) await cdp.send("Emulation.setCPUThrottlingRate", { rate: throttle });
+    // The action may load a new document, which would discard a sampler started only in this one.
+    await page.addInitScript(sampler);
     await page.evaluate(sampler);
     before = await metrics();
     await act(page, trigger);
@@ -260,7 +274,7 @@ async function perf(browser, actions) {
   const windowMs = CAP || 600;
   await new Promise((r) => setTimeout(r, windowMs + 100));
   const after = await metrics();
-  const gaps = await page.evaluate(() => { cancelAnimationFrame(window.__raf); return window.__gaps.slice(1); });
+  const gaps = await page.evaluate(() => { cancelAnimationFrame(window.__raf); return (window.__gaps || []).slice(1); }).catch(() => []);
   await context.close();
   const long = gaps.filter((g) => g > 25);
   return {

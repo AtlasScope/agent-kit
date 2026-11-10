@@ -90,6 +90,7 @@ function scanCssValue(kind, prop, value, file, line, text) {
           const v = ms(time[1], time[2]);
           if (v === 0) { sawTime++; continue; } // a reset, not a choice
           bump(durations, v); totals.literalDurations++;
+          if (prop === "transition-duration") totals.transitions++; else if (prop === "animation-duration") totals.animations++;
           if (kind === "transition" && v >= 500) find("long-transition", "check", file, line, text, `${v}ms is long for a state change. Most interface transitions land between 120 and 320ms.`);
         }
         sawTime++;
@@ -186,7 +187,7 @@ function scanText(file, src) {
 for (const f of files) { try { scanText(f, fs.readFileSync(f, "utf8")); } catch { /* skip unreadable */ } }
 
 // Whole-codebase findings.
-const hasMotion = totals.transitions + totals.animations + totals.keyframes + springs.length > 0;
+const hasMotion = totals.transitions + totals.animations + totals.keyframes + springs.length + durations.size + properties.size > 0;
 const reducedTotal = reduced.css + reduced.tailwind + reduced.js;
 const system = [];
 if (hasMotion && reducedTotal === 0) system.push({ rule: "no-reduced-motion", level: "fix", why: "Nothing checks prefers-reduced-motion. People who ask their system for less motion still get all of it." });

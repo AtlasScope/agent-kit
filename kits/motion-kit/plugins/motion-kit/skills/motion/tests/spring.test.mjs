@@ -27,6 +27,12 @@ test("a shorter duration is a stiffer spring that settles sooner", () => {
   assert.ok(fast.stiffness > slow.stiffness && fast.settleMs < slow.settleMs);
 });
 
+test("the Motion output is physical values, not Motion's differently scaled visualDuration", () => {
+  const s = spring("--duration", "0.4", "--bounce", "0");
+  assert.equal(s.motion, '{ type: "spring", stiffness: 246.7, damping: 31.4, mass: 1 }');
+  assert.ok(!JSON.stringify(s).includes("visualDuration"));
+});
+
 test("values outside the range are refused", () => {
   assert.equal(spawnSync(process.execPath, [script, "--bounce", "2"]).status, 2);
 });

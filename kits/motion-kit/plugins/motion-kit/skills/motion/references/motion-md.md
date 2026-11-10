@@ -124,9 +124,9 @@ export const ease = {
   in: [0.4, 0, 1, 1],
 } as const;
 export const spring = {
-  snappy: { type: "spring", visualDuration: 0.25, bounce: 0 },
-  smooth: { type: "spring", visualDuration: 0.4, bounce: 0 },
-  lively: { type: "spring", visualDuration: 0.45, bounce: 0.3 },
+  snappy: { type: "spring", stiffness: 631.7, damping: 50.3, mass: 1 }, // duration 0.25, bounce 0
+  smooth: { type: "spring", stiffness: 246.7, damping: 31.4, mass: 1 }, // duration 0.4, bounce 0
+  lively: { type: "spring", stiffness: 195, damping: 19.5, mass: 1 }, // duration 0.45, bounce 0.3
 } as const;
 ```
 

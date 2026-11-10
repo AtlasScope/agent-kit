@@ -40,6 +40,13 @@ test("Tailwind utilities inside @apply in a stylesheet are counted, and plain CS
   assert.equal(r.findings.find((f) => f.rule === "transition-all").line, 2);
 });
 
+test("transitions written as longhand properties count as motion", () => {
+  const r = scan("longhand");
+  assert.equal(r.totals.transitions, 1);
+  assert.ok(rules(r).includes("long-transition") && rules(r).includes("ease-in"));
+  assert.deepEqual(r.system.map((s) => s.rule), ["no-reduced-motion"]);
+});
+
 test("a folder with no motion says so and exits cleanly", () => {
   const out = execFileSync(process.execPath, [path.join(here, "../scripts/motion-scan.mjs"), path.join(here, "../agents")], { encoding: "utf8" });
   assert.match(out, /No motion found/);

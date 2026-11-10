@@ -69,6 +69,22 @@ test("script-driven motion has no Web Animations but still produces changing fra
   assert.match(m.note, /script-driven/);
 });
 
+test("--clip on an element the action reveals crops to it instead of capturing the whole viewport", { skip }, () => {
+  const { json: m, status, stderr } = run("--do", "click:#open-menu", "--clip", "[role=menu]", "--frames", "3");
+  assert.equal(status, 0, stderr);
+  assert.ok(m.clip && m.clip.width < 300 && m.clip.height < 200, `expected a crop around the menu, got ${JSON.stringify(m.clip)}`);
+  assert.ok(m.clip.x >= 370 && m.clip.y >= 270, "the crop sits where the menu rests");
+  assert.equal(m.before, null);
+  assert.match(m.note, /after the action revealed/);
+  assert.equal(m.animations[0].name, "menu-in");
+});
+
+test("--perf survives an action that loads a new page", { skip }, () => {
+  const { json: m, status, stderr } = run("--do", "click:#next", "--perf", "--throttle", "1", "--frames", "2");
+  assert.equal(status, 0, stderr);
+  assert.ok(m.perf.frames > 5, `the sampler should keep running in the new document, saw ${m.perf.frames} frames`);
+});
+
 test("a Playwright copy inside the project is not loaded unless the project is trusted", () => {
   const proj = fs.mkdtempSync(path.join(os.tmpdir(), "filmstrip-untrusted-"));
   const sentinel = path.join(proj, "ran.txt");

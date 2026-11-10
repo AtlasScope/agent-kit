@@ -62,7 +62,7 @@ Durations are in seconds.
 ### Layout
 
 ```tsx
-<motion.li layout transition={{ type: "spring", visualDuration: 0.4, bounce: 0 }} />
+<motion.li layout transition={{ type: "spring", stiffness: 246.7, damping: 31.4, mass: 1 }} />
 <motion.div layoutId="active-tab" />
 ```
 
@@ -74,9 +74,11 @@ Durations are in seconds.
 ### Springs
 
 ```tsx
-transition={{ type: "spring", visualDuration: 0.25, bounce: 0 }}        // snappy
+transition={{ type: "spring", stiffness: 631.7, damping: 50.3, mass: 1 }}  // snappy, from <skill-dir>/scripts/spring.mjs
 transition={{ type: "spring", stiffness: 247, damping: 31.4, mass: 1 }}  // smooth, from <skill-dir>/scripts/spring.mjs
 ```
+
+Take stiffness and damping from the spring calculator. Motion also accepts `visualDuration` and `bounce`, but it converts them differently from SwiftUI (the same numbers give a spring about 20 percent slower), so the tokens would not match across platforms.
 
 Motion's default for transforms is a spring with some bounce. Set the transition explicitly, or set a project default once:
 
