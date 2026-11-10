@@ -190,7 +190,6 @@ function prepareOut() {
 }
 
 async function capture(pw) {
-  prepareOut();
   let browser;
   try { browser = await pw.chromium.launch(); }
   catch (e) {
@@ -348,6 +347,7 @@ async function perf(browser, actions, captured) {
   };
 }
 
+prepareOut(); // before anything else, so an unsafe output path is refused whether or not a browser is available
 const pw = await loadPlaywright();
 const meta = await capture(pw);
 if (flag("--json")) { console.log(JSON.stringify({ ...meta, out: outDir }, null, 1)); process.exit(0); }

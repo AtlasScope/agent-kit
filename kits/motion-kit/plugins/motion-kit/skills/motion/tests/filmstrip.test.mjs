@@ -142,7 +142,8 @@ test("a symbolic link planted in the output folder is refused, and its target is
   fs.symlinkSync(victim, path.join(out, "sheet.html"));
   const r = spawnSync(process.execPath, [script, page, "--out", out, "--do", "click:#open-good", "--frames", "2"], { encoding: "utf8", timeout: 120000 });
   assert.equal(fs.readFileSync(victim, "utf8"), "keep me");
-  if (r.status !== 3) { assert.equal(r.status, 2); assert.match(r.stderr, /symbolic link/); }
+  assert.equal(r.status, 2);
+  assert.match(r.stderr, /symbolic link/);
 });
 
 test("a package whose entry point escapes its own folder is never loaded from a trusted place", () => {
