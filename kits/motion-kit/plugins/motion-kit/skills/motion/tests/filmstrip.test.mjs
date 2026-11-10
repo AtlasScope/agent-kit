@@ -213,6 +213,17 @@ test("a run that cannot capture leaves the previous capture in place", () => {
   assert.ok(fs.existsSync(path.join(out, "filmstrip.json")));
 });
 
+test("a spec file supplies the URL, actions and crop without any of them touching a shell", { skip }, () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "filmstrip-spec-"));
+  const spec = path.join(dir, "capture.json");
+  fs.writeFileSync(spec, JSON.stringify({ url: page, do: ["click:#open-menu"], clip: "[role=\"menu\"]" }));
+  const r = spawnSync(process.execPath, [script, "--spec", spec, "--out", path.join(dir, "out"), "--json", "--frames", "2"], { encoding: "utf8", timeout: 60000 });
+  assert.equal(r.status, 0, r.stderr);
+  const m = JSON.parse(r.stdout);
+  assert.equal(m.action, "click:#open-menu");
+  assert.ok(m.clip && m.clip.width < 300);
+});
+
 test("an unknown action fails with a usage error instead of a blank capture", { skip }, () => {
   const r = run("--do", "wiggle:#x");
   assert.equal(r.status, 2);

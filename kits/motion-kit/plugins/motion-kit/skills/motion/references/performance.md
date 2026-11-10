@@ -45,7 +45,7 @@ Promoting an element to its own layer makes moving it cheap and costs memory.
 
 ## Measuring
 
-1. **The filmstrip's real-time run.** `node <skill-dir>/scripts/filmstrip.mjs <url> --do "<action>" --perf` reports frames produced, frames over 25ms, and how many layouts and style recalculations ran, at a 4× CPU slowdown.
+1. **The filmstrip's real-time run.** `node <skill-dir>/scripts/filmstrip.mjs <url> --do '<action>' --perf` reports frames produced, frames over 25ms, and how many layouts and style recalculations ran, at a 4× CPU slowdown.
    - A transform-and-opacity animation should show a handful of layouts at most. A count near the frame count means something is laying out every frame.
    - Compare against a run of the same page with no action to see the idle baseline.
 2. **The property table.** The filmstrip's "What moved" list labels each animation `compositor`, `paint` or `LAYOUT`.

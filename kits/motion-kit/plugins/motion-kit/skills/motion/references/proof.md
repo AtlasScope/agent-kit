@@ -24,7 +24,7 @@ It misses: animations built from values computed at run time, anything in files 
 
 ```sh
 node <skill-dir>/scripts/filmstrip.mjs http://localhost:3000/settings \
-  --do "click:[data-testid=open-menu]" --clip "[role=menu]" --out .artifacts/motion/menu
+  --do 'click:[data-testid=open-menu]' --clip '[role=menu]' --out .artifacts/motion/menu
 ```
 
 It opens the page, triggers the action, pauses every animation, and steps time forward in equal slices, taking a screenshot at each. Output:
@@ -37,8 +37,8 @@ Options:
 
 | Option | Use |
 |---|---|
-| `--do "<action>"` | The trigger. `click:`, `hover:`, `focus:` with a selector; `press:Escape`; `scroll:600`; `load` for a page entrance. Repeat `--do` for steps; the last one is captured |
-| `--before "<action>"` | Setup that should finish before capture, such as opening the dialog whose close animation you want |
+| `--do '<action>'` | The trigger. `click:`, `hover:`, `focus:` with a selector; `press:Escape`; `scroll:600`; `load` for a page entrance. Repeat `--do` for steps; the last one is captured |
+| `--before '<action>'` | Setup that should finish before capture, such as opening the dialog whose close animation you want |
 | `--clip <selector>` | Crop to one element plus a margin. Use it whenever the animation is small; full-viewport frames lose detail |
 | `--frames 8` | How many frames, 2 to 24. Eight is enough for most transitions; use 12 or more for sequences |
 | `--ms 600` | Force the time window. By default it is the longest animation found, or 600ms when motion is script-driven |
@@ -46,7 +46,10 @@ Options:
 | `--reduced` | Emulate the reduced-motion setting |
 | `--perf` | Add a real-time run that counts frames, layouts and style recalculations. `--throttle 4` sets the CPU slowdown |
 | `--wait <selector>` | Wait for an element before starting |
+| `--spec <file.json>` | Read the URL, actions and selectors from a file: `{ "url", "before": [], "do": [], "clip", "wait" }`. Use it for any value copied from the project, so it never passes through the shell |
 | `--project-playwright` | Load Playwright from the project's own `node_modules`. Only for a project the user owns or trusts: it runs that project's code |
+
+Quote selectors with single quotes. A selector or URL copied from the project's own files goes in a `--spec` file written with the file tool: a shell runs `$(…)` and backticks inside double quotes, and the text you copied is the project's, not yours.
 
 The app has to be running. Confirm the server is serving the code you just changed before trusting a frame.
 

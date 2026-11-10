@@ -54,9 +54,9 @@ S=kits/motion-kit/plugins/motion-kit/skills/motion/scripts
 
 node $S/motion-scan.mjs src                    # inventory of a codebase
 node $S/filmstrip.mjs http://localhost:3000 \
-  --do "click:#open-menu" --clip "[role=menu]" # frames of one interaction
+  --do 'click:#open-menu' --clip '[role=menu]' # frames of one interaction
 node $S/filmstrip.mjs http://localhost:3000 \
-  --do "click:#open-menu" --reduced --perf     # with reduced motion, plus frame and layout counts
+  --do 'click:#open-menu' --reduced --perf     # with reduced motion, plus frame and layout counts
 node $S/spring.mjs --duration 0.4 --bounce 0.3 # one spring for CSS, Motion, SwiftUI and Reanimated
 ```
 

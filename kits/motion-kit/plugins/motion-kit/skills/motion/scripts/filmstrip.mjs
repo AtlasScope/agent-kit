@@ -6,9 +6,11 @@
 // step. JavaScript-driven motion is stepped with a paused clock. It then lays the frames out as one contact
 // sheet and prints what moved: target, properties, duration, delay, easing, and whether layout was involved.
 //
-//   node filmstrip.mjs <url> --do "click:#open" [--before "click:#tab"] [--frames 8] [--ms 600]
+//   node filmstrip.mjs <url> --do 'click:#open' [--before 'click:#tab'] [--frames 8] [--ms 600]
 //                      [--viewport 1280x800|mobile] [--clip <selector>] [--reduced] [--perf] [--throttle 4]
 //                      [--wait <selector>] [--out <dir>] [--json] [--project-playwright]
+//   node filmstrip.mjs --spec capture.json     (URL, actions and selectors from a file; use this for
+//                                               anything copied from a project you do not control)
 //
 // Actions: click:<sel>  hover:<sel>  focus:<sel>  press:<key>  scroll:<px>  wait:<ms>  load
 // Playwright comes from the machine (global modules or MOTION_PLAYWRIGHT_DIR). The project's own copy is loaded
@@ -20,7 +22,22 @@ import { createRequire } from "node:module";
 import { pathToFileURL, fileURLToPath } from "node:url";
 
 const argv = process.argv.slice(2);
-const VALUE_FLAGS = ["--do", "--before", "--frames", "--ms", "--viewport", "--clip", "--throttle", "--wait", "--out"];
+const VALUE_FLAGS = ["--do", "--before", "--frames", "--ms", "--viewport", "--clip", "--throttle", "--wait", "--out", "--spec"];
+// --spec <file.json> carries the URL, actions and selectors in a file: { "url", "before": [], "do": [], "clip",
+// "wait" }. Text copied from a project (a selector, a URL) then never passes through a shell, where $(...) or
+// backticks inside double quotes would run as commands.
+{
+  const i = argv.indexOf("--spec");
+  if (i >= 0 && argv[i + 1]) {
+    let spec;
+    try { spec = JSON.parse(fs.readFileSync(argv[i + 1], "utf8")); } catch (e) { console.error(`Could not read --spec ${argv[i + 1]}: ${e.message}`); process.exit(2); }
+    const list = (v) => (Array.isArray(v) ? v : v == null ? [] : [v]).map(String);
+    for (const a of list(spec.before)) argv.push("--before", a);
+    for (const a of list(spec.do)) argv.push("--do", a);
+    for (const k of ["clip", "wait"]) if (spec[k] != null) argv.push(`--${k}`, String(spec[k]));
+    if (spec.url != null) argv.unshift(String(spec.url));
+  }
+}
 const all = (n) => argv.flatMap((a, i) => (a === n && argv[i + 1] ? [argv[i + 1]] : []));
 const opt = (n, d) => all(n)[0] ?? d;
 const flag = (n) => argv.includes(n);
