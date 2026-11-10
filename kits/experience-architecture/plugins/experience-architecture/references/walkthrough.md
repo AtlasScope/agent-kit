@@ -4,7 +4,7 @@ Formats and guidance for the Walkthrough skill.
 
 ## Five labels
 
-Every statement in a brief, an observation or a report carries one. They sit beside the discovered, verified and recommended levels in `evidence.md`.
+Every material claim in the evidence record (the brief, the observation records, the findings behind a verdict) carries one. The owner-facing summary is written plainly, with the labelled record behind it for anyone who wants to check. The labels sit beside the discovered, verified and recommended levels in `evidence.md`.
 
 | Label | Means | Does not show |
 |---|---|---|
@@ -15,6 +15,8 @@ Every statement in a brief, an observation or a report carries one. They sit bes
 | **Guess** | A reasoned reading that nothing above supports yet | Anything, until checked. Say what would check it |
 
 A label never improves in passing from one document to the next. A guess in the walkthrough is still a guess in the recommendation unless something checked it.
+
+When the browser and the code disagree, both stay in the record. What the running product did is what happened. The disagreement is a finding of its own: the deployment, stored state, a redirect or the revision you read may differ. Revise the explanation; keep the observation.
 
 ## Product brief
 
@@ -36,21 +38,26 @@ One per step of a journey.
 
 ```
 Journey: <job> · Step <n> · <desktop | phone | WxH> · <cold | source-informed>
-Screen says it is for: <what a newcomer would take this screen to be>
-First thing the eye lands on: <element>. The job needs first: <element>
-I would do next: <action>, because <what on screen suggests it>
-What happened: <result>
-Could I tell I was finished or on track: <yes, by what | no>
+Observed: <what is on screen and where: headings, the largest and highest elements, the controls offered, what sits below the first view>
+Action taken: <what you did>
+What happened: <result, including any message or state change>
+Finish or progress shown: <what on screen indicates it, or nothing>
+Reading: <your judgment of what the screen appears to prioritise, the action it invites, and how that fits the job>
 Capture: <file>
 ```
 
-Keep the record factual. Explanations and fixes come later, after the code has been read.
+`Observed`, `Action taken` and `What happened` are facts about the running product. `Reading` is an expert interpretation of the layout. It is a judgment about the design, and no measurement of where a person's attention goes. Keep the two apart, as in:
+
+- Observed: "The promotional panel fills most of the first view. The search control starts below it."
+- Reading: "The screen gives promotion priority over starting the task."
+
+Explanations of cause and proposed changes come later, after the code has been read.
 
 ## What to look for on a screen
 
 Use these as questions while looking at a capture. Each can come back "fine".
 
-- **Order.** Does the most prominent thing match what the job needs first? List what competes with it.
+- **Order.** Does the largest, highest or strongest-contrast element match what the job needs first? List what competes with it.
 - **Next step.** Is there one obvious next action? If several look equally primary, which would a newcomer pick?
 - **Density.** Is the amount on screen right for someone doing this job at their level of practice? Too sparse costs experts as much as too dense costs newcomers.
 - **Words.** Do labels use the person's words for things? Does the same thing keep the same name on every screen?
@@ -89,7 +96,7 @@ Ask about what they did. Leave out any question that names a suspect ("is that t
 - *Session record*: the actions, the expectations they voiced, what the screen showed, where you prompted them. Label: owner said, or agent saw for the states you opened yourself.
 - *Decision record*: reasons the owner gives for past choices ("we split that page because of the old billing system"). Each reason is context to weigh. Ask whether it still holds.
 
-**After.** Read back the three or four places where expectation and result parted, in their words, and ask which matters most. A frustrated remark is one observation. A preference is the owner's preference. Report each as what it is.
+**After.** Read back the three or four places where expectation and result parted, in their words, and ask which matters most. A frustrated remark is one observation. A preference is the owner's preference, and a wish for the product to feel a certain way is a design objective (`levels.md`). Report each as what it is.
 
 For the parts of the product the owner is unsure about, recommend watching someone who has not used it, and say that an owner session and an agent pass together still leave that open.
 

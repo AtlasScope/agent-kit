@@ -22,6 +22,8 @@ Request: $ARGUMENTS
 
 Read `${CLAUDE_PLUGIN_ROOT}/references/evidence.md` before reporting. It holds the finding classes, the record format, where output goes, the boundaries, and how to talk to the owner.
 
+If the output folder holds a `case.md`, this work is a stage of a larger assignment: read it and `${CLAUDE_PLUGIN_ROOT}/references/assignment.md` first, use what is already established, and do only what is still open.
+
 ## Static map (generated when this skill loaded)
 
 !`ea brief .`
