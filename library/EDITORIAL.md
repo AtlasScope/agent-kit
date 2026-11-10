@@ -3,6 +3,23 @@
 Decisions about what the library says, newest first. Each line names the entries it touched and why.
 The full inventory is `library/dist/inventory.csv`, rebuilt by `node library/build.mjs`.
 
+## 2026-11-10 (rewrites)
+
+- M11 "Thorough and bold" was one line ("Be thorough in your analysis and bold in your
+  recommendations"). It now asks the agent to check original evidence for each claim, say what it
+  verified and what it assumed, and end with one recommendation, the strongest argument against it,
+  and what would change its mind. Score 9 to 13; `rewrite` flag removed.
+- R04's evidence line asked for a test "at midnight in Memphis". It now says the users' main time
+  zone. `personal` flag removed.
+- D02 needed "the source filings", which only fits financial data. It now says the source documents
+  the numbers come from. PG01's search tags lost "doesn't match the filings" for the same reason.
+- G04's summary named Google and the AI Gateway; it now names the kinds of service instead.
+- I07's summary called it "the safe version of the viral prompt". It now says what it finds.
+- The /engineer router's `references/investigations.md` carries the same text and got the same four
+  edits by hand. Its generator (`kits/engineering-kit/scripts/build_references.cjs`) expects an older
+  field-guide format and no longer runs against `library/dist/prompt-library.html`; fixing that is
+  roadmap task 13 (one source of truth).
+
 ## 2026-11-10
 
 - Every entry now has an editorial score in `library/audit.json`, checked by `library/check.mjs` and

@@ -236,7 +236,7 @@ Compare declared infrastructure configuration with the running environment and i
 Audit dependencies for packages declared but unused, imports satisfied only through transitive dependencies, and heavyweight libraries used for trivial behavior. Check build-time and runtime use, dynamic imports, tooling and security advisories before recommending removal or replacement.
 ```
 
-**I07 · Old runtimes and when support ends** The safe version of the viral 'delete old Chromium builds' prompt.
+**I07 · Old runtimes and when support ends** Finds old browser runtimes on your computer and which are safe to remove, before a cleanup breaks an app that needs them.
 
 ```text
 Inventory actual versions and dependencies of Playwright, Puppeteer, system Chrome, Chromium caches and Electron apps. Verify current vendor-supported and security-fix thresholds rather than trusting hard-coded version numbers. Distinguish safe disposable caches from app-owned runtimes and report the rollback path before any cleanup.
@@ -300,7 +300,7 @@ Trace what happens during the deployment window when a new database migration or
 Inspect API responses, Server Component and SSR serialization payloads, and RPC returns crossing from server to browser. Find places where full database rows or internal objects (internal flags, other tenants' keys, audit metadata, large unused JSON columns) are serialized over the network and merely hidden in the UI.
 ```
 
-**G04 · When an outside service goes down** Asks what happens to the app when Google, the AI Gateway or a service that sends it updates goes down.
+**G04 · When an outside service goes down** Asks what happens to the app when an outside API, an AI provider or a service that sends it updates goes down.
 
 ```text
 Assume each external API, LLM provider, or webhook source this application depends on either hangs for 30 seconds, returns 429 or 503 for an hour, or delivers a burst of out-of-order webhooks on recovery. Trace which transactions or connection pools are held open during external calls, and whether core journeys degrade gracefully or lock up.
@@ -664,7 +664,7 @@ Prepare a compact, self-contained technical checkpoint so a fresh agent session 
 **M11 · Thorough and bold**
 
 ```text
-Be thorough in your analysis and bold in your recommendations
+Go past the first answer. For each claim you make, check the original evidence (the code, the data or the docs) and say which claims you verified and which you assumed. Then give one clear recommendation, the strongest argument against it, and the result that would change your mind.
 ```
 
 **M12 · Deepen modules, simplify interfaces**
