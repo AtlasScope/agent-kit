@@ -88,3 +88,9 @@ test("Tailwind transitions with a bracketed property list are counted and checke
   assert.ok(r.findings.some((f) => f.rule === "layout-property" && f.line === 3));
   assert.ok(r.system.some((s) => s.rule === "no-reduced-motion"));
 });
+
+test("a transition shorthand that names no property is read as all", () => {
+  const r = scan("shorthand");
+  const all = r.findings.filter((f) => f.rule === "transition-all").map((f) => f.line);
+  assert.deepEqual(all, [1, 3], "the unnamed variable on line 2 might be the property, so it is not assumed");
+});

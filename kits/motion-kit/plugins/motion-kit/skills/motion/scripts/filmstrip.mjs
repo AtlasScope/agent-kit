@@ -121,7 +121,7 @@ async function act(page, a) {
 // Runs in the page. Pauses every animation the document knows about and moves each to the given time.
 // Returns a description of each one the first time it is seen.
 function scrub([t, finish]) {
-  const reg = (window.__filmstrip ||= { seen: new Map(), from: new Map(), done: new WeakSet(), n: 0 });
+  const reg = (window.__filmstrip ||= { seen: new Map(), from: new Map(), done: new WeakSet(), held: new WeakSet(), n: 0 });
   const name = (el) => { if (!el) return "(detached)"; const c = typeof el.className === "string" && el.className.trim() ? "." + el.className.trim().split(/\s+/).slice(0, 2).join(".") : ""; return el.tagName.toLowerCase() + (el.id ? "#" + el.id : "") + c; };
   const COMPOSITED = new Set(["transform", "opacity", "translate", "scale", "rotate", "filter", "backdropFilter", "offsetDistance"]);
   const LAYOUT = /^(width|height|minWidth|minHeight|maxWidth|maxHeight|top|left|right|bottom|inset.*|margin.*|padding.*|fontSize|lineHeight|borderWidth|gap|gridTemplate.*|flexBasis)$/;
@@ -131,6 +131,9 @@ function scrub([t, finish]) {
   for (const a of new Set([...reg.seen.keys(), ...document.getAnimations()])) {
     if (reg.done.has(a)) continue;
     let rec = reg.seen.get(a);
+    // An animation the page itself holds paused (animation-play-state: paused, or pause()) is not moving, so
+    // it is left where it is. If the page resumes it later, it is picked up then, from that position.
+    if (!rec && a.playState === "paused") { reg.held.add(a); continue; }
     if (!rec) {
       const timing = a.effect?.getComputedTiming?.() || {};
       const frames = a.effect?.getKeyframes?.() || [];
@@ -162,7 +165,7 @@ function scrub([t, finish]) {
       const hint = window.__filmstripReversed?.get(a);
       const dir = hint ? hint.dir : a.playbackRate < 0 ? -1 : 1;
       const end = a.effect?.getComputedTiming?.().endTime;
-      reg.from.set(a, { dir, at: hint ? hint.from : dir < 0 ? (Number.isFinite(end) ? end : a.currentTime ?? 0) : 0 });
+      reg.from.set(a, { dir, at: hint ? hint.from : reg.held.has(a) ? a.currentTime ?? 0 : dir < 0 ? (Number.isFinite(end) ? end : a.currentTime ?? 0) : 0 });
     }
     const from = reg.from.get(a);
     const speed = Math.abs(a.playbackRate || 1);

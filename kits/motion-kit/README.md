@@ -86,7 +86,7 @@ node $S/spring.mjs --duration 0.4 --bounce 0.3 # one spring for CSS, Motion, Swi
 node --test "kits/motion-kit/plugins/motion-kit/skills/motion/tests/*.test.mjs"
 ```
 
-The filmstrip tests need Playwright with a browser and skip themselves without one.
+The filmstrip tests need Playwright with a browser and skip themselves without one. CI installs one outside the checkout and sets `MOTION_REQUIRE_BROWSER=1`, which turns a missing browser into a failure.
 
 ## What has and has not been tested
 

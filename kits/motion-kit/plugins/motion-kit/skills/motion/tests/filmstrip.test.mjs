@@ -18,6 +18,11 @@ const run = (...args) => {
 const probe = run("--do", "click:#open-good", "--frames", "4");
 const skip = probe.status === 3 ? "Playwright or its browser is not available on this machine" : false;
 
+// CI sets MOTION_REQUIRE_BROWSER so a missing browser fails the run instead of quietly skipping these tests.
+test("a browser is available where one is required", () => {
+  if (process.env.MOTION_REQUIRE_BROWSER) assert.equal(skip, false, probe.stderr);
+});
+
 test("a CSS transition is stepped frame by frame and described", { skip }, () => {
   assert.equal(probe.status, 0, probe.stderr);
   const m = probe.json;
@@ -274,6 +279,21 @@ test("an animation slowed by its playback rate gets the time it really takes", {
   const m = chain("--do", "click:#slow", "--frames", "3");
   assert.equal(m.windowMs, 400);
   assert.equal(m.framesChanged, 2);
+});
+
+test("an animation the page holds paused is left alone until the page resumes it", { skip }, () => {
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), "filmstrip-paused-"));
+  const go = (action) => {
+    const r = spawnSync(process.execPath, [script, path.join(here, "fixtures/paused.html"), "--out", out, "--json", "--do", action, "--ms", "400", "--frames", "3"], { encoding: "utf8", timeout: 120000 });
+    assert.equal(r.status, 0, r.stderr);
+    return JSON.parse(r.stdout);
+  };
+  const still = go("click:#nothing");
+  assert.deepEqual(still.animations, []);
+  assert.equal(still.framesChanged, 0, "a paused spinner does not turn in the frames");
+  const resumed = go("click:#resume");
+  assert.equal(resumed.animations.length, 1);
+  assert.equal(resumed.framesChanged, 2);
 });
 
 test("an unknown action fails with a usage error instead of a blank capture", { skip }, () => {

@@ -1,0 +1,15 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Paused fixture</title>
+<style>
+  body { margin: 0; background: #fff; }
+  @keyframes turn { to { transform: rotate(360deg); } }
+  #spinner { position: absolute; left: 100px; top: 100px; width: 80px; height: 40px; background: #1d4ed8; animation: turn 1s linear infinite; animation-play-state: paused; }
+  #spinner.on { animation-play-state: running; }
+  button { position: absolute; left: 400px; top: 500px; }
+</style>
+<button id="nothing">Nothing</button><button id="resume" style="left:500px">Resume</button>
+<div id="spinner"></div>
+<script>
+  document.getElementById("resume").addEventListener("click", () => document.getElementById("spinner").classList.add("on"));
+</script>

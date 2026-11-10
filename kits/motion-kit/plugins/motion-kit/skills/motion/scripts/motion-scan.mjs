@@ -81,7 +81,7 @@ function scanCssValue(kind, prop, value, file, line, text) {
   if (/^(none|initial|inherit|unset|revert)\b/.test(value.trim())) return;
   for (const layer of splitTop(value)) {
     const tokens = splitTop(layer, " ");
-    let sawTime = 0, sawEase = false;
+    let sawTime = 0, sawEase = false, unnamedVar = false;
     const props = tokens.filter((t) => kind === "transition" && prop === "transition" && /^[a-z-]+$/.test(t) && !EASE_WORD.test(t) && !/^(allow-discrete|normal|infinite)$/.test(t));
     for (const t of tokens) {
       const time = t.match(/^(-?\d*\.?\d+)(ms|s)$/);
@@ -98,6 +98,7 @@ function scanCssValue(kind, prop, value, file, line, text) {
         // A variable is read by its name when the name says what it is, and by its place otherwise: in a
         // shorthand the first time-like value is the duration, whatever the project called its token.
         const namedEase = /eas|curve|bezier|spring/i.test(t), namedTime = /dur|time|speed|motion|delay/i.test(t);
+        if (!namedEase && !namedTime) unnamedVar = true;
         if (/timing-function/.test(prop) || (namedEase && !/duration|delay/.test(prop))) { bump(easings, t.toLowerCase()); sawEase = true; }
         else if (/delay/.test(prop)) sawTime++;
         else if (/duration/.test(prop) || namedTime || !sawTime) { if (sawTime === 0) totals.tokenDurations++; sawTime++; }
@@ -107,6 +108,9 @@ function scanCssValue(kind, prop, value, file, line, text) {
       else if (kind === "transition" && (prop === "transition" || prop === "transition-property") && /^[a-z-]+$/.test(t) && !/^(allow-discrete|normal)$/.test(t)) noteProperty(t, file, line, text, kind);
     }
     if (kind === "transition" && prop === "transition" && sawTime && !sawEase) totals.noEasing++;
+    // A shorthand that names no property animates all of them: "transition: 200ms ease" is "transition: all".
+    // A variable whose name does not say what it holds might be the property, so then nothing is assumed.
+    if (kind === "transition" && prop === "transition" && sawTime && props.length === 0 && !unnamedVar) noteProperty("all", file, line, text, kind);
   }
 }
 

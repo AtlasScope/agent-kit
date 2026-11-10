@@ -71,8 +71,20 @@ jobs:
         if: steps.changes.outputs.library == 'true'
         run: node tests/routing/check.mjs
 
+      # The capture tests need a browser. Playwright goes in a folder outside the checkout, because the
+      # script will not load a copy from inside the project it is looking at.
+      - name: Install a browser for the motion-kit capture tests
+        if: steps.changes.outputs.motion == 'true'
+        run: |
+          version="$(node -p "require('./site/package.json').devDependencies.playwright")"
+          npm install --prefix "$RUNNER_TEMP/motion-playwright" --no-audit --no-fund "playwright@$version"
+          "$RUNNER_TEMP/motion-playwright/node_modules/.bin/playwright" install --with-deps chromium
+          echo "MOTION_PLAYWRIGHT_DIR=$RUNNER_TEMP/motion-playwright" >> "$GITHUB_ENV"
+
       - name: Test the motion-kit scripts
         if: steps.changes.outputs.motion == 'true'
+        env:
+          MOTION_REQUIRE_BROWSER: "1"
         run: node --test "kits/motion-kit/plugins/motion-kit/skills/motion/tests/*.test.mjs"
 
       - name: Typecheck the site
