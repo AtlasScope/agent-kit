@@ -20,7 +20,8 @@ const fail = (msg) => {
 
 function run(cmd, args, cwd, { quiet = false } = {}) {
   try {
-    return execFileSync(cmd, args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
+    // trimEnd, not trim: porcelain output starts with meaningful spaces (" M file").
+    return execFileSync(cmd, args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trimEnd();
   } catch (error) {
     if (quiet) return null;
     throw new Error(`${cmd} ${args.join(" ")}: ${(error.stderr || error.message).toString().trim()}`);
@@ -81,10 +82,13 @@ function lanes() {
   });
 }
 
-function status(p) {
-  const dirty = (git(["status", "--porcelain"], p, { quiet: true }) || "").split("\n").filter(Boolean);
-  const ahead = Number(git(["rev-list", "--count", "origin/main..HEAD"], p, { quiet: true }) || 0);
-  const committed = (git(["diff", "--name-only", "origin/main...HEAD"], p, { quiet: true }) || "").split("\n");
+// strict: any git failure throws, so removal is refused instead of guessing "clean" or "no commits".
+function status(p, { strict = false } = {}) {
+  const quiet = !strict;
+  if (strict) git(["rev-parse", "--verify", "--quiet", "origin/main"], p);
+  const dirty = (git(["status", "--porcelain"], p, { quiet }) || "").split("\n").filter(Boolean);
+  const ahead = Number(git(["rev-list", "--count", "origin/main..HEAD"], p, { quiet }) || 0);
+  const committed = (git(["diff", "--name-only", "origin/main...HEAD"], p, { quiet }) || "").split("\n");
   const files = new Set([...committed, ...dirty.map((l) => l.slice(3))].filter(Boolean));
   return { dirty: dirty.length, ahead, files };
 }
@@ -112,7 +116,12 @@ function removeLane(lanePath, { dryRun = false } = {}) {
   const lane = lanes().find((l) => real(l.path) === real(lanePath));
   if (!lane) return "git does not know it as a worktree";
   fetchMain();
-  const { dirty, ahead } = status(lanePath);
+  let dirty, ahead;
+  try {
+    ({ dirty, ahead } = status(lanePath, { strict: true }));
+  } catch (error) {
+    return `its state could not be checked (${error.message.split("\n")[0]})`;
+  }
   if (dirty) return `it has ${dirty} uncommitted change(s)`;
   const how = ahead ? merged(lanePath, lane.branch) : "no commits of its own";
   if (!how) return `its ${ahead} commit(s) are not on main and no merged PR has this exact tip`;
