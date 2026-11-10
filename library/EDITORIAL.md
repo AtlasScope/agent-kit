@@ -5,6 +5,11 @@ The full inventory is `library/dist/inventory.csv`, rebuilt by `node library/bui
 
 ## 2026-11-10 (router references)
 
+- The /design router's `catalog.md`, `recipes.md` and `situations.md` now come from `library/library.json`
+  through `kits/design-kit/scripts/build_references.mjs`, and `check.mjs` fails when they drift. The old
+  `build_references.cjs` had the same field-guide problem as the engineering one. The command set is
+  unchanged; descriptions now match the library's current wording. The Impeccable helper agents have no
+  library entries, so their rows sit in `kits/design-kit/scripts/impeccable-helpers.json`.
 - The /engineer router's `start-here.md` and `investigations.md` now come from `library/library.json`
   through `kits/engineering-kit/scripts/build_references.mjs`, and `check.mjs` fails when they drift.
   The old `build_references.cjs` read an older field-guide format and had stopped running, so the

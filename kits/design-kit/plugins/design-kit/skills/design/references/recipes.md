@@ -1,6 +1,8 @@
 # Recipes
 
-Named chains of skills. Run one step per turn and show the result before the next, unless the user says to run it through. Generated from the Design Skills Field Guide.
+Generated from `library/library.json` by `kits/design-kit/scripts/build_references.mjs`; do not edit by hand.
+
+Named chains of skills. Run one step per turn and show the result before the next, unless the user says to run it through.
 
 ## New landing page
 
@@ -14,7 +16,7 @@ From blank to a shipped page that does not look templated.
 
 ## New dashboard or tool
 
-Product UI with a system that stays consistent next session.
+Product screens with a design system that stays consistent next session.
 
 1. `/impeccable shape`: agree the screen's job and layout first
 2. `/interface-design`: build it and save system.md
@@ -70,7 +72,7 @@ Catch problems before users do. The first three only report.
 
 ## Feels right on a phone
 
-Make a web app feel installed rather than browsed.
+Make a web app feel like an installed app instead of a website.
 
 1. `/impeccable adapt`: layout across screen sizes
 2. `/mobile-native`: tap, notch, 100vh and input-zoom fixes
@@ -86,7 +88,7 @@ See real options instead of arguing about one.
 
 ## Clean up a repo's docs
 
-Get a noisy first Vale run down to something worth fixing.
+Get a noisy first run of Vale (the prose checker) down to problems worth fixing.
 
 1. `/vale:triage`: decide per rule: fix, downgrade or switch off
 2. `/vale:vocab`: teach it your product names
@@ -95,7 +97,7 @@ Get a noisy first Vale run down to something worth fixing.
 
 ## Write prose that doesn't sound like AI
 
-One piece of prose from draft to sendable.
+Take one piece of writing from draft to ready to send.
 
 1. `/stop-slop`: draft it with the anti-AI rules on
 2. `/slop-guard`: get a score and the list of AI phrases
@@ -113,7 +115,7 @@ Fonts, a palette scale and dark mode, saved so every later pass uses them.
 
 ## Landing page that converts
 
-From positioning to a page that is checked for conversion.
+From how you pitch the product to a page that's checked for turning visitors into sign-ups.
 
 1. `/product-marketing`: once per product: audience, claims, voice
 2. `/copywriting`: headline, value props, calls to action
@@ -124,7 +126,7 @@ From positioning to a page that is checked for conversion.
 
 ## Native iPhone screen
 
-SwiftUI that a fluent iPhone user would trust.
+SwiftUI screens that someone who knows iPhones well would trust.
 
 1. `/ios-hig-design`: the platform patterns this screen should use
 2. `/impeccable shape`: agree the screen's job first
@@ -142,7 +144,7 @@ People get lost or make mistakes. Find out where, then fix it.
 
 ## Brutal pre-launch review
 
-Every critical lens at once, then the fixes. Only when you ask for it.
+Every tough review angle at once, then the fixes. Only when you ask for it.
 
 1. `/harsh-review`: blunt, evidence-backed, ships the small fixes
 2. `/steve-jobs-design-review`: what to cut for focus
@@ -151,7 +153,7 @@ Every critical lens at once, then the fixes. Only when you ask for it.
 
 ## Dark mode done right
 
-Colors that hold contrast and character in both themes.
+Colors that keep their contrast and character in both light and dark themes.
 
 1. `/oklch-skill`: build the dark scale in OKLCH
 2. `/impeccable colorize`: apply it with intent, not inversion
@@ -160,7 +162,7 @@ Colors that hold contrast and character in both themes.
 
 ## Interactions that feel alive
 
-Feedback on every action, motion that earns its place.
+Feedback on every action, and motion only where it earns its place.
 
 1. `/microinteractions`: design the trigger, rule and feedback
 2. `/animate`: build the motion properly
@@ -169,7 +171,7 @@ Feedback on every action, motion that earns its place.
 
 ## People sign up and drift away
 
-Activation and return visits, designed rather than hoped for.
+Design how people get started and come back, instead of hoping they will.
 
 1. `/improve-retention`: where the drop happens and why
 2. `/impeccable onboard`: first run and empty states

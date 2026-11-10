@@ -49,7 +49,7 @@ The library lives in three references, generated from the Design Skills Field Gu
 - `/impeccable <command>` is one skill with a sub-command, not a separate skill. Pass the sub-command and target as its argument.
 - Several skills are named alike across packs: Impeccable's animate is not Emil's `/animate`; Hallmark audit is not Impeccable audit. Use the catalog's exact command.
 - A skill switched off in Claude's settings does not appear and cannot run. If a pick fails to load, say it may be switched off rather than retrying.
-- The references are generated. When the field guide changes, rebuild them with `node scripts/build_references.cjs <guide.html> plugins/design-kit/skills/design/references --public` from the design-kit repo root, and land the change through a PR.
+- The references are generated from `library/library.json`. When a design entry changes, rebuild them with `node kits/design-kit/scripts/build_references.mjs` from the repo root, and land the change through a PR.
 
 ## Output
 

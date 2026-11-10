@@ -32,7 +32,7 @@ jobs:
           has() { printf '%s\n' "$files" | grep -qE "$1" && echo true || echo false; }
           all=$(has '^\.github/workflows/')
           site=$(has '^(site|library|kits)/')
-          library=$(has '^(library|kits/engineering-kit)/')
+          library=$(has '^(library|kits/engineering-kit|kits/design-kit)/')
           public=$(has '^(kits/|library/|scripts/check-public|[A-Z]+\.md$)')
           catalog=$(has '^(kits/|\.claude-plugin/|\.agents/|scripts/check-catalog)')
           [ "$all" = true ] && site=true library=true public=true catalog=true
