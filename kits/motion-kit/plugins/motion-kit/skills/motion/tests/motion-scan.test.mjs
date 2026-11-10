@@ -102,3 +102,9 @@ test("commented-out motion is not counted", () => {
   assert.deepEqual(r.findings, []);
   assert.deepEqual(r.system, []);
 });
+
+test("react-spring durations are read as milliseconds", () => {
+  const r = scan("react-spring");
+  assert.deepEqual(r.durations.map((d) => d.ms), [250]);
+  assert.ok(!rules(r).includes("long-transition"));
+});

@@ -178,10 +178,10 @@ function scanText(file, src) {
   const LIBS = [["motion", /from\s+["'](motion(\/react)?(-client)?|framer-motion|motion\/react-client)["']/], ["gsap", /from\s+["']gsap(\/[^"']*)?["']|require\(["']gsap/], ["react-spring", /from\s+["']@react-spring\//], ["reanimated", /from\s+["']react-native-reanimated["']/], ["anime.js", /from\s+["']animejs["']/], ["lottie", /from\s+["'](lottie-web|lottie-react|@lottiefiles\/[^"']+)["']/], ["rive", /from\s+["']@rive-app\//], ["auto-animate", /from\s+["']@formkit\/auto-animate/], ["lenis", /from\s+["'](lenis|@studio-freight\/lenis)/], ["tailwindcss-animate", /tailwindcss-animate|tw-animate-css/]];
   for (const [name, re] of LIBS) if (re.test(src)) bump(libraries, name);
   const usesLib = LIBS.some(([, re]) => re.test(src)) || /\.animate\(|transition=\{|useSpring|withSpring|withTiming/.test(src);
-  // Motion, GSAP and react-spring count in seconds; Reanimated, anime.js and the Web Animations API in
+  // Motion and GSAP count in seconds; react-spring, Reanimated, anime.js and the Web Animations API in
   // milliseconds. Only a file that names none of them falls back to guessing from the size of the number.
-  const unit = /from\s+["'](motion|framer-motion|gsap|@react-spring)|require\(["']gsap/.test(src) ? "s"
-    : /react-native-reanimated|animejs|withTiming|\.animate\(/.test(src) ? "ms" : "?";
+  const unit = /from\s+["'](motion|framer-motion|gsap)|require\(["']gsap/.test(src) ? "s"
+    : /@react-spring\/|react-native-reanimated|animejs|withTiming|\.animate\(/.test(src) ? "ms" : "?";
   if (usesLib) {
     for (const m of src.matchAll(/(?<![\w.])duration\s*:\s*(\d*\.?\d+)\s*[,}\n]/g)) {
       const n = parseFloat(m[1]); const v = Math.round(n * (unit === "s" || (unit === "?" && n <= 20) ? 1000 : 1));
