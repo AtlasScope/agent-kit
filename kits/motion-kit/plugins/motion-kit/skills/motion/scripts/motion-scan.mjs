@@ -143,12 +143,13 @@ function scanText(file, src) {
     for (const m of css.matchAll(/@apply\b[^;}]*/g)) keep.fill(1, m.index, m.index + m[0].length);
     src = [...css].map((ch, i) => (keep[i] || ch === "\n" ? ch : " ")).join("");
   }
-  for (const m of src.matchAll(/(?<![\w-])(?:[a-z0-9-]+:)*duration-(\d+|\[[^\]]+\])/g)) {
+  for (const m of src.matchAll(/(?<![\w-])(?:[a-z0-9-]+:)*duration-(\d+|\[[^\]]+\]|\(--[\w-]+\))/g)) {
     const raw = m[1].replace(/[[\]]/g, ""); const t = raw.match(/^(\d*\.?\d+)(ms|s)?$/);
     if (!t) { totals.tokenDurations++; continue; }
     const v = ms(t[1], t[2] || "ms"); bump(durations, v); totals.literalDurations++;
     if (v >= 500) find("long-transition", "check", file, lineAt(m.index), m[0], `${v}ms is long for a state change. Most interface transitions land between 120 and 320ms.`);
   }
+  for (const m of src.matchAll(/(?<![\w-])(?:[a-z0-9-]+:)*ease-\((--[\w-]+)\)/g)) bump(easings, `var(${m[1]})`); // Tailwind v4: ease-(--token)
   for (const m of src.matchAll(/(?<![\w-])(?:[a-z0-9-]+:)*ease-(linear|in-out|in|out|\[[^\]]+\])(?![\w-])/g)) noteEasing(m[1].startsWith("[") ? m[1].slice(1, -1).replace(/_/g, "") : m[1] === "linear" ? "linear" : `ease-${m[1]}`, file, lineAt(m.index), m[0], "transition");
   for (const m of src.matchAll(/(?<![\w-])(?:[a-z0-9-]+:)*transition-all(?![\w-])/g)) { totals.transitions++; noteProperty("all", file, lineAt(m.index), m[0], "transition"); }
   for (const m of src.matchAll(/(?<![\w-])(?:[a-z0-9-]+:)*transition(?:-(colors|opacity|transform|shadow))?(?![\w-])(?=[\s"'`])/g)) if (/class(Name)?\s*=|cn\(|clsx\(|cva\(|@apply/.test(src.slice(Math.max(0, m.index - 400), m.index))) { totals.transitions++; if (m[1]) bump(properties, m[1]); }

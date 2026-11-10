@@ -55,6 +55,13 @@ test("inline style strings and library durations are read in the right units", (
   assert.ok(r.durations.some((d) => d.ms === 8) && !r.durations.some((d) => d.ms === 8000), "8 in a Web Animations call is eight milliseconds");
 });
 
+test("Tailwind v4 variable-backed utilities count as tokens", () => {
+  const r = scan("tw4");
+  assert.equal(r.totals.tokenDurations, 1);
+  assert.equal(r.totals.literalDurations, 0);
+  assert.deepEqual(r.easings.map((e) => e.easing), ["var(--ease-out)"]);
+});
+
 test("a folder with no motion says so and exits cleanly", () => {
   const out = execFileSync(process.execPath, [path.join(here, "../scripts/motion-scan.mjs"), path.join(here, "../agents")], { encoding: "utf8" });
   assert.match(out, /No motion found/);
