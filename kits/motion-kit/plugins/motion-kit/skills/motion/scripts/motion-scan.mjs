@@ -134,7 +134,10 @@ function scanText(file, src) {
       if (/scale\(\s*0\s*\)/.test(d[2])) find("scale-from-zero", "check", file, lineAt(m.index), `@keyframes ${m[1]} { ${d[1]}: ${d[2].trim()} }`, "Growing from nothing reads as a pop from a point. Start near full size (around 0.96) with opacity.");
     }
   }
-  for (const m of src.matchAll(/prefers-reduced-motion/g)) { if (isScript && !/@media/.test(src.slice(Math.max(0, m.index - 40), m.index))) reduced.js++; else reduced.css++; }
+  // A comment that mentions reduced motion ("TODO: add prefers-reduced-motion") handles nothing, so comments
+  // are blanked out, keeping every offset, before looking for the checks.
+  const bare = src.replace(/\/\*[\s\S]*?\*\/|<!--[\s\S]*?-->/g, (c) => c.replace(/[^\n]/g, " ")).replace(isScript ? /(?<![:"'`\\])\/\/[^\n]*/g : /$^/g, (c) => " ".repeat(c.length));
+  for (const m of bare.matchAll(/prefers-reduced-motion/g)) { if (isScript && !/@media/.test(bare.slice(Math.max(0, m.index - 40), m.index))) reduced.js++; else reduced.css++; }
   for (const m of src.matchAll(/(?<![\w-])will-change\s*:\s*([^;}\n]+)/g)) if (!/auto/.test(m[1])) find("will-change", "info", file, lineAt(m.index), m[0], "A permanent will-change keeps a layer in memory. Set it just before the animation and remove it after, or drop it.");
   if (/view-transition-name|@view-transition|startViewTransition/.test(src)) modern.viewTransitions++;
   if (/animation-timeline|scroll-timeline|view-timeline/.test(src)) modern.scrollDriven++;
@@ -159,7 +162,9 @@ function scanText(file, src) {
   for (const m of src.matchAll(/(?<![\w-])(?:[a-z0-9-]+:)*transition-all(?![\w-])/g)) { totals.transitions++; noteProperty("all", file, lineAt(m.index), m[0], "transition"); }
   for (const m of src.matchAll(/(?<![\w-])(?:[a-z0-9-]+:)*transition(?:-(colors|opacity|transform|shadow))?(?![\w-])(?=[\s"'`])/g)) if (/class(Name)?\s*=|cn\(|clsx\(|cva\(|@apply/.test(src.slice(Math.max(0, m.index - 400), m.index))) { totals.transitions++; if (m[1]) bump(properties, m[1]); }
   for (const m of src.matchAll(/(?<![\w-])(?:[a-z0-9-]+:)*animate-(spin|ping|pulse|bounce)(?![\w-])/g)) { totals.animations++; totals.infinite++; find("infinite", "check", file, lineAt(m.index), m[0], "Runs forever. It needs a reduced-motion alternative, and a pause control if it lasts over five seconds beside other content (WCAG 2.2.2)."); }
-  reduced.tailwind += (src.match(/motion-(reduce|safe):/g) || []).length;
+  // Tailwind arbitrary properties: transition-[height] or transition-[opacity,transform].
+  for (const m of src.matchAll(/(?<![\w-])(?:[a-z0-9-]+:)*transition-\[([^\]]+)\]/g)) { totals.transitions++; for (const p of m[1].split(",")) noteProperty(p.replace(/_/g, "").trim(), file, lineAt(m.index), m[0], "transition"); }
+  reduced.tailwind += ((STYLE.test(file) ? src : bare).match(/motion-(reduce|safe):/g) || []).length;
   if (STYLE.test(file)) return;
 
   if (!isScript && !MARKUP.test(file)) return;
@@ -190,7 +195,7 @@ function scanText(file, src) {
     for (const m of src.matchAll(/repeat\s*:\s*(Infinity|-1)|iterations\s*:\s*Infinity/g)) { totals.infinite++; find("infinite", "check", file, lineAt(m.index), m[0], "Runs forever. It needs a reduced-motion alternative, and a pause control if it lasts over five seconds beside other content (WCAG 2.2.2)."); }
     for (const m of src.matchAll(/(?:initial|from)\s*=?\s*:?\s*\{\{?[^}]{0,80}scale\s*:\s*0\s*[,}]/g)) find("scale-from-zero", "check", file, lineAt(m.index), m[0], "Growing from nothing reads as a pop from a point. Start near full size (around 0.96) with opacity.");
   }
-  reduced.js += (src.match(/useReducedMotion|reducedMotion\s*[=:]|ReduceMotion\.|isReduceMotionEnabled|accessibilityReduceMotion/g) || []).length;
+  reduced.js += (bare.match(/useReducedMotion|reducedMotion\s*[=:]|ReduceMotion\.|isReduceMotionEnabled|accessibilityReduceMotion/g) || []).length;
   for (const m of src.matchAll(/addEventListener\(\s*["']scroll["']/g)) find("scroll-listener", "info", file, lineAt(m.index), m[0], "Scroll handlers run on the main thread. For scroll-linked effects consider a scroll-driven animation or IntersectionObserver.");
 }
 

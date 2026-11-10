@@ -63,6 +63,7 @@ Go frame by frame and ask:
 - **Path.** Does the element travel from where it is attached? Does the scale grow from the trigger?
 - **Last frame.** Is it identical to the static design? A difference means a jump at the end.
 - **"The change was instant"** means the first frame already shows the end state. That is correct under reduced motion and for anything that should not animate, and a finding where a transition was intended.
+- **"A later animation runs past this window"** means a step started only after an earlier one finished, so the window was chosen before it existed. Capture again with the `--ms` value the note gives.
 - **Greyed frames** are identical to the one before. Several at the start mean a delay. Several at the end mean the window is longer than the motion, which is fine.
 
 Then read "What moved":

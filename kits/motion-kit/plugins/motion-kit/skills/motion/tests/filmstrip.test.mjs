@@ -256,6 +256,26 @@ test("an animation the page plays in reverse is captured from its end back to it
   assert.ok(!png("01.png").equals(png("00.png")) && !png("01.png").equals(png("02.png")), "the middle frame is part way");
 });
 
+const chain = (...args) => {
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), "filmstrip-chain-"));
+  const r = spawnSync(process.execPath, [script, path.join(here, "fixtures/chain.html"), "--out", out, "--json", ...args], { encoding: "utf8", timeout: 120000 });
+  assert.equal(r.status, 0, r.stderr);
+  return JSON.parse(r.stdout);
+};
+
+test("a step that waits for the one before it to finish still starts", { skip }, () => {
+  const m = chain("--do", "click:#chain", "--ms", "300", "--frames", "4");
+  assert.deepEqual(m.animations.map((a) => a.target), ["div#a", "div#b"]);
+  assert.ok(m.animations[1].startedAt >= 100 && m.animations[1].startedAt <= 180, `the second step starts when the first ends, reported ${m.animations[1].startedAt}`);
+  assert.match(chain("--do", "click:#chain", "--frames", "3").note, /past this window, so capture again with --ms/);
+});
+
+test("an animation slowed by its playback rate gets the time it really takes", { skip }, () => {
+  const m = chain("--do", "click:#slow", "--frames", "3");
+  assert.equal(m.windowMs, 400);
+  assert.equal(m.framesChanged, 2);
+});
+
 test("an unknown action fails with a usage error instead of a blank capture", { skip }, () => {
   const r = run("--do", "wiggle:#x");
   assert.equal(r.status, 2);

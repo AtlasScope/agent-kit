@@ -1,0 +1,2 @@
+.panel { transition: transform 200ms ease-out; }
+/* TODO: add prefers-reduced-motion */

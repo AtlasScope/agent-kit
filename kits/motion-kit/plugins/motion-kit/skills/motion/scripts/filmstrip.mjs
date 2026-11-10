@@ -120,8 +120,8 @@ async function act(page, a) {
 
 // Runs in the page. Pauses every animation the document knows about and moves each to the given time.
 // Returns a description of each one the first time it is seen.
-function scrub(t) {
-  const reg = (window.__filmstrip ||= { seen: new Map(), from: new Map(), n: 0 });
+function scrub([t, finish]) {
+  const reg = (window.__filmstrip ||= { seen: new Map(), from: new Map(), done: new WeakSet(), n: 0 });
   const name = (el) => { if (!el) return "(detached)"; const c = typeof el.className === "string" && el.className.trim() ? "." + el.className.trim().split(/\s+/).slice(0, 2).join(".") : ""; return el.tagName.toLowerCase() + (el.id ? "#" + el.id : "") + c; };
   const COMPOSITED = new Set(["transform", "opacity", "translate", "scale", "rotate", "filter", "backdropFilter", "offsetDistance"]);
   const LAYOUT = /^(width|height|minWidth|minHeight|maxWidth|maxHeight|top|left|right|bottom|inset.*|margin.*|padding.*|fontSize|lineHeight|borderWidth|gap|gridTemplate.*|flexBasis)$/;
@@ -129,6 +129,7 @@ function scrub(t) {
   // Animations already seen are kept by reference: one with no fill drops out of getAnimations() once it has
   // been moved to its end, and it still has to be rewound.
   for (const a of new Set([...reg.seen.keys(), ...document.getAnimations()])) {
+    if (reg.done.has(a)) continue;
     let rec = reg.seen.get(a);
     if (!rec) {
       const timing = a.effect?.getComputedTiming?.() || {};
@@ -164,7 +165,20 @@ function scrub(t) {
       reg.from.set(a, { dir, at: hint ? hint.from : dir < 0 ? (Number.isFinite(end) ? end : a.currentTime ?? 0) : 0 });
     }
     const from = reg.from.get(a);
-    const at = from.at + from.dir * Math.abs(a.playbackRate || 1) * (t - rec.start);
+    const speed = Math.abs(a.playbackRate || 1);
+    const total = a.effect?.getComputedTiming?.().endTime;
+    // How long it really takes from here: a half-speed animation needs twice its own length, and a reversed
+    // one only has the stretch back to zero left.
+    if (fresh.includes(rec) && rec.end != null) rec.end = Math.round((from.dir < 0 ? from.at : Math.max(0, total - from.at)) / speed);
+    const at = from.at + from.dir * speed * (t - rec.start);
+    // Code that waits for the end (await animation.finished, onfinish) starts its next step only when the
+    // animation really finishes, which a paused one never does. So once time passes its end, finish it and
+    // leave it alone from then on.
+    if (finish && Number.isFinite(total) && (from.dir < 0 ? at <= 0 : at >= total)) {
+      try { a.finish(); } catch { /* cannot finish: infinite or detached */ }
+      reg.seen.delete(a); reg.done.add(a);
+      continue;
+    }
     try { a.pause(); a.currentTime = Math.max(0, at); } catch { /* finished or detached */ }
   }
   return fresh;
@@ -308,12 +322,12 @@ async function capture(pw) {
   }
   if (!isLoad) await act(page, trigger);
   await page.clock.runFor(34);
-  const animations = await page.evaluate(scrub, 0);
+  const animations = await page.evaluate(scrub, [0, false]);
   if (lateClip) {
     const ends = animations.filter((x) => x.end != null).map((x) => x.end);
-    if (ends.length) await page.evaluate(scrub, Math.max(...ends)); // measure it where it comes to rest
+    if (ends.length) await page.evaluate(scrub, [Math.max(...ends), false]); // measure it where it comes to rest
     clip = await clipBox();
-    if (ends.length) await page.evaluate(scrub, 0);
+    if (ends.length) await page.evaluate(scrub, [0, false]);
   }
   const finite = animations.filter((a) => a.end != null).map((a) => a.end);
   const windowMs = CAP || Math.min(4000, Math.max(200, finite.length ? Math.max(...finite) : 600));
@@ -330,7 +344,7 @@ async function capture(pw) {
         const slice = Math.min(16, next - t);
         await page.clock.runFor(slice);
         t += slice;
-              animations.push(...(await page.evaluate(scrub, t)));
+        animations.push(...(await page.evaluate(scrub, [t, true])));
       }
     }
     const file = `frames/${String(i).padStart(2, "0")}.png`;
@@ -343,11 +357,14 @@ async function capture(pw) {
   const moved = frames.filter((f) => f.i > 0 && !f.same).length;
   const instant = !!before && moved === 0 && !before.equals(fs.readFileSync(path.join(outDir, frames[0].file)));
   const clipNote = !opt("--clip") ? "" : !clip ? `; --clip "${opt("--clip")}" matched nothing visible, so frames show the whole viewport` : lateClip ? "; the crop was taken after the action revealed its target, so there is no before frame" : "";
+  // A step that only starts when an earlier one finishes is not known when the window is chosen.
+  const runsTo = Math.max(0, ...animations.filter((a) => a.end != null).map((a) => a.start + a.end));
+  const cutNote = !CAP && runsTo > windowMs ? `; a later animation runs to about ${runsTo}ms, past this window, so capture again with --ms ${Math.ceil(runsTo / 50) * 50}` : "";
   const note = (animations.length
     ? `${animations.length} animation${animations.length === 1 ? "" : "s"} stepped frame by frame`
     : moved ? "no CSS or Web Animations found; script-driven motion stepped with a paused clock"
     : instant ? "the change was instant: the first frame already differs from before the action, and nothing moves after it"
-    : "nothing changed on screen after the action") + clipNote;
+    : "nothing changed on screen after the action") + clipNote + cutNote;
   // startedAt is time since the action. The first 34ms pass before frame 0, to let scripts start their animations.
   const meta = { url, action: trigger, instant, clip: clip || null, before: before ? "frames/before.png" : null, viewport: { width: vp.width, height: vp.height }, reducedMotion: flag("--reduced"), windowMs, frames, framesChanged: moved, animations: animations.map(({ start, ...a }) => ({ ...a, startedAt: start ? start + 34 : 0 })), note, errors };
 

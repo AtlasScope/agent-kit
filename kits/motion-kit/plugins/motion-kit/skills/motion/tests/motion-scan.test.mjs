@@ -74,3 +74,17 @@ test("a folder with no motion says so and exits cleanly", () => {
   const out = execFileSync(process.execPath, [path.join(here, "../scripts/motion-scan.mjs"), path.join(here, "../agents")], { encoding: "utf8" });
   assert.match(out, /No motion found/);
 });
+
+test("a comment that mentions reduced motion does not count as handling it", () => {
+  const r = scan("comment");
+  assert.deepEqual(r.reducedMotion, { css: 0, tailwind: 0, js: 0 });
+  assert.ok(r.system.some((s) => s.rule === "no-reduced-motion"));
+});
+
+test("Tailwind transitions with a bracketed property list are counted and checked", () => {
+  const r = scan("arbitrary");
+  assert.equal(r.totals.transitions, 2);
+  assert.deepEqual(r.properties.map((p) => p.property).sort(), ["height", "opacity", "transform"]);
+  assert.ok(r.findings.some((f) => f.rule === "layout-property" && f.line === 3));
+  assert.ok(r.system.some((s) => s.rule === "no-reduced-motion"));
+});
