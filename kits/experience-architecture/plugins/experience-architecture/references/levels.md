@@ -1,68 +1,97 @@
-# Levels of change
+# Direction and levels of change
 
-A product that feels wrong can need very different amounts of change. Choosing the amount is the main judgment in this plugin. Too little polishes a flow that should not exist. Too much rebuilds a product that needed one screen put in order, and destroys things that worked.
+The goal is a better product: understand what it should help people accomplish, find the most valuable change, develop a coherent direction, and carry it through to a working experience. The levels below are a vocabulary for the size of that change. They help explain a recommendation and check it for timidity or excess. Naming the level is never the recommendation itself: two agents can both say "recompose" and one of them has only made a longer form.
 
-Give one verdict for each job people come to do. A product often needs different levels in different places.
+## Two decisions, kept apart
+
+1. **What should this become?** The direction. It may be ambitious.
+2. **What do we build first?** The first step. It may be small and reversible.
+
+A small first step does not shrink the direction. State both, and say how the first step moves toward the direction.
+
+## The direction statement
+
+Before choosing components or arranging screens, write two to four sentences on what using the improved product should be like for the people in the brief. Tie each sentence to a job or to the purpose. Leave out layout, components and style.
+
+> Booking service: "This should feel like arranging one clear commitment. Availability and the total price stay understandable throughout. Each step reduces uncertainty, and an interruption keeps the person's progress."
+
+> Expert research tool: "This should feel like an efficient working instrument: dense where comparison matters, quiet around supporting controls, and explicit about which figures are facts and which are estimates."
+
+The statement is ready when it would be wrong for a different product, and when someone could use it to choose between two designs.
+
+## What can justify a change
+
+- **A demonstrated problem**: a job that fails, stalls, repeats work or misleads, seen in use.
+- **A design objective**: the owner wants the product to feel more coherent, credible, distinctive or fitting for its audience, or the purpose in the brief calls for it. This is a legitimate reason on its own. Say plainly that it is an objective: "I have not shown that people fail this task. This recommendation serves the goal of making the product feel coherent and credible. Here is the direction and what it costs."
+
+Keep the two apart in the report. An objective is never written up as a usability finding.
 
 ## The six levels
 
-| Level | What changes | Fits when | Show this before recommending it |
-|---|---|---|---|
-| **Leave** | Nothing | The complaint does not survive use, or the change costs users more than it gives them | The job done cleanly, start to finish |
-| **Repair** | A defect on a sound path: state lost, a dead end, a control that misleads, a label that names the wrong thing | The path is right and something on it is broken | The failure, reproduced |
-| **Clarify** | How existing screens present what they already hold: order, emphasis, density, grouping, wording, consistency between screens | People are in the right place and cannot tell what matters, what to do next, or whether it worked | One screen marked up: what the job needs first against what the screen makes loudest |
-| **Recompose** | One screen or one flow, rearranged: steps merged or reordered, content moved to where the work happens, a detour removed | One job takes several stops, repeated input, or carrying something from one screen to another by hand | The job traced step by step, with every hand-off the person performs |
-| **Restructure** | Which places exist and how navigation is organised | Two or more jobs fail for the same structural reason: a split, an overlap, navigation built around the wrong groups | Those jobs, and the single cause they share |
-| **Reconceive** | The idea the product is organised around | The product is built around one kind of thing and people's work is shaped like another | The current organising idea in a sentence, and the work that does not fit it |
+| Level | What changes | Typical situation |
+|---|---|---|
+| **Leave** | Nothing | The job works well and no objective calls for change |
+| **Repair** | A defect on a sound path: state lost, a dead end, a control that misleads, a label that names the wrong thing | The path is right and something on it is broken |
+| **Clarify** | How existing screens present what they hold: order, emphasis, density, grouping, wording, consistency, visual identity | People are in the right place and cannot tell what matters, what to do next, or whether it worked; or the product works and looks unconsidered |
+| **Recompose** | A screen or a flow, rearranged around the job: steps merged or reordered, content moved to where the work happens | One job takes several stops, repeated input, or carrying something between screens by hand. One screen can hold a wrongly shaped workflow |
+| **Restructure** | Which places exist and how navigation is organised | Several jobs suffer from the same split or overlap |
+| **Reconceive** | The idea the product is organised around | Every page works, and the product is built around one kind of thing while people's work is shaped like another |
 
 Restructure and Reconceive are the ground `judgment.md` covers. Use its tests for whether a page should exist and which organising idea fits.
 
+Give a level for each job. A product often needs different levels in different places. The levels are not evenly spaced and say nothing about effort: a repair can be weeks of engineering, and a reconception can be shown with a modest change.
+
 ## Choosing
 
-1. **Start from the causes, lowest level first.** Ask whether a repair removes them. If some remain, ask whether clarifying does. Stop at the first level that removes them all for this job.
-2. **Go up only on evidence the lower level cannot answer**, such as "the person re-enters the same date on three screens". A wish for something cleaner does not count.
-3. **Go down when the lower level is enough.** A hierarchy problem on four screens is four clarifications, even when a new layout would also fix it.
-4. **Check the keep list.** A verdict that removes an entry needs a reason that entry's owner would accept, and a place for what it did.
-5. **Name the neighbours.** Say why the level below falls short and why the level above is more than the evidence supports. If you cannot, the verdict is not settled.
+Recommend the intervention with the strongest justified benefit for the people using the product and for the product itself, weighed against disruption, effort, uncertainty and what must be preserved.
 
-## Telling the levels apart
+1. **Start from the direction statement and the causes.** List the candidate interventions that would get there, at whatever levels they fall.
+2. **Compare outcomes.** For each candidate: what using the product is like afterwards, which causes remain, what it disrupts, what is uncertain.
+3. **Prefer the smaller change when the outcomes are comparable.** Prefer it for that reason only. A set of local fixes that clears every recorded problem and leaves the product awkward, incoherent or hard to extend has a worse outcome than a reorganisation that does not.
+4. **Check what must be preserved** (below).
+5. **Name the alternatives you rejected**, one smaller and one larger where they exist, and what each would have given up.
 
-- **Repair or clarify?** If one fix to one element ends the problem, repair. If the element works and people still miss it or misread it, clarify.
-- **Clarify or recompose?** Cover the styling in your mind: same content, same order, plain text. If the job is still awkward, the arrangement is the problem: recompose. If the job is fine in plain text, the presentation is: clarify.
-- **Recompose or restructure?** Count the jobs. One job across too many stops is a flow to recompose. Several jobs hurt by the same division of the product is a structure.
-- **Restructure or reconceive?** If the navigation could be regrouped under the current nouns and the jobs would work, restructure. If the nouns are the wrong ones, reconceive.
+## What must be preserved
 
-## What each level must keep
+Preserve value and contracts. The current surfaces are free to change.
 
-| Level | Keeps |
+| Preserve | Free to change |
 |---|---|
-| Repair | Everything else on the screen |
-| Clarify | Every capability, every piece of content someone relies on, the product's recognisable identity, the routes |
-| Recompose | Every capability of the screens it merges, their links (redirected), permissions for each role |
-| Restructure | Capabilities, public and shared URLs, permission boundaries, distinct audiences |
-| Reconceive | The work people already do in the product, their data, their access |
+| What people can accomplish: compare records, export, resume, see history | The page, menu position and sequence of clicks that deliver it today |
+| Access for every role that has it, and the boundaries between roles | Where the role's work is shown |
+| Links people have saved or shared: they still lead somewhere meaningful | The URL's shape, with redirects |
+| Data and work in progress | Its presentation |
+| Density that practised users rely on to scan and compare | The arrangement that carries it |
+| Deliberate identity the owner wants kept | Accidental inconsistency |
 
-Density is a capability. A table that experts scan is working, however crowded it looks to a newcomer. Clarifying it means making the scan easier, with the same data on screen.
+Higher levels put more of the left column at risk. Say how each item survives.
 
-## Signs the level is wrong
+## Evidence status, separate from the level
 
-**Too high**
+Each verdict also states how well it is supported:
 
-- The recommendation would look the same for any product of this kind.
+- **Established**: seen in use, or certain from code.
+- **Supported**: consistent evidence with a gap you name.
+- **Not established**: the concern did not appear in the conditions tested. This is different from Leave. Write "I could not reproduce this under these conditions; the evidence does not yet support a change here", and say what would test it: another role, real data volume, a person who has not used the product.
+
+## Signs the recommendation is wrong
+
+**Too much**
+
+- It would look the same for any product of this kind.
 - Pages merge because they resemble each other, and nobody checked who uses each.
-- The new design has less on it and the report does not say where the rest went.
-- A journey on the keep list changes.
+- The new design holds less and the report does not say where the rest went.
+- Something in the preserve column is lost with no account of it.
 
-**Too low**
+**Too little**
 
-- The same complaint would be true after the change.
+- The same complaint would be true afterwards.
 - Each screen improves and the person still carries information between them.
-- A new tab, panel or shortcut is added to bring together what the structure keeps apart.
+- A new tab, panel or shortcut brings together what the structure keeps apart.
 - The fix list is long and no item removes more than one symptom.
+- Every finding is addressed and the direction statement is still untrue of the product.
 
 ## Different products, different answers
-
-The levels are the same everywhere. What counts as working is not.
 
 | Kind of product | Usually working when | A common wrong move |
 |---|---|---|
@@ -71,4 +100,4 @@ The levels are the same everywhere. What counts as working is not.
 | Collaborative workspace | Each person sees what is theirs, what changed and what is waiting on them | One layout for every role |
 | Dense expert tool | A practised user reads the screen at a glance and acts without leaving it | Spacing everything out and hiding data behind clicks |
 
-Use the row as a starting question, then decide from this product's brief.
+Use the row as a starting question, then decide from this product's brief. Two products of the same kind can need opposite answers.
