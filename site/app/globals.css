@@ -403,6 +403,8 @@ svg.i { width: 16px; height: 16px; flex: none; }
 .tile--lead .dot { background: #fff; }
 .tile--lead .tile__d { color: rgba(255,255,255,.88); }
 @media (prefers-color-scheme: dark) { .tile--lead { color: #0B0A08; } .tile--lead .dot { background: #0B0A08; } .tile--lead .tile__d { color: rgba(0,0,0,.78); } }
+/* The homepage is ink in the light setting too, where the rule above does not apply. */
+.home .tile--lead { color: #0B0C12; } .home .tile--lead .dot { background: #0B0C12; } .home .tile--lead .tile__d { color: rgba(0,0,0,.78); }
 
 /* Rows: symptoms with an arrow */
 .rows { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: var(--space-sm); }
