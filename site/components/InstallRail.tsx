@@ -1,11 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
 import { AGENTS } from "@/lib/site";
+import { AgentMark } from "./AgentMark";
 import { CopyButton } from "./CopyButton";
 
 const KEY = "agent-kit:agent";
-// The four agents named in the hero, most used first. The rest are on /start.
-const SHOWN = ["claude", "codex", "cursor", "any"].map((id) => AGENTS.find((a) => a.id === id)!);
+// Every agent with an install path, most used first.
+const SHOWN = ["claude", "codex", "cursor", "gemini", "copilot", "any"].map((id) => AGENTS.find((a) => a.id === id)!);
 
 // The strip under the hero: pick your agent, copy the install command, see what was tested.
 export function InstallRail({ stats }: { stats: { label: string; value: number }[] }) {
@@ -28,7 +29,7 @@ export function InstallRail({ stats }: { stats: { label: string; value: number }
           }}>
           {SHOWN.map((a) => (
             <button key={a.id} type="button" role="tab" id={`rt-${a.id}`} aria-selected={a.id === cur} aria-controls="rail-cmd" tabIndex={a.id === cur ? 0 : -1} onClick={() => pick(a.id)}>
-              {a.label}
+              <AgentMark id={a.id} />{a.label}
             </button>
           ))}
         </div>
