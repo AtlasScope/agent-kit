@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Install the three skills for tools that read plain skill folders instead of Claude Code plugins.
+// Install the skills for tools that read plain skill folders instead of Claude Code plugins.
 //
 //   node scripts/install-skills.mjs              Cursor (~/.cursor/skills)
 //   node scripts/install-skills.mjs --codex      Codex skill folders (~/.codex/skills), if you don't use the Codex plugin
@@ -7,7 +7,7 @@
 //   add --uninstall to remove what this script installed
 //
 // It copies the plugin to ~/.experience-architecture/plugin, then writes one folder per skill
-// (experience-architecture-diagnose, -rethink, -verify) with the plugin path filled in. It only ever
+// (experience-architecture-diagnose, -rethink, -verify, -walkthrough) with the plugin path filled in. It only ever
 // overwrites or removes folders it created itself. Works on macOS, Linux and Windows (needs Node 18+).
 import fs from 'node:fs';
 import os from 'node:os';
@@ -18,7 +18,7 @@ const SRC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const HOME = os.homedir();
 const ROOT = path.join(HOME, '.experience-architecture', 'plugin');
 const MARK = '.installed-by-experience-architecture';
-const SKILLS = ['diagnose', 'rethink', 'verify'];
+const SKILLS = ['diagnose', 'rethink', 'verify', 'walkthrough'];
 const args = process.argv.slice(2);
 const has = (f) => args.includes(f);
 const dirArg = args.includes('--dir') ? args[args.indexOf('--dir') + 1] : null;

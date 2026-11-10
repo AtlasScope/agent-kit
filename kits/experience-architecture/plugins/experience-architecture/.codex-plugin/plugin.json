@@ -1,6 +1,6 @@
 {
   "name": "experience-architecture",
-  "description": "Find out why a web app's navigation, pages, links or Back button feel wrong, decide whether its structure should change, and prove it in a real browser. Three skills (Diagnose, Rethink, Verify) over a zero-dependency toolkit for route maps, browser journeys, prototypes and URL migrations. Strongest on React and Next.js.",
+  "description": "Find out why a web app's navigation, pages, links or Back button feel wrong, decide whether its structure should change, and prove it in a real browser. Diagnose, Rethink and Verify over a zero-dependency toolkit for route maps, browser journeys, prototypes and URL migrations, plus Walkthrough (preview), which learns the product by using it and says how big a change it needs. Strongest on React and Next.js.",
   "version": "0.3.1",
   "author": {
     "name": "AtlasScope"

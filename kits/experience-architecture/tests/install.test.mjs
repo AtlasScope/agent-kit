@@ -13,7 +13,7 @@ test('install-skills writes portable skill folders and uninstalls only its own',
   fs.mkdirSync(path.join(dir, 'someone-elses-skill'), { recursive: true });
   const run = (...a) => execFileSync('node', ['plugins/experience-architecture/scripts/install-skills.mjs', '--dir', dir, ...a], { env: { ...process.env, HOME: home, USERPROFILE: home } });
   run();
-  for (const s of ['diagnose', 'rethink', 'verify']) {
+  for (const s of ['diagnose', 'rethink', 'verify', 'walkthrough']) {
     const md = fs.readFileSync(path.join(dir, `experience-architecture-${s}`, 'SKILL.md'), 'utf8');
     assert.match(md, new RegExp(`^---\\nname: experience-architecture-${s}\\ndescription: ".+"\\n---\\n`));
     assert.ok(!md.includes('${CLAUDE_PLUGIN_ROOT}') && !md.includes('!`'), `${s} has no Claude-only syntax`);

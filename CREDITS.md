@@ -1,6 +1,6 @@
 # Credits
 
-49 of the 60 skills in Agent Kit were written by other people. They ship here under their own licenses, copied from the versions named in each kit's `THIRD_PARTY.md`, and each skill folder keeps its author's LICENSE file. Agent Kit adds the routers that pick between them and 11 skills of its own.
+49 of the 61 skills in Agent Kit were written by other people. They ship here under their own licenses, copied from the versions named in each kit's `THIRD_PARTY.md`, and each skill folder keeps its author's LICENSE file. Agent Kit adds the routers that pick between them and 12 skills of its own.
 
 ## Skills by other authors
 
@@ -21,7 +21,7 @@ Commit hashes and the few changes made to these skills are listed in [design-kit
 
 ## Skills written for Agent Kit
 
-`/design`, `fix-writing`, `/engineer`, `/database`, the three experience-architecture skills (`diagnose`, `rethink`, `verify`) and the four working-style skills (`ceo`, `harsh-review`, `recommend`, `viewport-proof`). MIT, © AtlasScope.
+`/design`, `fix-writing`, `/engineer`, `/database`, the four experience-architecture skills (`diagnose`, `rethink`, `verify`, `walkthrough`) and the four working-style skills (`ceo`, `harsh-review`, `recommend`, `viewport-proof`). MIT, © AtlasScope.
 
 ## Plugins the routers call but don't ship
 

@@ -42,19 +42,22 @@ git clone https://github.com/AtlasScope/agent-kit.git
 node agent-kit/kits/experience-architecture/plugins/experience-architecture/scripts/install-skills.mjs
 ```
 
-It installs `/experience-architecture-diagnose`, `-rethink` and `-verify`, and keeps the plugin's files in `~/.experience-architecture/plugin`. Rerun it after a `git pull` to update; add `--uninstall` to remove only what it installed. `--codex` writes the same folders to `~/.codex/skills` if you prefer that to the Codex plugin, and `--dir <path>` targets any other tool that reads skill folders.
+It installs `/experience-architecture-diagnose`, `-rethink`, `-verify` and `-walkthrough`, and keeps the plugin's files in `~/.experience-architecture/plugin`. Rerun it after a `git pull` to update; add `--uninstall` to remove only what it installed. `--codex` writes the same folders to `~/.codex/skills` if you prefer that to the Codex plugin, and `--dir <path>` targets any other tool that reads skill folders.
 
 To try it in Claude Code for one session without installing: `claude --plugin-dir <clone>/plugins/experience-architecture`.
 
 ## What it does
 
-Three skills. You rarely need to name them: describing the problem is enough.
+Three skills, and a fourth in preview. You rarely need to name them: describing the problem is enough.
 
 | Skill | Ask it | What you get |
 |---|---|---|
 | `/experience-architecture:diagnose` | "The navigation feels broken and I don't know why." "Back does something weird on the orders page." "Do we have too many pages?" | The causes behind the symptoms, each proven in the browser or traced to the line of code; a verdict on whether the structure itself is the problem; the fixes and the one decision it needs from you. Add a focus word (structure, urls, navigation, continuity) to keep it narrow |
 | `/experience-architecture:rethink` | "Should we restructure this?" "Give me options." | Which pages should exist, merge or go; two or three genuinely different structures (one ambitious) as a clickable prototype, described as what using each would feel like; a recommendation; a migration plan that keeps old links working. It changes the app only after you pick an option and say go |
 | `/experience-architecture:verify` | "Prove this bug." "Did the redesign break anything?" | Browser journeys at desktop, phone and narrow widths, including shared links opened fresh (signed out, same user, another account) and links opened in new tabs; a regression suite you can run in CI |
+| `/experience-architecture:walkthrough` (preview) | "It all works but it feels unfinished." "I keep adding things and it never comes right." "Walk through it with me." | A short brief of what the product is for and what people come to do; what using it is like, from a pass through the running app before any code is read, or from following you through a real task; what already works and should be kept; and for each job how big a change it needs, from leave it alone to rethink the product. Read-only |
+
+Walkthrough is new and has not been through the comparison runs the other three have. It is the first part of a wider Product Experience direction: judging how a product looks, reads and flows as well as how its pages connect. Its level verdicts (leave, repair, clarify, recompose, restructure, reconceive) are defined in [`references/levels.md`](references/levels.md).
 
 Behind the skills are four playbooks (page structure, URLs, navigation chrome, continuity) that Diagnose loads only when the question needs them, so a narrow question stays cheap. Everything is read-only by default.
 
