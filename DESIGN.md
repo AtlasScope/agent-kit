@@ -224,6 +224,8 @@ Below the strip the homepage closes with one short band: the three words of the 
 
 Library pages stack sections 40px apart inside the container, with cards in auto-filling grids (minimum column 300px for prompt and skill cards, 250px for rows, 180px or 240px for tiles) and text held to 72 characters.
 
+The headline also scales with window height (8.2% of it, 7.2% below 820px tall), and below 820px tall the hero tightens its spacing, so the install command stays on the first screen of a 1280 by 720 or 1366 by 768 laptop. On a phone held sideways the headline runs to two lines and the ink covers the left two thirds of the photograph.
+
 Touch screens raise tap targets to 40px or more. Layouts hold from 360px to 2560px wide.
 
 ## Elevation & Depth
