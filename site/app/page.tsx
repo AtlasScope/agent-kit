@@ -2,8 +2,8 @@ import Link from "next/link";
 import { InstallRail } from "@/components/InstallRail";
 import { HERO_BLUR } from "@/lib/hero-blur";
 import { JsonLd } from "@/components/Crumbs";
-import { HERO, SITE } from "@/lib/site";
-import { counts, kits, authors } from "@/lib/content";
+import { HERO, KITS, KIT_GUIDE, SITE } from "@/lib/site";
+import { counts, fixes, getKit, authors } from "@/lib/content";
 
 const WIDE = [960, 1440, 1920, 2560, 3840];
 const TALL = [780, 1170];
@@ -29,7 +29,7 @@ export default function Home() {
             <h1 id="hero-h">{HERO.headline}</h1>
             <p className="orbit__lede">Agent Kit is a library of {counts.skills} skills and {counts.prompts} prompts for Claude Code, Codex and Cursor. Install it once, describe the job in plain words, and your agent follows a written method for it.</p>
             <div className="orbit__cta">
-              <a className="btn btn--lg btn--solid" href="#install">Install Agent Kit<svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></a>
+              <a className="btn btn--lg btn--solid" href="#install">Install Agent Kit{ARROW}</a>
               <Link className="btn btn--lg" href="/start">New to coding agents? Start here</Link>
             </div>
             <p className="orbit__by">{HERO.by}</p>
@@ -41,6 +41,27 @@ export default function Home() {
       </section>
 
       <div className="home-close">
+        <section className="adds" aria-labelledby="adds-h">
+          <div className="adds__head">
+            <h2 id="adds-h">What the install adds</h2>
+            <p>{KITS.length} kits and {counts.skills} skills. Type a command, then say what you want in plain words. Commands are shown as you type them in Claude Code.</p>
+          </div>
+          <ul className="adds__list">
+            {KITS.map((name) => {
+              const k = getKit(name)!;
+              const g = KIT_GUIDE[name];
+              return (
+                <li key={name}>
+                  <h3><Link href={`/kits/${name}`}>{name}</Link></h3>
+                  <span className="adds__n">{k.skills.length} {k.skills.length === 1 ? "skill" : "skills"}</span>
+                  <p>{g.line}</p>
+                  <ul className="adds__type" aria-label={`Commands in ${name}`}>{g.type.map((t) => <li key={t}><code>{t}</code></li>)}</ul>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+
         <ul className="ledger">
           <li>
             <h2>Prompts</h2>
@@ -53,15 +74,15 @@ export default function Home() {
             <Link href="/skills">Browse {counts.skills} skills{ARROW}</Link>
           </li>
           <li>
-            <h2>Kits</h2>
-            <p>One installable plugin that groups related skills, such as {kits[0].name} or {kits[1].name}.</p>
-            <Link href="/kits">See the {kits.length} kits{ARROW}</Link>
+            <h2>Fix a problem</h2>
+            <p>Start from what you see going wrong in your code. Each problem lists the prompts to try first, in order.</p>
+            <Link href="/fix">See {fixes.length} problems{ARROW}</Link>
           </li>
         </ul>
         <p className="authors">
-          {counts.borrowed} of the {counts.skills} skills come from other authors, and each one keeps its author&apos;s license:{" "}
+          {counts.borrowed} of the {counts.skills} skills come from other authors:{" "}
           {a.map((x, n) => <span key={x.author}><a href={x.url}>{x.author}</a>{n < a.length - 1 ? ", " : ". "}</span>)}
-          <a href={`${SITE.repo}/blob/main/CREDITS.md`}>Full credits and licenses</a>
+          <a href={`${SITE.repo}/blob/main/CREDITS.md`}>Credits and licenses</a>
         </p>
       </div>
       <JsonLd data={{ "@context": "https://schema.org", "@type": "Organization", name: "AtlasScope", url: SITE.url, sameAs: [SITE.repo] }} />
