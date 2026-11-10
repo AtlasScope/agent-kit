@@ -108,3 +108,11 @@ test("react-spring durations are read as milliseconds", () => {
   assert.deepEqual(r.durations.map((d) => d.ms), [250]);
   assert.ok(!rules(r).includes("long-transition"));
 });
+
+test("a longhand duration that comes from a token still counts as motion", () => {
+  const r = scan("token-longhand");
+  assert.equal(r.totals.transitions, 1);
+  assert.equal(r.totals.animations, 1);
+  assert.equal(r.totals.tokenDurations, 2);
+  assert.ok(r.system.some((s) => s.rule === "no-reduced-motion"));
+});

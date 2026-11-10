@@ -101,7 +101,7 @@ function scanCssValue(kind, prop, value, file, line, text) {
         if (!namedEase && !namedTime) unnamedVar = true;
         if (/timing-function/.test(prop) || (namedEase && !/duration|delay/.test(prop))) { bump(easings, t.toLowerCase()); sawEase = true; }
         else if (/delay/.test(prop)) sawTime++;
-        else if (/duration/.test(prop) || namedTime || !sawTime) { if (sawTime === 0) totals.tokenDurations++; sawTime++; }
+        else if (/duration/.test(prop) || namedTime || !sawTime) { if (sawTime === 0) { totals.tokenDurations++; if (prop === "transition-duration") totals.transitions++; else if (prop === "animation-duration") totals.animations++; } sawTime++; }
         else if (!sawEase) { bump(easings, t.toLowerCase()); sawEase = true; }
       } else if (EASE_WORD.test(t) || /^(cubic-bezier|steps|linear)\(/.test(t)) { noteEasing(t, file, line, text, kind, props); sawEase = true; }
       else if (t === "infinite") { totals.infinite++; find("infinite", "check", file, line, text, "Runs forever. It needs a reduced-motion alternative, and a pause control if it lasts over five seconds beside other content (WCAG 2.2.2)."); }
