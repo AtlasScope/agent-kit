@@ -224,6 +224,38 @@ test("a spec file supplies the URL, actions and crop without any of them touchin
   assert.ok(m.clip && m.clip.width < 300);
 });
 
+test("a selector in a spec file that spells a flag stays a selector", () => {
+  const proj = fs.mkdtempSync(path.join(os.tmpdir(), "filmstrip-specflag-"));
+  const sentinel = path.join(proj, "ran.txt");
+  for (const name of ["playwright", "playwright-core", "@playwright/test"]) {
+    const dir = path.join(proj, "node_modules", name);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({ name, main: "index.js" }));
+    fs.writeFileSync(path.join(dir, "index.js"), `require("fs").writeFileSync(${JSON.stringify(sentinel)}, "ran"); module.exports = {};`);
+  }
+  const go = (spec, ...extra) => {
+    fs.writeFileSync(path.join(proj, "capture.json"), JSON.stringify(spec));
+    return spawnSync(process.execPath, [script, "--spec", "capture.json", "--out", path.join(proj, "out"), "--json", "--frames", "2", ...extra], { cwd: proj, encoding: "utf8", timeout: 120000 });
+  };
+  go({ url: page, do: ["click:#open-good"], wait: "--project-playwright" });
+  go({ url: page, do: ["click:#open-good"], clip: "--project-playwright" });
+  go({ url: "--project-playwright", do: ["--project-playwright"], before: ["--project-playwright"] });
+  go({ url: page, do: ["click:#open-good"] }, "--clip", "--project-playwright");
+  assert.equal(fs.existsSync(sentinel), false, "no value, from the spec or after a value option, may switch the flag on");
+});
+
+test("an animation the page plays in reverse is captured from its end back to its start", { skip }, () => {
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), "filmstrip-reverse-"));
+  const r = spawnSync(process.execPath, [script, path.join(here, "fixtures/reverse.html"), "--out", out, "--json", "--do", "click:#close", "--clip", "#panel", "--frames", "3"], { encoding: "utf8", timeout: 120000 });
+  assert.equal(r.status, 0, r.stderr);
+  const m = JSON.parse(r.stdout);
+  assert.equal(m.windowMs, 200);
+  const png = (f) => fs.readFileSync(path.join(out, "frames", f));
+  assert.ok(png("00.png").equals(png("before.png")), "the first frame is still the open panel");
+  assert.ok(!png("02.png").equals(png("before.png")), "the last frame is the closed state");
+  assert.ok(!png("01.png").equals(png("00.png")) && !png("01.png").equals(png("02.png")), "the middle frame is part way");
+});
+
 test("an unknown action fails with a usage error instead of a blank capture", { skip }, () => {
   const r = run("--do", "wiggle:#x");
   assert.equal(r.status, 2);

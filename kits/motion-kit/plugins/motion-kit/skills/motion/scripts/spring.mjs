@@ -47,16 +47,19 @@ const linear = `linear(${stops.map(fmt).join(", ")})`;
 // The first peak of an underdamped spring, from the formula and not from the samples.
 const overshoot = zeta < 1 ? Math.exp((-Math.PI * zeta) / Math.sqrt(1 - zeta * zeta)) : 0;
 const r = (n, d = 1) => Math.round(n * 10 ** d) / 10 ** d;
+// The physical values go into running code, so small ones keep three significant figures: a slow, bouncy
+// spring has a damping near 0.03, and one decimal place would turn that into 0 and a spring that never stops.
+const phys = (n) => (n >= 10 ? r(n) : Number(n.toPrecision(3)));
 
 const out = {
   duration, bounce, settleMs: Math.round(settle * 1000), overshootPercent: r(Math.max(0, overshoot) * 100),
-  stiffness: r(stiffness), damping: r(damping), mass: 1,
+  stiffness: phys(stiffness), damping: phys(damping), mass: 1,
   css: { easing: linear, duration: `${Math.round(settle * 1000)}ms` },
   // Motion's own visualDuration and bounce options use a different conversion (it stretches the duration by
   // 1.2 and maps bounce its own way), so the same numbers there give a slower spring. The physical values are exact.
-  motion: `{ type: "spring", stiffness: ${r(stiffness)}, damping: ${r(damping)}, mass: 1 }`,
+  motion: `{ type: "spring", stiffness: ${phys(stiffness)}, damping: ${phys(damping)}, mass: 1 }`,
   swiftui: `.spring(duration: ${duration}, bounce: ${bounce})`,
-  reanimated: `withSpring(value, { stiffness: ${r(stiffness)}, damping: ${r(damping)}, mass: 1 })`,
+  reanimated: `withSpring(value, { stiffness: ${phys(stiffness)}, damping: ${phys(damping)}, mass: 1 })`,
 };
 
 if (args.includes("--json")) console.log(JSON.stringify(out, null, 1));

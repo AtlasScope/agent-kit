@@ -47,6 +47,14 @@ test("a very bouncy spring keeps its peaks in the CSS recording", () => {
   assert.ok(Math.max(...stops) > 1.7, `the recording should reach the peak, its highest stop is ${Math.max(...stops)}`);
 });
 
+test("a slow, very bouncy spring keeps a damping above zero in the code it prints", () => {
+  const s = spring("--duration", "5", "--bounce", "0.99");
+  assert.equal(s.damping, 0.0251);
+  assert.equal(s.stiffness, 1.58);
+  assert.match(s.motion, /damping: 0\.0251,/);
+  assert.match(s.reanimated, /damping: 0\.0251,/);
+});
+
 test("values outside the range are refused", () => {
   assert.equal(spawnSync(process.execPath, [script, "--bounce", "2"]).status, 2);
 });

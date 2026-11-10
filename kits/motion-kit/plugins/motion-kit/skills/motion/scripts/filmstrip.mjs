@@ -25,23 +25,31 @@ const argv = process.argv.slice(2);
 const VALUE_FLAGS = ["--do", "--before", "--frames", "--ms", "--viewport", "--clip", "--throttle", "--wait", "--out", "--spec"];
 // --spec <file.json> carries the URL, actions and selectors in a file: { "url", "before": [], "do": [], "clip",
 // "wait" }. Text copied from a project (a selector, a URL) then never passes through a shell, where $(...) or
-// backticks inside double quotes would run as commands.
+// backticks inside double quotes would run as commands. Spec values are kept apart from the command line:
+// they are data, so a selector that spells "--project-playwright" can never switch a flag on.
+const spec = { url: null, values: {} };
 {
   const i = argv.indexOf("--spec");
-  if (i >= 0 && argv[i + 1]) {
-    let spec;
-    try { spec = JSON.parse(fs.readFileSync(argv[i + 1], "utf8")); } catch (e) { console.error(`Could not read --spec ${argv[i + 1]}: ${e.message}`); process.exit(2); }
+  if (i >= 0 && argv[i + 1] && !VALUE_FLAGS.includes(argv[i - 1])) {
+    let raw;
+    try { raw = JSON.parse(fs.readFileSync(argv[i + 1], "utf8")); } catch (e) { console.error(`Could not read --spec ${argv[i + 1]}: ${e.message}`); process.exit(2); }
     const list = (v) => (Array.isArray(v) ? v : v == null ? [] : [v]).map(String);
-    for (const a of list(spec.before)) argv.push("--before", a);
-    for (const a of list(spec.do)) argv.push("--do", a);
-    for (const k of ["clip", "wait"]) if (spec[k] != null) argv.push(`--${k}`, String(spec[k]));
-    if (spec.url != null) argv.unshift(String(spec.url));
+    for (const k of ["before", "do", "clip", "wait"]) spec.values[`--${k}`] = list(raw?.[k]);
+    if (raw?.url != null) spec.url = String(raw.url);
   }
 }
-const all = (n) => argv.flatMap((a, i) => (a === n && argv[i + 1] ? [argv[i + 1]] : []));
+// One pass over the command line: a word that follows a value option is that option's value and nothing else.
+const cli = { flags: new Set(), values: {}, rest: [] };
+for (let i = 0; i < argv.length; i++) {
+  const a = argv[i];
+  if (VALUE_FLAGS.includes(a)) { if (i + 1 < argv.length) (cli.values[a] ||= []).push(argv[++i]); }
+  else if (a.startsWith("--")) cli.flags.add(a);
+  else cli.rest.push(a);
+}
+const all = (n) => [...(cli.values[n] || []), ...(spec.values[n] || [])];
 const opt = (n, d) => all(n)[0] ?? d;
-const flag = (n) => argv.includes(n);
-const target = argv.find((a, i) => !a.startsWith("--") && !VALUE_FLAGS.includes(argv[i - 1]));
+const flag = (n) => cli.flags.has(n);
+const target = spec.url ?? cli.rest[0];
 
 const fail = (msg, code = 1) => { console.error(msg); process.exit(code); };
 if (!target || flag("--help")) fail(fs.readFileSync(fileURLToPath(import.meta.url), "utf8").split("\n").slice(1, 15).map((l) => l.replace(/^\/\/ ?/, "")).join("\n"), target ? 0 : 2);
@@ -113,7 +121,7 @@ async function act(page, a) {
 // Runs in the page. Pauses every animation the document knows about and moves each to the given time.
 // Returns a description of each one the first time it is seen.
 function scrub(t) {
-  const reg = (window.__filmstrip ||= { seen: new Map(), n: 0 });
+  const reg = (window.__filmstrip ||= { seen: new Map(), from: new Map(), n: 0 });
   const name = (el) => { if (!el) return "(detached)"; const c = typeof el.className === "string" && el.className.trim() ? "." + el.className.trim().split(/\s+/).slice(0, 2).join(".") : ""; return el.tagName.toLowerCase() + (el.id ? "#" + el.id : "") + c; };
   const COMPOSITED = new Set(["transform", "opacity", "translate", "scale", "rotate", "filter", "backdropFilter", "offsetDistance"]);
   const LAYOUT = /^(width|height|minWidth|minHeight|maxWidth|maxHeight|top|left|right|bottom|inset.*|margin.*|padding.*|fontSize|lineHeight|borderWidth|gap|gridTemplate.*|flexBasis)$/;
@@ -148,9 +156,32 @@ function scrub(t) {
       fresh.push(rec);
     }
     if (a.playState === "idle") continue; // cancelled by the page itself; leave it alone
-    try { a.pause(); a.currentTime = Math.max(0, t - rec.start); } catch { /* finished or detached */ }
+    // An animation the page reversed (a close that calls reverse()) runs from where it was back toward zero.
+    if (!reg.from.has(a)) {
+      const hint = window.__filmstripReversed?.get(a);
+      const dir = hint ? hint.dir : a.playbackRate < 0 ? -1 : 1;
+      const end = a.effect?.getComputedTiming?.().endTime;
+      reg.from.set(a, { dir, at: hint ? hint.from : dir < 0 ? (Number.isFinite(end) ? end : a.currentTime ?? 0) : 0 });
+    }
+    const from = reg.from.get(a);
+    const at = from.at + from.dir * Math.abs(a.playbackRate || 1) * (t - rec.start);
+    try { a.pause(); a.currentTime = Math.max(0, at); } catch { /* finished or detached */ }
   }
   return fresh;
+}
+
+// Runs in the page before its own scripts. An animation that was just reversed is "pending" until the next
+// frame and still reports its old playback rate, so reverse() itself is recorded: the direction it now runs
+// in and the position it runs from.
+function watchReverse() {
+  const log = (window.__filmstripReversed = new WeakMap());
+  const reverse = Animation.prototype.reverse;
+  Animation.prototype.reverse = function (...args) {
+    const was = log.get(this)?.dir ?? (this.playbackRate < 0 ? -1 : 1);
+    const result = reverse.apply(this, args);
+    log.set(this, { dir: -was, from: this.currentTime ?? 0 });
+    return result;
+  };
 }
 
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
@@ -232,6 +263,7 @@ async function capture(pw) {
   if (!actions.length) actions.push("load");
   const trigger = actions[actions.length - 1];
   const context = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, isMobile: !!vp.isMobile, hasTouch: !!vp.hasTouch, deviceScaleFactor: 1, reducedMotion: flag("--reduced") ? "reduce" : "no-preference" });
+  await context.addInitScript(watchReverse);
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e.message).slice(0, 160)));
@@ -255,7 +287,7 @@ async function capture(pw) {
   for (const a of [...all("--before"), ...actions.slice(0, -1)]) { await act(page, a); await settle(page); }
 
   const clipBox = async () => {
-    const box = await page.locator(opt("--clip")).first().boundingBox().catch(() => null);
+    const box = await page.locator(opt("--clip")).first().boundingBox({ timeout: 500 }).catch(() => null);
     if (!box || !box.width || !box.height) return undefined;
     const pad = 24; const x = Math.max(0, box.x - pad), y = Math.max(0, box.y - pad);
     return { x, y, width: Math.max(1, Math.min(vp.width - x, box.width + pad * 2)), height: Math.max(1, Math.min(vp.height - y, box.height + pad * 2)) };
@@ -298,7 +330,7 @@ async function capture(pw) {
         const slice = Math.min(16, next - t);
         await page.clock.runFor(slice);
         t += slice;
-        animations.push(...(await page.evaluate(scrub, t)));
+              animations.push(...(await page.evaluate(scrub, t)));
       }
     }
     const file = `frames/${String(i).padStart(2, "0")}.png`;
