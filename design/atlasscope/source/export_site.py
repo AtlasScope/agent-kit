@@ -15,7 +15,7 @@ COPIES = {
     "icons/favicon.svg": "app/icon.svg",
     "icons/favicon.ico": "app/favicon.ico",
     "icons/apple-touch-icon.png": "app/apple-icon.png",
-    "social/og-1200x630.png": "app/opengraph-image.png",
+    "social/og-agent-kit-1200x630.png": "app/opengraph-image.png",
 }
 
 
@@ -23,7 +23,7 @@ def main():
     for src, dst in COPIES.items():
         shutil.copyfile(os.path.join(ROOT, src), os.path.join(SITE, dst))
     with open(os.path.join(SITE, "app/opengraph-image.alt.txt"), "w") as fh:
-        fh.write("AtlasScope\n")
+        fh.write("Agent Kit by AtlasScope\n")
     # header logo: the lockup for wide screens, the symbol alone for narrow ones
     _, lw, lh = B.lockup(0, 0, 1, "currentColor")
     m, sw, sh = B.sym_box()

@@ -170,6 +170,23 @@ def social():
         s = w * 0.52 / lw
         body, lw, lh = lockup((w - lw * s) / 2, (h - lh * s) / 2, s, WHITE)
         write(f"social/src/{name}.svg", svg(w, h, body, "AtlasScope", bg=INK), [(f"social/{name}.png", w)])
+    # Link preview for the Agent Kit site: the product name leads, the AtlasScope lockup signs it.
+    w, h = 1200, 630
+    title_cap, by_cap, gap = 104, 30, 72
+    title, tw = G.text_path("Agent Kit", 0, 0, title_cap, 600, track=-12)
+    _, lw, _ = lockup(0, 0, 1, WHITE)
+    s = by_cap / G.CAP
+    _, bw = G.text_path("by", 0, 0, by_cap, 500)
+    by_gap = X * 1.1 * s
+    row_w = bw + by_gap + lw * s
+    top = (h - (title_cap + gap + by_cap)) / 2
+    base1, base2 = top + title_cap, top + title_cap + gap + by_cap
+    body = path(G.text_path("Agent Kit", w / 2, base1, title_cap, 600, track=-12, anchor="middle")[0], WHITE)
+    x0 = (w - row_w) / 2
+    body += path(G.text_path("by", x0, base2, by_cap, 500)[0], MUTED)
+    body += lockup(x0 + bw + by_gap, base2 - ASC * s, s, WHITE)[0]
+    write("social/src/og-agent-kit-1200x630.svg", svg(w, h, body, "Agent Kit by AtlasScope", bg=INK),
+          [("social/og-agent-kit-1200x630.png", w)])
 
 
 # ---- Application mock-ups ------------------------------------------------------------------

@@ -109,7 +109,7 @@ Licence: Montserrat is under the SIL Open Font License 1.1 ([source/fonts/Montse
 | `svg/padded/` | The same with clear space built in |
 | `png/` | Transparent PNGs: lockup 600/1200/2400, wordmark 500/1000/2000, symbol 256/512/1024 wide |
 | `icons/` | `favicon.svg`, `favicon.ico` (16, 32, 48), `apple-touch-icon.png` (180), app icons 64 to 1024, maskable 192 and 512 |
-| `social/` | Avatars 400 and 1024 (dark and light), share images 1200×630 and 1280×640 |
+| `social/` | Avatars 400 and 1024 (dark and light), share images 1200×630 and 1280×640, and the Agent Kit site's link preview (`og-agent-kit-1200x630`) |
 | `applications/` | Mock-ups: headers, avatar, app icon, share image, size test |
 | `spec/` | Construction sheet |
 | `source/` | `geometry.py` (every number), `build.py` (regenerates everything), the font and its licence |
