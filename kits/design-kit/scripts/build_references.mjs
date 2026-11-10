@@ -18,7 +18,7 @@ const head = "Generated from `library/library.json` by `kits/design-kit/scripts/
 const ELSEWHERE = ["/harsh-review", "/viewport-proof"];
 // Settings commands are typed by the person, never picked by the router.
 const NOT_PICKED = ["/design-setup"];
-const MODE = { "Changes code": "edits", "Report only": "report", Advice: "advice" };
+const MODE = { "Changes code": "edits", "Report only": "report", Advice: "advice", "Asks before changing": "edits after a yes" };
 const cell = (s) => String(s).replace(/\|/g, "/").replace(/\n/g, " ");
 
 const dcmd = L.entries.filter((e) => e.sec === "dcmd");
@@ -28,7 +28,7 @@ for (const e of dcmd) {
   if (!g) groups.push((g = { name: e.group, first: e, rows: [] }));
   if (!ELSEWHERE.includes(e.cmd) && !NOT_PICKED.includes(e.cmd)) g.rows.push(e);
 }
-let cat = `# Design skill catalog\n\n${head}\n\nEvery design skill this library knows, by pack. Skills that ship in the design-kit plugin may be namespaced \`design-kit:<name>\`. \`mode\` says what a skill does to files: edits, report (reads only), advice, auto (runs inside another skill, never typed).\n`;
+let cat = `# Design skill catalog\n\n${head}\n\nEvery design skill this library knows, by pack. Skills that ship in the design-kit plugin may be namespaced \`design-kit:<name>\`. \`mode\` says what a skill does to files: edits, edits after a yes (proposes, then writes once approved), report (reads only), advice, auto (runs inside another skill, never typed).\n`;
 const pack = (name, desc, best, skip, rows) => `\n## ${name}\n\n${desc}\n\n- Best for: ${best}\n- Skip it for: ${skip}\n\n| Command | What it does | Mode |\n|---|---|---|\n` + rows.map(([c, w, m]) => `| \`${c}\` | ${cell(w)} | ${m} |\n`).join("");
 for (const g of groups) {
   const router = g.name === "Routers and working-style";

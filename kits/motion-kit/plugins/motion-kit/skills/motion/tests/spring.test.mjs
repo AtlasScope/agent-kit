@@ -1,0 +1,60 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { execFileSync, spawnSync } from "node:child_process";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const script = path.join(path.dirname(fileURLToPath(import.meta.url)), "../scripts/spring.mjs");
+const spring = (...a) => JSON.parse(execFileSync(process.execPath, [script, "--json", ...a], { encoding: "utf8" }));
+
+test("no bounce is critically damped and never passes the target", () => {
+  const s = spring("--duration", "0.4", "--bounce", "0");
+  assert.equal(s.overshootPercent, 0);
+  assert.equal(s.damping, Math.round(2 * Math.sqrt(s.stiffness) * 10) / 10, "damping equals 2√stiffness");
+  const stops = s.css.easing.slice(7, -1).split(", ").map(Number);
+  assert.equal(stops[0], 0); assert.equal(stops.at(-1), 1);
+  assert.ok(stops.every((v, i) => i === 0 || v >= stops[i - 1]), "position only rises");
+});
+
+test("bounce overshoots, and more bounce overshoots more", () => {
+  const a = spring("--duration", "0.4", "--bounce", "0.2"), b = spring("--duration", "0.4", "--bounce", "0.4");
+  assert.ok(a.overshootPercent > 0 && b.overshootPercent > a.overshootPercent);
+  assert.equal(a.stiffness, b.stiffness, "bounce changes damping only");
+});
+
+test("a shorter duration is a stiffer spring that settles sooner", () => {
+  const fast = spring("--duration", "0.2"), slow = spring("--duration", "0.6");
+  assert.ok(fast.stiffness > slow.stiffness && fast.settleMs < slow.settleMs);
+});
+
+test("the Motion output is physical values, not Motion's differently scaled visualDuration", () => {
+  const s = spring("--duration", "0.4", "--bounce", "0");
+  assert.equal(s.motion, '{ type: "spring", stiffness: 246.7, damping: 31.4, mass: 1 }');
+  assert.ok(!JSON.stringify(s).includes("visualDuration"));
+});
+
+test("a slow, bouncy spring is followed until it really settles", () => {
+  const s = spring("--duration", "5", "--bounce", "0.8");
+  assert.ok(s.settleMs > 20000, `settles long after ten seconds, reported ${s.settleMs}ms`);
+  const stops = s.css.easing.slice(7, -1).split(", ").map(Number);
+  assert.ok(Math.abs(stops.at(-2) - 1) < 0.01, "the recording ends at rest without a forced jump");
+});
+
+test("a very bouncy spring keeps its peaks in the CSS recording", () => {
+  const s = spring("--duration", "0.4", "--bounce", "0.9");
+  assert.ok(Math.abs(s.overshootPercent - 72.9) < 0.2, `first peak is about 72.9%, reported ${s.overshootPercent}`);
+  const stops = s.css.easing.slice(7, -1).split(", ").map(Number);
+  assert.ok(Math.max(...stops) > 1.7, `the recording should reach the peak, its highest stop is ${Math.max(...stops)}`);
+});
+
+test("a slow, very bouncy spring keeps a damping above zero in the code it prints", () => {
+  const s = spring("--duration", "5", "--bounce", "0.99");
+  assert.equal(s.damping, 0.0251);
+  assert.equal(s.stiffness, 1.58);
+  assert.match(s.motion, /damping: 0\.0251,/);
+  assert.match(s.reanimated, /damping: 0\.0251,/);
+});
+
+test("values outside the range are refused", () => {
+  assert.equal(spawnSync(process.execPath, [script, "--bounce", "2"]).status, 2);
+});

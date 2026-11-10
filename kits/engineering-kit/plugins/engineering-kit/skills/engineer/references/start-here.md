@@ -18,6 +18,7 @@ What the user says, mapped to the investigations that usually explain it, best f
 | The app hangs when an outside service is down | `G04`, `P09`, `R02`, `R06` |
 | Your computer is full or browser tests are flaky | `I07`, `I01`, `T01` |
 | Users get lost, or Back and shared links misbehave | `R07`, `A08`, `A01`, `T01` |
+| Animations stutter, lag or all feel different | `MO02`, `MO01`, `MO04`, `MO03` |
 
 ## Skills
 

@@ -1,6 +1,6 @@
 # Prompt Library
 
-241 prompts, commands and recipes for coding and design agents. Open prompt-library.html for search, stars and the prompt composer.
+254 prompts, commands and recipes for coding and design agents. Open prompt-library.html for search, stars and the prompt composer.
 
 ## Investigations
 
@@ -316,6 +316,44 @@ Trace calculations involving currency, percentages, basis points, share counts, 
 
 ```text
 Trace every flow where the client updates UI state or local cache optimistically before server confirmation. Demonstrate what happens to user state, queued actions, and screen accuracy when the server rejects the mutation, times out, or returns canonical values that differ from the client's assumption.
+```
+
+### Motion
+
+**MO01 · Motion nobody chose** Shows whether the app's motion follows a system or was typed one animation at a time.
+
+```text
+List every animation and transition in this codebase with its duration, easing and animated properties. Count the distinct durations and the distinct easing curves. Find values used only once, transitions that name no property or no easing, and places that should share a value and do not. Propose the smallest set of shared durations and curves that covers what exists, and show which existing values map to which.
+```
+
+**MO02 · Animations that cost frames** Finds the animations that stutter on slower phones and laptops, and what each one costs.
+
+```text
+Find animations and transitions that make the browser run layout or heavy paint on every frame: width, height, top, left, margin, padding, large shadows and blurs, and anything driven from a scroll or pointer handler through component state. For the worst three, measure the interaction in a browser with CPU throttling and report how many layouts and long frames happen during it. Propose the cheaper equivalent for each (transform, opacity, or a single measured move) and say what would look different.
+```
+
+**MO03 · Motion with no off switch** Finds motion that can make people dizzy or lock them out, and content that disappears when animation is turned off.
+
+```text
+Check how this app behaves for people who have asked their system for reduced motion. List every animation that moves, scales, rotates or loops, and say whether it has a reduced-motion version. Find content that only becomes visible through an animation, motion that starts on its own and runs longer than five seconds with no pause control, and gestures with no button or keyboard alternative. For each gap, say what the reduced version should be: usually a short fade or an instant change that keeps the meaning.
+```
+
+**MO04 · Animations that restart, block or never finish** Finds motion that works in a demo and breaks under fast, real use.
+
+```text
+Find animations that break when the user does not wait for them. Look for keyframe animations on things that can be triggered twice in a row, exits that never play because the element is removed first, input ignored until an animation ends, focus that moves only after an animation, and end states that differ from the element's resting style. Reproduce the three most reachable cases by triggering the interaction again mid-animation, and propose the smallest fix for each.
+```
+
+**MO05 · Motion with no job** Produces a list of animations to delete or shorten, which is usually the cheapest way to make an app feel faster.
+
+```text
+Go through every animation in this product and say what it tells the user: that their input registered, where something came from or went, where they now are, that work is in progress, or that one thing changed. List the ones that tell the user nothing, and the ones seen so often that they slow people down (tooltips, menus, anything triggered from the keyboard). For each, recommend removing it, shortening it or keeping it, with one sentence of reasoning. Do not propose new animations.
+```
+
+**MO06 · State changes with no feedback** Finds the few places where a small animation would remove real confusion.
+
+```text
+Walk the main flows of this app and list every moment where the interface changes with no visible answer or explanation: a press with no pressed state, an item that vanishes on delete, a panel that appears with no sign of where it came from, a page change with no sense of direction, a wait of more than a second with no indicator. For each, say what the user is left guessing, and specify the smallest motion that would answer it: what changes, for how long, and what happens with reduced motion. Leave out anything the user triggers many times a minute.
 ```
 
 ## Database
@@ -1067,7 +1105,7 @@ Deepen modules and simplify interfaces.
 /design the inbox feels cluttered on my phone
 ```
 
-**UI100 · /design-setup** Explains the design kit's two choices in plain words (whether /design starts on its own, and whether it asks before a skill edits files), then saves your answers to your Claude Code settings after showing the change. Claude Code only; takes effect next session.
+**UI106 · /design-setup** Explains the design kit's two choices in plain words (whether /design starts on its own, and whether it asks before a skill edits files), then saves your answers to your Claude Code settings after showing the change. Claude Code only; takes effect next session.
 
 ```text
 /design-setup
@@ -1353,6 +1391,44 @@ Use interface-design to check the dashboard for drift from system.md
 
 ```text
 /write-swift fix this data race
+```
+
+### Motion kit
+
+**UI100 · /motion** One command for anything that moves. Say what you want and it picks the mode (set up, storyboard, build, review or fix), says which, and starts. Typed alone, it reports how the project moves today and suggests three next steps.
+
+```text
+/motion the dropdowns feel slow and each one opens differently
+```
+
+**UI101 · /motion setup** Reads how the project moves today and proposes one small set of durations, curves and springs, showing which existing values fold into which. After you approve, it writes MOTION.md and the token file. It changes no animations.
+
+```text
+/motion setup
+```
+
+**UI102 · /motion storyboard** Plans a sequence before any code: each beat with its timing and reason, the total length, the reduced-motion version and what shows if nothing plays. Then waits for your yes.
+
+```text
+/motion storyboard the homepage hero entrance
+```
+
+**UI103 · /motion build** Builds one animation from a one-line spec: the lightest tool that works, the project's own values, the interrupted case and a reduced-motion version. Then captures it frame by frame to check the result.
+
+```text
+/motion build make the bottom sheet draggable
+```
+
+**UI104 · /motion review** Read-only review backed by a code inventory and frame captures. Lists motion to cut first, then what is broken, wrong or rough, then where motion is missing, each with its file and what it should be.
+
+```text
+/motion review the checkout flow
+```
+
+**UI105 · /motion fix** Reproduces motion that stutters, flickers, restarts or feels slow, names the cause with a measurement, makes the smallest change and captures it again.
+
+```text
+/motion fix the sidebar stutters when it opens on my phone
 ```
 
 ### Web Design Guidelines
@@ -1688,3 +1764,10 @@ sg -v docs/*.md
 2. /impeccable layout: rhythm and structure
 3. /impeccable typeset: type sizes and weights
 4. /impeccable polish: tidy the details
+
+**RC23 · A motion system for the whole app** Decide once how the product moves, then bring the existing animation in line.
+
+1. /motion setup: agree the durations, curves and springs; writes MOTION.md
+2. /motion review: what to cut, fix and add, with frames as evidence
+3. /motion build: fix the worst three, one at a time
+4. /motion review: check the result against MOTION.md

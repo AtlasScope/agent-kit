@@ -5,7 +5,7 @@ import { kits } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Agent Kit plugins",
-  description: "Four plugins for Claude Code and Codex: design-kit, engineering-kit, experience-architecture and working-style.",
+  description: "Five plugins for Claude Code and Codex: design-kit, motion-kit, engineering-kit, experience-architecture and working-style.",
   alternates: { canonical: "/kits", types: { "text/markdown": "/kits.md" } },
 };
 

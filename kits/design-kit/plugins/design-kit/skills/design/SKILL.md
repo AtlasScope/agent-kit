@@ -38,7 +38,7 @@ The person chose these when they installed the design kit and can change them in
 1. **Read the ground.** Is there PRODUCT.md and DESIGN.md? What is the surface: marketing page, app screen, native app, a single component? Are they starting, changing, or judging?
 2. **No PRODUCT.md and the job edits UI:** the first step is `/impeccable init`. Say so and start there, then continue the route.
 3. **Pick.** Match their words to a situation. If the job spans steps (new landing page, rescue, pre-launch), pick the recipe instead. If nothing matches, use the catalog and say the pick is a judgment call.
-4. **Check it is installed in this harness.** Skills from this kit may be namespaced `design-kit:<name>`; others come from their own plugins (Impeccable, Interface Design, Humanizer, Sepia, Vale) or the user's own folders. If one is missing, say so, name the plugin that provides it, and use the overlap alternative if that is installed. If the alternative is missing too, use the shipped fallback below. Never say a missing skill ran.
+4. **Check it is installed in this harness.** Skills from this kit may be namespaced `design-kit:<name>`; others come from their own plugins (motion-kit from this same catalog, Impeccable, Interface Design, Humanizer, Sepia, Vale) or the user's own folders. If one is missing, say so, name the plugin that provides it, and use the overlap alternative if that is installed. If the alternative is missing too, use the shipped fallback below. Never say a missing skill ran.
 
    | Missing pick | Shipped fallback |
    |---|---|
@@ -50,9 +50,12 @@ The person chose these when they installed the design kit and can change them in
    | `/impeccable clarify` | `/ux-writing` |
    | `/impeccable animate` | `/animate` |
    | `/impeccable adapt` on the web | `/mobile-native` |
+   | `/motion build` | `/animate` |
+   | `/motion review` | `/review-animations` (report) |
+   | `/motion fix` | `/animation-performance` |
    | `/impeccable bolder`, `/interface-design:design-deslop` | `/refactoring-ui` |
    | `/humanizer`, `/sepia:sepia-write`, `/sepia:sepia-refactor`, `/sepia:sepia` | `/stop-slop` or `/fix-writing` |
-   | `/impeccable init`, `shape`, `document`, `audit`, `optimize`, `live`, `/interface-design`, `/sepia:sepia-review`, `example-skills:*` | No shipped equivalent. Say what is missing and how to install it, then stop. |
+   | `/impeccable init`, `shape`, `document`, `audit`, `optimize`, `live`, `/interface-design`, `/sepia:sepia-review`, `/motion setup`, `/motion storyboard`, `example-skills:*` | No shipped equivalent. Say what is missing and how to install it, then stop. |
 
    A fallback never changes the mode: a pick that only reports never falls back to a skill that edits. A missing first step of a recipe means the recipe cannot run as written: say which step is missing and ask whether to run the rest.
 5. **Say the route, then start it.** Unless the ask-once gate stopped you, or ask before edits is on and the pick edits files, run the first skill in the same turn.
@@ -70,8 +73,8 @@ The person chose these when they installed the design kit and can change them in
 
 ## Traps
 
-- `/impeccable <command>` is one skill with a sub-command, not a separate skill. Pass the sub-command and target as its argument.
-- Several skills are named alike across packs: Impeccable's animate is not Emil's `/animate`; Hallmark audit is not Impeccable audit. Use the catalog's exact command.
+- `/impeccable <command>` is one skill with a sub-command, not a separate skill. Pass the sub-command and target as its argument. `/motion <mode>` works the same way and ships in the motion-kit plugin.
+- Several skills are named alike across packs: Impeccable's animate is not Emil's `/animate`, and neither is `/motion build`; Hallmark audit is not Impeccable audit. Use the catalog's exact command.
 - A skill switched off in Claude's settings does not appear and cannot run. If a pick fails to load, say it may be switched off rather than retrying.
 - The references are generated from `library/library.json`. When a design entry changes, rebuild them with `node kits/design-kit/scripts/build_references.mjs` from the repo root, and land the change through a PR.
 

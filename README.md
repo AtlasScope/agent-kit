@@ -4,7 +4,7 @@ Skills for AI coding agents, plus a prompt library you can open beside any of th
 
 It's for people who already use a coding agent such as Claude Code, Codex or Cursor and want it to do design, engineering and database work the way an experienced person would.
 
-Most of these skills are other people's work: 49 of the 61 come from Emil Kowalski, Matt Pocock, Wondel.ai and seven other authors. Agent Kit routes between them and adds 12 of its own. See [CREDITS.md](CREDITS.md).
+Most of these skills are other people's work: 49 of the 62 come from Emil Kowalski, Matt Pocock, Wondel.ai and seven other authors. Agent Kit routes between them and adds 13 of its own. See [CREDITS.md](CREDITS.md).
 
 ## Get one result
 
@@ -19,6 +19,7 @@ Some `/design` recipes hand steps to plugins Agent Kit doesn't ship, such as Imp
 | Plugin | What it does |
 |---|---|
 | [design-kit](kits/design-kit) | `/design` routes to the right design skill or recipe: typography, color, motion, UX writing, usability, landing copy, native iOS and more. |
+| [motion-kit](kits/motion-kit) | `/motion` sets up a product's motion system, storyboards a sequence, builds an animation, and reviews or fixes existing motion. It checks its work with a code inventory and frame-by-frame captures from a real browser. |
 | [engineering-kit](kits/engineering-kit) | `/engineer` routes to bug diagnosis, test-first work, architecture scans, plan interviews, retros and research. `/database` picks and runs a read-only PostgreSQL investigation. |
 | [experience-architecture](kits/experience-architecture) | Diagnose, rethink and verify how a web app's pages, navigation, URLs and Back button hang together. |
 | [working-style](kits/working-style) | `/ceo` explains in plain English, `/recommend` makes the call, `/harsh-review` gives direct critique, `/viewport-proof` judges a screen across viewports. |
@@ -30,6 +31,7 @@ Some `/design` recipes hand steps to plugins Agent Kit doesn't ship, such as Imp
 ```sh
 claude plugin marketplace add AtlasScope/agent-kit
 claude plugin install design-kit@agent-kit
+claude plugin install motion-kit@agent-kit
 claude plugin install engineering-kit@agent-kit
 claude plugin install experience-architecture@agent-kit
 claude plugin install working-style@agent-kit
@@ -51,6 +53,7 @@ To change an answer, type `/design-setup` or `/engineering-setup`: it explains e
   },
   "enabledPlugins": {
     "design-kit@agent-kit": true,
+    "motion-kit@agent-kit": true,
     "engineering-kit@agent-kit": true,
     "experience-architecture@agent-kit": true,
     "working-style@agent-kit": true

@@ -1,0 +1,19 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Paused fixture</title>
+<style>
+  body { margin: 0; background: #fff; }
+  @keyframes turn { to { transform: rotate(360deg); } }
+  #spinner { position: absolute; left: 100px; top: 100px; width: 80px; height: 40px; background: #1d4ed8; animation: turn 1s linear infinite; animation-play-state: paused; }
+  #spinner.on { animation-play-state: running; }
+  @keyframes arrive { from { opacity: 0; transform: translateY(40px); } }
+  #card { position: absolute; left: 300px; top: 100px; width: 80px; height: 80px; background: #15803d; animation: arrive 100ms ease-out forwards; }
+  button { position: absolute; left: 400px; top: 500px; }
+</style>
+<button id="nothing">Nothing</button><button id="resume" style="left:500px">Resume</button>
+<div id="spinner"></div><div id="card"></div><div id="frozen" style="position:absolute;left:500px;top:100px;width:80px;height:40px;background:#b91c1c"></div>
+<script>
+  // Frozen with a playback rate of zero: its play state still reads "running".
+  document.getElementById("frozen").animate([{ transform: "none" }, { transform: "translateY(200px)" }], { duration: 300, iterations: Infinity }).playbackRate = 0;
+  document.getElementById("resume").addEventListener("click", () => document.getElementById("spinner").classList.add("on"));
+</script>

@@ -35,11 +35,13 @@ jobs:
           library=$(has '^(library|kits|tests/routing)/')
           public=$(has '^(kits/|library/|scripts/check-public|[A-Z]+\.md$)')
           catalog=$(has '^(kits/|\.claude-plugin/|\.agents/|scripts/check-catalog)')
-          [ "$all" = true ] && site=true library=true public=true catalog=true
+          motion=$(has '^kits/motion-kit/')
+          [ "$all" = true ] && site=true library=true public=true catalog=true motion=true
           echo "site=$site" >> "$GITHUB_OUTPUT"
           echo "library=$library" >> "$GITHUB_OUTPUT"
           echo "public=$public" >> "$GITHUB_OUTPUT"
           echo "catalog=$catalog" >> "$GITHUB_OUTPUT"
+          echo "motion=$motion" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v5
         if: steps.changes.outputs.site == 'true' || steps.changes.outputs.library == 'true' || steps.changes.outputs.public == 'true' || steps.changes.outputs.catalog == 'true'
@@ -68,6 +70,22 @@ jobs:
       - name: Check the routing cases
         if: steps.changes.outputs.library == 'true'
         run: node tests/routing/check.mjs
+
+      # The capture tests need a browser. Playwright goes in a folder outside the checkout, because the
+      # script will not load a copy from inside the project it is looking at.
+      - name: Install a browser for the motion-kit capture tests
+        if: steps.changes.outputs.motion == 'true'
+        run: |
+          version="$(node -p "require('./site/package.json').devDependencies.playwright")"
+          npm install --prefix "$RUNNER_TEMP/motion-playwright" --no-audit --no-fund "playwright@$version"
+          "$RUNNER_TEMP/motion-playwright/node_modules/.bin/playwright" install --with-deps chromium
+          echo "MOTION_PLAYWRIGHT_DIR=$RUNNER_TEMP/motion-playwright" >> "$GITHUB_ENV"
+
+      - name: Test the motion-kit scripts
+        if: steps.changes.outputs.motion == 'true'
+        env:
+          MOTION_REQUIRE_BROWSER: "1"
+        run: node --test "kits/motion-kit/plugins/motion-kit/skills/motion/tests/*.test.mjs"
 
       - name: Typecheck the site
         if: steps.changes.outputs.site == 'true' && hashFiles('site/package.json') != ''

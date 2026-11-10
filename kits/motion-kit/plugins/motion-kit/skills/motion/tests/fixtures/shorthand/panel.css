@@ -1,0 +1,4 @@
+.panel { transition: 700ms ease-in; }
+.card { transition: var(--card-move) 200ms ease-out; }
+.chip { transition: var(--duration-fast) var(--ease-out); }
+@media (prefers-reduced-motion: reduce) { .panel, .card, .chip { transition: none; } }

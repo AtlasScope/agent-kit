@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf8">
+<title>Staged fixture</title>
+<style>
+  .box { width: 60px; height: 60px; margin: 8px; background: #1849c4; }
+  #a.on { animation: first 150ms linear both; }
+  #b.on { animation: second 200ms linear both; }
+  @keyframes first { from { transform: translateX(0); } to { transform: translateX(100px); } }
+  @keyframes second { from { transform: translateX(0); } to { transform: translateX(200px); } }
+</style>
+<button id="go">Go</button>
+<div id="a" class="box"></div>
+<div id="b" class="box"></div>
+<script>
+  document.getElementById("go").onclick = () => {
+    document.getElementById("a").classList.add("on");
+    setTimeout(() => document.getElementById("b").classList.add("on"), 100);
+  };
+</script>
+</html>

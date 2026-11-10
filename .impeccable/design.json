@@ -1,0 +1,455 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-10T05:29:52Z",
+  "title": "Design System: Agent Kit by AtlasScope",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#0B0C12",
+        "tonalRamp": [
+          "oklch(15% 0.005 275)",
+          "oklch(27% 0.007 275)",
+          "oklch(39% 0.009 275)",
+          "oklch(51% 0.011 275)",
+          "oklch(63% 0.012 275)",
+          "oklch(75% 0.010 275)",
+          "oklch(85% 0.008 275)",
+          "oklch(95% 0.007 275)"
+        ]
+      },
+      "white": {
+        "role": "primary",
+        "displayName": "White",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "oklch(15% 0.000 275)",
+          "oklch(27% 0.000 275)",
+          "oklch(39% 0.000 275)",
+          "oklch(51% 0.000 275)",
+          "oklch(63% 0.000 275)",
+          "oklch(75% 0.000 275)",
+          "oklch(85% 0.000 275)",
+          "oklch(95% 0.000 275)"
+        ]
+      },
+      "slate": {
+        "role": "neutral",
+        "displayName": "Slate",
+        "canonical": "#151821",
+        "tonalRamp": [
+          "oklch(15% 0.008 265)",
+          "oklch(27% 0.011 265)",
+          "oklch(39% 0.013 265)",
+          "oklch(51% 0.016 265)",
+          "oklch(63% 0.017 265)",
+          "oklch(75% 0.015 265)",
+          "oklch(85% 0.012 265)",
+          "oklch(95% 0.010 265)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "canonical": "#A3A6AD",
+        "tonalRamp": [
+          "oklch(15% 0.004 260)",
+          "oklch(27% 0.006 260)",
+          "oklch(39% 0.007 260)",
+          "oklch(51% 0.009 260)",
+          "oklch(63% 0.010 260)",
+          "oklch(75% 0.008 260)",
+          "oklch(85% 0.007 260)",
+          "oklch(95% 0.006 260)"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#2C2E34",
+        "tonalRamp": [
+          "oklch(15% 0.004 265)",
+          "oklch(27% 0.006 265)",
+          "oklch(39% 0.007 265)",
+          "oklch(51% 0.009 265)",
+          "oklch(63% 0.010 265)",
+          "oklch(75% 0.008 265)",
+          "oklch(85% 0.007 265)",
+          "oklch(95% 0.006 265)"
+        ]
+      },
+      "rule-control": {
+        "role": "neutral",
+        "displayName": "Control border",
+        "canonical": "#66686F",
+        "tonalRamp": [
+          "oklch(15% 0.004 265)",
+          "oklch(27% 0.006 265)",
+          "oklch(39% 0.007 265)",
+          "oklch(51% 0.009 265)",
+          "oklch(63% 0.010 265)",
+          "oklch(75% 0.008 265)",
+          "oklch(85% 0.007 265)",
+          "oklch(95% 0.006 265)"
+        ]
+      },
+      "hue-investigate": {
+        "role": "tertiary",
+        "displayName": "Section dot: mint",
+        "canonical": "#4BF0A8",
+        "tonalRamp": [
+          "oklch(15% 0.074 160)",
+          "oklch(27% 0.100 160)",
+          "oklch(39% 0.125 160)",
+          "oklch(51% 0.151 160)",
+          "oklch(63% 0.164 160)",
+          "oklch(75% 0.138 160)",
+          "oklch(85% 0.117 160)",
+          "oklch(95% 0.096 160)"
+        ]
+      },
+      "hue-database": {
+        "role": "tertiary",
+        "displayName": "Section dot: lime",
+        "canonical": "#C9E05A",
+        "tonalRamp": [
+          "oklch(15% 0.070 118)",
+          "oklch(27% 0.094 118)",
+          "oklch(39% 0.118 118)",
+          "oklch(51% 0.142 118)",
+          "oklch(63% 0.154 118)",
+          "oklch(75% 0.130 118)",
+          "oklch(85% 0.110 118)",
+          "oklch(95% 0.090 118)"
+        ]
+      },
+      "hue-thinking": {
+        "role": "tertiary",
+        "displayName": "Section dot: violet",
+        "canonical": "#BFA8FF",
+        "tonalRamp": [
+          "oklch(15% 0.061 295)",
+          "oklch(27% 0.082 295)",
+          "oklch(39% 0.103 295)",
+          "oklch(51% 0.124 295)",
+          "oklch(63% 0.135 295)",
+          "oklch(75% 0.114 295)",
+          "oklch(85% 0.096 295)",
+          "oklch(95% 0.079 295)"
+        ]
+      },
+      "hue-engineer-command": {
+        "role": "tertiary",
+        "displayName": "Section dot: cyan",
+        "canonical": "#3FE0F5",
+        "tonalRamp": [
+          "oklch(15% 0.057 205)",
+          "oklch(27% 0.076 205)",
+          "oklch(39% 0.096 205)",
+          "oklch(51% 0.115 205)",
+          "oklch(63% 0.125 205)",
+          "oklch(75% 0.106 205)",
+          "oklch(85% 0.089 205)",
+          "oklch(95% 0.073 205)"
+        ]
+      },
+      "hue-design-command": {
+        "role": "tertiary",
+        "displayName": "Section dot: blue",
+        "canonical": "#8CB6FF",
+        "tonalRamp": [
+          "oklch(15% 0.057 260)",
+          "oklch(27% 0.076 260)",
+          "oklch(39% 0.096 260)",
+          "oklch(51% 0.115 260)",
+          "oklch(63% 0.125 260)",
+          "oklch(75% 0.106 260)",
+          "oklch(85% 0.089 260)",
+          "oklch(95% 0.073 260)"
+        ]
+      },
+      "hue-recipe": {
+        "role": "tertiary",
+        "displayName": "Section dot: pink",
+        "canonical": "#FF7FB2",
+        "tonalRamp": [
+          "oklch(15% 0.070 0)",
+          "oklch(27% 0.094 0)",
+          "oklch(39% 0.118 0)",
+          "oklch(51% 0.142 0)",
+          "oklch(63% 0.154 0)",
+          "oklch(75% 0.130 0)",
+          "oklch(85% 0.110 0)",
+          "oklch(95% 0.090 0)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Page headlines in Montserrat 600. The homepage headline and library page titles."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section headings inside a page, in Geist."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Card and tile titles."
+      },
+      "lead": {
+        "displayName": "Lead",
+        "purpose": "The muted sentence under a headline."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text, held to 72 characters."
+      },
+      "small": {
+        "displayName": "Small",
+        "purpose": "Supporting lines: tab labels, the tested-with line, card meta."
+      },
+      "command": {
+        "displayName": "Command",
+        "purpose": "Install commands and anything typed or pasted, in Geist Mono."
+      },
+      "count": {
+        "displayName": "Count",
+        "purpose": "Library counts in the install strip, tabular figures."
+      },
+      "count-label": {
+        "displayName": "Count label",
+        "purpose": "The uppercase word under each count. Used nowhere else."
+      }
+    },
+    "shadows": [
+      {
+        "name": "lift",
+        "value": "inset 0 1px 0 rgba(255,255,255,.06), 0 1px 2px rgba(0,0,0,.6), 0 8px 20px -10px rgba(0,0,0,.7), 0 24px 40px -24px rgba(0,0,0,.9)",
+        "purpose": "Cards, tiles, rows and code panels at rest on ink."
+      },
+      {
+        "name": "lift-hi",
+        "value": "inset 0 1px 0 rgba(255,255,255,.08), 0 2px 4px rgba(0,0,0,.6), 0 12px 26px -10px rgba(0,0,0,.8), 0 30px 50px -24px rgba(0,0,0,1)",
+        "purpose": "Hover on tiles and rows; search results and menus."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Easing for every state change and for the photograph settling."
+      },
+      {
+        "name": "dur-micro",
+        "value": "120ms",
+        "purpose": "Button press."
+      },
+      {
+        "name": "dur-short",
+        "value": "220ms",
+        "purpose": "Hover and selection changes."
+      },
+      {
+        "name": "dur-long",
+        "value": "600ms",
+        "purpose": "Lines appearing in the example run."
+      },
+      {
+        "name": "orbit-in",
+        "value": "1400ms, opacity .55 to 1, scale 1.035 to 1",
+        "purpose": "The hero photograph settling on load. Off with reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "narrow-phone",
+        "value": "22rem"
+      },
+      {
+        "name": "phone",
+        "value": "40rem"
+      },
+      {
+        "name": "hero-phone",
+        "value": "720px"
+      },
+      {
+        "name": "tablet",
+        "value": "60rem"
+      },
+      {
+        "name": "header-two-row",
+        "value": "64rem"
+      },
+      {
+        "name": "strip-wrap",
+        "value": "68rem"
+      },
+      {
+        "name": "large-monitor",
+        "value": "100rem and min-height 900px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary pill",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one white primary action in a view.",
+      "html": "<a class=\"ds-pill-primary\" href=\"#\">Install Agent Kit<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14M13 6l6 6-6 6\"/></svg></a>",
+      "css": ".ds-pill-primary { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 24px; border: 1px solid transparent; border-radius: 999px; background: #FFFFFF; color: #0B0C12; font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif; font-size: 1rem; font-weight: 600; line-height: 1; text-decoration: none; white-space: nowrap; transition: background-color 220ms cubic-bezier(0.16, 1, 0.3, 1), transform 120ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-pill-primary:hover { background: #A3A6AD; } .ds-pill-primary:active { transform: translateY(1px); } .ds-pill-primary:focus-visible { outline: 2px solid #FFFFFF; outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary pill",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "The outlined second action beside the primary pill.",
+      "html": "<a class=\"ds-pill-secondary\" href=\"#\">New to coding agents? Start here</a>",
+      "css": ".ds-pill-secondary { display: inline-flex; align-items: center; min-height: 48px; padding: 0 24px; border: 1px solid #66686F; border-radius: 999px; background: rgba(11, 12, 18, 0.6); color: #FFFFFF; font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif; font-size: 1rem; font-weight: 500; line-height: 1; text-decoration: none; white-space: nowrap; transition: background-color 220ms cubic-bezier(0.16, 1, 0.3, 1), transform 120ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-pill-secondary:hover { background: #151821; } .ds-pill-secondary:active { transform: translateY(1px); } .ds-pill-secondary:focus-visible { outline: 2px solid #FFFFFF; outline-offset: 2px; }"
+    },
+    {
+      "name": "Install command",
+      "kind": "custom",
+      "refersTo": "command-field",
+      "description": "Agent tabs over a command field with a white Copy pill. The signature component of the homepage strip.",
+      "html": "<div class=\"ds-install\"><div class=\"ds-install-tabs\" role=\"tablist\"><button role=\"tab\" aria-selected=\"true\">Claude Code</button><button role=\"tab\" aria-selected=\"false\">Codex</button><button role=\"tab\" aria-selected=\"false\">Cursor</button><button role=\"tab\" aria-selected=\"false\">Any agent</button></div><div class=\"ds-install-cmd\"><code>claude plugin marketplace add AtlasScope/agent-kit</code><button class=\"ds-install-copy\" type=\"button\">Copy 2 steps</button></div></div>",
+      "css": ".ds-install { display: grid; gap: 10px; max-width: 620px; padding: 16px; background: #0B0C12; } .ds-install-tabs { display: flex; gap: 20px; } .ds-install-tabs button { padding: 0 0 4px; border: 0; border-bottom: 2px solid transparent; background: none; color: #A3A6AD; font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif; font-size: 0.8125rem; line-height: 1.4; cursor: pointer; transition: color 220ms cubic-bezier(0.16, 1, 0.3, 1), border-color 220ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-install-tabs button:hover { color: #FFFFFF; } .ds-install-tabs button[aria-selected=\"true\"] { color: #FFFFFF; border-bottom-color: #FFFFFF; } .ds-install-tabs button:focus-visible { outline: 2px solid #FFFFFF; outline-offset: 2px; } .ds-install-cmd { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 6px 0 16px; border: 1px solid #2C2E34; border-radius: 8px; background: #151821; color: #FFFFFF; font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 0.9375rem; } .ds-install-cmd code { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; line-height: 1.6; font-family: var(--font-geist-mono), ui-monospace, monospace; } .ds-install-cmd code::before { content: \"$ \"; color: #A3A6AD; } .ds-install-copy { flex: none; min-height: 32px; padding: 0 14px; border: 0; border-radius: 999px; background: #FFFFFF; color: #0B0C12; font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif; font-size: 0.8125rem; font-weight: 600; cursor: pointer; } .ds-install-copy:hover { background: #A3A6AD; } .ds-install-copy:focus-visible { outline: 2px solid #FFFFFF; outline-offset: 2px; }"
+    },
+    {
+      "name": "Counts",
+      "kind": "custom",
+      "refersTo": "count",
+      "description": "Library counts in Geist Mono with the label under each number.",
+      "html": "<dl class=\"ds-counts\"><div><dt>Skills</dt><dd>61</dd></div><div><dt>Prompts</dt><dd>239</dd></div><div><dt>Kits</dt><dd>4</dd></div></dl>",
+      "css": ".ds-counts { display: flex; gap: 40px; margin: 0; padding: 16px; background: #0B0C12; color: #FFFFFF; } .ds-counts div { display: flex; flex-direction: column-reverse; gap: 4px; } .ds-counts dt { font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif; font-size: 0.75rem; line-height: 1.34; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #A3A6AD; } .ds-counts dd { margin: 0; font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 1.75rem; font-weight: 500; line-height: 1.143; font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Header navigation",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "Section links in the ink header. The current section sits on slate. The logo is left out of this preview because the header svg must not be redrawn or scaled.",
+      "html": "<nav class=\"ds-nav\"><span class=\"ds-nav-sep\" aria-hidden=\"true\"></span><span class=\"ds-nav-name\">Agent Kit</span><a href=\"#\">Start</a><a href=\"#\" aria-current=\"page\">Prompts</a><a href=\"#\">Skills</a><a href=\"#\">Kits</a><a href=\"#\">Fix a problem</a></nav>",
+      "css": ".ds-nav { display: flex; align-items: center; gap: 2px; min-height: 64px; padding: 0 32px; background: #0B0C12; border-bottom: 1px solid #2C2E34; font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif; font-size: 0.9375rem; } .ds-nav-sep { width: 1px; height: 20px; margin-right: 14px; background: #66686F; } .ds-nav-name { margin-right: 24px; color: #FFFFFF; font-weight: 500; letter-spacing: -0.01em; } .ds-nav a { display: inline-flex; align-items: center; min-height: 36px; padding: 0 12px; border-radius: 8px; color: #A3A6AD; font-weight: 500; text-decoration: none; transition: color 220ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-nav a:hover { background: #151821; color: #FFFFFF; } .ds-nav a[aria-current=\"page\"] { background: #151821; color: #FFFFFF; font-weight: 600; } .ds-nav a:focus-visible { outline: 2px solid #FFFFFF; outline-offset: 2px; }"
+    },
+    {
+      "name": "Search field",
+      "kind": "input",
+      "refersTo": "search-field",
+      "description": "Header search: slate field with a control border, white border on focus.",
+      "html": "<label class=\"ds-search\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"M20 20l-3.5-3.5\"/></svg><input type=\"search\" placeholder=\"Search prompts and skills\" aria-label=\"Search prompts and skills\"><kbd>/</kbd></label>",
+      "css": ".ds-search { position: relative; display: block; width: 340px; max-width: 100%; } .ds-search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #A3A6AD; pointer-events: none; } .ds-search input { width: 100%; min-height: 40px; padding: 0 36px; border: 1px solid #66686F; border-radius: 10px; background: #151821; color: #FFFFFF; font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif; font-size: 0.9375rem; outline: none; appearance: none; } .ds-search input::placeholder { color: #A3A6AD; } .ds-search input:focus { border-color: #FFFFFF; box-shadow: 0 0 0 3px #151821; } .ds-search kbd { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); padding: 0 6px; border: 1px solid #66686F; border-radius: 5px; color: #A3A6AD; font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 11px; line-height: 1.4; pointer-events: none; }"
+    },
+    {
+      "name": "Library card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "A slate tile on ink with a hairline border, a section dot and the lift shadow.",
+      "html": "<a class=\"ds-card\" href=\"#\"><span class=\"ds-card-title\"><i class=\"ds-card-dot\"></i>Browse prompts</span><span class=\"ds-card-desc\">239 prompts, commands and recipes, each with a Copy button.</span></a>",
+      "css": ".ds-card { display: grid; gap: 6px; max-width: 320px; padding: 18px 20px; border: 1px solid #2C2E34; border-radius: 14px; background: #151821; color: #FFFFFF; text-decoration: none; font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif; box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 1px 2px rgba(0,0,0,.6), 0 8px 20px -10px rgba(0,0,0,.7), 0 24px 40px -24px rgba(0,0,0,.9); transition: box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1), transform 220ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-card:hover { transform: translateY(-1px); box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 2px 4px rgba(0,0,0,.6), 0 12px 26px -10px rgba(0,0,0,.8), 0 30px 50px -24px rgba(0,0,0,1); } .ds-card:focus-visible { outline: 2px solid #FFFFFF; outline-offset: 2px; } .ds-card-title { display: flex; align-items: center; font-weight: 650; font-size: 1.0625rem; letter-spacing: -0.015em; } .ds-card-dot { width: 10px; height: 10px; margin-right: 10px; border-radius: 3px; background: #BFA8FF; } .ds-card-desc { color: #A3A6AD; font-size: 0.9375rem; line-height: 1.45; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Monolithic Minimal",
+    "overview": "AtlasScope is the brand. Agent Kit is its first product, and atlasscope.dev is the Agent Kit site. The system is the AtlasScope identity applied to a working tool: a near-black ink ground, white type, one raised slate tone, one muted grey, and nothing else. The name \"Monolithic Minimal\" is the owner's own reference board (black and white, a lit planet horizon, white pill buttons); it is used here as the working name for the system.\n\nThe homepage carries the one image the system allows, a photograph of a planet horizon, sitting under a solid ink header and above a solid ink strip that holds the install command. Everything a visitor acts on (the command, the Copy button, the counts) sits on a solid ground, never on the photograph. The rest of the site is a library of prompts and skills laid out as slate panels on ink.\n\nThe system has no accent hue. Emphasis comes from white against ink, from weight, and from the typeface: anything a visitor can type or paste is set in Geist Mono, and that is what marks it as a command.",
+    "keyCharacteristics": [
+      "Four colours on dark surfaces: ink, white, slate, muted. Rules are muted mixed over ink.",
+      "The header and the homepage are ink in both the light and the dark setting.",
+      "Montserrat 600 for display, Geist for text, Geist Mono for commands and counts.",
+      "One white pill per view for the primary action; the second action is an outlined pill.",
+      "One photograph, used only as the homepage hero backdrop under a solid header.",
+      "The AtlasScope logo is ink or white only, sits on a solid field, and is never scaled."
+    ],
+    "rules": [
+      {
+        "name": "The Four Colours Rule",
+        "body": "Dark surfaces use ink, white, slate and muted, and nothing else. The two rule colours are muted mixed over ink, not new colours.",
+        "section": "colors"
+      },
+      {
+        "name": "The No Accent Rule",
+        "body": "There is no accent hue. A command is marked by Geist Mono, a primary action by a white pill, a selection by white text and a white underline.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ink Everywhere Rule",
+        "body": "The header and the homepage are ink in both the light and the dark setting. They do not follow the visitor's light preference.",
+        "section": "colors"
+      },
+      {
+        "name": "The Dots Only Rule",
+        "body": "The six section hues appear only as small dots on library pages. They are not fills, borders, text colours or button tints.",
+        "section": "colors"
+      },
+      {
+        "name": "The White Ring Rule",
+        "body": "Keyboard focus on a dark surface is a 2px white outline, 2px off the element.",
+        "section": "colors"
+      },
+      {
+        "name": "The Three Faces Rule",
+        "body": "Montserrat 600 for display, Geist for text, Geist Mono for commands and counts. The wordmark is drawn as outlines; never retype it in live Montserrat.",
+        "section": "typography"
+      },
+      {
+        "name": "The No Label Above Rule",
+        "body": "No small label sits above a heading. A headline is the first thing in its block.",
+        "section": "typography"
+      },
+      {
+        "name": "The Read Before Paste Rule",
+        "body": "A command is never cut off on a phone. Below 720px it wraps and shows in full, so it can be read before it is pasted.",
+        "section": "typography"
+      },
+      {
+        "name": "The Solid Ground Rule",
+        "body": "Anything a visitor operates or needs to read exactly (the header, the logo, the install command, the counts) sits on solid ink or slate, never on the photograph.",
+        "section": "elevation"
+      },
+      {
+        "name": "The One Movement Rule",
+        "body": "The only animation on the homepage is the photograph settling into place on load (1400ms, from 55% opacity and 3.5% oversize). Text is in place from the first frame. With reduced motion set, nothing moves.",
+        "section": "elevation"
+      },
+      {
+        "name": "The One White Pill Rule",
+        "body": "One white primary pill per view. A second action beside it is an outlined pill. Two white pills never sit side by side.",
+        "section": "components"
+      },
+      {
+        "name": "The Untouched Logo Rule",
+        "body": "The header logo is pixel-fitted. Never scale it, transform it, or set its size from CSS. The logo is ink or white only: no gradient, glow, outline or tint.",
+        "section": "components"
+      },
+      {
+        "name": "The One Photograph Rule",
+        "body": "The orbit photograph is the only image in the system. It is used as supplied, only as the homepage hero backdrop, and only under a solid header.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do build dark surfaces from ink (#0B0C12), white, slate (#151821) and muted (#A3A6AD) only, with hairlines at #2C2E34 and control borders at #66686F.",
+      "Do keep the header and the homepage ink in both the light and the dark setting.",
+      "Do set the header as the AtlasScope lockup, a 1px divider, then \"Agent Kit\", in that order.",
+      "Do set every command, id and count in Geist Mono; that is what marks it.",
+      "Do use one white pill for the primary action in a view and an outlined pill for the second.",
+      "Do put the install command, the counts and the logo on solid ink or slate.",
+      "Do use a 2px white focus ring on dark surfaces.",
+      "Do show a full command on phones, wrapped, so it can be read before it is pasted.",
+      "Do read counts from generated content."
+    ],
+    "donts": [
+      "Don't add an accent hue, or use amber, on any dark surface.",
+      "Don't use a section hue as a fill, border, text colour or button tint; the six hues are small dots on library pages.",
+      "Don't place the AtlasScope logo on the photograph or on any image.",
+      "Don't scale, transform, recolour, outline or shade the header logo, and don't retype the wordmark in live text.",
+      "Don't put a small label above a heading.",
+      "Don't add a second image, crop or regrade the orbit photograph for effect, or use it anywhere but the homepage hero.",
+      "Don't put two white pills in one view.",
+      "Don't treat the warm paper colours on light-mode library pages as the system; they are the earlier look and have not been migrated.",
+      "Don't animate text into place; only the photograph moves, once, on load."
+    ]
+  }
+}

@@ -68,7 +68,7 @@ for (const size of SIZES) {
       await copy.click();
       assert.equal(await clipboard(page), agent.steps.join("\n"), `${agent.label} tab copies every step`);
     }
-    await page.getByRole("link", { name: /Browse prompts/ }).click();
+    await page.getByRole("link", { name: /Browse \d+ prompts/ }).click();
     await page.waitForURL(/\/prompts$/);
     assert.deepEqual(errors, []);
     await ctx.close();

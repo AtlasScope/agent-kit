@@ -482,7 +482,7 @@
   "UI028": {
    "s": "2222222"
   },
-  "UI100": {
+  "UI106": {
    "s": "2222221",
    "note": "Claude Code only, and says so; elsewhere there is nothing to set."
   },
@@ -795,6 +795,45 @@
   },
   "RC22": {
    "s": "2221221"
+  },
+  "MO01": {
+   "s": "2222222"
+  },
+  "MO02": {
+   "s": "2222222"
+  },
+  "MO03": {
+   "s": "2222222"
+  },
+  "MO04": {
+   "s": "2222222"
+  },
+  "MO05": {
+   "s": "2222222"
+  },
+  "MO06": {
+   "s": "2222222"
+  },
+  "UI100": {
+   "s": "2212221"
+  },
+  "UI101": {
+   "s": "2212221"
+  },
+  "UI102": {
+   "s": "2212221"
+  },
+  "UI103": {
+   "s": "2212221"
+  },
+  "UI104": {
+   "s": "2212221"
+  },
+  "UI105": {
+   "s": "2212221"
+  },
+  "RC23": {
+   "s": "2212221"
   }
  },
  "clusters": [
@@ -1119,6 +1158,28 @@
     {
      "id": "EC32",
      "when": "Same skill as UI031, listed with the engineering commands."
+    }
+   ]
+  },
+  {
+   "job": "Motion that stutters or feels inconsistent",
+   "primary": "UI104",
+   "alts": [
+    {
+     "id": "MO01",
+     "when": "Plain prompt with nothing to install, and the complaint is inconsistency."
+    },
+    {
+     "id": "MO02",
+     "when": "Plain prompt with nothing to install, and the complaint is stutter."
+    },
+    {
+     "id": "UI066",
+     "when": "You want Emil Kowalski's standards applied to one component's animation code."
+    },
+    {
+     "id": "UI069",
+     "when": "You already know it is a frame-rate problem and want the fix explained."
     }
    ]
   }
