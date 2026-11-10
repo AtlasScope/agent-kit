@@ -9,7 +9,7 @@
   #c { left: 40px; top: 280px; background: #15803d; }
   button { position: absolute; left: 400px; top: 500px; }
 </style>
-<button id="chain">Chain</button><button id="slow" style="left:500px">Slow</button><button id="bounce" style="left:600px">Bounce</button>
+<button id="chain">Chain</button><button id="slow" style="left:500px">Slow</button><button id="bounce" style="left:600px">Bounce</button><button id="turn" style="left:700px">Turn</button>
 <div id="a"></div><div id="b"></div><div id="c"></div>
 <script>
   // The second step starts only when the first one finishes.
@@ -26,5 +26,10 @@
   document.getElementById("bounce").addEventListener("click", () => {
     const x = document.getElementById("c").animate([{ transform: "none" }, { transform: "translateX(200px)" }], { duration: 100, fill: "both" });
     x.onfinish = () => { x.onfinish = null; x.reverse(); };
+  });
+  // Turned around part way: a timer reverses the animation 100ms into its 400ms.
+  document.getElementById("turn").addEventListener("click", () => {
+    const x = document.getElementById("c").animate([{ transform: "none" }, { transform: "translateX(200px)" }], { duration: 400, fill: "both", easing: "linear" });
+    setTimeout(() => x.reverse(), 100);
   });
 </script>

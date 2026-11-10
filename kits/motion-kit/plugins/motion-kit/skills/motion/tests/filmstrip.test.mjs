@@ -305,6 +305,14 @@ test("an animation object the page reverses after it finishes is followed back",
   assert.ok(png("06.png").equals(png("before.png")), "and it is back where it started");
 });
 
+test("an animation reversed part way through the capture turns around in the frames", { skip }, () => {
+  const m = chain("--do", "click:#turn", "--ms", "300", "--frames", "4", "--clip", "#c");
+  assert.equal(m.animations.length, 1);
+  const png = (f) => fs.readFileSync(path.join(m.out, "frames", f));
+  assert.ok(!png("01.png").equals(png("00.png")), "it has moved by 100ms");
+  assert.ok(png("03.png").equals(png("before.png")), "and it is back where it started by 300ms, not three quarters of the way out");
+});
+
 test("an unknown action fails with a usage error instead of a blank capture", { skip }, () => {
   const r = run("--do", "wiggle:#x");
   assert.equal(r.status, 2);

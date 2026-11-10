@@ -168,19 +168,24 @@ function scrub([t, finish]) {
     }
     if (a.playState === "idle") continue; // cancelled by the page itself; leave it alone
     // An animation the page reversed (a close that calls reverse()) runs from where it was back toward zero.
-    if (!reg.from.has(a)) {
-      const hint = window.__filmstripReversed?.get(a);
+    const hint = window.__filmstripReversed?.get(a);
+    const known = reg.from.get(a);
+    if (!known) {
       const dir = hint ? hint.dir : a.playbackRate < 0 ? -1 : 1;
       const end = a.effect?.getComputedTiming?.().endTime;
-      reg.from.set(a, { dir, at: hint ? hint.from : reg.held.has(a) ? a.currentTime ?? 0 : dir < 0 ? (Number.isFinite(end) ? end : a.currentTime ?? 0) : 0 });
+      reg.from.set(a, { dir, hint, start: rec.start, at: hint ? hint.from : reg.held.has(a) ? a.currentTime ?? 0 : dir < 0 ? (Number.isFinite(end) ? end : a.currentTime ?? 0) : 0 });
+    } else if (hint && known.hint !== hint) {
+      // The page reversed it part way through the capture: it now runs the other way from where it stood.
+      reg.from.set(a, { dir: hint.dir, hint, start: t, at: hint.from });
     }
     const from = reg.from.get(a);
     const speed = Math.abs(a.playbackRate || 1);
     const total = a.effect?.getComputedTiming?.().endTime;
     // How long it really takes from here: a half-speed animation needs twice its own length, and a reversed
     // one only has the stretch back to zero left.
-    if (fresh.includes(rec) && rec.end != null) rec.end = Math.round((from.dir < 0 ? from.at : Math.max(0, total - from.at)) / speed);
-    const at = from.at + from.dir * speed * (t - rec.start);
+    const left = (from.dir < 0 ? from.at : Math.max(0, total - from.at)) / speed;
+    if (fresh.includes(rec) && rec.end != null) rec.end = Math.round(left);
+    const at = from.at + from.dir * speed * (t - from.start);
     // Code that waits for the end (await animation.finished, onfinish) starts its next step only when the
     // animation really finishes, which a paused one never does. So once time passes its end, finish it and
     // leave it alone from then on.
