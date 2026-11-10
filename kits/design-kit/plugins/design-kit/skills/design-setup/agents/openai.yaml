@@ -1,0 +1,5 @@
+interface:
+  display_name: "Design setup"
+  short_description: "Choose how /design starts and whether it asks first"
+policy:
+  allow_implicit_invocation: false

@@ -35,12 +35,12 @@ claude plugin install experience-architecture@agent-kit
 claude plugin install working-style@agent-kit
 ```
 
-**Choices at install.** Claude Code asks two short questions when you turn on the design kit and one for the engineering kit. Both default to how the kit has always worked, and you can change them later in `/config` (a change applies from the next session):
+**Choices at install.** Claude Code asks two short questions when you turn on the design kit and one for the engineering kit. Both default to how the kit has always worked, and you can change them later (a change applies from the next session):
 
 - **How should the router start?** `typed` (the default) runs `/design`, `/engineer` or `/database` only when you type it. `automatic` also starts it when you ask for that kind of work in your own words. The other commands always wait to be typed.
 - **Ask before a design skill edits files?** (design kit only) When on, `/design` names its pick and waits for your yes before anything changes files.
 
-Codex and claude.ai don't ask; there the routers always wait to be typed.
+To change an answer, type `/design-setup` or `/engineering-setup`: it explains each choice in plain words and saves your answers after showing you the change. `/config` works too. Codex and claude.ai don't ask; there the routers always wait to be typed.
 
 **Claude Code cloud sessions.** Add this to the repository's `.claude/settings.json`, keeping only the plugins you want:
 

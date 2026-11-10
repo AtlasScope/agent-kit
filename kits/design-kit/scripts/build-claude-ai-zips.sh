@@ -16,6 +16,7 @@ if [ $# -eq 0 ]; then
   for d in plugins/design-kit/skills/*/; do
     n=$(basename "$d")
     [ "$n" = design ] && continue
+    [ "$n" = design-setup ] && continue  # Claude Code settings; nothing to set on claude.ai
     f="$b/skills/$n.md"
     cat "$d/SKILL.md" > "$f"
     (cd "$d" && find . -type f ! -name SKILL.md ! -path './scripts/*' ! -path './agents/*' \( -name '*.md' -o -name '*.json' -o -name '*.txt' -o -name 'LICENSE' \) | sort) | while read -r x; do
