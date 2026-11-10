@@ -145,6 +145,34 @@ test("a symbolic link planted in the output folder is refused, and its target is
   if (r.status !== 3) { assert.equal(r.status, 2); assert.match(r.stderr, /symbolic link/); }
 });
 
+test("a package whose entry point escapes its own folder is never loaded from a trusted place", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "filmstrip-escape-"));
+  const sentinel = path.join(dir, "ran.txt");
+  fs.writeFileSync(path.join(dir, "payload.cjs"), `require("fs").writeFileSync(${JSON.stringify(sentinel)}, "ran"); module.exports = {};`);
+  const pkg = path.join(dir, "tools", "node_modules", "playwright");
+  fs.mkdirSync(pkg, { recursive: true });
+  fs.writeFileSync(path.join(pkg, "package.json"), JSON.stringify({ name: "playwright", main: "../../../payload.cjs" }));
+  const work = path.join(dir, "work"); fs.mkdirSync(work);
+  spawnSync(process.execPath, [script, page, "--out", path.join(dir, "out"), "--do", "click:#open-good", "--frames", "2"], { cwd: work, encoding: "utf8", timeout: 120000, env: { ...process.env, MOTION_PLAYWRIGHT_DIR: path.join(dir, "tools") } });
+  assert.equal(fs.existsSync(sentinel), false, "an entry outside the package folder must not be imported");
+});
+
+test("a copy of the skill installed inside a project does not pick up that project's Playwright", () => {
+  const proj = fs.mkdtempSync(path.join(os.tmpdir(), "filmstrip-nested-"));
+  fs.mkdirSync(path.join(proj, ".git"));
+  const sentinel = path.join(proj, "ran.txt");
+  const pkg = path.join(proj, "node_modules", "playwright");
+  fs.mkdirSync(pkg, { recursive: true });
+  fs.writeFileSync(path.join(pkg, "package.json"), JSON.stringify({ name: "playwright", main: "index.js" }));
+  fs.writeFileSync(path.join(pkg, "index.js"), `require("fs").writeFileSync(${JSON.stringify(sentinel)}, "ran"); module.exports = {};`);
+  const copy = path.join(proj, ".agents", "skills", "motion", "scripts");
+  fs.mkdirSync(copy, { recursive: true });
+  fs.copyFileSync(script, path.join(copy, "filmstrip.mjs"));
+  const nested = path.join(proj, "packages", "app"); fs.mkdirSync(nested, { recursive: true });
+  spawnSync(process.execPath, [path.join(copy, "filmstrip.mjs"), page, "--out", path.join(os.tmpdir(), "filmstrip-nested-out"), "--do", "click:#open-good", "--frames", "2"], { cwd: nested, encoding: "utf8", timeout: 120000 });
+  assert.equal(fs.existsSync(sentinel), false, "the project's module must not be imported from a nested working directory");
+});
+
 test("an unknown action fails with a usage error instead of a blank capture", { skip }, () => {
   const r = run("--do", "wiggle:#x");
   assert.equal(r.status, 2);

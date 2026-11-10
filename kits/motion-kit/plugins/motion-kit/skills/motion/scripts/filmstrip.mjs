@@ -41,23 +41,37 @@ async function loadPlaywright() {
   // is that project's code, so it is loaded only when --project-playwright says the project is trusted.
   // Otherwise Playwright comes from MOTION_PLAYWRIGHT_DIR or the machine's global Node modules.
   const trustProject = flag("--project-playwright");
-  const cwd = fs.realpathSync(process.cwd());
-  const ancestors = []; for (let d = cwd; ; d = path.dirname(d)) { ancestors.push(d); if (path.dirname(d) === d) break; }
-  const inProject = (file) => ancestors.some((d) => file.startsWith(path.join(d, "node_modules") + path.sep)) || file.startsWith(cwd + path.sep);
-  const globals = [...(process.env.NODE_PATH || "").split(path.delimiter), path.resolve(process.execPath, "../../lib/node_modules"), path.resolve(process.execPath, "../node_modules")].filter(Boolean);
-  const bases = [trustProject && cwd, process.env.MOTION_PLAYWRIGHT_DIR, ...globals, path.dirname(fileURLToPath(import.meta.url))].filter(Boolean);
+  const real = (p) => { try { return fs.realpathSync(p); } catch { return null; } };
+  const inside = (file, dir) => file === dir || file.startsWith(dir + path.sep);
+  const cwd = real(process.cwd());
+  // The project is the working directory and the repository around it. Nothing under it is loaded by default.
+  let project = cwd;
+  for (let d = cwd; ; d = path.dirname(d)) { if (fs.existsSync(path.join(d, ".git"))) { project = d; break; } if (path.dirname(d) === d) break; }
+  const NAMES = ["playwright", "playwright-core", "@playwright/test"];
   let skipped = false;
-  for (const b of bases) for (const name of ["playwright", "playwright-core", "@playwright/test"]) {
+  // Trusted places are looked in exactly: <dir>/node_modules/<name> or <dir>/<name>. There is no walk up
+  // through parent folders, and the package's entry file has to sit inside the package's own folder, so
+  // a package.json cannot point the import at a file somewhere else.
+  const candidates = [];
+  if (trustProject) for (const name of NAMES) { try { candidates.push({ file: real(createRequire(path.join(cwd, "package.json")).resolve(name)), trusted: true }); } catch { /* not in the project */ } }
+  const globals = [process.env.MOTION_PLAYWRIGHT_DIR, ...(process.env.NODE_PATH || "").split(path.delimiter), path.resolve(process.execPath, "../../lib/node_modules"), path.resolve(process.execPath, "../node_modules")].filter(Boolean);
+  for (const base of globals) for (const name of NAMES) for (const dir of [path.join(base, "node_modules", name), path.join(base, name)]) {
+    const pkg = real(dir);
+    if (!pkg || !fs.existsSync(path.join(pkg, "package.json"))) continue;
+    let file = null;
+    try { file = real(createRequire(path.join(pkg, "package.json")).resolve(pkg)); } catch { /* no entry point */ }
+    if (!file || !inside(file, pkg)) continue;
+    if (inside(pkg, project)) { skipped = true; continue; }
+    candidates.push({ file });
+  }
+  if (!trustProject) for (const name of NAMES) if (real(path.join(cwd, "node_modules", name))) skipped = true;
+  for (const { file } of candidates) {
+    if (!file) continue;
     try {
-      const req = createRequire(path.join(path.resolve(b), "package.json"));
-      let file;
-      try { file = req.resolve(name); } catch { file = fs.realpathSync(path.join(path.resolve(b), name)); file = createRequire(path.join(file, "package.json")).resolve("./"); }
-      file = fs.realpathSync(file);
-      if (!trustProject && inProject(file)) { skipped = true; continue; }
       const mod = await import(pathToFileURL(file).href);
       const pw = mod.chromium ? mod : mod.default;
       if (pw?.chromium) return pw;
-    } catch { /* try the next place */ }
+    } catch { /* try the next one */ }
   }
   fail(`No Playwright was loaded, so no frames were captured.${skipped ? `
 This project has its own copy, which was not used: loading it runs the project's code in this process.
