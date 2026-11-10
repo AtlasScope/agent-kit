@@ -211,7 +211,7 @@ Light-mode library pages still run on an older warm set: paper #ECEAE4, white ca
 
 The page is a centred container (1280px, growing to 1320px on screens at least 1600px wide and 900px tall) with a gutter of 32px, stepping to 24px below 960px, 16px below 640px and 12px below 352px. Spacing runs on six steps: 8, 12, 16, 24, 40 and 64px.
 
-The header is a solid ink bar, 64px tall, fixed to the top of the window, with a hairline under it. Below 1024px it becomes two rows with search on its own row; below 640px, three rows (brand, links, search).
+The header is a solid ink bar fixed to the top of the window, with a hairline under it, and always one row. From 1200px up it is 64px tall and holds the lockup, four links, search, the account button and GitHub. Below 1200px it is 56px tall and holds the lockup, search and a menu button. Below 640px search becomes a button too.
 
 The homepage hero is three stacked bands on one left edge, the container's left edge:
 1. The solid header.
@@ -260,7 +260,7 @@ The AtlasScope lockup, a hairline divider, then "Agent Kit".
 - **Logo:** the full lockup, 159 by 32px, white, drawn as outlines. Below 720px wide it is replaced by the symbol alone.
 - **Divider:** 1px wide, 20px tall, control border colour, 14px either side (10px below 720px).
 - **Product name:** "Agent Kit" in Geist 500, 0.9375rem, white, set on the logo's baseline.
-- **Pixel fit:** the header svg is drawn on the pixel grid by `design/atlasscope/source/export_site.py`: capitals run from 4px to a baseline at 20px, and its top edge sits on a multiple of 4px (16px in the 64px bar, 12px in the two-row header). A second symbol drawing is swapped in at 125% display scaling. Render it at its own width and height.
+- **Pixel fit:** the header svg is drawn on the pixel grid by `design/atlasscope/source/export_site.py`: capitals run from 4px to a baseline at 20px, and its top edge sits on a multiple of 4px (16px in the 64px bar, 12px in the 56px bar). A second symbol drawing is swapped in at 125% display scaling. Render it at its own width and height.
 
 ### Buttons
 - **Shape:** full pill (999px) in the hero.
@@ -280,7 +280,9 @@ The signature component: pick an agent, copy the install command, see what was t
 ### Navigation
 - **Links:** Geist 500 at 0.9375rem, muted, 36px tall with 12px side padding and 8px corners. The current section is white, weight 600, on a slate fill. Hover fills slate and turns the text white.
 - **Search field:** 40px tall, slate fill, control border, 10px corners, a 16px search icon inside the left edge and a "/" key hint inside the right. On focus the border turns white with a 3px slate ring.
-- **Mobile:** links scroll sideways on their own row; search takes a full row.
+- **Links:** Start, Prompts, Skills, Fix a problem. Kits is reached from Skills and the footer.
+- **Menu:** below 1200px the links, the account button and GitHub sit behind a 40px menu button. It opens a full-window sheet on ink with its own top row, so Close sits where Menu was. Links are Geist 600 at 1.25rem in 56px rows divided by hairlines; the current section is white, the rest muted. It closes on Escape, on Close and on any link.
+- **Phone search:** below 640px a 40px search button puts the cursor in the field, which covers the bar while it has focus and has its own Close button.
 
 ### Cards / Containers
 - **Corner Style:** 14px for cards and tiles, 12px for rows and panels.
