@@ -15,6 +15,13 @@ The user typed `/design-setup`. Explain each choice so someone who has never see
 
 Only Claude Code has these choices. In Codex or claude.ai, say that `/design` there always waits to be typed and there is nothing to set, then stop.
 
+## Check first
+
+Do both checks before asking anything, and mention a result only when it changes what they should expect.
+
+- **Organisation settings.** An organisation can set these answers for everyone, and its setting wins over the user's file. Read whichever of these exist: `/Library/Application Support/ClaudeCode/managed-settings.json` (macOS), `/etc/claude-code/managed-settings.json` (Linux and WSL), `C:\Program Files\ClaudeCode\managed-settings.json` (Windows), and any `*.json` in the `managed-settings.d` folder beside it. Look only at `pluginConfigs` entries whose key starts with `design-kit@`. If one sets these options, say their organisation has already chosen, name the values only if they are ones in the table below, and stop without writing.
+- **Windows.** The answers reach each session through a small script that needs Git for Windows (Git Bash). On Windows, check that `bash` runs or that `CLAUDE_CODE_GIT_BASH_PATH` is set. If neither, tell them plainly that until Git for Windows is installed the kit keeps the defaults: `/design` waits to be typed and does not ask before edits, whatever is saved. They can still save their answers now.
+
 ## The questions
 
 Ask them in this order. Each has exactly the values listed; save nothing else.
@@ -71,7 +78,7 @@ If the answers are already saved as chosen, say so and write nothing.
 
 ## After saving
 
-Say in two or three plain sentences what will happen and when: the change applies from the next Claude Code session, not this one. Describe what they will notice there (for example, "ask for design work in your own words and `/design` will start, saying so in its first line"). They can run `/design-setup` again or use `/config` to change it.
+Say in two or three plain sentences what will happen and when: the change applies from the next Claude Code session, not this one. Describe what they will notice there (for example, "ask for design work in your own words and `/design` will start, saying so in its first line"). If it does not show up there, an organisation setting this command cannot read (a device profile or the admin console) may be overriding it. They can run `/design-setup` again or use `/config` to change it.
 
 ## Do not
 

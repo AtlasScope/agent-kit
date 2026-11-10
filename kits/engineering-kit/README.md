@@ -1,6 +1,6 @@
 # Engineering Kit
 
-Engineering skills for AI coding agents, picked for a solo operator who wants agents to use judgment and only interview, test-first or write reports when asked. Every command here runs only when you type it. Four helper skills (`grilling`, `codebase-design`, `domain-modeling`, `writing-for-agents`) stay reachable so the commands can call them, with descriptions narrowed so they do not start on their own.
+Engineering skills for AI coding agents, picked for a solo operator who wants agents to use judgment and only interview, test-first or write reports when asked. Every command here runs only when you type it, unless you choose in Claude Code to let `/engineer` and `/database` start on their own (see `/engineering-setup`). Four helper skills (`grilling`, `codebase-design`, `domain-modeling`, `writing-for-agents`) stay reachable so the commands can call them, with descriptions narrowed so they do not start on their own.
 
 It is the engineering sibling of [design-kit](../design-kit). Credits, versions and licenses are in [THIRD_PARTY.md](THIRD_PARTY.md).
 

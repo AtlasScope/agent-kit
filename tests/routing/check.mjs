@@ -75,9 +75,8 @@ for (const c of cases) {
       const kit = name === "design" ? "design-kit" : "engineering-kit";
       const base = `kits/${kit}/plugins/${kit}`;
       const skill = read(`${base}/skills/${name}/SKILL.md`);
-      const desc = skill.match(/^description: (.*)$/m)?.[1] || "";
-      if (!/^disable-model-invocation: true$/m.test(skill) && !/Without that note, ordinary \w+ talk must not activate it/.test(desc))
-        fail(`${at}: ${r} can start on its own without the automatic-start note`);
+      // Automatic start goes through the session-start note, never the Skill tool, so the router stays command-only.
+      if (!/^disable-model-invocation: true$/m.test(skill)) fail(`${at}: ${r} can start on its own (no disable-model-invocation)`);
       const start = JSON.parse(read(`${base}/.claude-plugin/plugin.json`)).userConfig?.start_mode;
       if (start && start.default !== "typed") fail(`${at}: ${kit} start_mode must default to "typed"`);
       if (!/allow_implicit_invocation: false/.test(read(`${base}/skills/${name}/agents/openai.yaml`)))

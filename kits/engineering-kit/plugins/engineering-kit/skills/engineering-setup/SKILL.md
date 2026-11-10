@@ -15,6 +15,13 @@ The user typed `/engineering-setup`. Explain the choice so someone who has never
 
 Only Claude Code has this choice. In Codex or claude.ai, say that `/engineer` and `/database` there always wait to be typed and there is nothing to set, then stop.
 
+## Check first
+
+Do both checks before asking anything, and mention a result only when it changes what they should expect.
+
+- **Organisation settings.** An organisation can set these answers for everyone, and its setting wins over the user's file. Read whichever of these exist: `/Library/Application Support/ClaudeCode/managed-settings.json` (macOS), `/etc/claude-code/managed-settings.json` (Linux and WSL), `C:\Program Files\ClaudeCode\managed-settings.json` (Windows), and any `*.json` in the `managed-settings.d` folder beside it. Look only at `pluginConfigs` entries whose key starts with `engineering-kit@`. If one sets these options, say their organisation has already chosen, name the values only if they are ones in the table below, and stop without writing.
+- **Windows.** The answers reach each session through a small script that needs Git for Windows (Git Bash). On Windows, check that `bash` runs or that `CLAUDE_CODE_GIT_BASH_PATH` is set. If neither, tell them plainly that until Git for Windows is installed `/engineer` and `/database` keep waiting to be typed, whatever is saved. They can still save their answers now.
+
 ## The question
 
 It has exactly the values listed; save nothing else.
@@ -60,7 +67,7 @@ If the answer is already saved as chosen, say so and write nothing.
 
 ## After saving
 
-Say in two or three plain sentences what will happen and when: the change applies from the next Claude Code session, not this one. Describe what they will notice there (for example, "describe a bug in your own words and `/engineer` will suggest a starting move, saying in its first line that it started on its own"). They can run `/engineering-setup` again or use `/config` to change it.
+Say in two or three plain sentences what will happen and when: the change applies from the next Claude Code session, not this one. Describe what they will notice there (for example, "describe a bug in your own words and `/engineer` will suggest a starting move, saying in its first line that it started on its own"). If it does not show up there, an organisation setting this command cannot read (a device profile or the admin console) may be overriding it. They can run `/engineering-setup` again or use `/config` to change it.
 
 ## Do not
 

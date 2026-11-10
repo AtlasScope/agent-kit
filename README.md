@@ -40,7 +40,7 @@ claude plugin install working-style@agent-kit
 - **How should the router start?** `typed` (the default) runs `/design`, `/engineer` or `/database` only when you type it. `automatic` also starts it when you ask for that kind of work in your own words. The other commands always wait to be typed.
 - **Ask before a design skill edits files?** (design kit only) When on, `/design` names its pick and waits for your yes before anything changes files.
 
-To change an answer, type `/design-setup` or `/engineering-setup`: it explains each choice in plain words and saves your answers after showing you the change. `/config` works too. Codex and claude.ai don't ask; there the routers always wait to be typed.
+To change an answer, type `/design-setup` or `/engineering-setup`: it explains each choice in plain words and saves your answers after showing you the change. `/config` works too. On Windows these choices need Git for Windows (Git Bash); without it the kits keep the defaults. Codex and claude.ai don't ask; there the routers always wait to be typed.
 
 **Claude Code cloud sessions.** Add this to the repository's `.claude/settings.json`, keeping only the plugins you want:
 
