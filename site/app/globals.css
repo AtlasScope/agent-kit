@@ -10,24 +10,39 @@
   --lift: inset 0 1px 0 rgba(255,255,255,.8), 0 1px 2px rgba(28,22,10,.07), 0 6px 14px -6px rgba(28,22,10,.10), 0 20px 34px -22px rgba(28,22,10,.22);
   --lift-hi: inset 0 1px 0 rgba(255,255,255,.8), 0 2px 4px rgba(28,22,10,.08), 0 10px 22px -8px rgba(28,22,10,.16), 0 28px 44px -24px rgba(28,22,10,.30);
   --font-body: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-body);
+  --font-display: var(--font-montserrat), var(--font-body);
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
   --text-sm: 0.875rem; --text-md: 1rem; --text-lead: clamp(1.0625rem, 0.4vw + 1rem, 1.1875rem);
   --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px; --space-xl: 40px; --space-2xl: 64px;
   --radius: 12px; --container: 1280px; --gutter: 32px; --measure: 72ch;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --dur-micro: 120ms; --dur-short: 220ms; --dur-long: 600ms;
 }
+/* Dark is the AtlasScope brand: ink #0B0C12, white, slate #151821 and muted #A3A6AD. The two rule colours are muted at
+   22% and 60% over ink; the second keeps 3:1 for control borders. There is no accent hue. */
 @media (prefers-color-scheme: dark) { :root {
   color-scheme: dark;
-  --color-paper: #0A0A09; --color-paper-2: #1A1917; --color-paper-3: #2A2825;
-  --color-ink: #FFFFFF; --color-ink-2: #E2DED6; --color-muted: #B3AC9F;
-  --color-rule: #34312C; --color-rule-2: #4C4740;
-  --color-accent: #FFFFFF; --color-accent-ink: #0B0A08; --color-focus: #F5A524;
-  --color-cmd: #F5A524; --color-amber-soft: #2A1F0E;
+  --color-paper: #0B0C12; --color-paper-2: #151821; --color-paper-3: #1E222D;
+  --color-ink: #FFFFFF; --color-ink-2: #A3A6AD; --color-muted: #A3A6AD;
+  --color-rule: #2C2E34; --color-rule-2: #66686F;
+  --color-accent: #FFFFFF; --color-accent-ink: #0B0C12; --color-focus: #FFFFFF;
+  --color-cmd: #FFFFFF; --color-amber-soft: #151821;
   --s-inv: #4BF0A8; --s-db: #C9E05A; --s-think: #BFA8FF; --s-ecmd: #3FE0F5; --s-dcmd: #8CB6FF; --s-recipe: #FF7FB2;
   --lift: inset 0 1px 0 rgba(255,255,255,.06), 0 1px 2px rgba(0,0,0,.6), 0 8px 20px -10px rgba(0,0,0,.7), 0 24px 40px -24px rgba(0,0,0,.9);
   --lift-hi: inset 0 1px 0 rgba(255,255,255,.08), 0 2px 4px rgba(0,0,0,.6), 0 12px 26px -10px rgba(0,0,0,.8), 0 30px 50px -24px rgba(0,0,0,1);
 } }
+/* The header and the homepage are ink in both themes. */
+.ink, :root:has(.home) {
+  color-scheme: dark;
+  --color-paper: #0B0C12; --color-paper-2: #151821; --color-paper-3: #151821;
+  --color-ink: #FFFFFF; --color-ink-2: #A3A6AD; --color-muted: #A3A6AD;
+  --color-rule: #2C2E34; --color-rule-2: #66686F;
+  --color-accent: #FFFFFF; --color-accent-ink: #0B0C12; --color-focus: #FFFFFF;
+  --color-cmd: #FFFFFF; --color-amber-soft: #151821;
+  --s-inv: #4BF0A8; --s-db: #C9E05A; --s-think: #BFA8FF; --s-ecmd: #3FE0F5; --s-dcmd: #8CB6FF; --s-recipe: #FF7FB2;
+  --lift: inset 0 1px 0 rgba(255,255,255,.06), 0 1px 2px rgba(0,0,0,.6), 0 8px 20px -10px rgba(0,0,0,.7), 0 24px 40px -24px rgba(0,0,0,.9);
+  --lift-hi: inset 0 1px 0 rgba(255,255,255,.08), 0 2px 4px rgba(0,0,0,.6), 0 12px 26px -10px rgba(0,0,0,.8), 0 30px 50px -24px rgba(0,0,0,1);
+}
+.ink { color: var(--color-ink); }
 *, *::before, *::after { box-sizing: border-box; }
 html, body { overflow-x: clip; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; scrollbar-color: var(--color-rule-2) var(--color-paper); }
@@ -36,7 +51,7 @@ body { margin: 0; background: var(--color-paper); color: var(--color-ink); font:
 ::selection { background: var(--color-rule-2); }
 a { color: inherit; }
 p { margin: 0; }
-h1 { margin: 0; font: 600 clamp(2.25rem, 3.6vw + 0.75rem, 3.5rem)/1.05 var(--font-display); letter-spacing: -0.035em; text-wrap: balance; overflow-wrap: break-word; min-width: 0; }
+h1 { margin: 0; font: 600 clamp(2.25rem, 3.6vw + 0.75rem, 3.5rem)/1.05 var(--font-display); letter-spacing: -0.02em; text-wrap: balance; overflow-wrap: break-word; min-width: 0; }
 code, pre { font-family: var(--font-mono); }
 .container { max-width: var(--container); margin-inline: auto; padding-inline: max(var(--gutter), env(safe-area-inset-left)) max(var(--gutter), env(safe-area-inset-right)); }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -314,7 +329,6 @@ svg.i { width: 16px; height: 16px; flex: none; }
 .top { position: sticky; top: 0; z-index: 30; background: var(--color-paper); border-bottom: 1px solid var(--color-rule); }
 .nav { display: flex; align-items: center; gap: var(--space-sm) var(--space-lg); min-height: 64px; }
 .wordmark { gap: 0; font: 650 1.125rem/1 var(--font-body); letter-spacing: -0.03em; white-space: nowrap; }
-.wordmark b { color: var(--color-cmd); }
 /* AtlasScope logo in the header. The svg is drawn on the pixel grid by export_site.py: it is 32px tall with
    capitals from 4px to a baseline at 20px. Never scale or transform it. The header is 64px, so the svg's
    top sits at 16px, and every flat edge lands on a whole device pixel at 100%, 125%, 150% and 200%. */
@@ -323,11 +337,11 @@ svg.i { width: 16px; height: 16px; flex: none; }
 .aslogo--mark { display: none; }
 .aslogo__sym--x125 { display: none; }
 @media (resolution: 1.25dppx) { .aslogo__sym--x1 { display: none; } .aslogo__sym--x125 { display: inline; } }
-.wordmark .wordmark__sep { margin-inline: 0.55em 0.5em; color: var(--color-muted); font-weight: 400; font-size: 1em; }
-.wordmark .wordmark__name { color: inherit; font-weight: inherit; font-size: inherit; }
-/* Lifts the text 2px so it sits on the logo's baseline (20px down the 32px svg). */
-.wordmark .wordmark__sep, .wordmark .wordmark__name { padding-bottom: 4px; }
-@media (max-width: 720px) { .aslogo--full { display: none; } .aslogo--mark { display: block; } .wordmark .wordmark__sep { margin-inline: 0.4em 0.35em; } }
+.wordmark .wordmark__sep { width: 1px; height: 20px; margin-inline: 14px; background: var(--color-rule-2); }
+.wordmark .wordmark__name { color: inherit; font: 500 0.9375rem/1 var(--font-body); letter-spacing: -0.01em; }
+/* Puts the text on the logo's baseline (20px down the 32px svg). */
+.wordmark .wordmark__name { padding-bottom: 3px; }
+@media (max-width: 720px) { .aslogo--full { display: none; } .aslogo--mark { display: block; } .wordmark .wordmark__sep { margin-inline: 10px; } }
 .links { gap: 2px; font-size: 0.9375rem; }
 .links a { display: inline-flex; align-items: center; min-height: 36px; padding: 0 12px; border-radius: 8px; color: var(--color-ink-2); font-weight: 500; }
 .links a[aria-current="page"] { background: var(--color-paper-3); color: var(--color-ink); font-weight: 600; }
@@ -389,6 +403,8 @@ svg.i { width: 16px; height: 16px; flex: none; }
 .tile--lead .dot { background: #fff; }
 .tile--lead .tile__d { color: rgba(255,255,255,.88); }
 @media (prefers-color-scheme: dark) { .tile--lead { color: #0B0A08; } .tile--lead .dot { background: #0B0A08; } .tile--lead .tile__d { color: rgba(0,0,0,.78); } }
+/* The homepage is ink in the light setting too, where the rule above does not apply. */
+.home .tile--lead { color: #0B0C12; } .home .tile--lead .dot { background: #0B0C12; } .home .tile--lead .tile__d { color: rgba(0,0,0,.78); }
 
 /* Rows: symptoms with an arrow */
 .rows { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: var(--space-sm); }
@@ -457,6 +473,7 @@ svg.i { width: 16px; height: 16px; flex: none; }
 /* Header on tablets and phones: search takes its own row, section links scroll. */
 @media (max-width: 64rem) {
   .nav { display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "brand links end" "search search search"; grid-template-rows: 40px auto; padding-block: 8px; row-gap: 10px; } /* 8px + a 40px row puts the logo's top at 12px, a whole device pixel at every scale */
+  .nav__end .hide-sm { display: none; }
   .wordmark { grid-area: brand; } .links { grid-area: links; overflow-x: auto; scrollbar-width: none; justify-content: flex-start; padding: 0; } .links a { white-space: nowrap; }
   .nav__end { grid-area: end; } .nav .search { grid-area: search; flex: none; margin: 0; }
   .section { scroll-margin-top: 140px; }
@@ -480,3 +497,73 @@ svg.i { width: 16px; height: 16px; flex: none; }
 .start-list__n { font: 500 var(--text-sm)/1 var(--font-mono); color: var(--color-muted); }
 .start-nav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-sm); max-width: var(--measure); }
 .start-nav .btn { white-space: normal; text-align: left; }
+
+/* Homepage hero: the orbit photo under a solid ink header, text hung from the container's left edge, and a solid
+   strip along the bottom with the install command. The logo never sits on the photo. */
+.orbit { --edge: max(var(--gutter), calc(50vw - var(--container) / 2 + var(--gutter))); margin-inline: calc(50% - 50vw); display: grid; grid-template-columns: minmax(0, 1fr); background: var(--color-paper); }
+.orbit__stage { position: relative; display: grid; align-content: center; min-height: clamp(520px, calc(100svh - 65px - 137px), 1000px); padding-block: clamp(16px, 4svh, 64px); overflow: hidden; isolation: isolate; }
+.orbit__photo { position: absolute; inset: 0; z-index: -1; background: var(--color-paper) 50% 100% / cover no-repeat; }
+.orbit__photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 100%; }
+/* Ink over the left so the text sits in black sky, and a fade under the header. */
+.orbit__photo::after { content: ""; position: absolute; inset: 0; background:
+  linear-gradient(to bottom, #0B0C12, rgba(11,12,18,0) 140px),
+  linear-gradient(to right, #0B0C12 calc(var(--edge) + 80px), rgba(11,12,18,.88) calc(var(--edge) + 460px), rgba(11,12,18,.4) calc(var(--edge) + 760px), rgba(11,12,18,0) calc(var(--edge) + 1040px)); }
+.orbit__body { width: 100%; display: grid; justify-items: start; gap: 28px; }
+.orbit h1 { max-width: 13ch; font-size: clamp(2.5rem, 4.2vw + 0.75rem, 5.5rem); line-height: 1.055; }
+.orbit__lede { max-width: 36.5rem; font-size: clamp(1.0625rem, 0.4vw + 1rem, 1.1875rem); line-height: 1.53; color: var(--color-muted); text-wrap: pretty; }
+.orbit__cta { display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-top: var(--space-xs); }
+.orbit__cta .btn { border-radius: 999px; font-weight: 500; text-decoration: none; }
+.orbit__cta .btn:not(.btn--solid) { background: rgba(11,12,18,.6); }
+.orbit__cta .btn--solid { font-weight: 600; }
+.orbit__by { font-size: var(--text-sm); color: var(--color-muted); }
+
+.orbit__rail { border-top: 1px solid var(--color-rule); background: var(--color-paper); scroll-margin-top: 80px; }
+.rail { display: flex; align-items: center; gap: var(--space-xl); min-height: 112px; padding-block: var(--space-md); }
+.rail__install { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; flex: 0 1 620px; min-width: 0; }
+/* The padding and matching negative margin leave room for the focus ring inside the scrolling row. */
+.rail__tabs { display: flex; gap: 20px; overflow-x: auto; scrollbar-width: none; padding: 4px; margin: -4px; }
+.rail__tabs button { flex: none; padding: 0 0 4px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--color-muted); font: 400 0.8125rem/1.4 var(--font-body); white-space: nowrap; cursor: pointer; transition: color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out); }
+.rail__tabs button[aria-selected="true"] { color: var(--color-ink); border-bottom-color: var(--color-ink); }
+/* Tall enough for two steps, so the strip does not change height between agents. */
+.rail__cmd { display: flex; align-items: center; gap: var(--space-sm); min-height: 68px; padding: 8px 6px 8px var(--space-md); border: 1px solid var(--color-rule); border-radius: 8px; background: var(--color-paper-2); font: 400 0.9375rem/1 var(--font-mono); }
+.rail__steps { flex: 1; min-width: 0; display: grid; }
+.rail__cmd code { display: block; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; line-height: 1.6; }
+.rail__cmd code::before { content: "$ "; color: var(--color-muted); }
+.rail__copy { flex: none; min-height: 32px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--color-accent); color: var(--color-accent-ink); font: 600 0.8125rem/1 var(--font-body); cursor: pointer; }
+.rail__stats { display: flex; gap: var(--space-xl); margin: 0 0 0 auto; }
+.rail__stats div { display: flex; flex-direction: column-reverse; gap: 4px; }
+.rail__stats dt { font-size: 0.75rem; line-height: 1.34; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-muted); }
+.rail__stats dd { margin: 0; font: 500 1.75rem/1.143 var(--font-mono); font-variant-numeric: tabular-nums; }
+.rail__tested { flex: 0 0 13rem; padding-left: var(--space-xl); border-left: 1px solid var(--color-rule); font-size: 0.8125rem; line-height: 1.46; color: var(--color-muted); }
+@media (hover: hover) and (pointer: fine) { .rail__tabs button:hover { color: var(--color-ink); } .rail__copy:hover { background: var(--color-muted); } }
+@media (pointer: coarse) { .rail__tabs button { min-height: 40px; } .rail__copy { min-height: 40px; } .rail__cmd { min-height: 52px; } }
+
+/* Narrower than the strip can hold in one row: the counts and the tested line drop under the command. */
+@media (max-width: 68rem) {
+  /* The header is taller and the strip wraps here, so the photo area sizes to its text and the command stays on the first screen. */
+  .orbit__stage { align-content: start; min-height: 0; padding-block: var(--space-xl) clamp(40px, 8svh, 200px); }
+  .orbit__photo::after { background: linear-gradient(to bottom, #0B0C12, rgba(11,12,18,0) 140px), linear-gradient(to right, #0B0C12 20%, rgba(11,12,18,.8) 42%, rgba(11,12,18,0) 64%); }
+  .orbit__rail { scroll-margin-top: 120px; }
+  .rail { flex-wrap: wrap; gap: var(--space-lg); padding-block: var(--space-lg); }
+  .rail__install { flex: 1 1 100%; }
+  .rail__stats { margin: 0; }
+  .rail__tested { flex: 1 1 12rem; }
+}
+/* Phones: text on ink at the top, the horizon below it. */
+@media (max-width: 720px) {
+  .orbit__stage { align-content: start; min-height: 0; padding-block: var(--space-xl) min(62vw, 300px); }
+  .orbit__photo::after { background: linear-gradient(to bottom, #0B0C12 44%, rgba(11,12,18,.7) 62%, rgba(11,12,18,0) 82%); }
+  .orbit__body { gap: var(--space-lg); }
+  .orbit__cta { width: 100%; } .orbit__cta .btn { flex: 1 1 100%; justify-content: center; }
+  .orbit__rail { scroll-margin-top: 166px; }
+  .rail__stats { gap: var(--space-lg); width: 100%; }
+  .rail__tested { flex-basis: 100%; padding-left: 0; border-left: 0; }
+  /* The whole command shows, so it can be read before it is pasted. */
+  .rail__cmd { align-items: flex-start; padding-block: 10px; }
+  .rail__cmd code { white-space: normal; overflow-wrap: anywhere; }
+}
+/* The one moment of motion: the horizon settles into place. Text is there from the start. */
+@media (prefers-reduced-motion: no-preference) {
+  .orbit__photo img { animation: orbit-in 1400ms var(--ease-out) both; }
+  @keyframes orbit-in { from { opacity: .55; transform: scale(1.035); } }
+}

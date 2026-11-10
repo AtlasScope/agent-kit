@@ -7,12 +7,12 @@ import { Search } from "./Search";
 
 export function Nav() {
   return (
-    <header className="top">
+    <header className="top ink">
       <div className="container nav">
         <Link className="wordmark" href="/" aria-label={`${SITE.name} ${SITE.byline}, home`}>
           <AtlasScopeLogo />
-          <span className="wordmark__sep" aria-hidden="true">/</span>
-          <span className="wordmark__name">{SITE.name}<b>.</b></span>
+          <span className="wordmark__sep" aria-hidden="true" />
+          <span className="wordmark__name">{SITE.name}</span>
         </Link>
         <NavLinks />
         <Search />
