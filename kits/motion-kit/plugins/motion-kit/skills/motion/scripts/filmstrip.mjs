@@ -185,7 +185,16 @@ async function capture(pw) {
   // Timers and requestAnimationFrame then only move when the capture advances them.
   if (isLoad) await page.clock.pauseAt(Date.now() + 1000);
   await page.goto(url, { waitUntil: isLoad ? "domcontentloaded" : "load", timeout: 30000 });
-  if (opt("--wait")) await page.locator(opt("--wait")).first().waitFor({ timeout: 10000 });
+  if (opt("--wait") && isLoad) {
+    // Script time is frozen, so a target that a timer or animation frame reveals would never appear.
+    // Step the clock until it does. Whatever played while waiting is already past by the first frame.
+    const target = page.locator(opt("--wait")).first();
+    let waited = 0;
+    while (!(await target.isVisible().catch(() => false))) {
+      if (waited >= 10000) fail(`--wait "${opt("--wait")}" did not appear within 10 seconds of page time.`, 2);
+      await page.clock.runFor(50); waited += 50;
+    }
+  } else if (opt("--wait")) await page.locator(opt("--wait")).first().waitFor({ timeout: 10000 });
   if (!isLoad) await settle(page);
   for (const a of [...all("--before"), ...actions.slice(0, -1)]) { await act(page, a); await settle(page); }
 
