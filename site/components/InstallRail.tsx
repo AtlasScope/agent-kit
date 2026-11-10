@@ -36,14 +36,14 @@ export function InstallRail() {
           ))}
         </div>
         <div className="rail__cmd" id="rail-cmd" role="tabpanel" aria-labelledby={`rt-${cur}`}>
-          <div className="rail__steps" translate="no">{agent.steps.map((s) => <code key={s}>{s.split(" ").map((w, i) => <span key={i}>{i ? " " : ""}<span className="nw">{w}</span></span>)}</code>)}</div>
+          <div className="rail__steps swap" key={`steps-${agent.id}`} translate="no">{agent.steps.map((s) => <code key={s}>{s.split(" ").map((w, i) => <span key={i}>{i ? " " : ""}<span className="nw">{w}</span></span>)}</code>)}</div>
           <CopyButton key={agent.id} className="rail__copy" text={agent.steps.join("\n")} label={agent.steps.length > 1 ? "Copy all" : "Copy"} />
         </div>
         <p className="rail__tested" aria-live="polite">
-          {agent.tested ? `${agent.testedScope ?? "Tested"} with ${agent.tested}.` : <>Not tested with {agent.label} yet. <button type="button" onClick={() => focus(FALLBACK.id)}>The {FALLBACK.label} command is tested</button>.</>}
+          <span className="swap" key={agent.id}>{agent.tested ? `${agent.testedScope ?? "Tested"} with ${agent.tested}.` : <>Not tested with {agent.label} yet. <button type="button" onClick={() => focus(FALLBACK.id)}>The {FALLBACK.label} command is tested</button>.</>}</span>
         </p>
       </div>
-      <div className="rail__next">
+      <div className="rail__next swap" key={agent.id}>
         <h2>Then, in {agent.id === "any" ? "your agent" : agent.label}</h2>
         <p>Paste {agent.steps.length > 1 ? "the lines" : "the line"} into a terminal. {agent.check.replace(/^Copies/, "It copies")}</p>
       </div>

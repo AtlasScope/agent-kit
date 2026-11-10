@@ -287,11 +287,7 @@ Headings balance their lines (`text-wrap: balance`); paragraphs and list items a
 
 The page is a centred container (1280px, growing to 1320px on screens at least 1600px wide and 900px tall) with a gutter of 32px, stepping to 24px below 960px, 16px below 640px and 12px below 352px. Spacing runs on six steps: 8, 12, 16, 24, 40 and 64px.
 
-<<<<<<< HEAD
-The header is a solid ink bar, 64px tall plus a 1px hairline, fixed to the top of the window. Below 1024px it becomes two rows with search on its own row (107px); below 640px, three rows (153px). The `--header-h` token holds the current height, and every sticky column and jump target is offset by it, so nothing slides under the header. A "Skip to content" link is the first Tab stop.
-=======
-The header is a solid ink bar fixed to the top of the window, with a hairline under it, and always one row. From 1200px up it is 64px tall and holds the lockup, four links, search, the account button and GitHub. Below 1200px it is 56px tall and holds the lockup, search and a menu button. Below 640px search becomes a button too.
->>>>>>> fc6fa74 (Make the header one row with a menu on phones and tablets)
+The header is a solid ink bar fixed to the top of the window, with a hairline under it, and always one row. From 1200px up it is 64px tall and holds the lockup, four links, search, the account button and GitHub. Below 1200px it is 56px tall and holds the lockup, search and a menu button. Below 640px search becomes a button too. The `--header-h` token holds the current height, and every sticky column and jump target is offset by it, so nothing slides under the header. A "Skip to content" link is the first Tab stop.
 
 ### Homepage
 The hero is three stacked bands on one left edge, the container's left edge:
@@ -336,6 +332,8 @@ On library pages, depth is mostly tonal: a raised panel with a hairline border o
 
 **The One Movement Rule.** The only animation that plays by itself on the homepage is the photograph settling into place on load (1400ms, from 55% opacity and 3.5% oversize). Text is in place from the first frame. With reduced motion set, nothing moves.
 
+**The Answer A Press Rule.** Every other movement answers something the visitor did, and none makes them wait. The menu sheet arrives in 240ms (fading in and settling 8px) with its rows following 30ms apart. Changing agent in the install strip fades the new command in over 200ms. A pressed control answers within 120ms: icon buttons and the Copy pill shrink slightly and take their hover fill, because a phone has no hover. All of it uses the one ease-out curve, and all of it is off with reduced motion set.
+
 ## Shapes
 
 Two families. Hero actions are full pills (999px): the primary and secondary buttons and the Copy button. The skip link and chips are pills too. Library buttons have 10px corners (8px when small). Everything that holds content is a rectangle with a modest corner: 8px for small controls (the command field, navigation links, rail items), 10px for fields and inputs, 12px for panels, notices and rows, 14px for cards, tiles and collection panels. Section dots are 10px squares with 3px corners.
@@ -375,16 +373,11 @@ One row per kit between hairlines, used on the homepage, `/kits` and `/skills` (
 
 ### Navigation and search
 - **Links:** Geist 500 at 0.9375rem, muted, 36px tall with 12px side padding and 8px corners. The current section is white, weight 600, on a slate fill. Hover fills slate and turns the text white.
-<<<<<<< HEAD
-- **Search field:** 40px tall, slate fill, control border, 10px corners, a 16px search icon inside the left edge and a "/" key hint inside the right. On focus it shows the ring.
-- **Results:** a raised list under the field. Each result is a real link (title, kind, a two-line description), so it opens in a new tab with a modified click. The list closes when focus leaves the box. The first Escape closes it, a second leaves the box. A hidden live line announces how many results there are.
-- **Mobile:** links scroll sideways on their own row; search takes a full row.
-=======
 - **Search field:** 40px tall, slate fill, control border, 10px corners, a 16px search icon inside the left edge and a "/" key hint inside the right. On focus the border turns white with a 3px slate ring.
+- **Results:** a raised list under the field. Each result is a real link (title, kind, a two-line description), so it opens in a new tab with a modified click. The list closes when focus leaves the box. The first Escape closes it, a second leaves the box. A hidden live line announces how many results there are.
 - **Links:** Start, Prompts, Skills, Fix a problem. Kits is reached from Skills and the footer.
 - **Menu:** below 1200px the links, the account button and GitHub sit behind a 40px menu button. It opens a full-window sheet on ink with its own top row, so Close sits where Menu was. Links are Geist 600 at 1.25rem in 56px rows divided by hairlines; the current section is white, the rest muted. It closes on Escape, on Close and on any link.
 - **Phone search:** below 640px a 40px search button puts the cursor in the field, which covers the bar while it has focus and has its own Close button.
->>>>>>> fc6fa74 (Make the header one row with a menu on phones and tablets)
 
 ### Cards
 - **Prompt card:** raised panel, hairline border, 14px corners, 16px padding, Lift. The title links to the prompt and the whole card is clickable. Under the title, a meta line (section dot, group, a danger mark if the prompt has a warning); then up to three lines of description; then a foot with one Copy button. A card that is the best pick for its job has a control-border edge.

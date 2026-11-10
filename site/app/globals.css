@@ -403,12 +403,13 @@ svg.i { width: 16px; height: 16px; flex: none; }
   .nav { position: relative; }
   .nav__toggles { margin-left: auto; }
   .nav__find { display: inline-grid; }
-  .nav .search { position: absolute; z-index: 1; inset: 0 max(var(--gutter), env(safe-area-inset-right)) 0 max(var(--gutter), env(safe-area-inset-left)); display: flex; align-items: center; gap: 4px; margin: 0; background: var(--color-paper); opacity: 0; pointer-events: none; }
+  .nav .search { position: absolute; z-index: 1; inset: 0 max(var(--gutter), env(safe-area-inset-right)) 0 max(var(--gutter), env(safe-area-inset-left)); display: flex; align-items: center; gap: 4px; margin: 0; background: var(--color-paper); opacity: 0; pointer-events: none; transition: opacity 150ms var(--ease-out); }
   .nav .search:focus-within { opacity: 1; pointer-events: auto; }
   .nav .search input { flex: 1; width: auto; font-size: 1rem; padding-right: 12px; }
   .nav .search > svg { top: 28px; }
   .search__close { display: inline-grid; margin-right: -8px; }
-  .results { top: 100%; }
+  /* Short enough to stay above the iPhone keyboard. */
+  .results { top: 100%; max-height: min(520px, 42svh); }
   .kbd { display: none; }
   .tiles:not(.tiles--start) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-xs); }
   .tiles:not(.tiles--start) .tile { padding: 12px; box-shadow: none; }
@@ -512,7 +513,7 @@ svg.i { width: 16px; height: 16px; flex: none; }
   /* The header is taller and the strip wraps here, so the photo area sizes to its text and the command stays near the first screen. */
   .orbit__stage { align-content: start; min-height: 0; padding-block: var(--space-xl) clamp(40px, 8svh, 200px); }
   .orbit__photo::after { background: linear-gradient(to bottom, #0B0C12, rgba(11,12,18,0) 140px), linear-gradient(to right, #0B0C12 20%, rgba(11,12,18,.8) 42%, rgba(11,12,18,0) 64%); }
-  .orbit__rail { scroll-margin-top: 72px; }
+  .orbit__rail { scroll-margin-top: 56px; }
   .rail { flex-wrap: wrap; gap: var(--space-lg); }
   .rail__install { flex: 1 1 100%; }
   .rail__next { flex: 1 1 100%; max-width: 40rem; padding: 0; border-left: 0; }
@@ -737,3 +738,23 @@ summary { touch-action: manipulation; -webkit-user-select: none; user-select: no
   .results__a:hover .results__t { text-decoration: underline; text-decoration-color: var(--color-rule-2); text-underline-offset: 0.2em; }
 }
 
+/* Motion. The horizon settling is the one thing that moves by itself. Everything here answers a press: the menu
+   arriving, the install strip changing agent, and a control acknowledging a tap (phones have no hover).
+   With reduced motion set, the rule near the top of this file switches all of it off. */
+.sheet__title { outline: none; }
+.sheet { transition: opacity 240ms var(--ease-out), transform 240ms var(--ease-out), overlay 140ms allow-discrete, display 140ms allow-discrete; }
+.sheet:not([open]) { opacity: 0; }
+@starting-style { .sheet[open] { opacity: 0; transform: translateY(-8px); } }
+.sheet[open] .sheet__links li, .sheet[open] .sheet__end { animation: sheet-in 360ms var(--ease-out) backwards; }
+.sheet[open] .sheet__links li:nth-child(2) { animation-delay: 30ms; } .sheet[open] .sheet__links li:nth-child(3) { animation-delay: 60ms; }
+.sheet[open] .sheet__links li:nth-child(4) { animation-delay: 90ms; } .sheet[open] .sheet__end { animation-delay: 120ms; }
+@keyframes sheet-in { from { opacity: 0; transform: translateY(6px); } }
+.swap { animation: swap-in 200ms var(--ease-out); }
+@keyframes swap-in { from { opacity: 0; } }
+.iconbtn, .rail__copy, .rail__tabs button, .sheet__links a { transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), transform var(--dur-micro) var(--ease-out); }
+.iconbtn:active { background: var(--color-paper-2); transform: scale(0.94); }
+.rail__copy:active { transform: scale(0.97); background: var(--color-muted); }
+.rail__tabs button:active, .sheet__links a:active { color: var(--color-ink); }
+.ledger li:active .i { transform: translateX(3px); }
+/* The "/" key hint means nothing without a keyboard. */
+@media (pointer: coarse) { .kbd { display: none; } }
