@@ -1,0 +1,5 @@
+interface:
+  display_name: "Walkthrough (experience architecture)"
+  short_description: "Use the product, then say how big a change it needs"
+policy:
+  allow_implicit_invocation: true

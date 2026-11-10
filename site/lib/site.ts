@@ -23,7 +23,7 @@ export type Agent = { id: string; label: string; steps: string[]; check: string;
 const agent = (a: Omit<Agent, "cmd">): Agent => ({ ...a, cmd: a.steps[0] });
 export const AGENTS: Agent[] = [
   agent({ id: "any", label: "Any agent", steps: [`npx skills add ${SITE.repoSlug}`],
-    check: "Copies all 60 skill folders into this project's .agents/skills. Other skills they call aren't installed for you.",
+    check: "Copies all 61 skill folders into this project's .agents/skills. Other skills they call aren't installed for you.",
     tested: "skills 1.7.6, 9 Nov 2026" }),
   agent({ id: "claude", label: "Claude Code", steps: [`claude plugin marketplace add ${SITE.repoSlug}`, "claude plugin install design-kit@agent-kit"],
     check: "Start a new session and type /design with what you want. Its first line names the skill it picked.",
