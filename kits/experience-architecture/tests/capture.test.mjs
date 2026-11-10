@@ -81,7 +81,9 @@ test('capture writes one full-page screen per URL and width, blocks writes and r
     hits.push(`${req.method} ${req.url}`);
     if (req.url === '/gone') { res.writeHead(404, { 'content-type': 'text/html' }); return res.end('<title>Not found</title><h1>Not found</h1>'); }
     res.writeHead(200, { 'content-type': 'text/html' });
-    res.end(`<meta name="viewport" content="width=device-width,initial-scale=1"><title>Page ${req.url}</title><h1>${req.url}</h1><div style="height:2000px"></div><script>fetch('/save',{method:'POST',body:'x'}).catch(()=>{})</script>`);
+    // The page never echoes the request: a fixed name per known path.
+    const name = { '/': 'Home', '/orders?tab=open': 'Open orders' }[req.url] || 'Other';
+    res.end(`<meta name="viewport" content="width=device-width,initial-scale=1"><title>${name}</title><h1>${name}</h1><div style="height:2000px"></div><script>fetch('/save',{method:'POST',body:'x'}).catch(()=>{})</script>`);
   });
   await new Promise((r) => server.listen(0, '127.0.0.1', r));
   const base = `http://127.0.0.1:${server.address().port}`;
