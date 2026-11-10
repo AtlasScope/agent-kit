@@ -1,7 +1,8 @@
 """Builds every AtlasScope identity file from geometry.py.
 
 Run:  python3 design/atlasscope/source/build.py
-Needs Python with fontTools and Pillow, and site/node_modules (for sharp, which renders the PNGs).
+Needs Python with fontTools, skia-pathops and Pillow (pip install fonttools skia-pathops pillow),
+and site/node_modules (for sharp, which renders the PNGs).
 All lettering is written as outlines, so no output depends on an installed font.
 """
 import json, os, subprocess, sys

@@ -1,6 +1,7 @@
 """Builds the Agent Kit mark and lockup. Lettering and constants come from the AtlasScope identity.
 
 Run:  python3 design/agent-kit/source/build.py
+Needs the same setup as the AtlasScope builder: fontTools, skia-pathops, Pillow and site/node_modules.
 Agent Kit keeps its own name and mark. It shares AtlasScope's typeface, weight, ink and the
 one-sided t, and carries a small "by AtlasScope" line. It does not use the crossbar-free A or Orbit.
 """

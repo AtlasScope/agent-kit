@@ -114,7 +114,7 @@ Licence: Montserrat is under the SIL Open Font License 1.1 ([source/fonts/Montse
 | `spec/` | Construction sheet |
 | `source/` | `geometry.py` (every number), `build.py` (regenerates everything), the font and its licence |
 
-To regenerate: `python3 design/atlasscope/source/build.py`. It needs Python with fontTools and Pillow, and the site's `node_modules` for PNG rendering. No output file contains live text or refers to a font.
+To regenerate: `python3 design/atlasscope/source/build.py`. It needs Python with fontTools, skia-pathops and Pillow (`pip install fonttools skia-pathops pillow`), and the site's `node_modules` for PNG rendering. No output file contains live text or refers to a font.
 
 ## Preliminary similarity review
 

@@ -29,4 +29,4 @@ One tile seen from above at an angle, with the edges of two more tiles beneath i
 
 Use the byline version at 20 px cap height and above. Below that the small line is unreadable, so use the plain lockup.
 
-To regenerate: `python3 design/agent-kit/source/build.py`.
+To regenerate: `python3 design/agent-kit/source/build.py`. It needs Python with fontTools, skia-pathops and Pillow (`pip install fonttools skia-pathops pillow`), and the site's `node_modules`.
