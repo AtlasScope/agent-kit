@@ -108,7 +108,7 @@ const style = useAnimatedStyle(() => ({
 ```
 
 - Shared values change on the UI thread without re-rendering React. Anything that changes per frame lives in one.
-- Get `stiffness` and `damping` for a token from `scripts/spring.mjs`. Newer Reanimated versions also accept a duration-based spring config; check the installed version.
+- Get `stiffness` and `damping` for a token from `<skill-dir>/scripts/spring.mjs`. Newer Reanimated versions also accept a duration-based spring config; check the installed version.
 - `withTiming(value, { duration: 200, easing: Easing.bezier(0.22, 1, 0.36, 1) })` for curve-based moves.
 
 ### Appearing, leaving and layout

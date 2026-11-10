@@ -5,7 +5,7 @@ Review mode reads and reports. It changes nothing.
 ## Procedure
 
 1. **Scope.** The whole product, one surface, or one component, as the user asked. Name what is left out.
-2. **Inventory.** `node scripts/motion-scan.mjs <dir>`. Read the histograms before any single finding: how many durations and curves exist says whether there is a system at all.
+2. **Inventory.** `node <skill-dir>/scripts/motion-scan.mjs <dir>`. Read the histograms before any single finding: how many durations and curves exist says whether there is a system at all.
 3. **Standard.** MOTION.md if present. Otherwise the defaults in [values.md](values.md), and say that no project standard exists.
 4. **Pick what to look at.** The interactions people meet most (navigation, the main list, the primary action), plus anything the inventory flagged as `fix`. Five interactions at most unless asked for more.
 5. **Capture.** For each one: a filmstrip, a second with `--reduced`, and `--perf` when it animates layout or paint properties or covers a large area ([proof.md](proof.md)).

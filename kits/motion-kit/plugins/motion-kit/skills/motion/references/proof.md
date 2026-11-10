@@ -5,8 +5,8 @@ An agent reads code and looks at still images. Motion is neither. These tools tu
 ## The inventory
 
 ```sh
-node scripts/motion-scan.mjs [dir]          # readable report
-node scripts/motion-scan.mjs [dir] --json   # everything, for counting
+node <skill-dir>/scripts/motion-scan.mjs [dir]          # readable report
+node <skill-dir>/scripts/motion-scan.mjs [dir] --json   # everything, for counting
 ```
 
 It reads CSS, Tailwind classes and the common JavaScript motion libraries. It does not run the app.
@@ -23,7 +23,7 @@ It misses: animations built from values computed at run time, anything in files 
 ## The filmstrip
 
 ```sh
-node scripts/filmstrip.mjs http://localhost:3000/settings \
+node <skill-dir>/scripts/filmstrip.mjs http://localhost:3000/settings \
   --do "click:[data-testid=open-menu]" --clip "[role=menu]" --out .artifacts/motion/menu
 ```
 

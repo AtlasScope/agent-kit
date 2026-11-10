@@ -57,7 +57,7 @@ sheet orient: y 100% → 0 · spring smooth · follows the finger · reduced: op
 
 ### Status
 
-Run the inventory (`scripts/motion-scan.mjs`), read MOTION.md if it exists, and reply with: what moves today in three or four numbers, whether reduced motion is handled, and the three most valuable next moves, each as a `/motion …` line they can copy. Then stop.
+Run the inventory (`<skill-dir>/scripts/motion-scan.mjs`), read MOTION.md if it exists, and reply with: what moves today in three or four numbers, whether reduced motion is handled, and the three most valuable next moves, each as a `/motion …` line they can copy. Then stop.
 
 ### Setup
 
@@ -99,13 +99,13 @@ If you cannot reproduce it, say so, say what you tried, and ask for the device, 
 
 ## Scripts
 
-All three are in this skill's `scripts/` folder. They need Node 18 or later and install nothing.
+All three ship in this skill's own `scripts/` folder. `<skill-dir>` below is the absolute path of the folder this SKILL.md was loaded from: the installed plugin or skills folder, never the project being worked on. Resolve it once and run the scripts by that full path. If the project has its own `scripts/motion-scan.mjs`, `filmstrip.mjs` or `spring.mjs`, that is a different file; do not run it in their place. They need Node 18 or later and install nothing.
 
 | Script | What it gives you |
 |---|---|
-| `node scripts/motion-scan.mjs [dir] [--json]` | Inventory from source: every duration, curve, animated property and library, reduced-motion coverage, and the places worth a look with file and line |
-| `node scripts/filmstrip.mjs <url> --do "click:<selector>" [--clip <selector>] [--reduced] [--perf] [--viewport mobile]` | Frames of one interaction stepped at equal intervals, a contact sheet to look at, what animated (properties, duration, curve, layout or compositor), and optional real-time frame and layout counts |
-| `node scripts/spring.mjs --duration 0.4 --bounce 0.3` | One spring written for CSS `linear()`, Motion, SwiftUI and Reanimated |
+| `node <skill-dir>/scripts/motion-scan.mjs [dir] [--json]` | Inventory from source: every duration, curve, animated property and library, reduced-motion coverage, and the places worth a look with file and line |
+| `node <skill-dir>/scripts/filmstrip.mjs <url> --do "click:<selector>" [--clip <selector>] [--reduced] [--perf] [--viewport mobile]` | Frames of one interaction stepped at equal intervals, a contact sheet to look at, what animated (properties, duration, curve, layout or compositor), and optional real-time frame and layout counts |
+| `node <skill-dir>/scripts/spring.mjs --duration 0.4 --bounce 0.3` | One spring written for CSS `linear()`, Motion, SwiftUI and Reanimated |
 
 `filmstrip.mjs` uses Playwright only when the project or machine already has it. If it is missing, follow "Without the script" in [references/proof.md](references/proof.md). Never install a browser or a package for a proof.
 

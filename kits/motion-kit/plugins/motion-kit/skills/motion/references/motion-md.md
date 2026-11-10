@@ -4,7 +4,7 @@ Setup mode writes this file at the repository root, next to DESIGN.md if there i
 
 ## Before writing it
 
-1. Run `node scripts/motion-scan.mjs`. The duration and easing histograms are the raw material.
+1. Run `node <skill-dir>/scripts/motion-scan.mjs`. The duration and easing histograms are the raw material.
 2. Read PRODUCT.md and DESIGN.md for who uses the product and how it should feel.
 3. Map what exists onto tokens. Show the mapping and get a yes:
 

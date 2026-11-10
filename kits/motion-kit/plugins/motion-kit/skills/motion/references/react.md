@@ -75,7 +75,7 @@ Durations are in seconds.
 
 ```tsx
 transition={{ type: "spring", visualDuration: 0.25, bounce: 0 }}        // snappy
-transition={{ type: "spring", stiffness: 247, damping: 31.4, mass: 1 }}  // smooth, from scripts/spring.mjs
+transition={{ type: "spring", stiffness: 247, damping: 31.4, mass: 1 }}  // smooth, from <skill-dir>/scripts/spring.mjs
 ```
 
 Motion's default for transforms is a spring with some bounce. Set the transition explicitly, or set a project default once:

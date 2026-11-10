@@ -45,7 +45,7 @@ Fades inside a movement share the movement's curve. A fade alone can be `linear`
 
 ## Springs
 
-A spring has no fixed duration. It is described by how long it looks like it takes and how much it bounces, and it carries velocity from whatever came before. `scripts/spring.mjs` converts one description into every platform's form.
+A spring has no fixed duration. It is described by how long it looks like it takes and how much it bounces, and it carries velocity from whatever came before. `<skill-dir>/scripts/spring.mjs` converts one description into every platform's form.
 
 | Token | Duration | Bounce | Use for |
 |---|---|---|---|

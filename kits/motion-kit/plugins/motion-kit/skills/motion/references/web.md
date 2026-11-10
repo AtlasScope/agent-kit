@@ -90,7 +90,7 @@ Use for anything that plays through without input: a loading shimmer, a staged e
 `linear()` takes a list of points, which is enough to record a spring. Generate it; never type one by hand.
 
 ```sh
-node scripts/spring.mjs --duration 0.4 --bounce 0.3
+node <skill-dir>/scripts/spring.mjs --duration 0.4 --bounce 0.3
 ```
 
 Paste the easing and the duration it prints. The recording cannot take a starting velocity or redirect smoothly, so it suits click-triggered moves. Gestures need a real spring.
