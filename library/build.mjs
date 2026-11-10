@@ -67,15 +67,23 @@ for (const [sec, name] of Object.entries(SECTION_NAMES)) {
 // Inventory for the editorial audit: one row per entry, grouped by section and family. "reviewed" stays
 // empty until a person has read and tested the entry; the audit fills it in.
 const MODE_LABEL = { read: "Report only", repro: "Adds a test that shows it", change: "Suggests a fix" };
+const auditCols = (id) => {
+  const a = audit.entries[id] || { s: "" };
+  const flags = [...(a.flags || []), ...(a.dupOf ? ["duplicate of " + a.dupOf] : [])].join("; ");
+  return [[...a.s].reduce((t, d) => t + +d, 0) + "/14 (" + a.s + ")", role.get(id) || "", flags, a.note || ""];
+};
 const csv = (v) => (/[",\n]/.test(String(v ?? "")) ? `"${String(v).replace(/"/g, '""')}"` : String(v ?? ""));
-const inv = [["id", "section", "family", "title", "changes", "needs", "source", "purpose", "you_get", "reviewed"]];
+const audit = JSON.parse(fs.readFileSync(path.join(here, "audit.json"), "utf8"));
+const role = new Map();
+for (const c of audit.clusters) { role.set(c.primary, `${c.job}: primary`); for (const a of c.alts) role.set(a.id, `${c.job}: alternative`); }
+const inv = [["id", "section", "family", "title", "changes", "needs", "source", "purpose", "you_get", "score", "cluster", "flags", "audit_note", "reviewed"]];
 for (const e of lib.entries) {
   const changes = e.mode ? (e.iso ? "Tests on a copy" : MODE_LABEL[e.mode]) : e.dmode;
   // Recipes need the skills their steps run; workflows need what their prompts need.
   const stepCmds = (e.steps || []).map(([c]) => c.split(/\s/)[0]).filter((c, i, a) => a.indexOf(c) === i);
   const flowTools = [...new Set((e.flow || []).flatMap(([, ids]) => ids).map((id) => lib.entries.find((x) => x.id === id)?.tools).filter(Boolean))].join(" | ");
   const needs = e.tools || flowTools || (stepCmds.length ? "Installed: " + stepCmds.join(", ") : e.cmd ? "Installed: " + e.cmd.split(/\s/)[0] : "nothing");
-  inv.push([e.id, e.sec, e.group, e.t, changes, needs, e.badge ? `${e.group} (${e.badge})` : e.src || "Agent Kit", e.why || e.use || "", e.ev || e.best || "", e.reviewed || ""]);
+  inv.push([e.id, e.sec, e.group, e.t, changes, needs, e.badge ? `${e.group} (${e.badge})` : e.src || "Agent Kit", e.why || e.use || "", e.ev || e.best || "", ...auditCols(e.id), e.reviewed || ""]);
 }
 
 fs.mkdirSync(outDir, { recursive: true });

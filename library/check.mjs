@@ -47,6 +47,33 @@ const DMODES = ["Changes code", "Report only", "Advice", "Asks before changing",
 for (const e of E) {
   if (e.mode ? !MODES.includes(e.mode) : !DMODES.includes(e.dmode)) fail(`${e.id} needs mode (${MODES.join("/")}) or dmode (${DMODES.join(" / ")})`);
 }
+// The editorial audit (library/audit.json) scores every entry and groups overlapping ones.
+const audit = JSON.parse(fs.readFileSync(path.join(here, "audit.json"), "utf8"));
+const FLAGS = ["personal", "rewrite", "hide"];
+for (const e of E) {
+  const a = audit.entries[e.id];
+  if (!a) { fail(`${e.id} has no editorial audit row in library/audit.json`); continue; }
+  if (!/^[012]{7}$/.test(a.s)) fail(`${e.id} audit score must be 7 digits from 0 to 2 (${audit.criteria.join(", ")})`);
+  else if ((a.s.includes("0") || [...a.s].reduce((t, d) => t + +d, 0) <= 10) && !a.note) fail(`${e.id} has a 0 or a total of 10 or less and needs a note saying why`);
+  for (const f of a.flags || []) if (!FLAGS.includes(f)) fail(`${e.id} has unknown audit flag ${f}`);
+  if (a.dupOf && !BY.has(a.dupOf)) fail(`${e.id} is marked a duplicate of missing ${a.dupOf}`);
+}
+for (const id of Object.keys(audit.entries)) if (!BY.has(id)) fail(`library/audit.json scores missing entry ${id}`);
+const inCluster = new Map();
+for (const c of audit.clusters) {
+  for (const id of [c.primary, ...c.alts.map((x) => x.id)]) {
+    if (!BY.has(id)) fail(`Cluster "${c.job}" names missing ${id}`);
+    if (inCluster.has(id)) fail(`${id} is in two clusters: "${inCluster.get(id)}" and "${c.job}"`);
+    inCluster.set(id, c.job);
+  }
+  for (const x of c.alts) if (!x.when) fail(`Cluster "${c.job}" lists ${x.id} without saying when to choose it`);
+  if ((audit.entries[c.primary]?.flags || []).includes("hide")) fail(`Cluster "${c.job}" recommends ${c.primary}, which is hidden`);
+}
+// Design overlaps in library.json name commands; each must be a real entry.
+const first = (c) => String(c).split(/\s/)[0];
+const CMDS = new Set(E.map((e) => first(e.cmd || e.t)));
+for (const [job, opts] of lib.overlaps || []) for (const [cmd] of opts) if (!CMDS.has(first(cmd))) fail(`Overlap "${job}" names ${cmd}, which is not an entry`);
+
 // Portable entries must not carry one person's setup.
 for (const e of E) {
   const text = JSON.stringify(e);

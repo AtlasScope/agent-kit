@@ -1,0 +1,1127 @@
+{
+ "note": "Editorial audit of every library entry. See library/EDITORIAL.md for the rubric. Scores are a reader's judgment, not a test result.",
+ "criteria": [
+  "use",
+  "clarity",
+  "unique",
+  "evidence",
+  "safety",
+  "source",
+  "compat"
+ ],
+ "reviewed": "2026-11-10",
+ "entries": {
+  "A01": {
+   "s": "2222222"
+  },
+  "A02": {
+   "s": "2222222"
+  },
+  "A03": {
+   "s": "2222222"
+  },
+  "A04": {
+   "s": "2222222"
+  },
+  "A05": {
+   "s": "2222222"
+  },
+  "A06": {
+   "s": "2222222"
+  },
+  "A07": {
+   "s": "2222222"
+  },
+  "A08": {
+   "s": "2222222"
+  },
+  "P01": {
+   "s": "2222222"
+  },
+  "P02": {
+   "s": "2222222"
+  },
+  "P03": {
+   "s": "2222222"
+  },
+  "P04": {
+   "s": "2222222"
+  },
+  "P05": {
+   "s": "2212222",
+   "note": "Overlaps PG14 for database growth."
+  },
+  "P06": {
+   "s": "2222222"
+  },
+  "P07": {
+   "s": "2222222"
+  },
+  "P08": {
+   "s": "2222222"
+  },
+  "P09": {
+   "s": "2222222"
+  },
+  "R01": {
+   "s": "2222222"
+  },
+  "R02": {
+   "s": "2222222"
+  },
+  "R03": {
+   "s": "2222222"
+  },
+  "R04": {
+   "s": "2122222",
+   "note": "Copy names one city (\"midnight in Memphis\"); use the user's own time zone.",
+   "flags": [
+    "personal"
+   ]
+  },
+  "R05": {
+   "s": "2222222"
+  },
+  "R06": {
+   "s": "2222222"
+  },
+  "R07": {
+   "s": "2222222"
+  },
+  "T01": {
+   "s": "2212222",
+   "note": "Overlaps T06; T01 is about unit-heavy journeys with no end-to-end check."
+  },
+  "T02": {
+   "s": "2212222",
+   "note": "Overlaps T06; T02 is the narrower 'passes no matter what' check."
+  },
+  "T03": {
+   "s": "2222222"
+  },
+  "T04": {
+   "s": "2222222"
+  },
+  "T05": {
+   "s": "2222222"
+  },
+  "T06": {
+   "s": "2222222"
+  },
+  "S06": {
+   "s": "2222221",
+   "note": "Tools line assumes Vercel."
+  },
+  "I01": {
+   "s": "1222221",
+   "note": "Audits the user's computer, not the repo; rarely the job people come for."
+  },
+  "I02": {
+   "s": "2222221",
+   "note": "Tools line assumes Vercel."
+  },
+  "I03": {
+   "s": "2222222"
+  },
+  "I04": {
+   "s": "2222221",
+   "note": "Tools line assumes Vercel cron (vercel.json)."
+  },
+  "I05": {
+   "s": "2222221",
+   "note": "Tools line assumes Vercel."
+  },
+  "I06": {
+   "s": "2222222"
+  },
+  "I07": {
+   "s": "1122221",
+   "note": "Machine cleanup; the 'viral prompt' framing in its summary will date."
+  },
+  "D01": {
+   "s": "2222222"
+  },
+  "D02": {
+   "s": "2122221",
+   "note": "Assumes the app has \"source filings\"; finance-specific wording."
+  },
+  "D03": {
+   "s": "2222222"
+  },
+  "D04": {
+   "s": "2222222"
+  },
+  "D05": {
+   "s": "2222222"
+  },
+  "D06": {
+   "s": "2212222",
+   "note": "A general health check; narrower investigations usually fit better."
+  },
+  "G01": {
+   "s": "2222222"
+  },
+  "G02": {
+   "s": "2222222"
+  },
+  "G03": {
+   "s": "2222222"
+  },
+  "G04": {
+   "s": "2122222",
+   "note": "Summary names specific services (Google, AI Gateway); should be generic."
+  },
+  "G05": {
+   "s": "2222222"
+  },
+  "G06": {
+   "s": "2222222"
+  },
+  "PG00": {
+   "s": "2222222"
+  },
+  "PG01": {
+   "s": "2222222"
+  },
+  "PG02": {
+   "s": "2222222"
+  },
+  "PG03": {
+   "s": "2222222"
+  },
+  "PG04": {
+   "s": "2222222"
+  },
+  "PG05": {
+   "s": "2222222"
+  },
+  "PG06": {
+   "s": "2222222"
+  },
+  "PG07": {
+   "s": "2222222"
+  },
+  "PG08": {
+   "s": "2222222"
+  },
+  "PG09": {
+   "s": "2222222"
+  },
+  "PG10": {
+   "s": "2222222"
+  },
+  "PG11": {
+   "s": "2222222"
+  },
+  "PG12": {
+   "s": "2222222"
+  },
+  "PG13": {
+   "s": "2222222"
+  },
+  "PG14": {
+   "s": "2222222"
+  },
+  "PG15": {
+   "s": "2222222"
+  },
+  "PG17": {
+   "s": "2222222"
+  },
+  "PG16": {
+   "s": "2222222"
+  },
+  "DBR01": {
+   "s": "2222222"
+  },
+  "DBR02": {
+   "s": "2222222"
+  },
+  "DBR03": {
+   "s": "2222222"
+  },
+  "DBR04": {
+   "s": "2222222"
+  },
+  "DBR05": {
+   "s": "2222222"
+  },
+  "M01": {
+   "s": "2211222",
+   "note": "Overlaps M05 and M11 as a general nudge."
+  },
+  "M02": {
+   "s": "2222222"
+  },
+  "M03": {
+   "s": "2222222"
+  },
+  "M04": {
+   "s": "2221222"
+  },
+  "M05": {
+   "s": "2221222"
+  },
+  "M06": {
+   "s": "2212222",
+   "note": "Overlaps T06 when the change is already merged."
+  },
+  "M07": {
+   "s": "2222222"
+  },
+  "M08": {
+   "s": "2222222"
+  },
+  "M09": {
+   "s": "2222222"
+  },
+  "M10": {
+   "s": "2222222"
+  },
+  "M11": {
+   "s": "1011222",
+   "note": "One vague line (\"be thorough\", \"bold\"); the directive's own example of a weak prompt.",
+   "flags": [
+    "rewrite"
+   ]
+  },
+  "M12": {
+   "s": "2112222",
+   "note": "One line; works as a nudge only with /improve-codebase-architecture behind it."
+  },
+  "EC01": {
+   "s": "2222222"
+  },
+  "EC35": {
+   "s": "2222222"
+  },
+  "EC02": {
+   "s": "2222222"
+  },
+  "EC03": {
+   "s": "2222222"
+  },
+  "EC04": {
+   "s": "2222222"
+  },
+  "EC05": {
+   "s": "2222222"
+  },
+  "EC06": {
+   "s": "2222222"
+  },
+  "EC07": {
+   "s": "2222222"
+  },
+  "EC08": {
+   "s": "2222222"
+  },
+  "EC09": {
+   "s": "1222222",
+   "note": "Narrow job: scripts the steps only a person can do."
+  },
+  "EC10": {
+   "s": "2222222"
+  },
+  "EC11": {
+   "s": "2222222"
+  },
+  "EC12": {
+   "s": "2221221"
+  },
+  "EC13": {
+   "s": "2221221"
+  },
+  "EC14": {
+   "s": "2221221"
+  },
+  "EC15": {
+   "s": "2221221"
+  },
+  "EC16": {
+   "s": "2221221"
+  },
+  "EC17": {
+   "s": "2221221"
+  },
+  "EC18": {
+   "s": "2221221"
+  },
+  "EC19": {
+   "s": "2221221"
+  },
+  "EC20": {
+   "s": "2221221"
+  },
+  "EC21": {
+   "s": "2221221"
+  },
+  "EC22": {
+   "s": "1222222",
+   "note": "Useful only where the agent supports /goal."
+  },
+  "EC23": {
+   "s": "2222222"
+  },
+  "EC24": {
+   "s": "2222222"
+  },
+  "EC25": {
+   "s": "2222222"
+  },
+  "EC26": {
+   "s": "2222221",
+   "note": "Built into Claude Code only."
+  },
+  "EC27": {
+   "s": "2222221",
+   "note": "Built into Claude Code only."
+  },
+  "EC28": {
+   "s": "2212221",
+   "note": "Built into Claude Code only; overlaps M04 and /improve-codebase-architecture."
+  },
+  "EC29": {
+   "s": "2221221"
+  },
+  "EC30": {
+   "s": "2221221"
+  },
+  "EC31": {
+   "s": "2222221",
+   "note": "Listed twice: same skill as UI029."
+  },
+  "EC32": {
+   "s": "2222221",
+   "note": "Listed twice: same skill as UI031.",
+   "dupOf": "UI031"
+  },
+  "EC34": {
+   "s": "2221221"
+  },
+  "UI001": {
+   "s": "2222221"
+  },
+  "UI002": {
+   "s": "2221221"
+  },
+  "UI003": {
+   "s": "2221221"
+  },
+  "UI004": {
+   "s": "2221221"
+  },
+  "UI005": {
+   "s": "2221221"
+  },
+  "UI006": {
+   "s": "2222221"
+  },
+  "UI007": {
+   "s": "2222221"
+  },
+  "UI008": {
+   "s": "2221221"
+  },
+  "UI009": {
+   "s": "2221221"
+  },
+  "UI010": {
+   "s": "2221221"
+  },
+  "UI011": {
+   "s": "2221221"
+  },
+  "UI012": {
+   "s": "2221221"
+  },
+  "UI013": {
+   "s": "2221221"
+  },
+  "UI014": {
+   "s": "2221221"
+  },
+  "UI015": {
+   "s": "2221221"
+  },
+  "UI016": {
+   "s": "2221221"
+  },
+  "UI017": {
+   "s": "2221221"
+  },
+  "UI018": {
+   "s": "2221221"
+  },
+  "UI019": {
+   "s": "1221121",
+   "note": "Heavy effects; easy to overshoot a product UI."
+  },
+  "UI020": {
+   "s": "2221221"
+  },
+  "UI021": {
+   "s": "2221221"
+  },
+  "UI022": {
+   "s": "2221221"
+  },
+  "UI023": {
+   "s": "2221221"
+  },
+  "UI024": {
+   "s": "2221221"
+  },
+  "UI025": {
+   "s": "1221221",
+   "note": "Setup toggle, not a job."
+  },
+  "UI026": {
+   "s": "1221221",
+   "note": "Maintenance for Impeccable's own files."
+  },
+  "UI027": {
+   "s": "1221221",
+   "note": "Setup shortcut, not a job."
+  },
+  "UI028": {
+   "s": "2222222"
+  },
+  "UI029": {
+   "s": "2202221",
+   "note": "Duplicate of EC31 (same /harsh-review skill).",
+   "dupOf": "EC31"
+  },
+  "UI031": {
+   "s": "2222221"
+  },
+  "UI032": {
+   "s": "2221221"
+  },
+  "UI033": {
+   "s": "2221221"
+  },
+  "UI034": {
+   "s": "2221221"
+  },
+  "UI035": {
+   "s": "2221221"
+  },
+  "UI036": {
+   "s": "1221121",
+   "note": "Showpiece sites; easy to overshoot a product UI."
+  },
+  "UI037": {
+   "s": "2221221"
+  },
+  "UI038": {
+   "s": "2222221"
+  },
+  "UI039": {
+   "s": "1212221",
+   "note": "Named after a person's style; overlaps /harsh-review and design-review."
+  },
+  "UI040": {
+   "s": "2221221"
+  },
+  "UI041": {
+   "s": "2221221"
+  },
+  "UI042": {
+   "s": "2221221"
+  },
+  "UI043": {
+   "s": "2221221"
+  },
+  "UI044": {
+   "s": "2221221"
+  },
+  "UI045": {
+   "s": "2221221"
+  },
+  "UI046": {
+   "s": "2221221"
+  },
+  "UI047": {
+   "s": "2221221"
+  },
+  "UI048": {
+   "s": "2221221"
+  },
+  "UI049": {
+   "s": "2221221"
+  },
+  "UI050": {
+   "s": "2221221"
+  },
+  "UI051": {
+   "s": "2221221"
+  },
+  "UI052": {
+   "s": "2222221"
+  },
+  "UI053": {
+   "s": "2221221"
+  },
+  "UI054": {
+   "s": "2221221"
+  },
+  "UI055": {
+   "s": "2221221"
+  },
+  "UI056": {
+   "s": "2222121",
+   "note": "Full redesign of an existing page; review the diff closely."
+  },
+  "UI057": {
+   "s": "2222221"
+  },
+  "UI058": {
+   "s": "1121221",
+   "note": "Not a command; an option of /hallmark listed as its own entry.",
+   "flags": [
+    "hide"
+   ]
+  },
+  "UI059": {
+   "s": "2221221"
+  },
+  "UI060": {
+   "s": "2221221"
+  },
+  "UI061": {
+   "s": "2221221"
+  },
+  "UI062": {
+   "s": "2221221"
+  },
+  "UI063": {
+   "s": "2221221"
+  },
+  "UI064": {
+   "s": "2221221"
+  },
+  "UI065": {
+   "s": "2221221"
+  },
+  "UI066": {
+   "s": "2222221"
+  },
+  "UI067": {
+   "s": "2221221"
+  },
+  "UI068": {
+   "s": "2221221"
+  },
+  "UI069": {
+   "s": "2221221"
+  },
+  "UI070": {
+   "s": "2221221"
+  },
+  "UI071": {
+   "s": "2221221"
+  },
+  "UI072": {
+   "s": "2221221"
+  },
+  "UI073": {
+   "s": "2221221"
+  },
+  "UI074": {
+   "s": "2222221",
+   "note": "Needs internet to fetch the current rules."
+  },
+  "UI075": {
+   "s": "2221221"
+  },
+  "UI076": {
+   "s": "2221221"
+  },
+  "UI077": {
+   "s": "1221221",
+   "note": "Posters and still art; off the library's job of building apps.",
+   "flags": [
+    "hide"
+   ]
+  },
+  "UI078": {
+   "s": "0221221",
+   "note": "Applies Anthropic's own brand; not useful for anyone else's product.",
+   "flags": [
+    "hide"
+   ]
+  },
+  "UI079": {
+   "s": "1221221",
+   "note": "Generative art; off the library's job of building apps.",
+   "flags": [
+    "hide"
+   ]
+  },
+  "UI080": {
+   "s": "0221221",
+   "note": "Slack GIFs; off the library's job of building apps.",
+   "flags": [
+    "hide"
+   ]
+  },
+  "UI081": {
+   "s": "2221221"
+  },
+  "UI082": {
+   "s": "2221221"
+  },
+  "UI083": {
+   "s": "2222222"
+  },
+  "UI084": {
+   "s": "2221221"
+  },
+  "UI085": {
+   "s": "2221221"
+  },
+  "UI086": {
+   "s": "2222221"
+  },
+  "UI087": {
+   "s": "2221221"
+  },
+  "UI088": {
+   "s": "2221221"
+  },
+  "UI089": {
+   "s": "2221221"
+  },
+  "UI090": {
+   "s": "1211221",
+   "note": "The raw Vale CLI; /vale:triage and /vale:fix cover it."
+  },
+  "UI091": {
+   "s": "2221221"
+  },
+  "UI092": {
+   "s": "2221221"
+  },
+  "UI093": {
+   "s": "2222221"
+  },
+  "UI094": {
+   "s": "2221221"
+  },
+  "UI095": {
+   "s": "2221221"
+  },
+  "UI096": {
+   "s": "2221221"
+  },
+  "UI097": {
+   "s": "0221221",
+   "note": "Fiction in a Hemingway voice; off the library's job.",
+   "flags": [
+    "hide"
+   ]
+  },
+  "UI098": {
+   "s": "2222221"
+  },
+  "UI099": {
+   "s": "1211221",
+   "note": "The raw slop-guard CLI; /slop-guard covers it."
+  },
+  "RC01": {
+   "s": "2221221"
+  },
+  "RC02": {
+   "s": "2221221"
+  },
+  "RC03": {
+   "s": "2221221"
+  },
+  "RC04": {
+   "s": "1221121",
+   "note": "Breaks the design system on purpose; for exploration only."
+  },
+  "RC05": {
+   "s": "2221221"
+  },
+  "RC06": {
+   "s": "2221221"
+  },
+  "RC07": {
+   "s": "2222221"
+  },
+  "RC08": {
+   "s": "2221221"
+  },
+  "RC09": {
+   "s": "2221221"
+  },
+  "RC10": {
+   "s": "2221221"
+  },
+  "RC11": {
+   "s": "2221221"
+  },
+  "RC12": {
+   "s": "2221221"
+  },
+  "RC13": {
+   "s": "2221221"
+  },
+  "RC14": {
+   "s": "2221221"
+  },
+  "RC15": {
+   "s": "2221221"
+  },
+  "RC16": {
+   "s": "1221121",
+   "note": "Runs every harsh review at once; heavy, and only when asked."
+  },
+  "RC17": {
+   "s": "2221221"
+  },
+  "RC18": {
+   "s": "2221221"
+  },
+  "RC19": {
+   "s": "2221221"
+  },
+  "RC20": {
+   "s": "2221221"
+  },
+  "RC21": {
+   "s": "2221221"
+  },
+  "RC22": {
+   "s": "2221221"
+  }
+ },
+ "clusters": [
+  {
+   "job": "Tests pass but prove little",
+   "primary": "T06",
+   "alts": [
+    {
+     "id": "T02",
+     "when": "You suspect particular tests pass no matter what."
+    },
+    {
+     "id": "T01",
+     "when": "Lots of unit tests, no start-to-finish check."
+    },
+    {
+     "id": "M06",
+     "when": "You want proof that a fix you just made works."
+    }
+   ]
+  },
+  {
+   "job": "Code is hard to change",
+   "primary": "EC04",
+   "alts": [
+    {
+     "id": "A03",
+     "when": "Plain prompt with nothing to install."
+    },
+    {
+     "id": "M12",
+     "when": "A one-line cleanup pass on each pull request."
+    },
+    {
+     "id": "M04",
+     "when": "A proposed fix adds a setting, table or service."
+    },
+    {
+     "id": "EC28",
+     "when": "Only the code changed on this branch."
+    }
+   ]
+  },
+  {
+   "job": "Are the numbers right?",
+   "primary": "DBR01",
+   "alts": [
+    {
+     "id": "PG01",
+     "when": "One figure disagrees with its source."
+    },
+    {
+     "id": "PG02",
+     "when": "Every check passes but totals still look wrong."
+    },
+    {
+     "id": "D02",
+     "when": "The metric is computed in app code, not only in the database."
+    }
+   ]
+  },
+  {
+   "job": "Fix a bug",
+   "primary": "EC02",
+   "alts": [
+    {
+     "id": "M03",
+     "when": "The same kind of bug keeps coming back."
+    },
+    {
+     "id": "M08",
+     "when": "A read-only investigation already found the problem."
+    },
+    {
+     "id": "EC17",
+     "when": "One bug is fixed and you want its siblings."
+    }
+   ]
+  },
+  {
+   "job": "Review a change before merging",
+   "primary": "EC26",
+   "alts": [
+    {
+     "id": "EC27",
+     "when": "Security only."
+    },
+    {
+     "id": "EC15",
+     "when": "Security review that weighs how many callers each change reaches."
+    },
+    {
+     "id": "EC31",
+     "when": "You want blunt, ranked criticism and small fixes."
+    }
+   ]
+  },
+  {
+   "job": "Ship a database change",
+   "primary": "PG17",
+   "alts": [
+    {
+     "id": "G02",
+     "when": "Checking how old and new code coexist during the deploy window."
+    },
+    {
+     "id": "DBR05",
+     "when": "You also need a tested way to recover."
+    }
+   ]
+  },
+  {
+   "job": "Plan before building",
+   "primary": "M07",
+   "alts": [
+    {
+     "id": "EC05",
+     "when": "Product direction is still open and you want to be asked."
+    },
+    {
+     "id": "EC06",
+     "when": "The same interview, with a glossary and decision records."
+    },
+    {
+     "id": "M09",
+     "when": "Several ways to build it, and the choice is costly to undo."
+    },
+    {
+     "id": "M02",
+     "when": "Pressure-test one plan before you start."
+    },
+    {
+     "id": "UI003",
+     "when": "Planning one page's layout and behaviour."
+    }
+   ]
+  },
+  {
+   "job": "The same fact stored twice",
+   "primary": "A04",
+   "alts": [
+    {
+     "id": "PG11",
+     "when": "Both copies live inside the database."
+    }
+   ]
+  },
+  {
+   "job": "Safe to retry",
+   "primary": "R01",
+   "alts": [
+    {
+     "id": "PG08",
+     "when": "Imports and corrections that get replayed."
+    },
+    {
+     "id": "I04",
+     "when": "Scheduled jobs that overlap or die midway."
+    }
+   ]
+  },
+  {
+   "job": "The app is slow",
+   "primary": "P01",
+   "alts": [
+    {
+     "id": "P02",
+     "when": "Steps wait for each other for no reason."
+    },
+    {
+     "id": "P08",
+     "when": "One synchronous step blocks everything else."
+    },
+    {
+     "id": "P03",
+     "when": "You already suspect specific queries."
+    },
+    {
+     "id": "UI022",
+     "when": "Slow loading or janky scrolling in the browser."
+    }
+   ]
+  },
+  {
+   "job": "What breaks as it grows",
+   "primary": "PG14",
+   "alts": [
+    {
+     "id": "P05",
+     "when": "The whole app, not only the database."
+    }
+   ]
+  },
+  {
+   "job": "History that changes meaning",
+   "primary": "PG04",
+   "alts": [
+    {
+     "id": "D03",
+     "when": "Classification changes in app code, not only in stored data."
+    }
+   ]
+  },
+  {
+   "job": "Imports that lose or merge records",
+   "primary": "D04",
+   "alts": [
+    {
+     "id": "PG03",
+     "when": "Records from different sources describe the same thing."
+    },
+    {
+     "id": "PG07",
+     "when": "The pipeline itself is too long."
+    }
+   ]
+  },
+  {
+   "job": "Security checks that fail open",
+   "primary": "T05",
+   "alts": [
+    {
+     "id": "EC12",
+     "when": "A broader installed audit of unsafe defaults."
+    }
+   ]
+  },
+  {
+   "job": "Risky dependencies and CI",
+   "primary": "T04",
+   "alts": [
+    {
+     "id": "EC13",
+     "when": "Lockfile-level risk: abandoned or one-maintainer packages."
+    },
+    {
+     "id": "EC14",
+     "when": "GitHub Actions that run AI agents."
+    }
+   ]
+  },
+  {
+   "job": "CI costs time and catches little",
+   "primary": "I03",
+   "alts": [
+    {
+     "id": "EC29",
+     "when": "Checking workflow files for waste and unsafe settings."
+    },
+    {
+     "id": "EC30",
+     "when": "Finding the slowest jobs and flaky tests."
+    }
+   ]
+  },
+  {
+   "job": "Units and rounding",
+   "primary": "G05",
+   "alts": [
+    {
+     "id": "EC19",
+     "when": "An installed pass that labels every value with its unit."
+    }
+   ]
+  },
+  {
+   "job": "Navigation, Back button and shared links",
+   "primary": "EC23",
+   "alts": [
+    {
+     "id": "A08",
+     "when": "Plain prompt with nothing to install."
+    },
+    {
+     "id": "R07",
+     "when": "Only Back, refresh and shared links."
+    },
+    {
+     "id": "EC24",
+     "when": "Deciding whether a page should exist at all."
+    }
+   ]
+  },
+  {
+   "job": "Settings that differ by environment",
+   "primary": "S06",
+   "alts": [
+    {
+     "id": "I05",
+     "when": "The hosting dashboard and the repo disagree."
+    }
+   ]
+  },
+  {
+   "job": "Resources that are never released",
+   "primary": "P07",
+   "alts": [
+    {
+     "id": "A07",
+     "when": "No measured growth yet; map who owns each resource."
+    }
+   ]
+  },
+  {
+   "job": "Out-of-date agent instructions",
+   "primary": "G01",
+   "alts": [
+    {
+     "id": "EC08",
+     "when": "Review one session and fix the setup it exposed."
+    }
+   ]
+  },
+  {
+   "job": "Ship a screen with confidence",
+   "primary": "RC07",
+   "alts": [
+    {
+     "id": "UI031",
+     "when": "Only check layout at phone, tablet and desktop sizes."
+    },
+    {
+     "id": "EC32",
+     "when": "Same skill as UI031, listed with the engineering commands."
+    }
+   ]
+  }
+ ]
+}
