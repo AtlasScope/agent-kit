@@ -179,7 +179,7 @@ A monochrome palette: one near-black, white, one raised tone and one grey, with 
 - **Control border** (#66686F): muted at 60% over ink, which holds 3:1 against ink. Borders of things a visitor operates: the outlined button, the search field, the divider in the header lockup.
 
 ### Section hues
-Six hues mark the six sections of the library. On ink they are mint (#4BF0A8), lime (#C9E05A), violet (#BFA8FF), cyan (#3FE0F5), blue (#8CB6FF) and pink (#FF7FB2). They are wayfinding, used as a small square dot (10px, 3px corners) beside a section or card title on library pages.
+Six hues mark the six sections of the library. On ink they are mint (#4BF0A8), lime (#C9E05A), violet (#BFA8FF), cyan (#3FE0F5), blue (#8CB6FF) and pink (#FF7FB2). They are wayfinding, used as a small square dot (10px, 3px corners) beside a section or card title on library pages. The homepage does not use them.
 
 ### Not yet migrated
 Light-mode library pages still run on an older warm set: paper #ECEAE4, white cards, warm ink #0B0A08, warm greys #3A362F and #5E594F, rules #D6D1C7 and #B9B3A6, and an amber #8A4B00 used for commands and focus with a soft amber #F6E6CF fill. These are not the system. They are the previous look, still in place in the light setting, and have not been moved to the AtlasScope colours. Do not extend them to new surfaces.
@@ -234,6 +234,8 @@ The homepage hero is three stacked bands on one left edge, the container's left 
 
 Below 1088px the strip wraps: the command takes a full row, with the counts and tested-with line under it, and the photograph band sizes to its text. Below 720px the text sits on solid ink at the top and the horizon shows beneath it (ink solid to 44% of the band's height, clear by 82%), the pills go full width, and the strip falls below the first screen; the primary pill jumps to it.
 
+Below the hero, the homepage stacks its sections 64px apart with a hairline between them (40px on phones). The first is a row of three equal panels, the starting points. Each later section is two columns on the container's left edge: the heading and one muted sentence in the first third, the content in the other two thirds. Below 960px the columns stack.
+
 Library pages stack sections 40px apart inside the container, with cards in auto-filling grids (minimum column 300px for prompt and skill cards, 250px for rows, 180px or 240px for tiles) and text held to 72 characters.
 
 Touch screens raise tap targets to 40px or more. Layouts hold from 360px to 2560px wide.
@@ -242,7 +244,9 @@ Touch screens raise tap targets to 40px or more. Layouts hold from 360px to 2560
 
 The hero is flat. Its three bands are separated by hairlines and by the edge of the photograph, with no shadow anywhere in the first screen.
 
-Below the hero and on library pages, depth is mostly tonal: a slate panel with a hairline border on an ink ground. Cards also carry a soft black shadow with a faint light line along the top edge, which on ink reads as a slight lift and no more. Pointer hover on a tile or row deepens the shadow and raises it 1px.
+The rest of the homepage is flat too: slate panels with a hairline border, hairlines between sections, and no shadow. Hover on a homepage panel brightens its border to the control border colour.
+
+On library pages, depth is mostly tonal: a slate panel with a hairline border on an ink ground. Cards also carry a soft black shadow with a faint light line along the top edge, which on ink reads as a slight lift and no more. Pointer hover on a tile or row deepens the shadow and raises it 1px.
 
 ### Shadow Vocabulary
 - **Lift** (`box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 1px 2px rgba(0,0,0,.6), 0 8px 20px -10px rgba(0,0,0,.7), 0 24px 40px -24px rgba(0,0,0,.9)`): cards, tiles, rows and code panels at rest.
@@ -251,7 +255,7 @@ Below the hero and on library pages, depth is mostly tonal: a slate panel with a
 ### Named Rules
 **The Solid Ground Rule.** Anything a visitor operates or needs to read exactly (the header, the logo, the install command, the counts) sits on solid ink or slate, never on the photograph.
 
-**The One Movement Rule.** The only animation on the homepage is the photograph settling into place on load (1400ms, from 55% opacity and 3.5% oversize). Text is in place from the first frame. With reduced motion set, nothing moves.
+**The One Movement Rule.** The only animation that plays by itself on the homepage is the photograph settling into place on load (1400ms, from 55% opacity and 3.5% oversize). Text is in place from the first frame. The example run is shown complete and still; it types itself out once only when the visitor presses Play. With reduced motion set, nothing moves and there is no Play button.
 
 ## Shapes
 

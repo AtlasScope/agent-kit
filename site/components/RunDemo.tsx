@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 const ASK = "new landing page for our CLI";
 const STEPS: [string, string, string?][] = [
@@ -10,57 +10,51 @@ const STEPS: [string, string, string?][] = [
   ["/impeccable polish", "final spacing and detail pass", "Impeccable plugin"],
 ];
 
-// The run types itself out, then loops. Without script, or with reduced motion, it stays complete and still.
+// The run is shown complete and still. Play types it out once, then it rests complete again.
+// With reduced motion set there is no Play button.
 export function RunDemo() {
   const [typed, setTyped] = useState(ASK.length);
   const [shown, setShown] = useState(STEPS.length + 1);
   const [now, setNow] = useState(-1);
   const [playing, setPlaying] = useState(false);
-  const [paused, setPaused] = useState(false);
-  const [still, setStill] = useState(true);
-  const ref = useRef<HTMLElement>(null);
-  const visible = useRef(true);
+  const [canPlay, setCanPlay] = useState(false);
 
   useEffect(() => {
     const mq = matchMedia("(prefers-reduced-motion: reduce)");
-    const on = () => setStill(mq.matches);
-    // While the hero reveal plays, the run waits and starts shortly after it settles.
-    const root = document.documentElement;
-    const waiting = root.classList.contains("js-reveal") && !root.classList.contains("settled");
-    let t: ReturnType<typeof setTimeout> | undefined;
-    const go = () => { t = setTimeout(on, 700); };
-    if (waiting) addEventListener("hero-settled", go, { once: true }); else on();
+    const on = () => { setCanPlay(!mq.matches); if (mq.matches) setPlaying(false); };
+    on();
     mq.addEventListener("change", on);
-    const io = new IntersectionObserver(([e]) => { visible.current = e.isIntersecting; });
-    if (ref.current) io.observe(ref.current);
-    return () => { clearTimeout(t); removeEventListener("hero-settled", go); mq.removeEventListener("change", on); io.disconnect(); };
+    return () => mq.removeEventListener("change", on);
   }, []);
 
   useEffect(() => {
-    if (still) { setPlaying(false); setTyped(ASK.length); setShown(STEPS.length + 1); setNow(-1); return; }
-    setPlaying(true);
-    const plan: [number, () => void][] = [];
-    plan.push([0, () => { setTyped(0); setShown(0); setNow(-1); }]);
-    for (let i = 1; i <= ASK.length; i++) plan.push([i === 1 ? 500 : 45, () => setTyped(i)]);
+    if (!playing) { setTyped(ASK.length); setShown(STEPS.length + 1); setNow(-1); return; }
+    const plan: [number, () => void][] = [[0, () => { setTyped(0); setShown(0); setNow(-1); }]];
+    for (let i = 1; i <= ASK.length; i++) plan.push([i === 1 ? 400 : 45, () => setTyped(i)]);
     plan.push([500, () => setShown(1)]);
     STEPS.forEach((_, i) => plan.push([260, () => setShown(i + 2)]));
     STEPS.forEach((_, i) => plan.push([i ? 700 : 600, () => setNow(i)]));
-    plan.push([3200, () => {}]);
+    plan.push([1600, () => setPlaying(false)]);
     let step = 0, timer: ReturnType<typeof setTimeout>;
     const tick = () => {
-      if (paused || !visible.current) { timer = setTimeout(tick, 250); return; }
-      const [ms, fn] = plan[step];
-      timer = setTimeout(() => { fn(); step = (step + 1) % plan.length; tick(); }, ms);
+      if (step >= plan.length) return;
+      const [ms, fn] = plan[step++];
+      timer = setTimeout(() => { fn(); tick(); }, ms);
     };
     tick();
     return () => clearTimeout(timer);
-  }, [still, paused]);
+  }, [playing]);
 
   return (
-    <section className="run" aria-label="An example workflow for the /design command" ref={ref}>
+    <div className="run">
       <div className="run__head">
         <span>Example workflow, Claude Code, design-kit</span>
-        {!still && <button className="pause" type="button" onClick={() => setPaused((p) => !p)}>{paused ? "Play" : "Pause"}</button>}
+        {canPlay && (
+          <button className="pause" type="button" onClick={() => setPlaying((p) => !p)}>
+            <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">{playing ? <path d="M7 7h10v10H7z" /> : <path d="M8 5.5v13l11-6.5z" />}</svg>
+            {playing ? "Stop" : "Play"}
+          </button>
+        )}
       </div>
       <div className={`run__body${playing ? " playing" : ""}`}>
         <p className="prompt-line"><b>/design</b> <span>{ASK.slice(0, typed)}</span><span className="caret" aria-hidden="true" /></p>
@@ -75,6 +69,6 @@ export function RunDemo() {
         </ol>
       </div>
       <p className="run__note">Steps 1, 4 and 5 use companion plugins that install separately. <a className="lic" href="/prompts/new-landing-page">See the recipe</a>.</p>
-    </section>
+    </div>
   );
 }
