@@ -167,7 +167,9 @@ async function settle(page) {
 // The output folder may sit inside a project someone else controls. A link planted there under one of our
 // file names would make a write land on whatever it points at, so links are refused and every output file
 // is created fresh.
-function prepareOut() {
+const OUTPUTS = ["frames", "sheet.html", "sheet.png", "filmstrip.json"];
+// Read-only: refuses an unsafe output path without creating or removing anything.
+function checkOut() {
   const isLink = (p) => { try { return fs.lstatSync(p).isSymbolicLink(); } catch { return false; } };
   // Every folder between the project root and the output folder is checked before anything is created or
   // removed, so a link planted higher up (".artifacts" pointing elsewhere) cannot redirect the work.
@@ -181,15 +183,21 @@ function prepareOut() {
       if (isLink(step)) fail(`Refusing to write: ${step} is a symbolic link on the way to the output folder. Choose another --out folder, or remove the link if it is yours.`, 2);
     }
   }
-  fs.mkdirSync(outDir, { recursive: true });
-  const ours = ["frames", "sheet.html", "sheet.png", "filmstrip.json"].map((n) => path.join(outDir, n));
-  const link = [outDir, ...ours].find(isLink);
+  const link = [outDir, ...OUTPUTS.map((n) => path.join(outDir, n))].find(isLink);
   if (link) fail(`Refusing to write: ${link} is a symbolic link. Choose another --out folder, or remove the link if it is yours.`, 2);
-  for (const p of ours) fs.rmSync(p, { recursive: true, force: true });
+}
+
+// Clears the previous capture and makes room for this one. Called only once a browser is known to be
+// available, so a run that cannot capture leaves the last capture in place.
+function prepareOut() {
+  checkOut();
+  fs.mkdirSync(outDir, { recursive: true });
+  for (const n of OUTPUTS) fs.rmSync(path.join(outDir, n), { recursive: true, force: true });
   fs.mkdirSync(path.join(outDir, "frames"));
 }
 
 async function capture(pw) {
+  prepareOut();
   let browser;
   try { browser = await pw.chromium.launch(); }
   catch (e) {
@@ -347,7 +355,7 @@ async function perf(browser, actions, captured) {
   };
 }
 
-prepareOut(); // before anything else, so an unsafe output path is refused whether or not a browser is available
+checkOut(); // before anything else, so an unsafe output path is refused whether or not a browser is available
 const pw = await loadPlaywright();
 const meta = await capture(pw);
 if (flag("--json")) { console.log(JSON.stringify({ ...meta, out: outDir }, null, 1)); process.exit(0); }

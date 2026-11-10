@@ -197,6 +197,22 @@ test("an animation a timer starts between frames keeps the time it began", { ski
   assert.ok(Math.abs(second.startedAt - 100) <= 20, `it starts 100ms in, recorded ${second.startedAt}ms`);
 });
 
+test("a run that cannot capture leaves the previous capture in place", () => {
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), "filmstrip-keep-"));
+  fs.mkdirSync(path.join(out, "frames"));
+  fs.writeFileSync(path.join(out, "frames", "00.png"), "old frame");
+  fs.writeFileSync(path.join(out, "filmstrip.json"), "{}");
+  // A Node copy with no modules beside it, and no NODE_PATH, has no Playwright to find.
+  const bare = fs.mkdtempSync(path.join(os.tmpdir(), "filmstrip-bare-"));
+  fs.mkdirSync(path.join(bare, "bin"));
+  fs.copyFileSync(process.execPath, path.join(bare, "bin", "node"));
+  fs.chmodSync(path.join(bare, "bin", "node"), 0o755);
+  const r = spawnSync(path.join(bare, "bin", "node"), [script, page, "--out", out, "--do", "click:#open-good"], { encoding: "utf8", timeout: 60000, env: { ...process.env, NODE_PATH: "", MOTION_PLAYWRIGHT_DIR: "" } });
+  assert.equal(r.status, 3, r.stderr);
+  assert.equal(fs.readFileSync(path.join(out, "frames", "00.png"), "utf8"), "old frame");
+  assert.ok(fs.existsSync(path.join(out, "filmstrip.json")));
+});
+
 test("an unknown action fails with a usage error instead of a blank capture", { skip }, () => {
   const r = run("--do", "wiggle:#x");
   assert.equal(r.status, 2);
