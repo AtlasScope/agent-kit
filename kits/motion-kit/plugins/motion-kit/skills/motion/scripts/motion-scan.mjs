@@ -117,6 +117,10 @@ function scanCssValue(kind, prop, value, file, line, text) {
 function scanText(file, src) {
   const lineAt = (() => { const starts = [0]; for (let i = 0; i < src.length; i++) if (src[i] === "\n") starts.push(i + 1); return (idx) => { let lo = 0, hi = starts.length - 1; while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (starts[mid] <= idx) lo = mid; else hi = mid - 1; } return lo + 1; }; })();
   const isScript = SCRIPT.test(file);
+  // Comments are blanked out before anything is counted, keeping every offset: commented-out code moves
+  // nothing, and a comment that mentions reduced motion ("TODO: add prefers-reduced-motion") handles nothing.
+  src = src.replace(/\/\*[\s\S]*?\*\/|<!--[\s\S]*?-->/g, (c) => c.replace(/[^\n]/g, " ")).replace(isScript ? /(?<![:"'`\\])\/\/[^\n]*/g : /$^/g, (c) => " ".repeat(c.length));
+  const bare = src;
 
   // CSS declarations, wherever they appear (stylesheets, <style> blocks, CSS-in-JS templates).
   for (const m of src.matchAll(/(?<![\w-])(transition|animation)(-[a-z-]+)?\s*:\s*([^;{}\n]+(?:\n\s+[^;{}:\n]+)*)[;}\n]/g)) {
@@ -138,9 +142,6 @@ function scanText(file, src) {
       if (/scale\(\s*0\s*\)/.test(d[2])) find("scale-from-zero", "check", file, lineAt(m.index), `@keyframes ${m[1]} { ${d[1]}: ${d[2].trim()} }`, "Growing from nothing reads as a pop from a point. Start near full size (around 0.96) with opacity.");
     }
   }
-  // A comment that mentions reduced motion ("TODO: add prefers-reduced-motion") handles nothing, so comments
-  // are blanked out, keeping every offset, before looking for the checks.
-  const bare = src.replace(/\/\*[\s\S]*?\*\/|<!--[\s\S]*?-->/g, (c) => c.replace(/[^\n]/g, " ")).replace(isScript ? /(?<![:"'`\\])\/\/[^\n]*/g : /$^/g, (c) => " ".repeat(c.length));
   for (const m of bare.matchAll(/prefers-reduced-motion/g)) { if (isScript && !/@media/.test(bare.slice(Math.max(0, m.index - 40), m.index))) reduced.js++; else reduced.css++; }
   for (const m of src.matchAll(/(?<![\w-])will-change\s*:\s*([^;}\n]+)/g)) if (!/auto/.test(m[1])) find("will-change", "info", file, lineAt(m.index), m[0], "A permanent will-change keeps a layer in memory. Set it just before the animation and remove it after, or drop it.");
   if (/view-transition-name|@view-transition|startViewTransition/.test(src)) modern.viewTransitions++;

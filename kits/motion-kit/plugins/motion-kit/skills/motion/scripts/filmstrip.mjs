@@ -129,7 +129,12 @@ function scrub([t, finish]) {
   // Animations already seen are kept by reference: one with no fill drops out of getAnimations() once it has
   // been moved to its end, and it still has to be rewound.
   for (const a of new Set([...reg.seen.keys(), ...document.getAnimations()])) {
-    if (reg.done.has(a)) continue;
+    if (reg.done.has(a)) {
+      // Finished by this capture. If the page starts the same object again (an onfinish handler that calls
+      // reverse(), a replay), it is a new movement and is tracked afresh from here.
+      if (a.playState === "finished" || a.playState === "idle") continue;
+      reg.done.delete(a); reg.from.delete(a);
+    }
     let rec = reg.seen.get(a);
     // An animation the page itself holds paused (animation-play-state: paused, or pause()) is not moving, so
     // it is left where it is. If the page resumes it later, it is picked up then, from that position.

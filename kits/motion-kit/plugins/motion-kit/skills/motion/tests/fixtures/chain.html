@@ -9,7 +9,7 @@
   #c { left: 40px; top: 280px; background: #15803d; }
   button { position: absolute; left: 400px; top: 500px; }
 </style>
-<button id="chain">Chain</button><button id="slow" style="left:500px">Slow</button>
+<button id="chain">Chain</button><button id="slow" style="left:500px">Slow</button><button id="bounce" style="left:600px">Bounce</button>
 <div id="a"></div><div id="b"></div><div id="c"></div>
 <script>
   // The second step starts only when the first one finishes.
@@ -21,5 +21,10 @@
   document.getElementById("slow").addEventListener("click", () => {
     const x = document.getElementById("c").animate([{ transform: "none" }, { transform: "translateX(200px)" }], { duration: 200, fill: "forwards" });
     x.playbackRate = 0.5;
+  });
+  // Out and back: the same animation object is reversed once it finishes.
+  document.getElementById("bounce").addEventListener("click", () => {
+    const x = document.getElementById("c").animate([{ transform: "none" }, { transform: "translateX(200px)" }], { duration: 100, fill: "both" });
+    x.onfinish = () => { x.onfinish = null; x.reverse(); };
   });
 </script>

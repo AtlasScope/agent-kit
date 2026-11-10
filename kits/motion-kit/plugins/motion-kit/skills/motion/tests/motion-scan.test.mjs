@@ -94,3 +94,11 @@ test("a transition shorthand that names no property is read as all", () => {
   const all = r.findings.filter((f) => f.rule === "transition-all").map((f) => f.line);
   assert.deepEqual(all, [1, 3], "the unnamed variable on line 2 might be the property, so it is not assumed");
 });
+
+test("commented-out motion is not counted", () => {
+  const r = scan("commented");
+  assert.equal(r.totals.transitions + r.totals.animations, 0);
+  assert.deepEqual(r.durations, []);
+  assert.deepEqual(r.findings, []);
+  assert.deepEqual(r.system, []);
+});

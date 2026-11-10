@@ -296,6 +296,15 @@ test("an animation the page holds paused is left alone until the page resumes it
   assert.equal(resumed.framesChanged, 2);
 });
 
+test("an animation object the page reverses after it finishes is followed back", { skip }, () => {
+  const m = chain("--do", "click:#bounce", "--ms", "300", "--frames", "7", "--clip", "#c");
+  assert.equal(m.animations.length, 2, "out, then back, on the same object");
+  assert.ok(m.animations[1].startedAt >= 100);
+  assert.equal(m.frames.at(-1).same, true, "it has come to rest by the end");
+  const png = (f) => fs.readFileSync(path.join(m.out, "frames", f));
+  assert.ok(png("06.png").equals(png("before.png")), "and it is back where it started");
+});
+
 test("an unknown action fails with a usage error instead of a blank capture", { skip }, () => {
   const r = run("--do", "wiggle:#x");
   assert.equal(r.status, 2);
