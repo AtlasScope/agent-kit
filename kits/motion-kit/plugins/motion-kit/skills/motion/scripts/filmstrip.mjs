@@ -201,7 +201,13 @@ async function capture(pw) {
   let browser;
   try { browser = await pw.chromium.launch(); }
   catch (e) {
-    const chrome = ["/opt/pw-browsers/chromium", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/usr/bin/chromium", "C:/Program Files/Google/Chrome/Application/chrome.exe"].find((c) => fs.existsSync(c) && fs.statSync(c).isFile());
+    // Fallback browsers are fixed system locations for this platform only. A Windows path is a relative path
+    // on other systems, where a project could plant a file at it, so every candidate must be absolute here.
+    const SYSTEM_CHROME = process.platform === "win32"
+      ? ["C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"]
+      : process.platform === "darwin" ? ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"]
+      : ["/opt/pw-browsers/chromium", "/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/usr/bin/chromium"];
+    const chrome = SYSTEM_CHROME.find((c) => path.isAbsolute(c) && fs.existsSync(c) && fs.statSync(c).isFile());
     if (!chrome) fail(`Playwright is installed but has no browser, and Chrome was not found. No frames were captured.\n${String(e.message).split("\n")[0]}`, 3);
     browser = await pw.chromium.launch({ executablePath: chrome });
   }
