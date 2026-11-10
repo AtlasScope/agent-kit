@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SITE, authEnabled } from "@/lib/site";
+import { AtlasScopeLogo } from "./AtlasScopeLogo";
 import { AuthNav } from "./AuthNav";
 import { NavLinks } from "./NavLinks";
 import { Search } from "./Search";
@@ -8,7 +9,11 @@ export function Nav() {
   return (
     <header className="top">
       <div className="container nav">
-        <Link className="wordmark" href="/">{SITE.name}<b>.</b></Link>
+        <Link className="wordmark" href="/" aria-label={`${SITE.name} ${SITE.byline}, home`}>
+          <AtlasScopeLogo />
+          <span className="wordmark__sep" aria-hidden="true">/</span>
+          <span className="wordmark__name">{SITE.name}<b>.</b></span>
+        </Link>
         <NavLinks />
         <Search />
         <div className="nav__end">
