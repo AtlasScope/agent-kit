@@ -23,6 +23,7 @@ The library lives in three references, generated from the Design Skills Field Gu
 - **Ask once, then stop.** If the request could mean two different jobs (a review or a fix? this page or the whole site?), ask the one question that separates them and end the turn. Do not guess on a redesign or anything that rewrites a whole page.
 - **Reviews only when they asked for one.** Pick a review skill (critique, audit, harsh-review, design-review, heuristics, Steve Jobs review, viewport proof) only when their words ask for a review, an opinion or a check. A recipe they chose that contains a review step counts as asking.
 - **Nothing leaves the machine unasked.** Never pick a skill that sends their work to an outside service unless they named it.
+- **Not a design job, say where it goes.** Pages that duplicate each other, navigation that disagrees, Back, refresh, shared links or filters that reset are structure problems: point to `/experience-architecture:diagnose` (or `/engineer` if that plugin is missing) in one line and stop. Bugs, data, servers and databases go to `/engineer` or `/database`. A request to change how a screen looks stays here even if it mentions navigation.
 - **Project rules win.** Read the repo's AGENTS.md or CLAUDE.md, PRODUCT.md and DESIGN.md before the first edit. Routing does not authorize commits, merges or deploys.
 
 ## Steps
@@ -30,7 +31,23 @@ The library lives in three references, generated from the Design Skills Field Gu
 1. **Read the ground.** Is there PRODUCT.md and DESIGN.md? What is the surface: marketing page, app screen, native app, a single component? Are they starting, changing, or judging?
 2. **No PRODUCT.md and the job edits UI:** the first step is `/impeccable init`. Say so and start there, then continue the route.
 3. **Pick.** Match their words to a situation. If the job spans steps (new landing page, rescue, pre-launch), pick the recipe instead. If nothing matches, use the catalog and say the pick is a judgment call.
-4. **Check it is installed in this harness.** Skills from this kit may be namespaced `design-kit:<name>`; others come from their own plugins (Impeccable, Interface Design, Humanizer, Sepia, Vale) or the user's own folders. If one is missing, use the overlap alternative and say which, and name the plugin that provides it.
+4. **Check it is installed in this harness.** Skills from this kit may be namespaced `design-kit:<name>`; others come from their own plugins (Impeccable, Interface Design, Humanizer, Sepia, Vale) or the user's own folders. If one is missing, say so, name the plugin that provides it, and use the overlap alternative if that is installed. If the alternative is missing too, use the shipped fallback below. Never say a missing skill ran.
+
+   | Missing pick | Shipped fallback |
+   |---|---|
+   | `/impeccable critique`, `/interface-design:design-review` | `/ux-heuristics` (report) |
+   | `/impeccable polish`, `layout`, `distill`, `quieter` | `/refactoring-ui` |
+   | `/impeccable typeset` | `/web-typography` |
+   | `/impeccable colorize` | `/oklch-skill` |
+   | `/impeccable harden` | `/break-ui` |
+   | `/impeccable clarify` | `/ux-writing` |
+   | `/impeccable animate` | `/animate` |
+   | `/impeccable adapt` on the web | `/mobile-native` |
+   | `/impeccable bolder`, `/interface-design:design-deslop` | `/refactoring-ui` |
+   | `/humanizer`, `/sepia:sepia-write`, `/sepia:sepia-refactor`, `/sepia:sepia` | `/stop-slop` or `/fix-writing` |
+   | `/impeccable init`, `shape`, `document`, `audit`, `optimize`, `live`, `/interface-design`, `/sepia:sepia-review`, `example-skills:*` | No shipped equivalent. Say what is missing and how to install it, then stop. |
+
+   A fallback never changes the mode: a pick that only reports never falls back to a skill that edits. A missing first step of a recipe means the recipe cannot run as written: say which step is missing and ask whether to run the rest.
 5. **Say the route, then start it.** Unless the ask-once gate stopped you, run the first skill in the same turn.
 6. **Recipes keep a progress file** at `<primary-checkout>/.artifacts/design/<recipe-slug>.md`: the recipe, the target, each step with done or pending and a one-line result. Run one step per turn and show its result. Continue when they say go, or run it through if they said to.
 7. **`/design next` or `/design` with a recipe in progress:** read the newest progress file, say where it stands in one line, and run the next step.
@@ -53,4 +70,4 @@ The library lives in three references, generated from the Design Skills Field Gu
 
 ## Output
 
-First line: **Route:** the skill or recipe, and why, in one sentence a non-designer would follow. If it is a recipe, the steps on one line each. Then run step one. After each step: what changed, what is next, and whether anything needs their decision. Plain English; no file paths unless they must open one.
+First line: **Route:** the skill or recipe, and why, in one sentence a non-designer would follow, ending with what it does to files (edits, reports only, or advice) and, if it edits, that it will show the change before anything is committed. If it is a recipe, the steps on one line each. Then run step one. After each step: what changed, what is next, and whether anything needs their decision. Plain English; no file paths unless they must open one.

@@ -22,6 +22,8 @@ The library is in two references, generated from the guide:
 2. **An investigation**, when they need to find out whether a problem exists or where it lives. Match their words to a symptom, then pick the one investigation whose "Finds" line fits best. Check its "Skip when" line against what you know of the repo.
 3. **A thinking prompt**, when the issue is how an agent is working rather than the code: a vague task (`M07`, `M01`), a plan that sounds too easy (`M02`), a repeat bug (`M03`), a fix that adds machinery (`M04`), "tests pass" as proof (`M06`), a costly decision (`M09`), a long session ending (`M10`).
 
+Send it elsewhere in one line, and stop, when the request belongs to another router: how a screen looks or reads goes to `/design`; a PostgreSQL problem goes to `/database`; users getting lost, Back, shared links or too many pages go to `/experience-architecture:diagnose` when it is installed (otherwise the matching symptom row here).
+
 If an investigation or thinking prompt covers it, say **no skill needed** and give the prompt. Never chain moves or suggest a second one unless they ask what comes after.
 
 ## Gates
@@ -45,7 +47,7 @@ For an investigation: its prompt text, then the mode line for its `mode` (from `
 ## Output
 
 - **Bare `/engineer`:** list the symptoms from `start-here.md`, one line each, and ask which is closest. Stop.
-- Otherwise, first line: **Start with:** the pick (`/skill`, an investigation ID and title, or a thinking prompt ID and title) and why, in one sentence a non-engineer would follow.
+- Otherwise, first line: **Start with:** the pick (`/skill`, an investigation ID and title, or a thinking prompt ID and title) and why, in one sentence a non-engineer would follow, ending with whether it only reads or can change code (an investigation's `mode`), and that nothing runs until they say go.
 - For a skill, a second line with what to type, including the argument.
 - For a prompt, the copy-ready block in a fenced `text` block with nothing else inside it.
 - One last line, only if useful: what to run next if it finds something.
