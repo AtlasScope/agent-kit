@@ -36,7 +36,7 @@ export function InstallRail() {
           ))}
         </div>
         <div className="rail__cmd" id="rail-cmd" role="tabpanel" aria-labelledby={`rt-${cur}`}>
-          <div className="rail__steps">{agent.steps.map((s) => <code key={s}>{s.split(" ").map((w, i) => <span key={i}>{i ? " " : ""}<span className="nw">{w}</span></span>)}</code>)}</div>
+          <div className="rail__steps" translate="no">{agent.steps.map((s) => <code key={s}>{s.split(" ").map((w, i) => <span key={i}>{i ? " " : ""}<span className="nw">{w}</span></span>)}</code>)}</div>
           <CopyButton key={agent.id} className="rail__copy" text={agent.steps.join("\n")} label={agent.steps.length > 1 ? "Copy all" : "Copy"} />
         </div>
         <p className="rail__tested" aria-live="polite">

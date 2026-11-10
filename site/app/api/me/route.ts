@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { listCollections, myItems, setItem, starredId, createCollection, validItem } from "@/lib/collections";
+import { listCollections, myItems, setItem, starredId, createCollection, validItem, UserError } from "@/lib/collections";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +15,7 @@ export async function GET() {
 // { kind, ref, on, collectionId? | newCollection? }: star, save to a collection or remove.
 export async function POST(req: Request) {
   const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
+  if (!userId) return NextResponse.json({ error: "Your session ended. Sign in again to save." }, { status: 401 });
   const body = await req.json().catch(() => null) as { kind?: string; ref?: string; on?: boolean; collectionId?: string; newCollection?: string } | null;
   if (!body?.kind || !body.ref || !validItem(body.kind, body.ref)) return NextResponse.json({ error: "Unknown prompt or skill." }, { status: 400 });
   try {
@@ -23,6 +23,8 @@ export async function POST(req: Request) {
     await setItem(userId, id, body.kind, body.ref, body.on !== false);
     return NextResponse.json({ ok: true, collectionId: id });
   } catch (e) {
-    return NextResponse.json({ error: (e as Error).message }, { status: 400 });
+    if (e instanceof UserError) return NextResponse.json({ error: e.message }, { status: 400 });
+    console.error("api/me", e);
+    return NextResponse.json({ error: "That didn’t save. Try again in a moment." }, { status: 500 });
   }
 }

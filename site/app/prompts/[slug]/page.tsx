@@ -77,7 +77,7 @@ function PromptPage({ p }: { p: Prompt }) {
         <Crumbs items={[["Prompts", "/prompts"], [a.title, `/prompts/${a.slug}`], [p.t, `/prompts/${p.slug}`]]} />
         <h1>{p.t}</h1>
         {(p.why || p.use) && <p className="lead ink2">{p.why || p.use}</p>}
-        <p className="kicker" data-sec={p.sec}><i className="dot" /><span>{kindLabel(p)}</span><span>·</span><span>{p.group}</span>{p.badge && <><span>·</span><span>{p.badge}</span></>}<span>·</span><code>{p.id}</code></p>
+        <p className="kicker" data-sec={p.sec}><i className="dot" /><span>{kindLabel(p)}</span><span aria-hidden="true">·</span><span>{p.group}</span>{p.badge && <><span aria-hidden="true">·</span><span>{p.badge}</span></>}<span aria-hidden="true">·</span><code translate="no">{p.id}</code></p>
         <div className="toolbar">
           <CopyButton className="btn btn--solid" text={text} label={p.steps ? "Copy recipe" : p.sec === "ecmd" ? "Copy command" : "Copy prompt"} icon />
           {authEnabled() && <SaveMenu kind="prompt" refId={p.id} title={p.t} />}
@@ -90,7 +90,7 @@ function PromptPage({ p }: { p: Prompt }) {
           {p.steps && (
             <section className="section">
               <h2>Steps</h2>
-              <ol className="list" style={{ listStyle: "none" }}>
+              <ol className="list" role="list" style={{ listStyle: "none" }}>
                 {p.steps.map(([c, d], i) => (
                   <li key={i} style={{ padding: "12px 0" }}><span className="list__n">{i + 1}</span>&nbsp; <code>{c}</code> <span className="muted">{d}</span></li>
                 ))}

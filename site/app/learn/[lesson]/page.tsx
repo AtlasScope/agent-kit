@@ -52,12 +52,12 @@ export default async function LessonPage({ params }: { params: Promise<{ lesson:
       </section>
 
       <section className="expect" aria-labelledby="expect-h">
-        <h2 id="expect-h">You should see</h2>
+        <h2 id="expect-h"><svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>You should see</h2>
         <p>{l.expect}</p>
       </section>
 
       <section className="section">
-        <h2>If something&apos;s off</h2>
+        <h2>If something’s off</h2>
         <dl className="facts"><dt>{l.wrong[0]}</dt><dd>{l.wrong[1]}</dd></dl>
       </section>
 

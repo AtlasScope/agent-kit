@@ -13,7 +13,7 @@ export default async function Account() {
   if (!authEnabled()) notFound();
   const { userId } = await auth();
   if (!userId) redirect("/sign-in?redirect_url=/account");
-  if (!dbEnabled()) return <main className="page"><p className="note">Collections need the database, which isn’t connected yet.</p></main>;
+  if (!dbEnabled()) return <main className="page"><div className="page-head"><Crumbs items={[["Collections", "/account"]]} /><h1>Collections</h1><p className="lead ink2">Collections need the database, which isn’t connected yet. Everything in the library still works without it.</p></div></main>;
   const cols = await listCollections(userId);
   const full = (await Promise.all(cols.map((c) => getCollection(c.id)))).filter((c) => c !== null);
   return (

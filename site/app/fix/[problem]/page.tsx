@@ -33,7 +33,7 @@ export default async function FixPage({ params }: { params: Promise<{ problem: s
         <p className="lead ink2">Start with the first prompt. Each one says what proof the agent should bring back and when to skip it.</p>
         <p className="kicker">{f.scope === "database" ? "PostgreSQL" : "Your app"}</p>
       </div>
-      <PromptCards slugs={f.prompts} rank />
+      <section className="section" aria-labelledby="try-h"><h2 id="try-h">Prompts to try, in order</h2><PromptCards slugs={f.prompts} rank /></section>
       {skillNames.length > 0 && <section className="section"><h2>Skills that help</h2><SkillCards names={skillNames} /></section>}
       <p className="note">Not quite your problem? <Link className="lic" href="/fix">See every symptom</Link>.</p>
     </main>

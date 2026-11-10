@@ -15,7 +15,7 @@ export default function About() {
     <DocPage
       path="/about"
       title="About Agent Kit"
-      lead={<>Agent Kit is a free, open library of skills and prompts for AI coding agents. It is made by AtlasScope, and it is AtlasScope&apos;s first product.</>}
+      lead={<>Agent Kit is a free, open library of skills and prompts for AI coding agents. It is made by AtlasScope, and it is AtlasScope’s first product.</>}
       sections={[
         {
           id: "what", title: "What it is",
@@ -27,15 +27,15 @@ export default function About() {
         {
           id: "who", title: "Who makes it",
           body: <>
-            <p>AtlasScope makes tools for working with AI coding agents. It writes Agent Kit&apos;s own skills, the routers that pick a skill from a plain request, the prompt library and this site.</p>
-            <p>{counts.borrowed} of the {counts.skills} skills come from other authors. They are copied at a pinned commit, read in full before they are added, and keep their authors&apos; licenses. Each skill page names its author, and <a href={`${SITE.repo}/blob/main/CREDITS.md`}>the credits</a> list every one.</p>
+            <p>AtlasScope makes tools for working with AI coding agents. It writes Agent Kit’s own skills, the routers that pick a skill from a plain request, the prompt library and this site.</p>
+            <p>{counts.borrowed} of the {counts.skills} skills come from other authors. They are copied at a pinned commit, read in full before they are added, and keep their authors’ licenses. Each skill page names its author, and <a href={`${SITE.repo}/blob/main/CREDITS.md`}>the credits</a> list every one.</p>
           </>,
         },
         {
           id: "contribute", title: "How to contribute",
           body: <>
             <p>Everything is in one public repository on <a href={SITE.repo}>GitHub</a>. A new prompt or skill has to do a job nothing in the library already does; a clearer version of an existing entry is more welcome than a near-duplicate.</p>
-            <p><a href={`${SITE.repo}/blob/main/CONTRIBUTING.md`}>The contributing guide</a> has the checks and the rules. To report a security problem privately, use <a href={`${SITE.repo}/security`}>the repository&apos;s Security tab</a>.</p>
+            <p><a href={`${SITE.repo}/blob/main/CONTRIBUTING.md`}>The contributing guide</a> has the checks and the rules. To report a security problem privately, use <a href={`${SITE.repo}/security`}>the repository’s Security tab</a>.</p>
           </>,
         },
         {

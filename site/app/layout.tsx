@@ -27,8 +27,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const body = (
     <html lang="en" suppressHydrationWarning className={`${sans.variable} ${mono.variable} ${display.variable}`}>
       <body>
+        <a className="skip" href="#main">Skip to content</a>
         <Nav />
-        <div className="container">
+        <div className="container" id="main">
           {children}
           <Footer />
         </div>

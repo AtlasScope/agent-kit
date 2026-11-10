@@ -20,7 +20,7 @@ async function load(id: string) {
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const c = await load((await params).id);
   if (!c) return { robots: { index: false } };
-  return { title: `${c.name}: a collection of agent prompts and skills`, description: resolve(c.items).slice(0, 4).map((i) => i.title).join(", "), robots: { index: c.is_public } };
+  return { title: `${c.name}: a collection of agent prompts and skills`, description: resolve(c.items).slice(0, 4).map((i) => i.title).join(", ") || `${c.name}, a collection on Agent Kit.`, robots: { index: c.is_public } };
 }
 
 export default async function CollectionPage({ params }: { params: Promise<{ id: string }> }) {

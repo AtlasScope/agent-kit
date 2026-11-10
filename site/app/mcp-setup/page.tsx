@@ -5,22 +5,22 @@ import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Use Agent Kit from your agent (MCP server)",
-  description: "Add Agent Kit's read-only MCP server to Claude Code, Codex, Cursor or ChatGPT to search and fetch every prompt and skill from inside your agent.",
+  description: "Add Agent Kit’s read-only MCP server to Claude Code, Codex, Cursor or ChatGPT to search and fetch every prompt and skill from inside your agent.",
   alternates: { canonical: "/mcp-setup" },
 };
 
 const url = `${SITE.url}/mcp`;
 const CLIENTS: [string, string, string][] = [
   ["Claude Code", "Run once in a terminal.", `claude mcp add --transport http agent-kit ${url}`],
-  ["Codex", "Add to ~/.codex/config.toml.", `[mcp_servers.agent-kit]\nurl = "${url}"`],
-  ["Cursor", "Add to .cursor/mcp.json in a project, or ~/.cursor/mcp.json for every project.", JSON.stringify({ mcpServers: { "agent-kit": { url } } }, null, 2)],
+  ["Codex", "Add to `~/.codex/config.toml`.", `[mcp_servers.agent-kit]\nurl = "${url}"`],
+  ["Cursor", "Add to `.cursor/mcp.json` in a project, or `~/.cursor/mcp.json` for every project.", JSON.stringify({ mcpServers: { "agent-kit": { url } } }, null, 2)],
   ["ChatGPT", "In Settings, Apps and connectors, turn on developer mode, create a connector and paste this URL. No sign-in is needed.", url],
-  ["Any other agent", "Any client that supports remote MCP servers over Streamable HTTP can use the URL. For a client that only runs local servers, use mcp-remote.", `npx -y mcp-remote ${url}`],
+  ["Any other agent", "Any client that supports remote MCP servers over Streamable HTTP can use the URL. For a client that only runs local servers, use `mcp-remote`.", `npx -y mcp-remote ${url}`],
 ];
 const TOOLS: [string, string][] = [
   ["find", "Search prompts and skills with a task in plain words."],
   ["get_prompt", "One prompt in full, with why it exists, what it returns and when to skip it."],
-  ["get_skill", "A skill's SKILL.md, its author credit, license and install commands."],
+  ["get_skill", "A skill’s SKILL.md, its author credit, license and install commands."],
   ["list_area", "Every prompt in one area, or the list of areas."],
   ["fix", "The problems the library has starting points for, and the prompts for each."],
 ];
@@ -39,7 +39,7 @@ export default function McpSetup() {
       {CLIENTS.map(([label, how, cfg]) => (
         <section className="section" key={label}>
           <h2>{label}</h2>
-          <p className="note">{how}</p>
+          <p className="note">{how.split("`").map((t, i) => (i % 2 ? <code key={i} translate="no">{t}</code> : t))}</p>
           <div className="block">
             <div className="block__head"><span>{label}</span><CopyButton text={cfg} /></div>
             <pre>{cfg}</pre>
@@ -50,7 +50,7 @@ export default function McpSetup() {
       <section className="section">
         <h2>Tools</h2>
         <dl className="facts">
-          {TOOLS.flatMap(([name, d]) => [<dt key={name + "t"}><code>{name}</code></dt>, <dd key={name + "d"}>{d}</dd>])}
+          {TOOLS.flatMap(([name, d]) => [<dt key={name + "t"}><code translate="no">{name}</code></dt>, <dd key={name + "d"}>{d}</dd>])}
         </dl>
       </section>
 

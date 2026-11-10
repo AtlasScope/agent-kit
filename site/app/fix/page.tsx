@@ -22,7 +22,7 @@ export default function Fix() {
           <h2>{scope === "code" ? "In your app" : "In your PostgreSQL database"}</h2>
           <div className="rows">
             {fixes.filter((f) => f.scope === scope).map((f) => (
-              <Link key={f.slug} className="row" href={`/fix/${f.slug}`}><span>{f.title}</span><span className="row__n">{f.prompts.length}</span></Link>
+              <Link key={f.slug} className="row" href={`/fix/${f.slug}`}><span>{f.title}</span><span className="row__n">{f.prompts.length}<span className="sr"> prompts</span></span></Link>
             ))}
           </div>
         </section>

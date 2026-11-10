@@ -14,7 +14,7 @@ export function Footer() {
     <footer className="foot">
       <div className="foot__brand">
         <Link className="foot__logo" href="/" aria-label="Agent Kit by AtlasScope, home"><AtlasScopeLogo /></Link>
-        <p>Agent Kit is free. Its own skills are MIT licensed, and each borrowed skill keeps its author&apos;s license.</p>
+        <p>Agent Kit is free. Its own skills are MIT licensed, and each borrowed skill keeps its author’s license.</p>
       </div>
       {GROUPS.map((g) => (
         <nav key={g.title} className="foot__group" aria-label={g.title}>

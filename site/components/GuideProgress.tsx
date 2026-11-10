@@ -8,7 +8,10 @@ type Item = { slug: string; title: string; goal?: string };
 const KEY = (store: string) => `agent-kit:done:${store}`;
 
 function read(store: string): string[] {
-  try { return JSON.parse(localStorage.getItem(KEY(store)) || "[]"); } catch { return []; }
+  try {
+    const v: unknown = JSON.parse(localStorage.getItem(KEY(store)) || "[]");
+    return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+  } catch { return []; }
 }
 
 function useDone(store: string) {
@@ -19,18 +22,24 @@ function useDone(store: string) {
 
 const Check = () => <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>;
 
-// The numbered list on a hub page, with a mark on each finished step and a way back in.
-export function GuideList({ items, base, store }: { items: Item[]; base: string; store: string }) {
+// "3 of 8 done" and a Continue link, shown beside a hub section's heading once the reader has started.
+export function GuideResume({ items, base, store }: { items: Item[]; base: string; store: string }) {
   const done = useDone(store);
   const next = items.find((s) => !done.includes(s.slug));
+  if (!done.length || !next) return null;
+  return (
+    <p className="guide-resume">
+      <span>{done.length} of {items.length} done.</span>
+      <Link className="btn btn--sm" href={`${base}/${next.slug}`}>Continue: {next.title}</Link>
+    </p>
+  );
+}
+
+// The numbered list on a hub page, with a mark on each finished step.
+export function GuideList({ items, base, store }: { items: Item[]; base: string; store: string }) {
+  const done = useDone(store);
   return (
     <>
-      {done.length > 0 && next && (
-        <p className="guide-resume">
-          <span>{done.length} of {items.length} done.</span>
-          <Link className="btn btn--sm" href={`${base}/${next.slug}`}>Continue: {next.title}</Link>
-        </p>
-      )}
       <ol className={`guide-list${items.length > 5 ? " guide-list--two" : ""}`}>
         {items.map((s, i) => {
           const d = done.includes(s.slug);

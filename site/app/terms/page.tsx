@@ -15,17 +15,17 @@ export default function Terms() {
       path="/terms"
       title="Terms"
       lead="Agent Kit is free to use. These are the few conditions that come with it."
-      notice={<><strong>Draft, 10 Nov 2026.</strong> It has not been reviewed yet, so don&apos;t rely on it as final terms.</>}
+      notice={<><strong>Draft, 10 Nov 2026.</strong> It has not been reviewed yet, so don’t rely on it as final terms.</>}
       sections={[
         {
           id: "as-is", title: "Provided as is",
-          body: <p>The site, the kits, the skills and the prompts are provided as they are, without any warranty. We work to keep them accurate, but we can&apos;t promise that an agent following them will produce a correct or safe result.</p>,
+          body: <p>The site, the kits, the skills and the prompts are provided as they are, without any warranty. We work to keep them accurate, but we can’t promise that an agent following them will produce a correct or safe result.</p>,
         },
         {
           id: "licenses", title: "Licenses",
           body: <>
-            <p>Agent Kit&apos;s own skills, prompts and site code are MIT licensed, © AtlasScope. You can use, copy and change them, including in commercial work, as long as the license notice stays with them.</p>
-            <p>Borrowed skills keep their authors&apos; licenses. Each skill page shows its author and license, and <a href={`${SITE.repo}/blob/main/CREDITS.md`}>the credits</a> list every one.</p>
+            <p>Agent Kit’s own skills, prompts and site code are MIT licensed, © AtlasScope. You can use, copy and change them, including in commercial work, as long as the license notice stays with them.</p>
+            <p>Borrowed skills keep their authors’ licenses. Each skill page shows its author and license, and <a href={`${SITE.repo}/blob/main/CREDITS.md`}>the credits</a> list every one.</p>
           </>,
         },
         {
@@ -34,7 +34,7 @@ export default function Terms() {
         },
         {
           id: "mcp", title: "The MCP server",
-          body: <p>The MCP server is public and read-only. It has a per-visitor rate limit and a daily cap, and it can be paused at any time. Use it from your agent as intended; don&apos;t try to get around its limits.</p>,
+          body: <p>The MCP server is public and read-only. It has a per-visitor rate limit and a daily cap, and it can be paused at any time. Use it from your agent as intended; don’t try to get around its limits.</p>,
         },
         {
           id: "accounts", title: "Accounts and collections",

@@ -8,6 +8,9 @@ import { SaveMenu } from "@/components/SaveMenu";
 import { SITE, authEnabled } from "@/lib/site";
 import { skills, getSkill, getKit, skillInstall } from "@/lib/content";
 
+
+// The skill's own text starts at h1; shift its headings down one level so the page keeps a single h1.
+const demote = (html: string) => html.replace(/<(\/?)h([1-5])(?=[\s>])/g, (_, slash: string, n: string) => `<${slash}h${Number(n) + 1}`);
 export const dynamicParams = false;
 export const generateStaticParams = () => skills.map((s) => ({ name: s.name }));
 
@@ -35,9 +38,9 @@ export default async function SkillPage({ params }: { params: Promise<{ name: st
     <main className="page">
       <div className="page-head">
         <Crumbs items={[["Skills", "/skills"], [s.name, `/skills/${s.name}`]]} />
-        <h1>{s.name}</h1>
+        <h1 translate="no">{s.name}</h1>
         <p className="lead ink2">{s.description}</p>
-        <p className="kicker"><Link className="lic" href={`/kits/${k.name}`}>{k.title}</Link>{s.typedOnly && <><span>·</span><span>Runs only when you type it</span></>}</p>
+        <p className="kicker"><Link className="lic" href={`/kits/${k.name}`}>{k.title}</Link>{s.typedOnly && <><span aria-hidden="true">·</span><span>Runs only when you type it</span></>}</p>
         <div className="toolbar">
           {authEnabled() && <SaveMenu kind="skill" refId={s.name} title={s.name} />}
           <a className="btn btn--sm" href={`/skills/${s.name}.md`}>Markdown</a>
@@ -57,7 +60,7 @@ export default async function SkillPage({ params }: { params: Promise<{ name: st
       </aside>
 
       <div className="two">
-        <article className="prose" dangerouslySetInnerHTML={{ __html: s.bodyHtml }} />
+        <article className="prose" dangerouslySetInnerHTML={{ __html: demote(s.bodyHtml) }} />
         <div className="aside">
           <section className="section">
             <h2>Install</h2>

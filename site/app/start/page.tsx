@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Crumbs } from "@/components/Crumbs";
-import { GuideList } from "@/components/GuideProgress";
+import { GuideList, GuideResume } from "@/components/GuideProgress";
 import { STEPS, TESTED } from "@/lib/start";
 import { LESSONS } from "@/lib/lessons";
 
@@ -18,7 +18,7 @@ export default function Start() {
         <div className="page-head">
           <Crumbs items={[["Get started", "/start"]]} />
           <h1>Build and publish your first app</h1>
-          <p className="lead">Eight steps from nothing installed to a small reading-list app at a public address you can open on your phone. It&apos;s one file with no database, no API keys and no terminal, so the only setup is the agent, GitHub and Vercel.</p>
+          <p className="lead">Eight steps from nothing installed to a small reading-list app at a public address you can open on your phone. It’s one file with no database, no API keys and no terminal, so the only setup is the agent, GitHub and Vercel.</p>
           <p className="note">{TESTED ? `Tested with ${TESTED}.` : "Written against the official sign-up and download pages on 9 Nov 2026. Not yet tested with a first-time user, so tell us where it goes wrong."}</p>
         </div>
         <aside className="need" aria-labelledby="need-h">
@@ -33,12 +33,12 @@ export default function Start() {
       </div>
 
       <div className="tiles tiles--start">
-        <Link className="tile tile--lead" href={`/start/${STEPS[0].slug}`}><span className="tile__t">I haven&apos;t installed an agent</span><span className="tile__d">Start at step 1.</span></Link>
+        <Link className="tile tile--lead" href={`/start/${STEPS[0].slug}`}><span className="tile__t">I haven’t installed an agent</span><span className="tile__d">Start at step 1.</span></Link>
         <Link className="tile" href="/start/create"><span className="tile__t">I already use an agent</span><span className="tile__d">Make sure you have GitHub Desktop and a Vercel account, then start at step 3.</span></Link>
       </div>
 
       <section className="section" aria-labelledby="steps-h">
-        <h2 id="steps-h">The steps</h2>
+        <div className="sec-row"><h2 id="steps-h">The steps</h2><GuideResume items={STEPS} base="/start" store="start" /></div>
         <GuideList items={STEPS} base="/start" store="start" />
       </section>
 

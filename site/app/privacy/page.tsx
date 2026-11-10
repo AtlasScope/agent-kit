@@ -16,7 +16,7 @@ export default function Privacy() {
       path="/privacy"
       title="Privacy"
       lead="You can read and copy everything on this site without an account. This page lists what is stored when you do more than that, and where."
-      notice={<><strong>Draft, 10 Nov 2026.</strong> Written from what the site stores today. It has not been reviewed yet, so don&apos;t rely on it as a final policy.</>}
+      notice={<><strong>Draft, 10 Nov 2026.</strong> Written from what the site stores today. It has not been reviewed yet, so don’t rely on it as a final policy.</>}
       sections={[
         {
           id: "reading", title: "Reading the site",
@@ -28,14 +28,14 @@ export default function Privacy() {
         {
           id: "browser", title: "In your browser",
           body: <>
-            <p>Two things are kept in your own browser&apos;s local storage and never sent to us: the agent you last picked on the homepage, and which steps of the <Link href="/start">first-app guide</Link> and lessons you have finished. Clearing your browsing data removes both.</p>
+            <p>Two things are kept in your own browser’s local storage and never sent to us: the agent you last picked on the homepage, and which steps of the <Link href="/start">first-app guide</Link> and lessons you have finished. Clearing your browsing data removes both.</p>
           </>,
         },
         {
           id: "accounts", title: "If you sign in",
           body: <>
             <p>Accounts are optional and are handled by Clerk, which stores your sign-in details: your email address, and your name and picture if your sign-in provider shares them.</p>
-            <p>Your collections are stored in a Neon Postgres database: each collection&apos;s name, whether it is shared, when it was made and changed, and the ids of the prompts and skills in it, linked to your Clerk account id. A collection is private unless you share it; a shared collection has a public page anyone with the link can open.</p>
+            <p>Your collections are stored in a Neon Postgres database: each collection’s name, whether it is shared, when it was made and changed, and the ids of the prompts and skills in it, linked to your Clerk account id. A collection is private unless you share it; a shared collection has a public page anyone with the link can open.</p>
           </>,
         },
         {
@@ -54,7 +54,7 @@ export default function Privacy() {
         {
           id: "sharing", title: "Who we share it with",
           body: <>
-            <p>Only the services that run the site: Vercel for hosting, Clerk for accounts and Neon for the database. We don&apos;t sell or rent your data, and we don&apos;t share it with advertisers.</p>
+            <p>Only the services that run the site: Vercel for hosting, Clerk for accounts and Neon for the database. We don’t sell or rent your data, and we don’t share it with advertisers.</p>
           </>,
         },
       ]}

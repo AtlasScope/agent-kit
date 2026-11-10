@@ -22,7 +22,7 @@ export function PromptCard({ p, best }: { p: Prompt; best?: boolean }) {
           {best && <span className="best">Best first</span>}
           {mode && <span className={(p.mode && p.mode !== "read") || p.dmode === "Changes code" ? "warn" : undefined}>{mode}</span>}
         </p>
-        <CopyButton className="btn btn--sm" text={copyText(p)} label={copyLabel(p)} icon />
+        <CopyButton className="btn btn--sm" text={copyText(p)} label={copyLabel(p)} name={`${copyLabel(p)}: ${p.t}`} icon />
       </div>
     </article>
   );
@@ -73,7 +73,7 @@ export function StartCard({ s }: { s: Start }) {
         <h3 className="pcard__t"><i className="dot" />{s.job}</h3>
         <Star kind="prompt" refId={p.id} title={p.t} />
       </div>
-      <p className={p.t.startsWith("/") ? "scard__pick scard__pick--cmd" : "scard__pick"}><Link href={`/prompts/${p.slug}`}>{p.t}</Link></p>
+      <p className={p.t.startsWith("/") ? "scard__pick scard__pick--cmd" : "scard__pick"}><Link href={`/prompts/${p.slug}`} translate={p.t.startsWith("/") ? "no" : undefined}>{p.t}</Link></p>
       <dl className="scard__qa">
         <dt>Use when</dt><dd>{s.useWhen}</dd>
         <dt>You get</dt><dd>{s.youGet}</dd>
@@ -81,8 +81,8 @@ export function StartCard({ s }: { s: Start }) {
         <dt>Changes code?</dt><dd>{CHANGES[s.changes]}</dd>
       </dl>
       <div className="pcard__a">
-        <CopyButton className="btn btn--tint" text={copyText(p)} label={copyLabel(p)} icon />
-        <Link className="btn" href={`/prompts/${p.slug}`}>Details</Link>
+        <CopyButton className="btn btn--tint" text={copyText(p)} label={copyLabel(p)} name={`${copyLabel(p)}: ${p.t}`} icon />
+        <Link className="btn" href={`/prompts/${p.slug}`} aria-label={`Details: ${p.t}`}>Details</Link>
       </div>
       {s.alts.length > 0 && (
         <ul className="scard__alts">
