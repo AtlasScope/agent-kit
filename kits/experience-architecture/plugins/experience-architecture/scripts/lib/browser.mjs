@@ -490,6 +490,8 @@ export async function capture(urls, { widths = ['desktop', 'mobile'], dir, base,
       const names = shotNames(urls, w);
       for (const [i, u] of urls.entries()) {
         const file = names[i]; const rec = { url: scrubUrls(u), width: w, file };
+        // A rerun into the same folder must not leave an earlier image standing in for a capture that fails now.
+        fs.rmSync(path.join(dir, file), { force: true });
         if (!allowed(u)) { rec.error = `not captured: outside ${origin}. One run covers one origin`; delete rec.file; shots.push(rec); continue; }
         try {
           const res = await page.goto(abs(u), { waitUntil: 'domcontentloaded', timeout: 20000 });

@@ -107,6 +107,7 @@ test('capture writes one full-page screen per URL and width, blocks writes and r
   await new Promise((r) => server.listen(0, '127.0.0.1', r));
   const base = `http://127.0.0.1:${server.address().port}`;
   const dir = path.join(tmp(), 'before');
+  fs.mkdirSync(dir, { recursive: true }); fs.writeFileSync(path.join(dir, 'elsewhere-desktop.png'), png(4, 4, 10));
   try {
     const { execFile } = await import('node:child_process');
     const out = await new Promise((resolve) => execFile('node', [EA, 'capture', '/', '/orders?tab=open', '/gone', 'http://127.0.0.1:9/elsewhere', '--base', base, '--widths', 'desktop,mobile', '--out', dir, '--revision', 'test-rev'], (e, so) => resolve(so)));
@@ -116,6 +117,7 @@ test('capture writes one full-page screen per URL and width, blocks writes and r
     assert.equal(m.revision, 'test-rev');
     assert.equal(m.shots.length, 8);
     assert.equal(m.shots.filter((x) => /outside/.test(x.error || '')).length, 2, 'a URL on another origin is reported and not visited');
+    assert.ok(!fs.existsSync(path.join(dir, 'elsewhere-desktop.png')), 'an image left by an earlier run is removed when the capture does not happen');
     assert.ok(!JSON.stringify(m).includes('Open orders'), 'no page text in capture.json');
     assert.deepEqual(pngSize(path.join(dir, 'home-mobile.png')).width, 390);
     assert.ok(pngSize(path.join(dir, 'orders-tab-open-desktop.png')).height > 1500, 'full page, not only the first view');
