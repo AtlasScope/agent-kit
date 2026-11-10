@@ -287,7 +287,11 @@ Headings balance their lines (`text-wrap: balance`); paragraphs and list items a
 
 The page is a centred container (1280px, growing to 1320px on screens at least 1600px wide and 900px tall) with a gutter of 32px, stepping to 24px below 960px, 16px below 640px and 12px below 352px. Spacing runs on six steps: 8, 12, 16, 24, 40 and 64px.
 
+<<<<<<< HEAD
 The header is a solid ink bar, 64px tall plus a 1px hairline, fixed to the top of the window. Below 1024px it becomes two rows with search on its own row (107px); below 640px, three rows (153px). The `--header-h` token holds the current height, and every sticky column and jump target is offset by it, so nothing slides under the header. A "Skip to content" link is the first Tab stop.
+=======
+The header is a solid ink bar fixed to the top of the window, with a hairline under it, and always one row. From 1200px up it is 64px tall and holds the lockup, four links, search, the account button and GitHub. Below 1200px it is 56px tall and holds the lockup, search and a menu button. Below 640px search becomes a button too.
+>>>>>>> fc6fa74 (Make the header one row with a menu on phones and tablets)
 
 ### Homepage
 The hero is three stacked bands on one left edge, the container's left edge:
@@ -347,7 +351,7 @@ The AtlasScope lockup, a hairline divider, then "Agent Kit".
 - **Logo:** the full lockup, 159 by 32px, white, drawn as outlines. Below 720px wide it is replaced by the symbol alone.
 - **Divider:** 1px wide, 20px tall, control border colour, 14px either side (10px below 720px).
 - **Product name:** "Agent Kit" in Geist 500, 0.9375rem, white, set on the logo's baseline.
-- **Pixel fit:** the header svg is drawn on the pixel grid by `design/atlasscope/source/export_site.py`: capitals run from 4px to a baseline at 20px, and its top edge sits on a multiple of 4px (16px in the 64px bar, 12px in the two-row header). A second symbol drawing is swapped in at 125% display scaling. Render it at its own width and height.
+- **Pixel fit:** the header svg is drawn on the pixel grid by `design/atlasscope/source/export_site.py`: capitals run from 4px to a baseline at 20px, and its top edge sits on a multiple of 4px (16px in the 64px bar, 12px in the 56px bar). A second symbol drawing is swapped in at 125% display scaling. Render it at its own width and height.
 
 ### Buttons
 - **Hero primary:** white fill, ink text, Geist 600 at 1rem, 48px tall, 24px side padding, with an optional 16px line arrow after the label. One per view.
@@ -371,9 +375,16 @@ One row per kit between hairlines, used on the homepage, `/kits` and `/skills` (
 
 ### Navigation and search
 - **Links:** Geist 500 at 0.9375rem, muted, 36px tall with 12px side padding and 8px corners. The current section is white, weight 600, on a slate fill. Hover fills slate and turns the text white.
+<<<<<<< HEAD
 - **Search field:** 40px tall, slate fill, control border, 10px corners, a 16px search icon inside the left edge and a "/" key hint inside the right. On focus it shows the ring.
 - **Results:** a raised list under the field. Each result is a real link (title, kind, a two-line description), so it opens in a new tab with a modified click. The list closes when focus leaves the box. The first Escape closes it, a second leaves the box. A hidden live line announces how many results there are.
 - **Mobile:** links scroll sideways on their own row; search takes a full row.
+=======
+- **Search field:** 40px tall, slate fill, control border, 10px corners, a 16px search icon inside the left edge and a "/" key hint inside the right. On focus the border turns white with a 3px slate ring.
+- **Links:** Start, Prompts, Skills, Fix a problem. Kits is reached from Skills and the footer.
+- **Menu:** below 1200px the links, the account button and GitHub sit behind a 40px menu button. It opens a full-window sheet on ink with its own top row, so Close sits where Menu was. Links are Geist 600 at 1.25rem in 56px rows divided by hairlines; the current section is white, the rest muted. It closes on Escape, on Close and on any link.
+- **Phone search:** below 640px a 40px search button puts the cursor in the field, which covers the bar while it has focus and has its own Close button.
+>>>>>>> fc6fa74 (Make the header one row with a menu on phones and tablets)
 
 ### Cards
 - **Prompt card:** raised panel, hairline border, 14px corners, 16px padding, Lift. The title links to the prompt and the whole card is clickable. Under the title, a meta line (section dot, group, a danger mark if the prompt has a warning); then up to three lines of description; then a foot with one Copy button. A card that is the best pick for its job has a control-border edge.

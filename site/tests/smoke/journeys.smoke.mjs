@@ -74,6 +74,22 @@ for (const size of SIZES) {
     await ctx.close();
   });
 
+  test(`${size.name}: the header reaches every section and search`, async () => {
+    const { page, ctx, errors } = await open(size, "/prompts");
+    if (size.name === "phone") {
+      await page.getByRole("button", { name: "Menu", exact: true }).click();
+      await page.getByRole("dialog").getByRole("link", { name: "Skills" }).click();
+    } else {
+      await page.getByRole("banner").getByRole("link", { name: "Skills" }).click();
+    }
+    await page.waitForURL(/\/skills$/);
+    await page.getByRole("combobox", { name: "Search prompts and skills" }).fill("slow page");
+    await page.getByRole("option").first().waitFor();
+    await noSideScroll(page, "/skills");
+    assert.deepEqual(errors, []);
+    await ctx.close();
+  });
+
   test(`${size.name}: a prompt page copies the whole prompt with its rules`, async () => {
     const p = data.prompts.find((x) => x.id === "PG01");
     const path = `/prompts/${p.slug}`;

@@ -54,6 +54,10 @@ export function Search() {
           else if (e.key === "Escape") { if (open && q.trim()) setOpen(false); else input.current?.blur(); }
         }} />
       {!q && <kbd className="kbd" aria-hidden="true">/</kbd>}
+      {/* Phones only: the field covers the bar while it has focus, and this puts the bar back. */}
+      <button type="button" className="iconbtn search__close" aria-label="Close search" onClick={() => { setOpen(false); input.current?.blur(); (document.activeElement as HTMLElement | null)?.blur(); }}>
+        <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+      </button>
       {open && q.trim() && (
         <ul className="results" id="search-results" role="listbox">
           {hits.length === 0 && <li className="results__none" role="option" aria-disabled="true" aria-selected={false}>Nothing matches. Try the symptom in plain words.</li>}
