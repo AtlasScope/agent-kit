@@ -150,8 +150,21 @@ async function settle(page) {
   }
 }
 
+// The output folder may sit inside a project someone else controls. A link planted there under one of our
+// file names would make a write land on whatever it points at, so links are refused and every output file
+// is created fresh.
+function prepareOut() {
+  const isLink = (p) => { try { return fs.lstatSync(p).isSymbolicLink(); } catch { return false; } };
+  fs.mkdirSync(outDir, { recursive: true });
+  const ours = ["frames", "sheet.html", "sheet.png", "filmstrip.json"].map((n) => path.join(outDir, n));
+  const link = [outDir, ...ours].find(isLink);
+  if (link) fail(`Refusing to write: ${link} is a symbolic link. Choose another --out folder, or remove the link if it is yours.`, 2);
+  for (const p of ours) fs.rmSync(p, { recursive: true, force: true });
+  fs.mkdirSync(path.join(outDir, "frames"));
+}
+
 async function capture(pw) {
-  fs.mkdirSync(path.join(outDir, "frames"), { recursive: true });
+  prepareOut();
   let browser;
   try { browser = await pw.chromium.launch(); }
   catch (e) {

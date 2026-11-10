@@ -102,6 +102,18 @@ test("a Playwright copy inside the project is not loaded unless the project is t
   assert.equal(fs.existsSync(sentinel), true, "with the flag, the project's copy is the first one tried");
 });
 
+test("a symbolic link planted in the output folder is refused, and its target is left untouched", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "filmstrip-link-"));
+  const victim = path.join(dir, "victim.txt");
+  fs.writeFileSync(victim, "keep me");
+  const out = path.join(dir, "out");
+  fs.mkdirSync(out);
+  fs.symlinkSync(victim, path.join(out, "sheet.html"));
+  const r = spawnSync(process.execPath, [script, page, "--out", out, "--do", "click:#open-good", "--frames", "2"], { encoding: "utf8", timeout: 120000 });
+  assert.equal(fs.readFileSync(victim, "utf8"), "keep me");
+  if (r.status !== 3) { assert.equal(r.status, 2); assert.match(r.stderr, /symbolic link/); }
+});
+
 test("an unknown action fails with a usage error instead of a blank capture", { skip }, () => {
   const r = run("--do", "wiggle:#x");
   assert.equal(r.status, 2);
