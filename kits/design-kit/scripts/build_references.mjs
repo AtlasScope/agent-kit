@@ -16,6 +16,8 @@ const out = path.join(root, "kits/design-kit/plugins/design-kit/skills/design/re
 const head = "Generated from `library/library.json` by `kits/design-kit/scripts/build_references.mjs`; do not edit by hand.";
 // Working-style commands ship in their own kit; the router lists only itself in its own pack.
 const ELSEWHERE = ["/harsh-review", "/viewport-proof"];
+// Settings commands are typed by the person, never picked by the router.
+const NOT_PICKED = ["/design-setup"];
 const MODE = { "Changes code": "edits", "Report only": "report", Advice: "advice" };
 const cell = (s) => String(s).replace(/\|/g, "/").replace(/\n/g, " ");
 
@@ -24,7 +26,7 @@ const groups = [];
 for (const e of dcmd) {
   let g = groups.find((x) => x.name === e.group);
   if (!g) groups.push((g = { name: e.group, first: e, rows: [] }));
-  if (!ELSEWHERE.includes(e.cmd)) g.rows.push(e);
+  if (!ELSEWHERE.includes(e.cmd) && !NOT_PICKED.includes(e.cmd)) g.rows.push(e);
 }
 let cat = `# Design skill catalog\n\n${head}\n\nEvery design skill this library knows, by pack. Skills that ship in the design-kit plugin may be namespaced \`design-kit:<name>\`. \`mode\` says what a skill does to files: edits, report (reads only), advice, auto (runs inside another skill, never typed).\n`;
 const pack = (name, desc, best, skip, rows) => `\n## ${name}\n\n${desc}\n\n- Best for: ${best}\n- Skip it for: ${skip}\n\n| Command | What it does | Mode |\n|---|---|---|\n` + rows.map(([c, w, m]) => `| \`${c}\` | ${cell(w)} | ${m} |\n`).join("");

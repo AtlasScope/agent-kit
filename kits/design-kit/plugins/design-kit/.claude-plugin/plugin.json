@@ -1,7 +1,7 @@
 {
   "name": "design-kit",
   "description": "A design library for AI coding agents: a /design router that picks the right skill or recipe, plus vetted skills for typography, color, motion, UX writing, usability, landing copy, native iOS and more.",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": {
     "name": "AtlasScope"
   },
@@ -13,7 +13,7 @@
     "start_mode": {
       "type": "string",
       "title": "How should /design start?",
-      "description": "typed: /design runs only when you type it. automatic: the assistant also starts /design when you ask for design work in your own words.",
+      "description": "typed: /design runs only when you type it. automatic: the assistant also starts /design when you ask for design work in your own words. Type /design-setup for a plain-English walk through both choices.",
       "options": [
         "typed",
         "automatic"

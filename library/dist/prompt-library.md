@@ -1,6 +1,6 @@
 # Prompt Library
 
-239 prompts, commands and recipes for coding and design agents. Open prompt-library.html for search, stars and the prompt composer.
+241 prompts, commands and recipes for coding and design agents. Open prompt-library.html for search, stars and the prompt composer.
 
 ## Investigations
 
@@ -689,6 +689,12 @@ Deepen modules and simplify interfaces.
 /database
 ```
 
+**EC36 · /engineering-setup** Explains in plain words whether /engineer and /database should start on their own, then saves your answer to your Claude Code settings after showing the change. Claude Code only; takes effect next session.
+
+```text
+/engineering-setup
+```
+
 **EC02 · /diagnosing-bugs** For hard bugs and slowdowns. Builds a check that fails on the bug, shrinks it, ranks likely causes, adds logging, fixes it with a test that keeps it from coming back, then cleans up.
 
 ```text
@@ -1059,6 +1065,12 @@ Deepen modules and simplify interfaces.
 
 ```text
 /design the inbox feels cluttered on my phone
+```
+
+**UI100 · /design-setup** Explains the design kit's two choices in plain words (whether /design starts on its own, and whether it asks before a skill edits files), then saves your answers to your Claude Code settings after showing the change. Claude Code only; takes effect next session.
+
+```text
+/design-setup
 ```
 
 **UI029 · /harsh-review** A blunt review of code or product work, with problems ranked by how serious they are and proof for each one. It then makes the small fixes it is sure of and checks them.

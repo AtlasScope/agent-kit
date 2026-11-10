@@ -16,6 +16,8 @@ const think = L.entries.filter((e) => e.sec === "think");
 const cmds = L.entries.filter((e) => e.sec === "ecmd");
 // Working-style commands ship in their own kit; the router does not pick them.
 const ELSEWHERE = ["/harsh-review", "/viewport-proof", "/recommend"];
+// Settings commands are typed by the person, never picked by the router.
+const NOT_PICKED = ["/engineering-setup"];
 // Each command group as the router sees it.
 const PACK = {
   "Engineering kit": ["Engineering kit", "This plugin's commands. All run only when typed."],
@@ -32,7 +34,7 @@ s += "\n## Symptoms\n\nWhat the user says, mapped to the investigations that usu
 for (const [sym, list] of L.symptoms) s += `| ${cell(sym)} | ${ids(list.filter((id) => INV.has(id)))} |\n`;
 s += "\n## Skills\n\nEvery skill the router may pick, what it does, and the investigations it can run or follow up. Check it is installed before picking it.\n";
 for (const [group, [name, desc]] of Object.entries(PACK)) {
-  const rows = cmds.filter((e) => e.group === group && !ELSEWHERE.includes(e.cmd) && e.cmd !== "/engineer");
+  const rows = cmds.filter((e) => e.group === group && !ELSEWHERE.includes(e.cmd) && !NOT_PICKED.includes(e.cmd) && e.cmd !== "/engineer");
   if (!rows.length) continue;
   s += `\n### ${name}\n\n${desc}\n\n| Command | What it does | Covers |\n|---|---|---|\n`;
   for (const e of rows) s += `| \`${e.cmd}\` | ${cell(e.why)} | ${ids((e.rel || []).filter((id) => INV.has(id)))} |\n`;
