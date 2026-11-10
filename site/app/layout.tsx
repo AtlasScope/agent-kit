@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Montserrat } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
-import { Nav, Footer } from "@/components/Nav";
+import { Nav } from "@/components/Nav";
+import { Footer } from "@/components/Footer";
 import { SITE, authEnabled } from "@/lib/site";
 import { counts } from "@/lib/content";
 import "./globals.css";
