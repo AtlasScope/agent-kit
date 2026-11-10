@@ -63,6 +63,14 @@ test("a load capture can wait for an element that a timer reveals", { skip }, ()
   assert.equal(JSON.parse(r.stdout).animations[0].name, "ready-in");
 });
 
+test("the real-time run of a load capture also waits for the target before its window", { skip }, () => {
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), "filmstrip-test-"));
+  const r = spawnSync(process.execPath, [script, path.join(here, "fixtures/entrance-late.html"), "--out", out, "--json", "--do", "load", "--wait", "#ready", "--perf", "--throttle", "1", "--frames", "3"], { encoding: "utf8", timeout: 60000 });
+  assert.equal(r.status, 0, r.stderr);
+  const m = JSON.parse(r.stdout);
+  assert.ok(m.perf.layouts > 5, `the height animation starts 1.2s after load and should be counted, saw ${m.perf.layouts} layouts`);
+});
+
 test("the real-time run lasts as long as the animation the frames show", { skip }, () => {
   const { json: m, status, stderr } = run("--do", "click:#open-late", "--perf", "--throttle", "1", "--frames", "3");
   assert.equal(status, 0, stderr);

@@ -287,6 +287,9 @@ async function perf(browser, actions, captured) {
     await page.addInitScript(sampler);
     before = await metrics();
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 });
+    // Sampling runs from navigation. If the capture waited for a target, wait for it here too, so the
+    // window that follows covers the same entrance the frames show.
+    if (opt("--wait")) await page.locator(opt("--wait")).first().waitFor({ timeout: 10000 });
   } else {
     await page.goto(url, { waitUntil: "load", timeout: 30000 });
     if (opt("--wait")) await page.locator(opt("--wait")).first().waitFor({ timeout: 10000 });
