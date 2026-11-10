@@ -311,18 +311,22 @@ button { -webkit-user-select: none; user-select: none; }
 
 /* Library look (2026-11-09): sticky header with search, lifted white cards, Copy and Star on every card. */
 svg.i { width: 16px; height: 16px; flex: none; }
-.top { position: sticky; top: 0; z-index: 30; background: color-mix(in srgb, var(--color-paper) 92%, transparent); -webkit-backdrop-filter: saturate(1.4) blur(12px); backdrop-filter: saturate(1.4) blur(12px); border-bottom: 1px solid var(--color-rule); }
+.top { position: sticky; top: 0; z-index: 30; background: var(--color-paper); border-bottom: 1px solid var(--color-rule); }
 .nav { display: flex; align-items: center; gap: var(--space-sm) var(--space-lg); min-height: 64px; }
 .wordmark { gap: 0; font: 650 1.125rem/1 var(--font-body); letter-spacing: -0.03em; white-space: nowrap; }
 .wordmark b { color: var(--color-cmd); }
-/* AtlasScope logo in the header. Heights are set so its capitals match the "Agent Kit" text beside it;
-   the nudge down keeps both on one baseline, because the symbol's arc hangs below it. */
+/* AtlasScope logo in the header. The svg is drawn on the pixel grid by export_site.py: it is 32px tall with
+   capitals from 4px to a baseline at 20px. Never scale or transform it. The header is 64px, so the svg's
+   top sits at 16px, and every flat edge lands on a whole device pixel at 100%, 125%, 150% and 200%. */
 .wordmark { align-items: center; }
 .aslogo { display: block; flex: none; }
-.aslogo--full { height: 1.152em; width: auto; transform: translateY(0.173em); }
-.aslogo--mark { display: none; height: 1.109em; width: auto; transform: translateY(0.194em); }
+.aslogo--mark { display: none; }
+.aslogo__sym--x125 { display: none; }
+@media (resolution: 1.25dppx) { .aslogo__sym--x1 { display: none; } .aslogo__sym--x125 { display: inline; } }
 .wordmark .wordmark__sep { margin-inline: 0.55em 0.5em; color: var(--color-muted); font-weight: 400; font-size: 1em; }
 .wordmark .wordmark__name { color: inherit; font-weight: inherit; font-size: inherit; }
+/* Lifts the text 2px so it sits on the logo's baseline (20px down the 32px svg). */
+.wordmark .wordmark__sep, .wordmark .wordmark__name { padding-bottom: 4px; }
 @media (max-width: 720px) { .aslogo--full { display: none; } .aslogo--mark { display: block; } .wordmark .wordmark__sep { margin-inline: 0.4em 0.35em; } }
 .links { gap: 2px; font-size: 0.9375rem; }
 .links a { display: inline-flex; align-items: center; min-height: 36px; padding: 0 12px; border-radius: 8px; color: var(--color-ink-2); font-weight: 500; }
@@ -452,7 +456,7 @@ svg.i { width: 16px; height: 16px; flex: none; }
 
 /* Header on tablets and phones: search takes its own row, section links scroll. */
 @media (max-width: 64rem) {
-  .nav { display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "brand links end" "search search search"; padding-block: 10px; row-gap: 10px; }
+  .nav { display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "brand links end" "search search search"; grid-template-rows: 40px auto; padding-block: 8px; row-gap: 10px; } /* 8px + a 40px row puts the logo's top at 12px, a whole device pixel at every scale */
   .wordmark { grid-area: brand; } .links { grid-area: links; overflow-x: auto; scrollbar-width: none; justify-content: flex-start; padding: 0; } .links a { white-space: nowrap; }
   .nav__end { grid-area: end; } .nav .search { grid-area: search; flex: none; margin: 0; }
   .section { scroll-margin-top: 140px; }
