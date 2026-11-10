@@ -205,3 +205,12 @@ The page works but looks amateur.
 2. `/impeccable layout`: rhythm and structure
 3. `/impeccable typeset`: type sizes and weights
 4. `/impeccable polish`: tidy the details
+
+## A motion system for the whole app
+
+Decide once how the product moves, then bring the existing animation in line.
+
+1. `/motion setup`: agree the durations, curves and springs; writes MOTION.md
+2. `/motion review`: what to cut, fix and add, with frames as evidence
+3. `/motion build`: fix the worst three, one at a time
+4. `/motion review`: check the result against MOTION.md

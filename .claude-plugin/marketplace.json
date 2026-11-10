@@ -5,7 +5,7 @@
     "name": "AtlasScope"
   },
   "metadata": {
-    "description": "Skills for AI coding agents, in four plugins: design, engineering, experience architecture and working style. Every command runs only when you call it."
+    "description": "Skills for AI coding agents, in five plugins: design, motion, engineering, experience architecture and working style. Every command runs only when you call it."
   },
   "plugins": [
     {
@@ -22,6 +22,22 @@
         "typography",
         "color",
         "motion",
+        "skills"
+      ]
+    },
+    {
+      "name": "motion-kit",
+      "description": "One command, /motion, for interface motion on the web, in React, SwiftUI and React Native: set up a motion system, storyboard a sequence, build an animation, review or fix existing motion. It measures before it judges, with a code inventory and frame-by-frame captures from a real browser. Runs only when you call it.",
+      "version": "0.1.0",
+      "source": "./kits/motion-kit/plugins/motion-kit",
+      "category": "design",
+      "homepage": "https://github.com/AtlasScope/agent-kit/tree/main/kits/motion-kit",
+      "tags": [
+        "motion",
+        "animation",
+        "design",
+        "accessibility",
+        "performance",
         "skills"
       ]
     },

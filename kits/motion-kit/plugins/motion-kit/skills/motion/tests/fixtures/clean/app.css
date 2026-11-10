@@ -1,0 +1,4 @@
+:root { --dur-fast: 120ms; --dur-base: 200ms; --ease-out: cubic-bezier(0.2, 0, 0, 1); }
+.button { transition: background-color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out); }
+.panel { transition: opacity var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out); }
+@media (prefers-reduced-motion: reduce) { .panel { transition: opacity var(--dur-fast) linear; } }

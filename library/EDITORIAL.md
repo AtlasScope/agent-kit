@@ -3,6 +3,26 @@
 Decisions about what the library says, newest first. Each line names the entries it touched and why.
 The full inventory is `library/dist/inventory.csv`, rebuilt by `node library/build.mjs`.
 
+## 2026-11-10 (motion)
+
+- Six investigation prompts for motion, MO01 to MO06, in a new "Motion" group: values nobody chose, frame
+  cost, reduced motion, interruption, motion with no job, and state changes with no feedback. They follow
+  the same shape as the other investigations (what it finds, evidence, when to skip, what agents get
+  wrong) and need nothing installed. A new symptom, "Animations stutter, lag or all feel different",
+  points at four of them.
+- Six design commands, UI100 to UI105, for `/motion` and its modes, from the new motion-kit plugin, and
+  one recipe, RC23 "A motion system for the whole app".
+- `/motion` is listed as the alternative, never the first pick, in the situations where a borrowed
+  motion skill already was the pick (check existing motion, find where motion would help, animation
+  stutters). Two situations had no pick before and get one: deciding how a product moves
+  (`/motion setup`) and planning an entrance before coding it (`/motion storyboard`). The first picks
+  change only after a recorded run shows `/motion` doing the job at least as well.
+- Audit scores: the MO prompts get 14/14 on reading. The `/motion` commands get 1 for unique, because
+  borrowed skills cover parts of the same job, and 1 for compat, because the skill has been run on
+  Chromium only and not yet end to end in Codex or Cursor.
+- The design catalog can now show "Asks before changing" as "edits after a yes"; `/motion setup` is the
+  first design command with that mode.
+
 ## 2026-11-10 (router references)
 
 - The /design router's `catalog.md`, `recipes.md` and `situations.md` now come from `library/library.json`

@@ -1,0 +1,261 @@
+#!/usr/bin/env node
+// Filmstrip: turns one interaction into still frames an agent can look at, plus the numbers behind it.
+//
+// An agent cannot watch an animation. This script triggers the interaction in a real browser, pauses every
+// animation the page starts, and steps them forward in equal slices of time, saving a screenshot at each
+// step. JavaScript-driven motion is stepped with a paused clock. It then lays the frames out as one contact
+// sheet and prints what moved: target, properties, duration, delay, easing, and whether layout was involved.
+//
+//   node filmstrip.mjs <url> --do "click:#open" [--before "click:#tab"] [--frames 8] [--ms 600]
+//                      [--viewport 1280x800|mobile] [--clip <selector>] [--reduced] [--perf] [--throttle 4]
+//                      [--wait <selector>] [--out <dir>] [--json]
+//
+// Actions: click:<sel>  hover:<sel>  focus:<sel>  press:<key>  scroll:<px>  wait:<ms>  load
+// Playwright is used only if this project or machine already has it. Nothing is installed.
+import fs from "node:fs";
+import path from "node:path";
+import os from "node:os";
+import { createRequire } from "node:module";
+import { pathToFileURL, fileURLToPath } from "node:url";
+
+const argv = process.argv.slice(2);
+const VALUE_FLAGS = ["--do", "--before", "--frames", "--ms", "--viewport", "--clip", "--throttle", "--wait", "--out"];
+const all = (n) => argv.flatMap((a, i) => (a === n && argv[i + 1] ? [argv[i + 1]] : []));
+const opt = (n, d) => all(n)[0] ?? d;
+const flag = (n) => argv.includes(n);
+const target = argv.find((a, i) => !a.startsWith("--") && !VALUE_FLAGS.includes(argv[i - 1]));
+
+const fail = (msg, code = 1) => { console.error(msg); process.exit(code); };
+if (!target || flag("--help")) fail(fs.readFileSync(fileURLToPath(import.meta.url), "utf8").split("\n").slice(1, 15).map((l) => l.replace(/^\/\/ ?/, "")).join("\n"), target ? 0 : 2);
+
+const url = /^[a-z]+:\/\//i.test(target) ? target : pathToFileURL(path.resolve(target)).href;
+const FRAMES = Math.max(2, Math.min(24, Number(opt("--frames", 8))));
+const CAP = Number(opt("--ms", 0));
+const outDir = path.resolve(opt("--out", path.join(os.tmpdir(), `filmstrip-${Date.now().toString(36)}`)));
+const VIEWPORTS = { desktop: { width: 1280, height: 800 }, laptop: { width: 1180, height: 760 }, tablet: { width: 820, height: 1100 }, mobile: { width: 390, height: 844, isMobile: true, hasTouch: true } };
+const vp = (() => { const v = opt("--viewport", "desktop"); const m = String(v).match(/^(\d+)x(\d+)$/); return m ? { width: +m[1], height: +m[2] } : VIEWPORTS[v] || VIEWPORTS.desktop; })();
+
+async function loadPlaywright() {
+  const bases = [process.cwd(), process.env.MOTION_PLAYWRIGHT_DIR, path.dirname(fileURLToPath(import.meta.url))].filter(Boolean);
+  for (const b of bases) for (const name of ["playwright", "playwright-core", "@playwright/test"]) {
+    try {
+      const req = createRequire(path.join(path.resolve(b), "package.json"));
+      const mod = await import(pathToFileURL(req.resolve(name)).href);
+      const pw = mod.chromium ? mod : mod.default;
+      if (pw?.chromium) return pw;
+    } catch { /* try the next place */ }
+  }
+  fail(`Playwright was not found in this project or on this machine, so no frames were captured.
+Do not install it into the user's project. Either:
+  1. use the agent's own browser tools and follow references/proof.md ("Without the script"), or
+  2. point MOTION_PLAYWRIGHT_DIR at a folder whose node_modules already has playwright and its browser.`, 3);
+}
+
+const parseAction = (s) => { const i = s.indexOf(":"); return i < 0 ? { kind: s, arg: "" } : { kind: s.slice(0, i), arg: s.slice(i + 1) }; };
+async function act(page, a) {
+  const { kind, arg } = parseAction(a);
+  if (kind === "click") await page.locator(arg).first().click({ force: true, noWaitAfter: true, timeout: 5000 });
+  else if (kind === "hover") await page.locator(arg).first().hover({ force: true, timeout: 5000 });
+  else if (kind === "focus") await page.locator(arg).first().focus({ timeout: 5000 });
+  else if (kind === "press") await page.keyboard.press(arg);
+  else if (kind === "scroll") await page.mouse.wheel(0, Number(arg) || 600);
+  else if (kind === "wait") await new Promise((r) => setTimeout(r, Number(arg) || 300));
+  else if (kind !== "load") fail(`Unknown action "${a}". Use click:, hover:, focus:, press:, scroll:, wait: or load.`, 2);
+}
+
+// Runs in the page. Pauses every animation the document knows about and moves each to the given time.
+// Returns a description of each one the first time it is seen.
+function scrub(t) {
+  const reg = (window.__filmstrip ||= { seen: new Map(), n: 0 });
+  const name = (el) => { if (!el) return "(detached)"; const c = typeof el.className === "string" && el.className.trim() ? "." + el.className.trim().split(/\s+/).slice(0, 2).join(".") : ""; return el.tagName.toLowerCase() + (el.id ? "#" + el.id : "") + c; };
+  const COMPOSITED = new Set(["transform", "opacity", "translate", "scale", "rotate", "filter", "backdropFilter", "offsetDistance"]);
+  const LAYOUT = /^(width|height|minWidth|minHeight|maxWidth|maxHeight|top|left|right|bottom|inset.*|margin.*|padding.*|fontSize|lineHeight|borderWidth|gap|gridTemplate.*|flexBasis)$/;
+  const fresh = [];
+  for (const a of document.getAnimations()) {
+    let rec = reg.seen.get(a);
+    if (!rec) {
+      const timing = a.effect?.getComputedTiming?.() || {};
+      const frames = a.effect?.getKeyframes?.() || [];
+      const props = [...new Set(frames.flatMap((k) => Object.keys(k)))].filter((k) => !["offset", "easing", "composite", "computedOffset"].includes(k));
+      const DISCRETE = new Set(["display", "overlay", "visibility", "contentVisibility"]);
+      const pseudo = a.effect?.pseudoElement || "";
+      rec = {
+        id: ++reg.n, start: t,
+        kind: a.constructor.name === "CSSTransition" ? "transition" : a.constructor.name === "CSSAnimation" ? "keyframes" : "script",
+        name: a.animationName || a.transitionProperty || a.id || "",
+        target: name(a.effect?.target) + pseudo,
+        properties: props,
+        delay: Math.round(timing.delay || 0),
+        duration: typeof timing.duration === "number" ? Math.round(timing.duration) : 0,
+        end: Number.isFinite(timing.endTime) ? Math.round(timing.endTime) : null,
+        iterations: timing.iterations === Infinity ? "infinite" : timing.iterations ?? 1,
+        easing: a.effect?.getTiming?.().easing || "linear",
+        keyframeEasing: [...new Set(frames.map((k) => k.easing).filter(Boolean))].join(" / "),
+        discrete: props.length > 0 && props.every((p) => DISCRETE.has(p)),
+        composited: props.length > 0 && props.every((p) => COMPOSITED.has(p)),
+        layout: props.filter((p) => LAYOUT.test(p)),
+      };
+      reg.seen.set(a, rec);
+      fresh.push(rec);
+    }
+    try { a.pause(); a.currentTime = Math.max(0, t - rec.start); } catch { /* finished or detached */ }
+  }
+  return fresh;
+}
+
+const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+function sheetHtml(meta, frames, cols) {
+  const rows = meta.animations.map((a) => `<tr><td>${esc(a.target)}</td><td>${esc(a.kind)}${a.name ? ` · ${esc(a.name)}` : ""}</td><td>${esc(a.properties.join(", "))}</td><td>${a.delay ? a.delay + " + " : ""}${a.duration}ms${a.iterations === "infinite" ? " ∞" : ""}</td><td>${esc(a.keyframeEasing && a.easing === "linear" ? a.keyframeEasing : a.easing)}</td><td>${a.layout.length ? "layout: " + esc(a.layout.join(", ")) : a.discrete ? "switch" : a.composited ? "compositor" : "paint"}</td></tr>`).join("");
+  return `<!doctype html><meta charset="utf8"><style>
+body{margin:0;padding:20px;font:13px/1.4 ui-sans-serif,system-ui,sans-serif;background:#f4f3ef;color:#111}
+h1{font-size:15px;margin:0 0 2px}p{margin:0 0 14px;color:#444}
+.g{display:grid;grid-template-columns:repeat(${cols},1fr);gap:10px}
+figure{margin:0;background:#fff;border:1px solid #c9c5ba;border-radius:6px;overflow:hidden}
+figure.same{opacity:.55}img{display:block;width:100%}
+figcaption{padding:4px 8px;font:600 12px ui-monospace,monospace;border-top:1px solid #e2dfd6;display:flex;justify-content:space-between}
+table{border-collapse:collapse;margin-top:16px;width:100%;font:12px ui-monospace,monospace}
+td,th{text-align:left;padding:4px 10px 4px 0;border-top:1px solid #d8d4c9;vertical-align:top}th{color:#555}
+</style><h1>${esc(meta.action)} · ${meta.windowMs}ms in ${frames.length} frames${meta.reducedMotion ? " · reduced motion" : ""}</h1>
+<p>${esc(meta.url)} · ${meta.viewport.width}×${meta.viewport.height} · ${esc(meta.note)}</p>
+<div class="g">${meta.before ? `<figure><img src="${meta.before}"><figcaption><span>before</span><span></span></figcaption></figure>` : ""}${frames.map((f) => `<figure class="${f.same ? "same" : ""}"><img src="${f.file}"><figcaption><span>${f.t}ms</span><span>${f.same ? "no change" : f.pct + "%"}</span></figcaption></figure>`).join("")}</div>
+${rows ? `<table><tr><th>Target</th><th>Kind</th><th>Properties</th><th>Time</th><th>Easing</th><th>Cost</th></tr>${rows}</table>` : ""}`;
+}
+
+async function settle(page) {
+  await page.evaluate(() => document.fonts?.ready).catch(() => {});
+  const deadline = Date.now() + 3000;
+  while (Date.now() < deadline) {
+    const busy = await page.evaluate(() => document.getAnimations().some((a) => a.playState === "running" && Number.isFinite(a.effect?.getComputedTiming().endTime))).catch(() => false);
+    if (!busy) return;
+    await new Promise((r) => setTimeout(r, 100));
+  }
+}
+
+async function capture(pw) {
+  fs.mkdirSync(path.join(outDir, "frames"), { recursive: true });
+  let browser;
+  try { browser = await pw.chromium.launch(); }
+  catch (e) {
+    const chrome = ["/opt/pw-browsers/chromium", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "/usr/bin/google-chrome", "/usr/bin/google-chrome-stable", "/usr/bin/chromium", "C:/Program Files/Google/Chrome/Application/chrome.exe"].find((c) => fs.existsSync(c) && fs.statSync(c).isFile());
+    if (!chrome) fail(`Playwright is installed but has no browser, and Chrome was not found. No frames were captured.\n${String(e.message).split("\n")[0]}`, 3);
+    browser = await pw.chromium.launch({ executablePath: chrome });
+  }
+  const actions = all("--do");
+  if (!actions.length) actions.push("load");
+  const trigger = actions[actions.length - 1];
+  const context = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, isMobile: !!vp.isMobile, hasTouch: !!vp.hasTouch, deviceScaleFactor: 1, reducedMotion: flag("--reduced") ? "reduce" : "no-preference" });
+  const page = await context.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(String(e.message).slice(0, 160)));
+  await page.clock.install();
+  const isLoad = parseAction(trigger).kind === "load";
+  await page.goto(url, { waitUntil: isLoad ? "domcontentloaded" : "load", timeout: 30000 });
+  if (opt("--wait")) await page.locator(opt("--wait")).first().waitFor({ timeout: 10000 });
+  if (!isLoad) await settle(page);
+  for (const a of [...all("--before"), ...actions.slice(0, -1)]) { await act(page, a); await settle(page); }
+
+  let clip;
+  if (opt("--clip")) {
+    const box = await page.locator(opt("--clip")).first().boundingBox().catch(() => null);
+    if (box) { const pad = 24; const x = Math.max(0, box.x - pad), y = Math.max(0, box.y - pad); clip = { x, y, width: Math.min(vp.width - x, box.width + pad * 2), height: Math.min(vp.height - y, box.height + pad * 2) }; }
+  }
+
+  // Freeze script time, trigger, then let two frames of script run so libraries can start their animations.
+  const shot = (file) => page.screenshot({ path: path.join(outDir, file), clip, animations: "allow", caret: "hide" });
+  const before = isLoad ? null : await shot("frames/before.png");
+  // pauseAt can only move forward, and the page's clock keeps running while we ask it the time, so aim a
+  // little ahead and widen the margin if the clock got there first.
+  for (let margin = 100, tries = 0; ; margin *= 3, tries++) {
+    try { await page.clock.pauseAt((await page.evaluate(() => Date.now())) + margin); break; }
+    catch (e) { if (tries >= 3) throw e; }
+  }
+  if (!isLoad) await act(page, trigger);
+  await page.clock.runFor(34);
+  const animations = await page.evaluate(scrub, 0);
+  const finite = animations.filter((a) => a.end != null).map((a) => a.end);
+  const windowMs = CAP || Math.min(4000, Math.max(200, finite.length ? Math.max(...finite) : 600));
+  const step = windowMs / (FRAMES - 1);
+
+  const frames = [];
+  let prev = null, t = 0;
+  for (let i = 0; i < FRAMES; i++) {
+    if (i > 0) {
+      const next = Math.round(i * step);
+      await page.clock.runFor(next - t);
+      t = next;
+      animations.push(...(await page.evaluate(scrub, t)));
+    }
+    const file = `frames/${String(i).padStart(2, "0")}.png`;
+    const buf = await shot(file);
+    frames.push({ i, t, pct: Math.round((t / windowMs) * 100), file, same: prev ? buf.equals(prev) : false });
+    prev = buf;
+  }
+  await context.close();
+
+  const moved = frames.filter((f) => f.i > 0 && !f.same).length;
+  const instant = !!before && moved === 0 && !before.equals(fs.readFileSync(path.join(outDir, frames[0].file)));
+  const note = animations.length
+    ? `${animations.length} animation${animations.length === 1 ? "" : "s"} stepped frame by frame`
+    : moved ? "no CSS or Web Animations found; script-driven motion stepped with a paused clock"
+    : instant ? "the change was instant: the first frame already differs from before the action, and nothing moves after it"
+    : "nothing changed on screen after the action";
+  const meta = { url, action: trigger, instant, before: before ? "frames/before.png" : null, viewport: { width: vp.width, height: vp.height }, reducedMotion: flag("--reduced"), windowMs, frames, framesChanged: moved, animations: animations.map(({ start, ...a }) => ({ ...a, startedAt: start })), note, errors };
+
+  if (flag("--perf")) meta.perf = await perf(browser, actions);
+
+  const cols = Math.min(FRAMES, vp.width <= 500 && !clip ? 6 : 4);
+  fs.writeFileSync(path.join(outDir, "sheet.html"), sheetHtml(meta, frames, cols));
+  const sheet = await browser.newPage({ viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 });
+  await sheet.goto(pathToFileURL(path.join(outDir, "sheet.html")).href);
+  await sheet.screenshot({ path: path.join(outDir, "sheet.png"), fullPage: true });
+  await browser.close();
+  fs.writeFileSync(path.join(outDir, "filmstrip.json"), JSON.stringify(meta, null, 1));
+  return meta;
+}
+
+// A second run in real time: how many frames the browser produced, and how much layout and style work it did.
+async function perf(browser, actions) {
+  const context = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, isMobile: !!vp.isMobile, hasTouch: !!vp.hasTouch, reducedMotion: flag("--reduced") ? "reduce" : "no-preference" });
+  const page = await context.newPage();
+  const cdp = await context.newCDPSession(page);
+  const throttle = Number(opt("--throttle", 4));
+  await cdp.send("Performance.enable");
+  await page.goto(url, { waitUntil: "load", timeout: 30000 });
+  if (opt("--wait")) await page.locator(opt("--wait")).first().waitFor({ timeout: 10000 });
+  await settle(page);
+  for (const a of [...all("--before"), ...actions.slice(0, -1)]) { await act(page, a); await settle(page); }
+  if (throttle > 1) await cdp.send("Emulation.setCPUThrottlingRate", { rate: throttle });
+  const metrics = async () => Object.fromEntries((await cdp.send("Performance.getMetrics")).metrics.map((m) => [m.name, m.value]));
+  await page.evaluate(() => { window.__gaps = []; let last = performance.now(); const tick = (now) => { window.__gaps.push(now - last); last = now; window.__raf = requestAnimationFrame(tick); }; window.__raf = requestAnimationFrame(tick); });
+  const before = await metrics();
+  const trigger = actions[actions.length - 1];
+  if (parseAction(trigger).kind !== "load") await act(page, trigger);
+  const windowMs = CAP || 600;
+  await new Promise((r) => setTimeout(r, windowMs + 100));
+  const after = await metrics();
+  const gaps = await page.evaluate(() => { cancelAnimationFrame(window.__raf); return window.__gaps.slice(1); });
+  await context.close();
+  const long = gaps.filter((g) => g > 25);
+  return {
+    cpuThrottle: throttle, windowMs: windowMs + 100, frames: gaps.length,
+    longFrames: long.length, worstFrameMs: gaps.length ? Math.round(Math.max(...gaps)) : null,
+    layouts: Math.round(after.LayoutCount - before.LayoutCount), styleRecalcs: Math.round(after.RecalcStyleCount - before.RecalcStyleCount),
+    layoutMs: Math.round((after.LayoutDuration - before.LayoutDuration) * 1000), scriptMs: Math.round((after.ScriptDuration - before.ScriptDuration) * 1000),
+  };
+}
+
+const pw = await loadPlaywright();
+const meta = await capture(pw);
+if (flag("--json")) { console.log(JSON.stringify({ ...meta, out: outDir }, null, 1)); process.exit(0); }
+
+const lines = [`Filmstrip: ${meta.action} at ${meta.viewport.width}×${meta.viewport.height}${meta.reducedMotion ? ", reduced motion on" : ""}`, `${meta.frames.length} frames over ${meta.windowMs}ms. ${meta.note}. ${meta.framesChanged} of ${meta.frames.length - 1} later frames differ from the one before.`];
+if (meta.animations.length) {
+  lines.push("", "What moved");
+  for (const a of meta.animations.slice(0, 30)) lines.push(`  ${a.target}  ${a.properties.join(", ") || a.name}  ${a.delay ? a.delay + "ms delay + " : ""}${a.duration}ms${a.iterations === "infinite" ? " infinite" : ""}  ${a.keyframeEasing && a.easing === "linear" ? a.keyframeEasing : a.easing}  ${a.layout.length ? "LAYOUT (" + a.layout.join(", ") + ")" : a.discrete ? "switch" : a.composited ? "compositor" : "paint"}`);
+  if (meta.animations.length > 30) lines.push(`  and ${meta.animations.length - 30} more in filmstrip.json`);
+}
+if (meta.reducedMotion && meta.animations.some((a) => a.duration > 0 && a.properties.some((p) => /transform|translate|scale|rotate|top|left|width|height/.test(p)))) lines.push("", "Movement still runs with reduced motion on. Replace it with a fade or an instant change.");
+if (meta.perf) { const p = meta.perf; lines.push("", `Real-time run at ${p.cpuThrottle}× CPU slowdown, ${p.windowMs}ms`, `  ${p.frames} frames, ${p.longFrames} over 25ms, worst ${p.worstFrameMs}ms`, `  ${p.layouts} layouts (${p.layoutMs}ms), ${p.styleRecalcs} style recalculations, ${p.scriptMs}ms of script`); }
+if (meta.errors.length) lines.push("", "Page errors during capture", ...meta.errors.slice(0, 5).map((e) => "  " + e));
+lines.push("", `Look at: ${path.join(outDir, "sheet.png")}`, `Frames:  ${path.join(outDir, "frames")}`, `Data:    ${path.join(outDir, "filmstrip.json")}`);
+console.log(lines.join("\n"));

@@ -1,0 +1,38 @@
+// node --test "kits/motion-kit/plugins/motion-kit/skills/motion/tests/*.test.mjs"
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+const scan = (dir) => JSON.parse(execFileSync(process.execPath, [path.join(here, "../scripts/motion-scan.mjs"), path.join(here, "fixtures", dir), "--json"], { encoding: "utf8" }));
+const rules = (r) => r.findings.map((f) => f.rule);
+
+test("a messy codebase: every planted problem is listed with its file and line", () => {
+  const r = scan("app");
+  assert.equal(r.filesScanned, 2, "node_modules is skipped");
+  for (const rule of ["transition-all", "layout-property", "long-transition", "ease-in", "linear", "infinite", "scale-from-zero", "will-change"]) assert.ok(rules(r).includes(rule), `missing ${rule}`);
+  assert.deepEqual(r.system.map((s) => s.rule), ["no-reduced-motion", "duration-sprawl", "easing-sprawl", "no-tokens"]);
+  const all = r.findings.find((f) => f.rule === "transition-all" && f.file === "src/styles.css");
+  assert.equal(all.line, 1);
+  assert.equal(r.findings[0].level, "fix", "fixes sort first");
+  assert.equal(r.libraries.motion, 1);
+  assert.equal(r.springs.length, 1);
+  assert.ok(r.durations.some((d) => d.ms === 800), "Motion durations are read as seconds");
+  assert.ok(r.durations.some((d) => d.ms === 700), "Tailwind durations are read");
+});
+
+test("a tidy codebase: tokens, two curves, reduced motion handled, nothing to flag", () => {
+  const r = scan("clean");
+  assert.deepEqual(r.findings, [], "linear on an opacity-only transition is not flagged");
+  assert.deepEqual(r.system, []);
+  assert.equal(r.reducedMotion.css, 1);
+  assert.equal(r.totals.literalDurations, 0);
+  assert.ok(r.totals.tokenDurations >= 4);
+});
+
+test("a folder with no motion says so and exits cleanly", () => {
+  const out = execFileSync(process.execPath, [path.join(here, "../scripts/motion-scan.mjs"), path.join(here, "../agents")], { encoding: "utf8" });
+  assert.match(out, /No motion found/);
+});

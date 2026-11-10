@@ -16,6 +16,7 @@ Do these once per project, before any design work. Everything later reads what t
 | Repo docs need a prose linter | `/vale:setup` |  |
 | Get a design check after every UI edit | `/impeccable hooks on|off|status` |  |
 | Not sure where to start in this project | `/impeccable` |  |
+| Decide once how this product should move | `/motion setup` |  |
 
 ## Plan
 
@@ -29,6 +30,7 @@ Before any code. Agree what the screen is for and look at a few options.
 | Don't know the name for an effect | `/animation-vocabulary` |  |
 | Settle a design argument with a quick test | `/lean-ux` |  |
 | Understand why people stop coming back | `/improve-retention` | `/hooked-ux` |
+| Plan a hero or page entrance before coding it | `/motion storyboard` |  |
 
 ## Build
 
@@ -59,7 +61,7 @@ Get a second opinion before changing anything. Most of these only report back.
 | Accessibility and best-practice rules | `/web-design-guidelines <file-or-pattern>` | `/impeccable audit` |
 | See what breaks with ugly data | `/break-ui` |  |
 | Click through the real flow in a browser | `example-skills:webapp-testing` |  |
-| Check existing motion | `/review-animations` |  |
+| Check existing motion | `/review-animations` | `/motion review` |
 | Be brutal about it, then fix the easy things | `/harsh-review` | `/steve-jobs-design-review` |
 | A usability audit by the book | `/ux-heuristics` |  |
 | Prove it works at every screen size | `/viewport-proof` |  |
@@ -77,7 +79,7 @@ It works, but it doesn't look right yet.
 | Spacing and rhythm feel off | `/impeccable layout` |  |
 | Flat and gray | `/impeccable colorize` |  |
 | Tune one element live in the running app | `/impeccable live` |  |
-| Find where motion would help | `/find-animation-opportunities` |  |
+| Find where motion would help | `/find-animation-opportunities` | `/motion review` |
 | Add a little personality | `/impeccable delight` |  |
 | Buttons and toggles feel dead | `/microinteractions` | `/impeccable animate` |
 | Make it cinematic | `/top-design` | `/impeccable overdrive` |
@@ -95,7 +97,7 @@ Odd cases, speed, phones, and the final pass.
 | Make a web app feel native on iPhone | `/mobile-native` | `/impeccable adapt` |
 | A native iOS or Android app follows the platform rules | `/impeccable audit` | `/impeccable adapt` |
 | Slow page or heavy bundle | `/impeccable optimize` |  |
-| Animation stutters | `/animation-performance` |  |
+| Animation stutters | `/animation-performance` | `/motion fix` |
 | Final pass before shipping | `/impeccable polish` |  |
 
 ## Words
@@ -146,8 +148,9 @@ Pick: Hallmark for anything the public will see. Interface Design for tools and 
 - `/animate`: Builds one animation carefully, following Emil Kowalski's order of decisions
 - `/impeccable animate`: Motion as part of a broader design pass
 - `/apple-design`: Motion that follows your finger: swipes, drags and springs
+- `/motion`: Agent Kit's own motion command: checks its work with frame captures and keeps one set of values in MOTION.md
 
-Pick: /animate for one interaction you want exactly right. Impeccable animate for a light pass over a screen. Apple-design when touch and drag are involved.
+Pick: /animate for one interaction you want exactly right. Impeccable animate for a light pass over a screen. Apple-design when touch and drag are involved. /motion when you want the result checked frame by frame, or the whole product's motion made consistent.
 
 ### Variants to choose from
 
