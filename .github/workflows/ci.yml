@@ -32,7 +32,7 @@ jobs:
           has() { printf '%s\n' "$files" | grep -qE "$1" && echo true || echo false; }
           all=$(has '^\.github/workflows/')
           site=$(has '^(site|library|kits)/')
-          library=$(has '^(library|kits/engineering-kit|kits/design-kit)/')
+          library=$(has '^(library|kits|tests/routing)/')
           public=$(has '^(kits/|library/|scripts/check-public|[A-Z]+\.md$)')
           catalog=$(has '^(kits/|\.claude-plugin/|\.agents/|scripts/check-catalog)')
           [ "$all" = true ] && site=true library=true public=true catalog=true
@@ -64,6 +64,10 @@ jobs:
       - name: Check the prompt library
         if: steps.changes.outputs.library == 'true'
         run: node library/check.mjs
+
+      - name: Check the routing cases
+        if: steps.changes.outputs.library == 'true'
+        run: node tests/routing/check.mjs
 
       - name: Typecheck the site
         if: steps.changes.outputs.site == 'true' && hashFiles('site/package.json') != ''

@@ -40,11 +40,11 @@ Match their words to the closest row. Go straight to the narrow prompt; `PG00` i
 
 `D`, `R`, `A`, `P`, `G`, `I` and `M` IDs are investigations and thinking prompts from `/engineer`; their one-line summaries are at the end of `references/prompts.md`. Use one of them instead of a PG prompt when the routing table names it and it fits better, rather than running both.
 
-If their words could mean two different jobs, ask the one question that separates them and stop. Otherwise do not interview them.
+If their words could mean two different jobs, ask the one question that separates them and stop. Otherwise do not interview them. If the problem is not in PostgreSQL (application code, a UI, another database engine), say `/engineer` fits better and stop.
 
 ## Then do it
 
-- **Session can reach the repo or database:** say the pick in one or two sentences, then run that one investigation yourself, read-only. Bring back the evidence its entry asks for. Stop when the problem is proved, ruled out, or blocked, and name the blocker.
+- **Session can reach the repo or database:** say the pick in one or two sentences, including that it is read-only and that any fix waits for their yes, then run that one investigation yourself, read-only. Bring back the evidence its entry asks for. Stop when the problem is proved, ruled out, or blocked, and name the blocker.
 - **Session can't reach them:** give the copy-ready prompt (the prompt text, the mode line, then "Evidence I expect:" and the entry's evidence line) in one fenced `text` block, and stop.
 - Mention one "only if needed" follow-up only when the findings point there. Never run a second investigation unasked.
 
