@@ -29,9 +29,9 @@ export default async function FixPage({ params }: { params: Promise<{ problem: s
     <main className="page">
       <div className="page-head">
         <Crumbs items={[["Fix a problem", "/fix"], [f.title, `/fix/${f.slug}`]]} />
-        <p className="kicker">{f.scope === "database" ? "PostgreSQL" : "Your app"}</p>
         <h1>{f.title}</h1>
         <p className="lead ink2">Start with the first prompt. Each one says what proof the agent should bring back and when to skip it.</p>
+        <p className="kicker">{f.scope === "database" ? "PostgreSQL" : "Your app"}</p>
       </div>
       <PromptCards slugs={f.prompts} rank />
       {skillNames.length > 0 && <section className="section"><h2>Skills that help</h2><SkillCards names={skillNames} /></section>}

@@ -34,9 +34,9 @@ export default async function KitPage({ params }: { params: Promise<{ kit: strin
     <main className="page">
       <div className="page-head">
         <Crumbs items={[["Kits", "/kits"], [k.title, `/kits/${k.name}`]]} />
-        <p className="kicker"><span>Plugin</span><span>·</span><span>v{k.version}</span><span>·</span><span>{k.skills.length} skills</span></p>
         <h1>{k.title}</h1>
         <p className="lead ink2">{k.description}</p>
+        <p className="kicker"><span>Plugin</span><span>·</span><span>v{k.version}</span><span>·</span><span>{k.skills.length} skills</span></p>
       </div>
       <div className="grid">
         <div className="block"><div className="block__head"><span>Claude Code</span><CopyButton text={claude} /></div><pre>{claude}</pre></div>

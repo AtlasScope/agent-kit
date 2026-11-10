@@ -33,5 +33,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </body>
     </html>
   );
-  return authEnabled() ? <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-in" appearance={{ variables: { colorPrimary: "#0B0A08" } }}>{body}</ClerkProvider> : body;
+  return authEnabled() ? <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-in" appearance={{ variables: { colorPrimary: "#0B0C12" } }}>{body}</ClerkProvider> : body;
 }

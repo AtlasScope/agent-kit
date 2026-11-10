@@ -61,11 +61,11 @@ export function StartCard({ s }: { s: Start }) {
   if (!p) return null;
   return (
     <article className="pcard scard" data-sec={p.sec} id={s.slug}>
-      <p className="scard__job">{s.job}</p>
       <div className="pcard__top">
-        <h3 className="pcard__t"><Link href={`/prompts/${p.slug}`}>{p.t}</Link></h3>
+        <h3 className="pcard__t"><i className="dot" />{s.job}</h3>
         <Star kind="prompt" refId={p.id} title={p.t} />
       </div>
+      <p className={p.t.startsWith("/") ? "scard__pick scard__pick--cmd" : "scard__pick"}><Link href={`/prompts/${p.slug}`}>{p.t}</Link></p>
       <dl className="scard__qa">
         <dt>Use when</dt><dd>{s.useWhen}</dd>
         <dt>You get</dt><dd>{s.youGet}</dd>

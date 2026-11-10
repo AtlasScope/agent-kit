@@ -34,9 +34,9 @@ export default async function CollectionPage({ params }: { params: Promise<{ id:
     <main className="page">
       <div className="page-head">
         <Crumbs items={[["Collections", "/account"], [c.name, `/collections/${c.id}`]]} />
-        <p className="kicker">{c.is_public ? "Shared collection" : "Private collection, only you can see it"}</p>
         <h1>{c.name}</h1>
         <p className="lead ink2">{items.length} {items.length === 1 ? "item" : "items"}.</p>
+        <p className="kicker">{c.is_public ? "Shared collection" : "Private collection, only you can see it"}</p>
       </div>
       {install && (
         <section className="section"><h2>Install its skills</h2><div className="cmdline"><code>{install}</code><CopyButton text={install} /></div></section>

@@ -35,9 +35,9 @@ export default async function SkillPage({ params }: { params: Promise<{ name: st
     <main className="page">
       <div className="page-head">
         <Crumbs items={[["Skills", "/skills"], [s.name, `/skills/${s.name}`]]} />
-        <p className="kicker"><Link className="lic" href={`/kits/${k.name}`}>{k.title}</Link>{s.typedOnly && <><span>·</span><span>Runs only when you type it</span></>}</p>
         <h1>{s.name}</h1>
         <p className="lead ink2">{s.description}</p>
+        <p className="kicker"><Link className="lic" href={`/kits/${k.name}`}>{k.title}</Link>{s.typedOnly && <><span>·</span><span>Runs only when you type it</span></>}</p>
         <div className="toolbar">
           {authEnabled() && <SaveMenu kind="skill" refId={s.name} title={s.name} />}
           <a className="btn btn--sm" href={`/skills/${s.name}.md`}>Markdown</a>
