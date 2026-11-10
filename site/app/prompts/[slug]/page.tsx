@@ -85,28 +85,33 @@ function PromptPage({ p }: { p: Prompt }) {
         </div>
       </div>
 
-      {p.steps && (
-        <section className="section">
-          <h2>Steps</h2>
-          <ol className="list" style={{ listStyle: "none" }}>
-            {p.steps.map(([c, d], i) => (
-              <li key={i} style={{ padding: "12px 0" }}><span className="list__n">{i + 1}</span>&nbsp; <code>{c}</code> <span className="muted">{d}</span></li>
-            ))}
-          </ol>
-        </section>
-      )}
+      <div className="two two--wide">
+        <div className="stack">
+          {p.steps && (
+            <section className="section">
+              <h2>Steps</h2>
+              <ol className="list" style={{ listStyle: "none" }}>
+                {p.steps.map(([c, d], i) => (
+                  <li key={i} style={{ padding: "12px 0" }}><span className="list__n">{i + 1}</span>&nbsp; <code>{c}</code> <span className="muted">{d}</span></li>
+                ))}
+              </ol>
+            </section>
+          )}
 
-      <div className="block">
-        <div className="block__head"><span>{blockLabel}</span><CopyButton text={text} /></div>
-        <pre>{text}</pre>
+          <div className="block">
+            <div className="block__head"><span>{blockLabel}</span><CopyButton text={text} /></div>
+            <pre>{text}</pre>
+          </div>
+
+          {p.gnote && <p className="note">{p.gnote}</p>}
+        </div>
+        <aside className="aside" aria-label="About this prompt">
+          <dl className="facts facts--side">
+            {facts.filter(([, v]) => v).map(([k, v]) => [<dt key={k + "t"}>{k}</dt>, <dd key={k + "d"}>{v}</dd>])}
+            {p.src && <><dt>Original post</dt><dd><a href={p.src} rel="noopener">{p.src.replace(/^https?:\/\//, "")}</a></dd></>}
+          </dl>
+        </aside>
       </div>
-
-      {p.gnote && <p className="note">{p.gnote}</p>}
-
-      <dl className="facts">
-        {facts.filter(([, v]) => v).map(([k, v]) => [<dt key={k + "t"}>{k}</dt>, <dd key={k + "d"}>{v}</dd>])}
-        {p.src && <><dt>Original post</dt><dd><a href={p.src} rel="noopener">{p.src.replace(/^https?:\/\//, "")}</a></dd></>}
-      </dl>
 
       {p.skills.length > 0 && (
         <section className="section"><h2>Skills it uses</h2><SkillCards names={p.skills} /></section>

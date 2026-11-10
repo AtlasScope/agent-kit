@@ -2,8 +2,9 @@ import Link from "next/link";
 import { InstallRail } from "@/components/InstallRail";
 import { HERO_BLUR } from "@/lib/hero-blur";
 import { JsonLd } from "@/components/Crumbs";
-import { HERO, KITS, KIT_GUIDE, SITE } from "@/lib/site";
-import { counts, fixes, getKit, authors } from "@/lib/content";
+import { HERO, KITS, SITE } from "@/lib/site";
+import { counts, fixes, authors } from "@/lib/content";
+import { KitRows } from "@/components/KitRows";
 
 const WIDE = [960, 1440, 1920, 2560, 3840];
 const TALL = [780, 1170];
@@ -46,20 +47,7 @@ export default function Home() {
             <h2 id="adds-h">What the install adds</h2>
             <p>{KITS.length} kits and {counts.skills} skills. Type a command, then say what you want in plain words. Commands are shown as you type them in Claude Code.</p>
           </div>
-          <ul className="adds__list">
-            {KITS.map((name) => {
-              const k = getKit(name)!;
-              const g = KIT_GUIDE[name];
-              return (
-                <li key={name}>
-                  <h3><Link href={`/kits/${name}`}>{name}</Link></h3>
-                  <span className="adds__n">{k.skills.length} {k.skills.length === 1 ? "skill" : "skills"}</span>
-                  <p>{g.line}</p>
-                  <ul className="adds__type" aria-label={`Commands in ${name}`}>{g.type.map((t) => <li key={t}><code>{t}</code></li>)}</ul>
-                </li>
-              );
-            })}
-          </ul>
+          <KitRows />
         </section>
 
         <ul className="ledger">

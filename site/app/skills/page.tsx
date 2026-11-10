@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Crumbs } from "@/components/Crumbs";
 import { SkillCards } from "@/components/Cards";
 import { skills, kits, counts, authors } from "@/lib/content";
-import { SITE } from "@/lib/site";
+import Link from "next/link";
+import { KIT_GUIDE, SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Agent skills for Claude Code, Codex and Cursor",
@@ -23,9 +24,12 @@ export default function Skills() {
         </p>
       </div>
       {kits.map((k) => (
-        <section key={k.name} className="section">
-          <h2>{k.title}</h2>
-          <SkillCards names={skills.filter((s) => s.kit === k.name).map((s) => s.name)} />
+        <section key={k.name} className="section" id={k.name}>
+          <div className="sec-head">
+            <h2>{k.name}</h2>
+            {KIT_GUIDE[k.name] && <p>{KIT_GUIDE[k.name].line} <Link className="lic" href={`/kits/${k.name}`}>Install the kit</Link></p>}
+          </div>
+          <SkillCards names={skills.filter((s) => s.kit === k.name).map((s) => s.name)} kit={false} />
         </section>
       ))}
     </main>
