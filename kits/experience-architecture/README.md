@@ -17,7 +17,7 @@ For development, `claude --plugin-dir ./plugins/experience-architecture` loads t
 
 | Path | What |
 |---|---|
-| `plugins/experience-architecture/` | The plugin: manifest, 3 skills (diagnose, rethink, verify), playbooks and references, the `ea` toolkit, eval suite |
+| `plugins/experience-architecture/` | The plugin: manifest, 4 skills (diagnose, rethink, verify, and walkthrough in preview), playbooks and references, the `ea` toolkit, eval suite |
 | `fixtures/northwind/` | Next.js App Router app with 20 planted defects (written alongside the toolkit) |
 | `fixtures/fernway/` | Vite + React Router app with 18 planted defects (written blind by a separate agent) |
 | `fixtures/lumen/` | Next.js App Router (`src/`, parallel and intercepting routes) with 18 planted defects (written blind, held out from tuning) |

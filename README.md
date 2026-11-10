@@ -4,7 +4,7 @@ Skills for AI coding agents, plus a prompt library you can open beside any of th
 
 It's for people who already use a coding agent such as Claude Code, Codex or Cursor and want it to do design, engineering and database work the way an experienced person would.
 
-Most of these skills are other people's work: 49 of the 60 come from Emil Kowalski, Matt Pocock, Wondel.ai and seven other authors. Agent Kit routes between them and adds 11 of its own. See [CREDITS.md](CREDITS.md).
+Most of these skills are other people's work: 49 of the 61 come from Emil Kowalski, Matt Pocock, Wondel.ai and seven other authors. Agent Kit routes between them and adds 12 of its own. See [CREDITS.md](CREDITS.md).
 
 ## Get one result
 
@@ -98,4 +98,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) to add or improve a prompt or skill, and 
 
 ## License
 
-[MIT](LICENSE) covers what was written for Agent Kit: the routers, the 11 original skills, the prompt library and the website. Third-party skills keep their own licenses (MIT, and CC BY 4.0 for `color-expert`), shipped in each skill's folder and listed in [CREDITS.md](CREDITS.md) and each kit's `THIRD_PARTY.md`. The MIT license here does not replace them.
+[MIT](LICENSE) covers what was written for Agent Kit: the routers, the 12 original skills, the prompt library and the website. Third-party skills keep their own licenses (MIT, and CC BY 4.0 for `color-expert`), shipped in each skill's folder and listed in [CREDITS.md](CREDITS.md) and each kit's `THIRD_PARTY.md`. The MIT license here does not replace them.
