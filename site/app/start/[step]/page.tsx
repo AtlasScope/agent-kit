@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Crumbs } from "@/components/Crumbs";
 import { CopyButton } from "@/components/CopyButton";
+import { GuideNext, GuideRail } from "@/components/GuideProgress";
 import { STEPS, stepIndex } from "@/lib/start";
 
 const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
@@ -24,9 +25,10 @@ export default async function StartStep({ params }: { params: Promise<{ step: st
   const s = STEPS[i], prev = STEPS[i - 1], next = STEPS[i + 1];
   return (
     <main className="page">
+      <div className="guide">
+      <div className="guide__main">
       <div className="page-head">
-        <Crumbs items={[["Get started", "/start"], [s.title, `/start/${s.slug}`]]} />
-        <p className="note">Step {i + 1} of {STEPS.length}</p>
+        <Crumbs items={[["Get started", "/start"], [`Step ${i + 1} of ${STEPS.length}`, `/start/${s.slug}`]]} />
         <h1>{s.title}</h1>
         {s.body.map((p) => <p className="lead start-body" key={p.slice(0, 24)}>{p}</p>)}
       </div>
@@ -51,9 +53,9 @@ export default async function StartStep({ params }: { params: Promise<{ step: st
         </section>
       )}
 
-      <section className="section">
-        <h2>You should see</h2>
-        <p className="start-body">{s.expect}</p>
+      <section className="expect" aria-labelledby="expect-h">
+        <h2 id="expect-h">You should see</h2>
+        <p>{s.expect}</p>
       </section>
 
       <section className="section">
@@ -65,8 +67,13 @@ export default async function StartStep({ params }: { params: Promise<{ step: st
 
       <nav className="start-nav" aria-label="Guide steps">
         {prev ? <Link className="btn" href={`/start/${prev.slug}`}>Back: {prev.title}</Link> : <Link className="btn" href="/start">All steps</Link>}
-        {next ? <Link className="btn btn--solid" href={`/start/${next.slug}`}>Next: {next.title}</Link> : <Link className="btn btn--solid" href="/learn">Next: five short lessons</Link>}
+        <GuideNext store="start" current={s.slug} href={next ? `/start/${next.slug}` : "/learn"}>{next ? `Next: ${next.title}` : "Next: five short lessons"}</GuideNext>
       </nav>
+      </div>
+      <aside className="guide__aside">
+        <GuideRail items={STEPS} base="/start" store="start" current={s.slug} label="Guide steps" />
+      </aside>
+      </div>
     </main>
   );
 }

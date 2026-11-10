@@ -376,6 +376,43 @@ svg.i { width: 16px; height: 16px; flex: none; }
 .start-list__n { font: 500 var(--text-sm)/1 var(--font-mono); color: var(--color-muted); }
 .start-nav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-sm); max-width: var(--measure); }
 .start-nav .btn { white-space: normal; text-align: left; }
+/* Guide hub and pages: what you need, a numbered list with done marks, a side rail of every step. */
+.need { display: grid; gap: var(--space-sm); padding: var(--space-md) var(--space-lg); border: 1px solid var(--color-rule); border-radius: var(--radius); background: var(--color-paper-2); }
+.need h2 { margin: 0; font: 650 1.0625rem/1.3 var(--font-body); letter-spacing: -0.015em; }
+.need ul { display: grid; gap: var(--space-xs); margin: 0; padding: 0; list-style: none; font-size: 0.9375rem; line-height: 1.5; color: var(--color-muted); }
+.need strong { color: var(--color-ink); font-weight: 600; }
+.guide-resume { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm); color: var(--color-muted); font-size: var(--text-sm); }
+.guide-list { display: grid; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--color-rule); }
+.guide-list--two { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: column; grid-template-rows: repeat(4, auto); column-gap: var(--space-xl); }
+.guide-list li { border-bottom: 1px solid var(--color-rule); }
+.guide-list a { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: var(--space-md); align-items: start; padding: 14px 0; color: var(--color-ink); text-decoration: none; }
+.guide-list__n { display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid var(--color-rule-2); border-radius: 999px; font: 500 0.8125rem/1 var(--font-mono); color: var(--color-muted); }
+.guide-list__n .i { width: 14px; height: 14px; }
+.guide-list .is-done .guide-list__n { border-color: var(--color-ink); background: var(--color-ink); color: var(--color-paper); }
+.guide-list__t { display: grid; gap: 2px; padding-top: 3px; }
+.guide-list__t strong { font-weight: 600; }
+.guide-list__t span { color: var(--color-muted); font-size: 0.875rem; line-height: 1.45; }
+.guide { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: var(--space-2xl); align-items: start; }
+.guide__main { display: grid; gap: var(--space-xl); min-width: 0; }
+.guide__main .start-nav { max-width: none; }
+.guide__aside { position: sticky; top: var(--space-lg); }
+.guide-rail ol { display: grid; gap: 2px; margin: 0; padding: 0 0 0 var(--space-md); list-style: none; border-left: 1px solid var(--color-rule); }
+.guide-rail a { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: center; min-height: 36px; padding: 4px 8px; border-radius: 8px; color: var(--color-muted); font-size: 0.875rem; line-height: 1.35; text-decoration: none; }
+.guide-rail__n { display: grid; place-items: center; width: 22px; height: 22px; border: 1px solid var(--color-rule-2); border-radius: 999px; font: 500 0.75rem/1 var(--font-mono); }
+.guide-rail__n .i { width: 12px; height: 12px; }
+.guide-rail .is-done a { color: var(--color-ink-2); }
+.guide-rail .is-done .guide-rail__n { border-color: var(--color-ink-2); }
+.guide-rail .is-here a { background: var(--color-paper-2); color: var(--color-ink); font-weight: 600; }
+.guide-rail .is-here .guide-rail__n { border-color: var(--color-ink); background: var(--color-ink); color: var(--color-paper); }
+.expect { display: grid; gap: 6px; padding: var(--space-md) var(--space-lg); border: 1px solid var(--color-rule); border-left: 3px solid var(--color-ink); border-radius: var(--radius); background: var(--color-paper-2); }
+.expect h2 { margin: 0; font: 650 1.0625rem/1.3 var(--font-body); letter-spacing: -0.015em; }
+.expect p { color: var(--color-ink-2); }
+@media (hover: hover) and (pointer: fine) { .guide-list a:hover strong, .guide-rail a:hover { color: var(--color-ink); } .guide-list a:hover strong { text-decoration: underline; text-decoration-color: var(--color-rule-2); text-underline-offset: 0.2em; } .guide-rail a:hover { background: var(--color-paper-2); } }
+@media (max-width: 60rem) {
+  .guide { grid-template-columns: minmax(0, 1fr); gap: var(--space-xl); }
+  .guide__aside { position: static; }
+  .guide-list--two { grid-template-columns: minmax(0, 1fr); grid-auto-flow: row; grid-template-rows: none; }
+}
 
 /* Homepage hero: the orbit photo under a solid ink header, text hung from the container's left edge, and a solid
    strip along the bottom with the install command. The logo never sits on the photo. */
