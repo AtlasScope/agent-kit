@@ -73,7 +73,7 @@ Add this to the repo's `.claude/settings.json`, merged with anything already the
 
 ## Rebuilding the /engineer catalog
 
-The router's references are generated from the field guide's JSON catalog. When the guide changes, run `node scripts/build_references.cjs <guide.html> plugins/engineering-kit/skills/engineer/references` and land the result through a PR. The script leaves out per-project notes and private commands.
+The router's references (`start-here.md` and `investigations.md`) come from `library/library.json`. After editing the investigations, thinking prompts, symptoms or engineering commands there, run `node kits/engineering-kit/scripts/build_references.mjs` from the repo root. `node library/check.mjs` fails while they are out of date.
 
 ## Rebuilding the /database reference
 

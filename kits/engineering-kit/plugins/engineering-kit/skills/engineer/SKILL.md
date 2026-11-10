@@ -50,4 +50,4 @@ For an investigation: its prompt text, then the mode line for its `mode` (from `
 - For a prompt, the copy-ready block in a fenced `text` block with nothing else inside it.
 - One last line, only if useful: what to run next if it finds something.
 
-The references are generated. When the guide changes, rebuild them with `node scripts/build_references.cjs <guide.html> plugins/engineering-kit/skills/engineer/references` from the repo root and land the change through a PR.
+The references are generated from `library/library.json`. Rebuild them with `node kits/engineering-kit/scripts/build_references.mjs` from the repo root and land the change through a PR.

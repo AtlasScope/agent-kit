@@ -88,6 +88,11 @@ for (const f of ["prompt-library.html", "prompt-library.md", "inventory.csv"]) {
   const dist = fs.readFileSync(path.join(here, "dist", f), "utf8");
   if (built !== dist) fail(`library/dist/${f} is out of date: run node library/build.mjs`);
 }
+// The /engineer router's references come from this library too.
+const engRefs = ["start-here.md", "investigations.md"].map((f) => path.join(here, "../kits/engineering-kit/plugins/engineering-kit/skills/engineer/references", f));
+const engBefore = engRefs.map((f) => fs.readFileSync(f, "utf8"));
+execFileSync(process.execPath, [path.join(here, "../kits/engineering-kit/scripts/build_references.mjs")], { stdio: "ignore" });
+engRefs.forEach((f, i) => { if (fs.readFileSync(f, "utf8") !== engBefore[i]) fail(`The /engineer reference ${path.basename(f)} was out of date and has been rebuilt: commit the change`); });
 const ref = path.join(here, "../kits/engineering-kit/plugins/engineering-kit/skills/database/references/prompts.md");
 const before = fs.readFileSync(ref, "utf8");
 execFileSync(process.execPath, [path.join(here, "../kits/engineering-kit/scripts/build_database_references.mjs")], { stdio: "ignore" });

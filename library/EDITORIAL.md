@@ -3,6 +3,17 @@
 Decisions about what the library says, newest first. Each line names the entries it touched and why.
 The full inventory is `library/dist/inventory.csv`, rebuilt by `node library/build.mjs`.
 
+## 2026-11-10 (router references)
+
+- The /engineer router's `start-here.md` and `investigations.md` now come from `library/library.json`
+  through `kits/engineering-kit/scripts/build_references.mjs`, and `check.mjs` fails when they drift.
+  The old `build_references.cjs` read an older field-guide format and had stopped running, so the
+  router had been reading stale text: older titles for the thinking prompts, no M11 or M12, and M02
+  "Falsification" showing M10's handoff prompt instead of its own.
+- Symptom rows list only investigation IDs, since database prompts live in the /database reference.
+- /harsh-review, /viewport-proof and /recommend stay out of the router's skill list. They ship in
+  working-style, which has no dependency from engineering-kit.
+
 ## 2026-11-10 (rewrites)
 
 - M11 "Thorough and bold" was one line ("Be thorough in your analysis and bold in your
