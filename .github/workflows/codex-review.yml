@@ -45,10 +45,21 @@ jobs:
           api() { gh api --paginate "repos/$GITHUB_REPOSITORY/$1" --jq "$2"; }
           deadline=$(( $(date +%s) + WAIT_MINUTES * 60 ))
           while :; do
-            # Codex reviews of this exact commit.
-            reviews=$(api "pulls/$PR/reviews" "[.[] | select(.user.login == env.CODEX_LOGIN and .commit_id == env.HEAD_SHA)] | length")
+            # Read both lists before deciding anything. A failed API call is retried
+            # until the deadline, never read as "no review" or "no security review".
+            if ! reviews=$(api "pulls/$PR/reviews" "[.[] | select(.user.login == env.CODEX_LOGIN and .commit_id == env.HEAD_SHA)] | length") \
+              || ! comments=$(api "issues/$PR/comments" '.[] | select(.user.login == env.CODEX_LOGIN) | .body'); then
+              if [ "$(date +%s)" -ge "$deadline" ]; then
+                echo "::error::Could not read the PR's reviews or comments from GitHub. Re-run this check."
+                exit 1
+              fi
+              echo "$(date -u +%H:%M:%S) GitHub API call failed; trying again"
+              sleep 30
+              continue
+            fi
             # Latest state block from Codex's summary comment (code review and security review).
-            state=$(api "issues/$PR/comments" '.[] | select(.user.login == env.CODEX_LOGIN) | .body' \
+            # Only "no state block found" is allowed to come back empty here.
+            state=$(printf '%s\n' "$comments" \
               | sed 's/&#123;/{/g; s/&#125;/}/g' \
               | grep -o 'codex-review-state:v1 {.*} -->' | tail -1 \
               | sed 's/^codex-review-state:v1 //; s/ -->$//' || true)
