@@ -43,6 +43,17 @@ Let it suggest new fonts, colors and hierarchy even if that breaks the design sy
 3. `/impeccable bolder`: push the winner further
 4. `/impeccable document`: save the new look as the design system
 
+## Restructure, then redesign
+
+When the pages and the look both need rethinking. Settle which pages exist first, then design them, with the current design system open to change.
+
+1. `/experience-architecture:diagnose`: what is wrong with the pages and navigation, and why; reads only
+2. `/experience-architecture:rethink <goal>`: two or three structures in a clickable prototype; you pick one
+3. `/experience-architecture:rethink build the option I picked`: moves pages and links one safe step at a time, old links kept working
+4. `/prototype <main page> x3, ignore DESIGN.md`: three new looks for the new structure, side by side
+5. `/impeccable document`: save the winning look as the design system
+6. `/impeccable polish`: carry the new look across the remaining pages
+
 ## It looks AI-generated
 
 Rescue a bland or generic screen without starting over.

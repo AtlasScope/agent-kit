@@ -4569,6 +4569,41 @@
    "dmode": "Changes code"
   },
   {
+   "id": "RC24",
+   "sec": "recipe",
+   "group": "Design recipes",
+   "t": "Restructure, then redesign",
+   "why": "When the pages and the look both need rethinking. Settle which pages exist first, then design them, with the current design system open to change.",
+   "steps": [
+    [
+     "/experience-architecture:diagnose",
+     "what is wrong with the pages and navigation, and why; reads only"
+    ],
+    [
+     "/experience-architecture:rethink <goal>",
+     "two or three structures in a clickable prototype; you pick one"
+    ],
+    [
+     "/experience-architecture:rethink build the option I picked",
+     "moves pages and links one safe step at a time, old links kept working"
+    ],
+    [
+     "/prototype <main page> x3, ignore DESIGN.md",
+     "three new looks for the new structure, side by side"
+    ],
+    [
+     "/impeccable document",
+     "save the winning look as the design system"
+    ],
+    [
+     "/impeccable polish",
+     "carry the new look across the remaining pages"
+    ]
+   ],
+   "p": "Restructure, then redesign. When the pages and the look both need rethinking. Settle which pages exist first, then design them, with the current design system open to change.\nRun these in order, and check in with me between steps:\n1. /experience-architecture:diagnose: what is wrong with the pages and navigation, and why; reads only\n2. /experience-architecture:rethink <goal>: two or three structures in a clickable prototype; you pick one\n3. /experience-architecture:rethink build the option I picked: moves pages and links one safe step at a time, old links kept working\n4. /prototype <main page> x3, ignore DESIGN.md: three new looks for the new structure, side by side\n5. /impeccable document: save the winning look as the design system\n6. /impeccable polish: carry the new look across the remaining pages",
+   "dmode": "Changes code"
+  },
+  {
    "id": "RC05",
    "sec": "recipe",
    "group": "Design recipes",

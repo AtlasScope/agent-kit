@@ -1,6 +1,6 @@
 # Prompt Library
 
-254 prompts, commands and recipes for coding and design agents. Open prompt-library.html for search, stars and the prompt composer.
+255 prompts, commands and recipes for coding and design agents. Open prompt-library.html for search, stars and the prompt composer.
 
 ## Investigations
 
@@ -1637,6 +1637,15 @@ sg -v docs/*.md
 2. /prototype <page> x3: three different directions to look at side by side
 3. /impeccable bolder: push the winner further
 4. /impeccable document: save the new look as the design system
+
+**RC24 · Restructure, then redesign** When the pages and the look both need rethinking. Settle which pages exist first, then design them, with the current design system open to change.
+
+1. /experience-architecture:diagnose: what is wrong with the pages and navigation, and why; reads only
+2. /experience-architecture:rethink <goal>: two or three structures in a clickable prototype; you pick one
+3. /experience-architecture:rethink build the option I picked: moves pages and links one safe step at a time, old links kept working
+4. /prototype <main page> x3, ignore DESIGN.md: three new looks for the new structure, side by side
+5. /impeccable document: save the winning look as the design system
+6. /impeccable polish: carry the new look across the remaining pages
 
 **RC05 · It looks AI-generated** Rescue a bland or generic screen without starting over.
 

@@ -741,6 +741,10 @@
    "s": "1221121",
    "note": "Breaks the design system on purpose; for exploration only."
   },
+  "RC24": {
+   "s": "2221221",
+   "note": "Needs the experience-architecture plugin for its first three steps."
+  },
   "RC05": {
    "s": "2221221"
   },
