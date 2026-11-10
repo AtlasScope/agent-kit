@@ -60,7 +60,7 @@ node $S/filmstrip.mjs http://localhost:3000 \
 node $S/spring.mjs --duration 0.4 --bounce 0.3 # one spring for CSS, Motion, SwiftUI and Reanimated
 ```
 
-`filmstrip.mjs` uses Playwright if the project or machine already has it and never installs it. Without Playwright the skill falls back to the agent's own browser tools.
+`filmstrip.mjs` never installs anything. It loads Playwright from the machine's global Node modules or from `MOTION_PLAYWRIGHT_DIR`. It loads the project's own copy only when you pass `--project-playwright`, because importing that copy runs the project's code; use the flag in projects you own or trust. Without Playwright the skill falls back to the agent's own browser tools.
 
 ## Layout
 

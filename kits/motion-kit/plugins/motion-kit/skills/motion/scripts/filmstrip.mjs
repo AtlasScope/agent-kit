@@ -8,10 +8,11 @@
 //
 //   node filmstrip.mjs <url> --do "click:#open" [--before "click:#tab"] [--frames 8] [--ms 600]
 //                      [--viewport 1280x800|mobile] [--clip <selector>] [--reduced] [--perf] [--throttle 4]
-//                      [--wait <selector>] [--out <dir>] [--json]
+//                      [--wait <selector>] [--out <dir>] [--json] [--project-playwright]
 //
 // Actions: click:<sel>  hover:<sel>  focus:<sel>  press:<key>  scroll:<px>  wait:<ms>  load
-// Playwright is used only if this project or machine already has it. Nothing is installed.
+// Playwright comes from the machine (global modules or MOTION_PLAYWRIGHT_DIR). The project's own copy is loaded
+// only with --project-playwright, because loading it runs that project's code. Nothing is installed.
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
@@ -36,19 +37,34 @@ const VIEWPORTS = { desktop: { width: 1280, height: 800 }, laptop: { width: 1180
 const vp = (() => { const v = opt("--viewport", "desktop"); const m = String(v).match(/^(\d+)x(\d+)$/); return m ? { width: +m[1], height: +m[2] } : VIEWPORTS[v] || VIEWPORTS.desktop; })();
 
 async function loadPlaywright() {
-  const bases = [process.cwd(), process.env.MOTION_PLAYWRIGHT_DIR, path.dirname(fileURLToPath(import.meta.url))].filter(Boolean);
+  // Importing a module runs its code in this process. A copy of Playwright inside the project being looked at
+  // is that project's code, so it is loaded only when --project-playwright says the project is trusted.
+  // Otherwise Playwright comes from MOTION_PLAYWRIGHT_DIR or the machine's global Node modules.
+  const trustProject = flag("--project-playwright");
+  const cwd = fs.realpathSync(process.cwd());
+  const ancestors = []; for (let d = cwd; ; d = path.dirname(d)) { ancestors.push(d); if (path.dirname(d) === d) break; }
+  const inProject = (file) => ancestors.some((d) => file.startsWith(path.join(d, "node_modules") + path.sep)) || file.startsWith(cwd + path.sep);
+  const globals = [...(process.env.NODE_PATH || "").split(path.delimiter), path.resolve(process.execPath, "../../lib/node_modules"), path.resolve(process.execPath, "../node_modules")].filter(Boolean);
+  const bases = [trustProject && cwd, process.env.MOTION_PLAYWRIGHT_DIR, ...globals, path.dirname(fileURLToPath(import.meta.url))].filter(Boolean);
+  let skipped = false;
   for (const b of bases) for (const name of ["playwright", "playwright-core", "@playwright/test"]) {
     try {
       const req = createRequire(path.join(path.resolve(b), "package.json"));
-      const mod = await import(pathToFileURL(req.resolve(name)).href);
+      let file;
+      try { file = req.resolve(name); } catch { file = fs.realpathSync(path.join(path.resolve(b), name)); file = createRequire(path.join(file, "package.json")).resolve("./"); }
+      file = fs.realpathSync(file);
+      if (!trustProject && inProject(file)) { skipped = true; continue; }
+      const mod = await import(pathToFileURL(file).href);
       const pw = mod.chromium ? mod : mod.default;
       if (pw?.chromium) return pw;
     } catch { /* try the next place */ }
   }
-  fail(`Playwright was not found in this project or on this machine, so no frames were captured.
-Do not install it into the user's project. Either:
+  fail(`No Playwright was loaded, so no frames were captured.${skipped ? `
+This project has its own copy, which was not used: loading it runs the project's code in this process.
+If the user owns or trusts this project, run again with --project-playwright.` : ""}
+Do not install anything into the user's project. Otherwise:
   1. use the agent's own browser tools and follow references/proof.md ("Without the script"), or
-  2. point MOTION_PLAYWRIGHT_DIR at a folder whose node_modules already has playwright and its browser.`, 3);
+  2. point MOTION_PLAYWRIGHT_DIR at a folder outside the project whose node_modules has playwright and its browser.`, 3);
 }
 
 const parseAction = (s) => { const i = s.indexOf(":"); return i < 0 ? { kind: s, arg: "" } : { kind: s.slice(0, i), arg: s.slice(i + 1) }; };

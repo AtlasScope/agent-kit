@@ -46,6 +46,7 @@ Options:
 | `--reduced` | Emulate the reduced-motion setting |
 | `--perf` | Add a real-time run that counts frames, layouts and style recalculations. `--throttle 4` sets the CPU slowdown |
 | `--wait <selector>` | Wait for an element before starting |
+| `--project-playwright` | Load Playwright from the project's own `node_modules`. Only for a project the user owns or trusts: it runs that project's code |
 
 The app has to be running. Confirm the server is serving the code you just changed before trusting a frame.
 

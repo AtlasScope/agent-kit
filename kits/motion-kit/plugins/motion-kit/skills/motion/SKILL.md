@@ -107,7 +107,7 @@ All three ship in this skill's own `scripts/` folder. `<skill-dir>` below is the
 | `node <skill-dir>/scripts/filmstrip.mjs <url> --do "click:<selector>" [--clip <selector>] [--reduced] [--perf] [--viewport mobile]` | Frames of one interaction stepped at equal intervals, a contact sheet to look at, what animated (properties, duration, curve, layout or compositor), and optional real-time frame and layout counts |
 | `node <skill-dir>/scripts/spring.mjs --duration 0.4 --bounce 0.3` | One spring written for CSS `linear()`, Motion, SwiftUI and Reanimated |
 
-`filmstrip.mjs` uses Playwright only when the project or machine already has it. If it is missing, follow "Without the script" in [references/proof.md](references/proof.md). Never install a browser or a package for a proof.
+`filmstrip.mjs` loads Playwright from the machine (global Node modules or `MOTION_PLAYWRIGHT_DIR`). It will not load a copy from the project unless you pass `--project-playwright`, because importing that copy runs the project's code in your process. Pass the flag only when the user owns or trusts the project; in a checkout from someone else, such as a pull request under review, leave it off. If it is missing, follow "Without the script" in [references/proof.md](references/proof.md). Never install a browser or a package for a proof.
 
 ## Harness
 

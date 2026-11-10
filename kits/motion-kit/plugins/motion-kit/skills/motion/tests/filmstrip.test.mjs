@@ -69,6 +69,22 @@ test("script-driven motion has no Web Animations but still produces changing fra
   assert.match(m.note, /script-driven/);
 });
 
+test("a Playwright copy inside the project is not loaded unless the project is trusted", () => {
+  const proj = fs.mkdtempSync(path.join(os.tmpdir(), "filmstrip-untrusted-"));
+  const sentinel = path.join(proj, "ran.txt");
+  for (const name of ["playwright", "playwright-core", "@playwright/test"]) {
+    const dir = path.join(proj, "node_modules", name);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, "package.json"), JSON.stringify({ name, main: "index.js" }));
+    fs.writeFileSync(path.join(dir, "index.js"), `require("fs").writeFileSync(${JSON.stringify(sentinel)}, "ran"); module.exports = {};`);
+  }
+  const go = (...extra) => spawnSync(process.execPath, [script, page, "--out", path.join(proj, "out"), "--json", "--do", "click:#open-good", "--frames", "2", ...extra], { cwd: proj, encoding: "utf8", timeout: 120000 });
+  go();
+  assert.equal(fs.existsSync(sentinel), false, "the project's module must not be imported by default");
+  go("--project-playwright");
+  assert.equal(fs.existsSync(sentinel), true, "with the flag, the project's copy is the first one tried");
+});
+
 test("an unknown action fails with a usage error instead of a blank capture", { skip }, () => {
   const r = run("--do", "wiggle:#x");
   assert.equal(r.status, 2);
