@@ -173,6 +173,29 @@ test("a copy of the skill installed inside a project does not pick up that proje
   assert.equal(fs.existsSync(sentinel), false, "the project's module must not be imported from a nested working directory");
 });
 
+test("a link higher up the output path is refused before anything is removed", () => {
+  const proj = fs.mkdtempSync(path.join(os.tmpdir(), "filmstrip-ancestor-"));
+  fs.mkdirSync(path.join(proj, ".git"));
+  const outside = fs.mkdtempSync(path.join(os.tmpdir(), "filmstrip-outside-"));
+  const victim = path.join(outside, "motion", "menu", "frames", "keep.txt");
+  fs.mkdirSync(path.dirname(victim), { recursive: true });
+  fs.writeFileSync(victim, "keep me");
+  fs.symlinkSync(outside, path.join(proj, ".artifacts"));
+  const r = spawnSync(process.execPath, [script, page, "--out", ".artifacts/motion/menu", "--do", "click:#open-good", "--frames", "2"], { cwd: proj, encoding: "utf8", timeout: 120000 });
+  assert.equal(fs.readFileSync(victim, "utf8"), "keep me");
+  assert.equal(r.status, 2);
+  assert.match(r.stderr, /symbolic link on the way/);
+});
+
+test("an animation a timer starts between frames keeps the time it began", { skip }, () => {
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), "filmstrip-test-"));
+  const r = spawnSync(process.execPath, [script, path.join(here, "fixtures/staged.html"), "--out", out, "--json", "--do", "click:#go", "--ms", "400", "--frames", "3"], { encoding: "utf8", timeout: 60000 });
+  assert.equal(r.status, 0, r.stderr);
+  const second = JSON.parse(r.stdout).animations.find((a) => a.name === "second");
+  assert.ok(second, "the staged animation is found");
+  assert.ok(Math.abs(second.startedAt - 100) <= 20, `it starts 100ms in, recorded ${second.startedAt}ms`);
+});
+
 test("an unknown action fails with a usage error instead of a blank capture", { skip }, () => {
   const r = run("--do", "wiggle:#x");
   assert.equal(r.status, 2);

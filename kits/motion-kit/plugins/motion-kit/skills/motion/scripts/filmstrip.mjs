@@ -169,6 +169,18 @@ async function settle(page) {
 // is created fresh.
 function prepareOut() {
   const isLink = (p) => { try { return fs.lstatSync(p).isSymbolicLink(); } catch { return false; } };
+  // Every folder between the project root and the output folder is checked before anything is created or
+  // removed, so a link planted higher up (".artifacts" pointing elsewhere) cannot redirect the work.
+  let root = process.cwd();
+  for (let d = root; ; d = path.dirname(d)) { if (fs.existsSync(path.join(d, ".git"))) { root = d; break; } if (path.dirname(d) === d) break; }
+  const rel = path.relative(root, outDir);
+  if (rel && !rel.startsWith("..") && !path.isAbsolute(rel)) {
+    let step = root;
+    for (const part of rel.split(path.sep)) {
+      step = path.join(step, part);
+      if (isLink(step)) fail(`Refusing to write: ${step} is a symbolic link on the way to the output folder. Choose another --out folder, or remove the link if it is yours.`, 2);
+    }
+  }
   fs.mkdirSync(outDir, { recursive: true });
   const ours = ["frames", "sheet.html", "sheet.png", "filmstrip.json"].map((n) => path.join(outDir, n));
   const link = [outDir, ...ours].find(isLink);
@@ -250,9 +262,14 @@ async function capture(pw) {
   for (let i = 0; i < FRAMES; i++) {
     if (i > 0) {
       const next = Math.round(i * step);
-      await page.clock.runFor(next - t);
-      t = next;
-      animations.push(...(await page.evaluate(scrub, t)));
+      // Advance one display frame at a time and look for new animations after each, so one that a timer
+      // starts between two captures is recorded with the time it really began, to within a frame.
+      while (t < next) {
+        const slice = Math.min(16, next - t);
+        await page.clock.runFor(slice);
+        t += slice;
+        animations.push(...(await page.evaluate(scrub, t)));
+      }
     }
     const file = `frames/${String(i).padStart(2, "0")}.png`;
     const buf = await shot(file);
@@ -269,7 +286,8 @@ async function capture(pw) {
     : moved ? "no CSS or Web Animations found; script-driven motion stepped with a paused clock"
     : instant ? "the change was instant: the first frame already differs from before the action, and nothing moves after it"
     : "nothing changed on screen after the action") + clipNote;
-  const meta = { url, action: trigger, instant, clip: clip || null, before: before ? "frames/before.png" : null, viewport: { width: vp.width, height: vp.height }, reducedMotion: flag("--reduced"), windowMs, frames, framesChanged: moved, animations: animations.map(({ start, ...a }) => ({ ...a, startedAt: start })), note, errors };
+  // startedAt is time since the action. The first 34ms pass before frame 0, to let scripts start their animations.
+  const meta = { url, action: trigger, instant, clip: clip || null, before: before ? "frames/before.png" : null, viewport: { width: vp.width, height: vp.height }, reducedMotion: flag("--reduced"), windowMs, frames, framesChanged: moved, animations: animations.map(({ start, ...a }) => ({ ...a, startedAt: start ? start + 34 : 0 })), note, errors };
 
   if (flag("--perf")) meta.perf = await perf(browser, actions, windowMs);
 
