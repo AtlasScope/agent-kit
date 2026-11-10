@@ -33,7 +33,7 @@ export function InstallRail({ stats }: { stats: { label: string; value: number }
           ))}
         </div>
         <div className="rail__cmd" id="rail-cmd" role="tabpanel" aria-labelledby={`rt-${cur}`}>
-          <code>{agent.cmd}</code>
+          <div className="rail__steps">{agent.steps.map((s) => <code key={s}>{s}</code>)}</div>
           <CopyButton key={agent.id} className="rail__copy" text={agent.steps.join("\n")} label={agent.steps.length > 1 ? `Copy ${agent.steps.length} steps` : "Copy"} />
         </div>
       </div>

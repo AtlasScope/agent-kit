@@ -499,7 +499,7 @@ svg.i { width: 16px; height: 16px; flex: none; }
 /* Homepage hero: the orbit photo under a solid ink header, text hung from the container's left edge, and a solid
    strip along the bottom with the install command. The logo never sits on the photo. */
 .orbit { --edge: max(var(--gutter), calc(50vw - var(--container) / 2 + var(--gutter))); margin-inline: calc(50% - 50vw); display: grid; grid-template-columns: minmax(0, 1fr); background: var(--color-paper); }
-.orbit__stage { position: relative; display: grid; align-content: center; min-height: clamp(520px, calc(100svh - 65px - 113px), 1000px); padding-block: clamp(24px, 6svh, 64px); overflow: hidden; isolation: isolate; }
+.orbit__stage { position: relative; display: grid; align-content: center; min-height: clamp(520px, calc(100svh - 65px - 137px), 1000px); padding-block: clamp(16px, 4svh, 64px); overflow: hidden; isolation: isolate; }
 .orbit__photo { position: absolute; inset: 0; z-index: -1; background: var(--color-paper) 50% 100% / cover no-repeat; }
 .orbit__photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 100%; }
 /* Ink over the left so the text sits in black sky, and a fade under the header. */
@@ -522,8 +522,10 @@ svg.i { width: 16px; height: 16px; flex: none; }
 .rail__tabs { display: flex; gap: 20px; overflow-x: auto; scrollbar-width: none; padding: 4px; margin: -4px; }
 .rail__tabs button { flex: none; padding: 0 0 4px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--color-muted); font: 400 0.8125rem/1.4 var(--font-body); white-space: nowrap; cursor: pointer; transition: color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out); }
 .rail__tabs button[aria-selected="true"] { color: var(--color-ink); border-bottom-color: var(--color-ink); }
-.rail__cmd { display: flex; align-items: center; gap: var(--space-sm); min-height: 44px; padding: 0 6px 0 var(--space-md); border: 1px solid var(--color-rule); border-radius: 8px; background: var(--color-paper-2); font: 400 0.9375rem/1 var(--font-mono); }
-.rail__cmd code { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; line-height: 1.6; }
+/* Tall enough for two steps, so the strip does not change height between agents. */
+.rail__cmd { display: flex; align-items: center; gap: var(--space-sm); min-height: 68px; padding: 8px 6px 8px var(--space-md); border: 1px solid var(--color-rule); border-radius: 8px; background: var(--color-paper-2); font: 400 0.9375rem/1 var(--font-mono); }
+.rail__steps { flex: 1; min-width: 0; display: grid; }
+.rail__cmd code { display: block; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; line-height: 1.6; }
 .rail__cmd code::before { content: "$ "; color: var(--color-muted); }
 .rail__copy { flex: none; min-height: 32px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--color-accent); color: var(--color-accent-ink); font: 600 0.8125rem/1 var(--font-body); cursor: pointer; }
 .rail__stats { display: flex; gap: var(--space-xl); margin: 0 0 0 auto; }
@@ -537,8 +539,9 @@ svg.i { width: 16px; height: 16px; flex: none; }
 /* Narrower than the strip can hold in one row: the counts and the tested line drop under the command. */
 @media (max-width: 68rem) {
   /* The header is taller and the strip wraps here, so the photo area sizes to its text and the command stays on the first screen. */
-  .orbit__stage { align-content: start; min-height: 0; padding-block: var(--space-xl) clamp(56px, 10svh, 200px); }
+  .orbit__stage { align-content: start; min-height: 0; padding-block: var(--space-xl) clamp(40px, 8svh, 200px); }
   .orbit__photo::after { background: linear-gradient(to bottom, #0B0C12, rgba(11,12,18,0) 140px), linear-gradient(to right, #0B0C12 20%, rgba(11,12,18,.8) 42%, rgba(11,12,18,0) 64%); }
+  .orbit__rail { scroll-margin-top: 120px; }
   .rail { flex-wrap: wrap; gap: var(--space-lg); padding-block: var(--space-lg); }
   .rail__install { flex: 1 1 100%; }
   .rail__stats { margin: 0; }
@@ -550,6 +553,7 @@ svg.i { width: 16px; height: 16px; flex: none; }
   .orbit__photo::after { background: linear-gradient(to bottom, #0B0C12 44%, rgba(11,12,18,.7) 62%, rgba(11,12,18,0) 82%); }
   .orbit__body { gap: var(--space-lg); }
   .orbit__cta { width: 100%; } .orbit__cta .btn { flex: 1 1 100%; justify-content: center; }
+  .orbit__rail { scroll-margin-top: 166px; }
   .rail__stats { gap: var(--space-lg); width: 100%; }
   .rail__tested { flex-basis: 100%; padding-left: 0; border-left: 0; }
   /* The whole command shows, so it can be read before it is pasted. */
