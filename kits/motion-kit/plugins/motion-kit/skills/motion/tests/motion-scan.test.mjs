@@ -62,6 +62,14 @@ test("Tailwind v4 variable-backed utilities count as tokens", () => {
   assert.deepEqual(r.easings.map((e) => e.easing), ["var(--ease-out)"]);
 });
 
+test("duration tokens are recognised by their place in a shorthand, whatever they are called", () => {
+  const r = scan("tokens");
+  assert.equal(r.totals.tokenDurations, 3, "one per transition: --motion-base, --t2 and --quick");
+  assert.equal(r.totals.literalDurations, 0);
+  assert.deepEqual(r.easings.map((e) => e.easing).sort(), ["var(--ease-out)", "var(--snap)"]);
+  assert.ok(!r.system.some((x) => x.rule === "no-tokens"));
+});
+
 test("a folder with no motion says so and exits cleanly", () => {
   const out = execFileSync(process.execPath, [path.join(here, "../scripts/motion-scan.mjs"), path.join(here, "../agents")], { encoding: "utf8" });
   assert.match(out, /No motion found/);

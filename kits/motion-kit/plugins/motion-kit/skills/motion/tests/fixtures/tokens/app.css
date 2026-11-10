@@ -1,0 +1,4 @@
+.a { transition: transform var(--motion-base) var(--ease-out); }
+.b { transition: opacity var(--t2) var(--ease-out) var(--t1); }
+.c { transition: color var(--quick) var(--snap); }
+@media (prefers-reduced-motion: reduce) { .a { transition: none; } }

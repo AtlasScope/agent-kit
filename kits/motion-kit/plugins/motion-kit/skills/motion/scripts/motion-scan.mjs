@@ -95,8 +95,13 @@ function scanCssValue(kind, prop, value, file, line, text) {
         }
         sawTime++;
       } else if (/^var\(/.test(t)) {
-        if (/dur|time|speed/i.test(t) || /duration/.test(prop)) { totals.tokenDurations++; sawTime++; }
-        else if (/eas|curve|bezier|spring/i.test(t) || /timing-function/.test(prop)) { bump(easings, t.toLowerCase()); sawEase = true; }
+        // A variable is read by its name when the name says what it is, and by its place otherwise: in a
+        // shorthand the first time-like value is the duration, whatever the project called its token.
+        const namedEase = /eas|curve|bezier|spring/i.test(t), namedTime = /dur|time|speed|motion|delay/i.test(t);
+        if (/timing-function/.test(prop) || (namedEase && !/duration|delay/.test(prop))) { bump(easings, t.toLowerCase()); sawEase = true; }
+        else if (/delay/.test(prop)) sawTime++;
+        else if (/duration/.test(prop) || namedTime || !sawTime) { if (sawTime === 0) totals.tokenDurations++; sawTime++; }
+        else if (!sawEase) { bump(easings, t.toLowerCase()); sawEase = true; }
       } else if (EASE_WORD.test(t) || /^(cubic-bezier|steps|linear)\(/.test(t)) { noteEasing(t, file, line, text, kind, props); sawEase = true; }
       else if (t === "infinite") { totals.infinite++; find("infinite", "check", file, line, text, "Runs forever. It needs a reduced-motion alternative, and a pause control if it lasts over five seconds beside other content (WCAG 2.2.2)."); }
       else if (kind === "transition" && (prop === "transition" || prop === "transition-property") && /^[a-z-]+$/.test(t) && !/^(allow-discrete|normal)$/.test(t)) noteProperty(t, file, line, text, kind);
