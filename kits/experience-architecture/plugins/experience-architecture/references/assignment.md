@@ -39,7 +39,7 @@ Open: <what is unknown or not established>
 
 ## Before and after
 
-Comparable captures need the same job, role, data, width and application state on both sides. Record the revision of each. Until a capture command exists, take them with `ea journey <spec> --screenshots` or the session's browser tools, running the same spec before and after. Give each run its own folder, `--out <output-dir>/before` and `--out <output-dir>/after`: the runner names captures and logs by journey, width and step, so a second run into the same folder overwrites the first. Keep the full-size images; a sheet of thumbnails is an index to them.
+Comparable captures need the same job, role, data, width and application state on both sides. Record the revision of each. Take them with `ea capture <urls>` for pages a URL reaches, `ea journey <spec> --screenshots` for states that need clicks, or the session's browser tools, running the same command or spec before and after. Give each run its own folder, `--out <output-dir>/before` and `--out <output-dir>/after`: captures are named by page or journey, width and step, so a second run into the same folder overwrites the first. Then `ea sheet <output-dir>/before <output-dir>/after` pairs them on one page. Keep the full-size images; the sheet is an index to them. When someone will judge the pairs without knowing which side is which, add `--blind` and keep the key file from them.
 
 ## Where things may be written
 

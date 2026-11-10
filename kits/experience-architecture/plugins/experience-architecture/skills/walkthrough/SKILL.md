@@ -50,7 +50,7 @@ Do each journey as the person in the brief, starting where they would start.
 
 - Where the session can start a fresh sub-agent, give it only the URL, the role, the job and the record format, and let it do the pass. That is a **cold pass**. A pass you make yourself after seeing any source is **source-informed**; say which this was.
 - Use what is on screen: visible text, layout, and the names assistive technology would read. Reach pages by the controls a person would use.
-- Capture each state at desktop and phone width (`ea journey <spec> --screenshots`, or the session's browser tools) and look at the images. Add a narrow width such as `560x900` when the product is used beside another app.
+- Capture each state at desktop and phone width (`ea capture <urls> --widths desktop,mobile`, `ea journey <spec> --screenshots` for states that need clicks, or the session's browser tools) and look at the images. Add a narrow width such as `560x900` when the product is used beside another app.
 - After each step, fill one observation record (`walkthrough.md`): what the screen says it is for, what draws the eye first, what you would do next and why, what happened, and whether you could tell you were finished.
 - Then take the hard turns on the same journey: arrive by a pasted link, go Back, leave halfway and return, reach an empty state, cause an error.
 - A journey that stops at a step you could not complete ends there. Report the block; say nothing about the steps after it.

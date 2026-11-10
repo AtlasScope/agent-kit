@@ -43,6 +43,11 @@ Browser (needs Playwright; otherwise use 'probe' with your browser tools)
                                          Verdict: PASS (stated checks met, no open defects), FAIL (a check failed, a
                                          journey stopped, or a defect not listed under "accept"), or EXPLORATORY (no
                                          stated check; nothing verified). --ci exits 0 / 1 / 2 for these.
+  capture <url|path...> [--base url] [--widths desktop,mobile,560x900] [--out dir] [--revision r] [--fold]
+          [--cookie name=value] [--storage-state f]
+                                         Full-page screens of each URL at each width, plus capture.json. File names
+                                         depend on the URL and width only, so a run before a change and a run after
+                                         it (each with its own --out) pair up by name
   probe                                  Print the state-snapshot script to run in any browser tool
   transitions <log.json> [--out dir] [--ci]  Analyze a journey log (from 'journey' or hand-collected probe snapshots)
 
@@ -50,6 +55,11 @@ Reports
   refs <report.md> [--root app] [--ci]   Check every file:line reference in a report against the source: the file
                                          exists, the line exists, quoted identifiers are near it. --ci exits 1 on
                                          any wrong reference
+
+  sheet <before-dir> <after-dir> [--out sheet.html] [--title t] [--blind] [--inline]
+                                         One HTML page pairing the captures that share a file name in two folders
+                                         (from 'capture' or 'journey --screenshots'). --blind shows each pair as A
+                                         and B in mixed order and writes the key to a separate file. No browser
 
 Design and migration
   prototype <proposal.json...> [--out file.html]   Clickable navigation prototype of one or more proposals
@@ -132,6 +142,40 @@ async function main() {
       const { crawlMarkdown } = await import('./lib/browser.mjs');
       write(dir, 'crawl.md', crawlMarkdown(res));
       console.log(`Crawled ${res.pages.length} pages; ${res.findings.length} findings. Wrote ${dir}/crawl.{json,md}`);
+      break;
+    }
+    case 'capture': {
+      const { capture } = await import('./lib/browser.mjs');
+      if (!opts._.length) throw new Error('usage: ea capture <url|path...> [--base url] [--widths desktop,mobile] [--out dir]');
+      if (opts._.some((u) => !/^https?:/.test(u)) && typeof opts.base !== 'string') throw new Error('ea capture: give full URLs, or paths with --base <url>');
+      const dir = outDir('.experience-architecture/captures');
+      const widths = String(opts.widths || 'desktop,mobile').split(',').filter(Boolean);
+      const cookies = [].concat(opts.cookie || []).filter((c) => typeof c === 'string').map((c) => { const [name, ...v] = c.split('='); return { name, value: v.join('=') }; });
+      const res = await capture(opts._, { widths, dir, base: opts.base, storageState: opts['storage-state'], cookies, foldOnly: !!opts.fold });
+      let revision = typeof opts.revision === 'string' ? opts.revision : null;
+      if (!revision) { try { const { execFileSync } = await import('node:child_process'); revision = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim() + (execFileSync('git', ['status', '--porcelain'], { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim() ? ' with uncommitted changes' : ''); } catch { /* not a git folder */ } }
+      const { scrubUrls } = await import('./lib/browser.mjs');
+      write(dir, 'capture.json', { base: scrubUrls(opts.base || new URL(opts._[0]).origin), revision, capturedAt: new Date().toISOString(), widths, fullPage: !opts.fold, ...res });
+      const failed = res.shots.filter((x) => x.error);
+      console.log(`${res.shots.length - failed.length} capture(s) at ${widths.join(', ')}${failed.length ? `, ${failed.length} failed` : ''}. Revision: ${revision || 'not recorded (pass --revision)'}.\nWrote ${dir}/ (PNG files and capture.json)`);
+      for (const x of failed) console.log(`  failed: ${x.url} at ${x.width}: ${x.error}`);
+      for (const x of res.shots.filter((y) => y.status >= 400 || y.landedOn)) console.log(`  check: ${x.url} at ${x.width} ${x.status >= 400 ? `returned ${x.status}` : `landed on ${x.landedOn}`}`);
+      if (failed.length) process.exitCode = 1;
+      break;
+    }
+    case 'sheet': {
+      const { buildSheet } = await import('./lib/sheet.mjs');
+      const [b, a] = opts._.map((d) => path.resolve(d));
+      if (!b || !a || !fs.existsSync(b) || !fs.existsSync(a)) throw new Error('usage: ea sheet <before-dir> <after-dir> [--out sheet.html] [--blind]');
+      const outFile = path.resolve(typeof opts.out === 'string' ? opts.out : path.join(path.dirname(a), opts.blind ? 'sheet-blind.html' : 'sheet.html'));
+      fs.mkdirSync(path.dirname(outFile), { recursive: true });
+      const r = buildSheet(b, a, { outFile, title: typeof opts.title === 'string' ? opts.title : undefined, blind: !!opts.blind, inline: !!opts.inline });
+      if (!r.pairs.length) throw new Error(`ea sheet: no PNG file names are shared by ${b} and ${a}. Captures pair by file name; run the same command or spec on both sides.`);
+      fs.writeFileSync(outFile, r.html);
+      console.log(`${r.pairs.length} pair(s). Wrote ${outFile}`);
+      if (r.key) { const k = outFile.replace(/\.html?$/i, '') + '-key.json'; fs.writeFileSync(k, JSON.stringify(r.key, null, 2)); console.log(`Key: ${k} (keep it from whoever judges the sheet)`); }
+      for (const n of r.notes) console.log(`  note: ${n}`);
+      if (r.onlyBefore.length || r.onlyAfter.length) console.log(`  not paired: ${r.onlyBefore.length} only in before, ${r.onlyAfter.length} only in after`);
       break;
     }
     case 'journey': {

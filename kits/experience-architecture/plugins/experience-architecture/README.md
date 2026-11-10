@@ -71,6 +71,8 @@ On the Bash PATH while the plugin is enabled (`node <plugin>/scripts/ea.mjs` wor
 ea map <app-root>            static model: routes, layouts, chrome, nav graph, ~30 kinds of signal
 ea crawl <url>               runtime link graph by page region, dead pages, active-state conflicts, duplicates, mobile nav
 ea journey <spec.json>       step-by-step journeys with state snapshots, history reconstruction and anomaly checks
+ea capture <urls>            full-page screens of each URL at each width, named so two runs pair up
+ea sheet <before> <after>    one page pairing the captures from two folders; --blind hides which side is which
 ea probe                     the snapshot script, for driving any browser tool by hand
 ea transitions <log.json>    anomaly checks and transition map for hand-collected logs
 ea prototype <proposal...>   clickable HTML prototype of one or more proposed structures

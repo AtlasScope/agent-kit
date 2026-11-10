@@ -457,3 +457,40 @@ export async function runJourneys(spec, { base, viewport, screenshots, reveal } 
 
 // Remove captured page text before a log is written to disk.
 export function redactLog(log) { for (const r of log.runs || []) for (const st of r.steps) { stripText(st.snapshot); stripText(st.reference); } return log; }
+
+// ---- capture ----
+// Still screens of given URLs at given widths, for looking at and for pairing before and after a change.
+// One context per width; writes are blocked as in crawl. File names depend only on the URL and the width,
+// so two runs into different folders pair up by name.
+export const shotName = (url, width) => {
+  let p = url; try { const u = new URL(url, 'http://x'); p = u.pathname + u.search; } catch { /* keep */ }
+  const slug = scrubUrls(p).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'home';
+  return `${slug}-${width}.png`;
+};
+export async function capture(urls, { widths = ['desktop', 'mobile'], dir, base, storageState, cookies, foldOnly = false } = {}) {
+  const pw = await loadPlaywright();
+  const abs = (u) => (/^https?:/.test(u) ? u : new URL(u, base).href);
+  const origin = new URL(abs(urls[0])).origin;
+  const shots = []; const blocked = new Set(); let browser;
+  try {
+    for (const w of widths) {
+      const c = await newContext(pw, { viewport: w, storageState, cookies, base: origin, allowWrites: false, browser });
+      browser = c.browser;
+      const page = await c.ctx.newPage();
+      for (const u of urls) {
+        const file = shotName(u, w); const rec = { url: scrubUrls(u), width: w, file };
+        try {
+          const res = await page.goto(abs(u), { waitUntil: 'domcontentloaded', timeout: 20000 });
+          await settle(page);
+          rec.status = res?.status(); rec.title = await page.title();
+          const final = new URL(page.url()); if (final.href !== abs(u)) rec.landedOn = scrubUrls(final.pathname + final.search);
+          await page.screenshot({ path: path.join(dir, file), fullPage: !foldOnly });
+        } catch (e) { rec.error = scrubUrls(String(e.message || e).split('\n')[0]); delete rec.file; }
+        shots.push(rec);
+      }
+      for (const b of c.blocked) blocked.add(b);
+      await c.ctx.close();
+    }
+  } finally { await browser?.close(); }
+  return { shots, blockedWrites: [...blocked] };
+}
