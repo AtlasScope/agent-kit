@@ -245,6 +245,8 @@ On library pages, depth is mostly tonal: a slate panel with a hairline border on
 
 **The One Movement Rule.** The only animation that plays by itself on the homepage is the photograph settling into place on load (1400ms, from 55% opacity and 3.5% oversize). Text is in place from the first frame. With reduced motion set, nothing moves.
 
+**The Answer A Press Rule.** Every other movement answers something the visitor did, and none makes them wait. The menu sheet arrives in 240ms (fading in and settling 8px) with its rows following 30ms apart. Changing agent in the install strip fades the new command in over 200ms. A pressed control answers within 120ms: icon buttons and the Copy pill shrink slightly and take their hover fill, because a phone has no hover. All of it uses the one ease-out curve, and all of it is off with reduced motion set.
+
 ## Shapes
 
 Two families. Actions in the hero are full pills (999px): the primary and secondary buttons and the Copy button. Everything that holds content is a rectangle with a modest corner: 8px for small controls (the command field, navigation links, the header button), 10px for the search field, 12px for panels and rows, 14px for cards and tiles. Section dots are 10px squares with 3px corners.
