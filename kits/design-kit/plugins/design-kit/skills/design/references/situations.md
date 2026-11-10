@@ -1,10 +1,12 @@
 # Situations and overlaps
 
-What the user says, mapped to the usual pick and the alternative. Then how to choose between skills that cover the same job. Generated from the Design Skills Field Guide.
+Generated from `library/library.json` by `kits/design-kit/scripts/build_references.mjs`; do not edit by hand.
+
+What the user says, mapped to the usual pick and the alternative. Then how to choose between skills that cover the same job.
 
 ## Start a project
 
-Once per repo, before any design pass. Everything after reads what this writes.
+Do these once per project, before any design work. Everything later reads what they write.
 
 | Situation | Pick | Or |
 |---|---|---|
@@ -17,7 +19,7 @@ Once per repo, before any design pass. Everything after reads what this writes.
 
 ## Plan
 
-Before code. Agree the job of the screen and see options.
+Before any code. Agree what the screen is for and look at a few options.
 
 | Situation | Pick | Or |
 |---|---|---|
@@ -30,7 +32,7 @@ Before code. Agree the job of the screen and see options.
 
 ## Build
 
-Pick the builder by what the thing is.
+Pick the builder that matches what you are making.
 
 | Situation | Pick | Or |
 |---|---|---|
@@ -46,7 +48,7 @@ Pick the builder by what the thing is.
 
 ## Review
 
-Get a second opinion before changing anything. Most of these only report.
+Get a second opinion before changing anything. Most of these only report back.
 
 | Situation | Pick | Or |
 |---|---|---|
@@ -64,7 +66,7 @@ Get a second opinion before changing anything. Most of these only report.
 
 ## Refine the look
 
-It works, but doesn't look right yet.
+It works, but it doesn't look right yet.
 
 | Situation | Pick | Or |
 |---|---|---|
@@ -83,7 +85,7 @@ It works, but doesn't look right yet.
 
 ## Harden and ship
 
-Edge cases, speed, phones, and the last pass.
+Odd cases, speed, phones, and the final pass.
 
 | Situation | Pick | Or |
 |---|---|---|
@@ -98,7 +100,7 @@ Edge cases, speed, phones, and the last pass.
 
 ## Words
 
-READMEs, PR bodies, docs and emails.
+READMEs, pull request descriptions, docs and emails.
 
 | Situation | Pick | Or |
 |---|---|---|
@@ -116,99 +118,99 @@ READMEs, PR bodies, docs and emails.
 
 ### Review a built UI
 
-- `/impeccable critique`: UX and hierarchy, scored, persona tests
-- `/interface-design:design-review`: strict craft review with an approval bar
-- `/emil-design-eng`: component-level polish
-- `/hallmark audit <path>`: marketing pages against Hallmark's floor
+- `/impeccable critique`: Scores the whole screen's usability and layout, and tests it as different kinds of users
+- `/interface-design:design-review`: A strict quality review with a pass-or-fail bar
+- `/emil-design-eng`: Fine polish on one component
+- `/hallmark audit <path>`: Checks marketing pages against Hallmark's minimum standard
 
-Pick: Critique for whole-screen UX. Design-review for app UI you want held to a high bar. Emil for a single component. Hallmark audit only for pages Hallmark would build.
+Pick: Critique for a whole screen. Design-review for app screens you want held to a high bar. Emil for one component. Hallmark audit only for pages Hallmark would build.
 
 ### Rule and accessibility checks
 
-- `/web-design-guidelines <path>`: Vercel's live rules, file:line
-- `/impeccable audit`: a11y, performance, theming, P0 to P3
+- `/web-design-guidelines <path>`: Vercel's current rule list, with the file and line for each problem
+- `/impeccable audit`: Accessibility, speed and light and dark themes, ranked from most to least urgent
 
-Pick: Guidelines for a quick, objective checklist. Audit when you also want performance and theming checked and prioritized.
+Pick: Guidelines for a quick checklist with clear answers. Audit when you also want speed and themes checked and ranked.
 
 ### Build a new page
 
-- `/hallmark <prompt>`: marketing pages, varied genres
-- `/interface-design`: product UI with a saved system
-- `example-skills:frontend-design`: lightweight, no project setup
-- `/impeccable shape`: project-aware once init has run
+- `/hallmark <prompt>`: Marketing pages in many different styles
+- `/interface-design`: App screens, saving the design rules for next time
+- `example-skills:frontend-design`: Quick and light, nothing to set up first
+- `/impeccable shape`: Knows your project once you have run init
 
-Pick: Hallmark for anything public-facing. Interface Design for tools and dashboards. Frontend-design for quick throwaways.
+Pick: Hallmark for anything the public will see. Interface Design for tools and dashboards. Frontend-design for quick throwaways.
 
 ### Animation
 
-- `/animate`: deep build, Emil's decision order
-- `/impeccable animate`: motion as part of a design pass
-- `/apple-design`: gesture-driven, physical motion
+- `/animate`: Builds one animation carefully, following Emil Kowalski's order of decisions
+- `/impeccable animate`: Motion as part of a broader design pass
+- `/apple-design`: Motion that follows your finger: swipes, drags and springs
 
 Pick: /animate for one interaction you want exactly right. Impeccable animate for a light pass over a screen. Apple-design when touch and drag are involved.
 
 ### Variants to choose from
 
-- `/prototype`: 3+ different versions of a new thing
-- `/impeccable generate`: N variants of an existing element
-- `/impeccable live`: hot-swapped variants in your dev server
+- `/prototype`: Three or more different versions of something new
+- `/impeccable generate`: Several versions of something that already exists
+- `/impeccable live`: Swaps versions in live while your app runs
 
-Pick: Prototype when the idea is new. Generate or live when the element exists and you are tuning it.
+Pick: Prototype when the idea is new. Generate or live when the thing exists and you are fine-tuning it.
 
 ### Make it less generic
 
-- `/interface-design:design-deslop`: strips AI-made tells
-- `/impeccable bolder`: adds a point of view
-- `/impeccable delight`: small personality touches
+- `/interface-design:design-deslop`: Removes the signs that AI made it
+- `/impeccable bolder`: Gives it a clear point of view
+- `/impeccable delight`: Adds small touches of personality
 
-Pick: Deslop first to remove the defaults, then bolder. Delight last, and sparingly.
+Pick: Deslop first to remove the defaults, then bolder. Delight last, and only a little.
 
 ### Fix AI-sounding writing
 
-- `/fix-writing`: picks the right one of these for you
-- `/humanizer`: rewrites one piece of text
-- `/stop-slop`: strict rules while writing new text
-- `/sepia:sepia`: format-aware: release notes, PR replies, postmortems
-- `/slop-guard`: scores only, never edits
-- `/vale:fix`: rule-based fixes across a repo
-- `/impeccable clarify`: UI copy, labels and errors
+- `/fix-writing`: Picks the right one of these for you
+- `/humanizer`: Rewrites one piece of text
+- `/stop-slop`: Strict rules while you write something new
+- `/sepia:sepia`: Knows formats like release notes, pull request replies and incident write-ups
+- `/slop-guard`: Gives a score only and never edits
+- `/vale:fix`: Rule-based fixes across a whole repo
+- `/impeccable clarify`: Words in the app: labels, buttons and error messages
 
-Pick: Not sure? /fix-writing chooses. Stop-slop to write clean from the start. Humanizer to fix a draft, especially one with facts. Sepia when the format matters. Slop-guard to measure. Vale across many files. Clarify for words in the interface.
+Pick: Not sure? /fix-writing chooses. Stop-slop to write clean from the start. Humanizer to fix a draft, especially one with facts in it. Sepia when the format matters. Slop-guard to measure. Vale across many files. Clarify for words inside the app.
 
 ### Be critical about a design
 
-- `/impeccable critique`: scored UX review, fixes nothing
-- `/harsh-review`: blunt, evidence-backed, ships small fixes
-- `/steve-jobs-design-review`: simplicity and focus, nothing else
-- `/ux-heuristics`: usability by Nielsen's rules
-- `/interface-design:design-review`: craft bar for app UI
+- `/impeccable critique`: A scored usability review that changes nothing
+- `/harsh-review`: Blunt, backed by evidence, and makes the small fixes
+- `/steve-jobs-design-review`: Only about simplicity and focus
+- `/ux-heuristics`: Usability checked against Nielsen's ten rules
+- `/interface-design:design-review`: A quality bar for app screens
 
-Pick: Critique to understand what is wrong. Harsh review when you want it said bluntly and the easy fixes done. Steve Jobs review for cutting scope. Heuristics for usability. Design-review for dashboards.
+Pick: Critique to understand what is wrong. Harsh review when you want it said bluntly and the easy fixes done. Steve Jobs review to decide what to cut. Heuristics for usability. Design-review for dashboards.
 
 ### Color and type
 
-- `/impeccable colorize`: adds color in a design pass
-- `/oklch-skill`: exact scales, dark mode, contrast
-- `/impeccable typeset`: type in a design pass
-- `/web-typography`: pairing, scale and font loading in depth
+- `/impeccable colorize`: Adds color as part of a design pass
+- `/oklch-skill`: Exact color steps, dark mode and readable contrast
+- `/impeccable typeset`: Fonts and text sizes as part of a design pass
+- `/web-typography`: Choosing and pairing fonts, size steps and how fonts load, in depth
 
 Pick: Impeccable for a pass over a screen. The specialists when you need exact values or a font decision.
 
 ### Words in the interface vs on the page
 
-- `/impeccable clarify`: fixes copy inside a design pass
-- `/ux-writing`: full microcopy rules: errors, empty states, tone
-- `/copywriting`: selling copy on marketing pages
-- `/fix-writing`: any prose, picks the right rules
+- `/impeccable clarify`: Fixes wording as part of a design pass
+- `/ux-writing`: The full rules for small app text: errors, empty screens and tone
+- `/copywriting`: Wording that sells on marketing pages
+- `/fix-writing`: Any writing, and picks the right rules
 
-Pick: Clarify for a quick pass. UX writing when the interface copy is the job. Copywriting when the page has to sell. Fix-writing for everything that is not interface or marketing.
+Pick: Clarify for a quick pass. UX writing when the app's wording is the whole job. Copywriting when the page has to sell. Fix-writing for anything that isn't app text or marketing.
 
 ### Phones and native apps
 
-- `/impeccable adapt`: changes the layout to fit each size
-- `/mobile-native`: web app feel on a phone: taps, notch, 100vh
-- `/ios-hig-design`: Apple's patterns for a native app
-- `/swiftui-pro`: reviews SwiftUI code
-- `/viewport-proof`: proves it works, changes nothing
+- `/impeccable adapt`: Changes the layout to fit each screen size
+- `/mobile-native`: Makes a web app feel like an app on a phone: taps, the notch, full-height screens
+- `/ios-hig-design`: Apple's patterns for a real iPhone app
+- `/swiftui-pro`: Reviews SwiftUI code
+- `/viewport-proof`: Proves it works at each size and changes nothing
 
-Pick: Adapt and mobile-native for web on phones. HIG and SwiftUI Pro for a real iPhone app. Viewport proof only to prove the result before shipping.
+Pick: Adapt and mobile-native for websites on phones. HIG and SwiftUI Pro for a real iPhone app. Viewport proof only to prove the result before you ship.

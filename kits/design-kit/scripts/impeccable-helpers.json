@@ -1,0 +1,23 @@
+{
+ "desc": "Helpers that ship inside Impeccable and run behind the scenes. Impeccable hands each one a single narrow job during a bigger command, so its own long build thread is not the one judging or tidying the work. You never type these.",
+ "best": "Knowing what is happening when a build pauses for a review, writes DESIGN.md, or turns an image comp into real assets.",
+ "skip": "Calling them yourself. They expect files and specs that only an Impeccable run prepares.",
+ "rows": [
+  [
+   "Finish reviewer",
+   "Fresh eyes on a finished build. Reads the desktop and phone screenshots, the approved comp and the direction Impeccable agreed with you, then returns one verdict (ship, fix, rebuild or recapture the screenshots) and an ordered list of fixes. It edits nothing."
+  ],
+  [
+   "Documenter",
+   "Writes or updates DESIGN.md from what was actually built, not from the plan. If the build drifted from the plan, the build wins. It will not record a banned element as a design rule."
+  ],
+  [
+   "Asset producer",
+   "Turns an approved image comp into clean, reusable image files (a hero picture, an illustration, a texture) at full resolution, with the page text removed and transparency where needed. It copies the comp; it does not invent new art."
+  ],
+  [
+   "Manual edit applier",
+   "In live mode, when you retype text on the page in the browser and click Apply, it finds that exact text in your source files and changes only that."
+  ]
+ ]
+}

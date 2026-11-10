@@ -93,6 +93,11 @@ const engRefs = ["start-here.md", "investigations.md"].map((f) => path.join(here
 const engBefore = engRefs.map((f) => fs.readFileSync(f, "utf8"));
 execFileSync(process.execPath, [path.join(here, "../kits/engineering-kit/scripts/build_references.mjs")], { stdio: "ignore" });
 engRefs.forEach((f, i) => { if (fs.readFileSync(f, "utf8") !== engBefore[i]) fail(`The /engineer reference ${path.basename(f)} was out of date and has been rebuilt: commit the change`); });
+// And the /design router's.
+const desRefs = ["catalog.md", "recipes.md", "situations.md"].map((f) => path.join(here, "../kits/design-kit/plugins/design-kit/skills/design/references", f));
+const desBefore = desRefs.map((f) => fs.readFileSync(f, "utf8"));
+execFileSync(process.execPath, [path.join(here, "../kits/design-kit/scripts/build_references.mjs")], { stdio: "ignore" });
+desRefs.forEach((f, i) => { if (fs.readFileSync(f, "utf8") !== desBefore[i]) fail(`The /design reference ${path.basename(f)} was out of date and has been rebuilt: commit the change`); });
 const ref = path.join(here, "../kits/engineering-kit/plugins/engineering-kit/skills/database/references/prompts.md");
 const before = fs.readFileSync(ref, "utf8");
 execFileSync(process.execPath, [path.join(here, "../kits/engineering-kit/scripts/build_database_references.mjs")], { stdio: "ignore" });

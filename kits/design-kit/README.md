@@ -74,10 +74,12 @@ hermes skills install AtlasScope/agent-kit/kits/design-kit/plugins/design-kit/sk
 
 ## Updating the library
 
-The router's references are generated from the Design Skills Field Guide:
+The router's references (`catalog.md`, `recipes.md`, `situations.md`) are generated from `library/library.json`. After changing a design entry there, rebuild them from the repo root:
 
 ```sh
-node scripts/build_references.cjs <guide.html> plugins/design-kit/skills/design/references --public
+node kits/design-kit/scripts/build_references.mjs
 ```
+
+`node library/check.mjs` fails when they are out of date. The Impeccable helper agents are not library entries; their rows live in `scripts/impeccable-helpers.json`.
 
 Third-party skills change only by re-reading the new upstream version and committing it with its new commit in THIRD_PARTY.md.
