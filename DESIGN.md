@@ -53,18 +53,6 @@ typography:
     fontSize: "0.9375rem"
     fontWeight: 400
     lineHeight: 1.6
-  count:
-    fontFamily: "Geist Mono, ui-monospace, monospace"
-    fontSize: "1.75rem"
-    fontWeight: 500
-    lineHeight: 1.143
-    fontFeature: "tnum"
-  count-label:
-    fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "0.75rem"
-    fontWeight: 500
-    lineHeight: 1.34
-    letterSpacing: "0.08em"
 rounded:
   dot: "3px"
   control: "8px"
@@ -152,14 +140,14 @@ components:
 
 AtlasScope is the brand. Agent Kit is its first product, and atlasscope.dev is the Agent Kit site. The system is the AtlasScope identity applied to a working tool: a near-black ink ground, white type, one raised slate tone, one muted grey, and nothing else. The name "Monolithic Minimal" is the owner's own reference board (black and white, a lit planet horizon, white pill buttons); it is used here as the working name for the system.
 
-The homepage carries the one image the system allows, a photograph of a planet horizon, sitting under a solid ink header and above a solid ink strip that holds the install command. Everything a visitor acts on (the command, the Copy button, the counts) sits on a solid ground, never on the photograph. The rest of the site is a library of prompts and skills laid out as slate panels on ink.
+The homepage carries the one image the system allows, a photograph of a planet horizon, sitting under a solid ink header and above a solid ink strip that holds the install command. Everything a visitor acts on (the command and the Copy button) sits on a solid ground, never on the photograph. The rest of the site is a library of prompts and skills laid out as slate panels on ink.
 
 The system has no accent hue. Emphasis comes from white against ink, from weight, and from the typeface: anything a visitor can type or paste is set in Geist Mono, and that is what marks it as a command.
 
 **Key Characteristics:**
 - Four colours on dark surfaces: ink, white, slate, muted. Rules are muted mixed over ink.
 - The header and the homepage are ink in both the light and the dark setting.
-- Montserrat 600 for display, Geist for text, Geist Mono for commands and counts.
+- Montserrat 600 for display, Geist for text, Geist Mono for commands.
 - One white pill per view for the primary action; the second action is an outlined pill.
 - One photograph, used only as the homepage hero backdrop under a solid header.
 - The AtlasScope logo is ink or white only, sits on a solid field, and is never scaled.
@@ -211,11 +199,9 @@ Light-mode library pages still run on an older warm set: paper #ECEAE4, white ca
 - **Body** (Geist 400, 1rem, line-height 1.55): running text, held to 72 characters.
 - **Small** (Geist 400, 0.875rem; 0.8125rem for tab labels, the tested-with line and card meta): supporting lines.
 - **Command** (Geist Mono 400, 0.9375rem, line-height 1.6): install commands, prefixed with a muted "$ ". Inline code and ids use Geist Mono at 0.8125rem.
-- **Count** (Geist Mono 500, 1.75rem, line-height 1.143, tabular figures): the library counts in the install strip.
-- **Count label** (Geist 500, 0.75rem, tracking 0.08em, uppercase, muted): the word under each count. This is the only uppercase, tracked text in the system and it sits below its number.
 
 ### Named Rules
-**The Three Faces Rule.** Montserrat 600 for display, Geist for text, Geist Mono for commands and counts. The wordmark is drawn as outlines; never retype it in live Montserrat.
+**The Three Faces Rule.** Montserrat 600 for display, Geist for text, Geist Mono for commands. The wordmark is drawn as outlines; never retype it in live Montserrat.
 
 **The No Label Above Rule.** No small label sits above a heading. A headline is the first thing in its block.
 
@@ -230,11 +216,11 @@ The header is a solid ink bar, 64px tall, fixed to the top of the window, with a
 The homepage hero is three stacked bands on one left edge, the container's left edge:
 1. The solid header.
 2. The photograph, full window width, anchored to its bottom edge so the horizon stays in frame. It is clamp(520px, the window height less the header and the strip, 1000px) tall. Headline, sentence, two pills and one line of small print hang from the left edge, 28px apart, vertically centred. Ink is laid over the photograph from the left (solid to 80px past the text edge, clear by 1040px past it) so the text sits in black sky, and a 140px ink fade runs down from the header.
-3. A solid ink strip, at least 112px tall, with a hairline above it: agent tabs and the install command on the left (up to 620px wide), the three counts pushed right, and the tested-with line in a 13rem column behind a hairline.
+3. A solid ink strip with a hairline above it: agent tabs, the install commands and the tested-with line on the left (up to 720px wide), and what to do next for the chosen agent in a column behind a hairline on the right.
 
-Below 1088px the strip wraps: the command takes a full row, with the counts and tested-with line under it, and the photograph band sizes to its text. Below 720px the text sits on solid ink at the top and the horizon shows beneath it (ink solid to 44% of the band's height, clear by 82%), the pills go full width, and the strip falls below the first screen; the primary pill jumps to it.
+Below 1088px the strip wraps: the command takes a full row, with what to do next under it, and the photograph band sizes to its text. Below 720px the text sits on solid ink at the top and the horizon shows beneath it (ink solid to 44% of the band's height, clear by 82%), the pills go full width, and the strip falls below the first screen; the primary pill jumps to it.
 
-Below the hero, the homepage stacks its sections 64px apart with a hairline between them (40px on phones). The first is a row of three equal panels, the starting points. Each later section is two columns on the container's left edge: the heading and one muted sentence in the first third, the content in the other two thirds. Below 960px the columns stack.
+Below the strip the homepage closes with one short band: the three words of the library (prompt, skill, kit), each with its one-line definition and a link, in three columns divided by hairlines, then one line crediting the authors. Below 960px the columns stack.
 
 Library pages stack sections 40px apart inside the container, with cards in auto-filling grids (minimum column 300px for prompt and skill cards, 250px for rows, 180px or 240px for tiles) and text held to 72 characters.
 
@@ -244,7 +230,7 @@ Touch screens raise tap targets to 40px or more. Layouts hold from 360px to 2560
 
 The hero is flat. Its three bands are separated by hairlines and by the edge of the photograph, with no shadow anywhere in the first screen.
 
-The rest of the homepage is flat too: slate panels with a hairline border, hairlines between sections, and no shadow. Hover on a homepage panel brightens its border to the control border colour.
+The rest of the homepage is flat too: hairlines and no shadow.
 
 On library pages, depth is mostly tonal: a slate panel with a hairline border on an ink ground. Cards also carry a soft black shadow with a faint light line along the top edge, which on ink reads as a slight lift and no more. Pointer hover on a tile or row deepens the shadow and raises it 1px.
 
@@ -253,9 +239,9 @@ On library pages, depth is mostly tonal: a slate panel with a hairline border on
 - **Lift, raised** (`box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 2px 4px rgba(0,0,0,.6), 0 12px 26px -10px rgba(0,0,0,.8), 0 30px 50px -24px rgba(0,0,0,1)`): hover on tiles and rows, and floating layers (search results, menus).
 
 ### Named Rules
-**The Solid Ground Rule.** Anything a visitor operates or needs to read exactly (the header, the logo, the install command, the counts) sits on solid ink or slate, never on the photograph.
+**The Solid Ground Rule.** Anything a visitor operates or needs to read exactly (the header, the logo, the install command) sits on solid ink or slate, never on the photograph.
 
-**The One Movement Rule.** The only animation that plays by itself on the homepage is the photograph settling into place on load (1400ms, from 55% opacity and 3.5% oversize). Text is in place from the first frame. The example run is shown complete and still; it types itself out once only when the visitor presses Play. With reduced motion set, nothing moves and there is no Play button.
+**The One Movement Rule.** The only animation that plays by itself on the homepage is the photograph settling into place on load (1400ms, from 55% opacity and 3.5% oversize). Text is in place from the first frame. With reduced motion set, nothing moves.
 
 ## Shapes
 
@@ -279,15 +265,15 @@ The AtlasScope lockup, a hairline divider, then "Agent Kit".
 - **Primary:** white fill, ink text, Geist 600 at 1rem, 48px tall, 24px side padding, with an optional 16px line arrow after the label. One per view.
 - **Secondary:** outlined pill: 1px control border, white text in Geist 500, ink at 60% behind it so the label holds over the photograph.
 - **Hover / Focus:** primary fills muted on hover; secondary fills slate. Both press down 1px when active. Focus is the white ring. Hover applies only where a precise pointer exists.
-- **Copy:** a small white pill (32px tall, 14px side padding, Geist 600 at 0.8125rem) at the right end of the command field. Its label reads "Copy", or "Copy 2 steps" when the install has more than one command, and changes to "Copied" for 1.6 seconds.
+- **Copy:** a small white pill (32px tall, 14px side padding, Geist 600 at 0.8125rem) at the right end of the command field. Its label reads "Copy", or "Copy all" when the install has more than one line, and changes to "Copied" for 1.6 seconds.
 - **Header button:** a borderless 34px control with 8px corners, an icon and a label, used for the GitHub link.
 
 ### Install strip
 The signature component: pick an agent, copy the install command, see what was tested.
-- **Agent tabs:** plain text labels, 0.8125rem, muted, 20px apart. The selected tab is white with a 2px white underline. Arrow keys move between tabs.
-- **Command field:** slate fill, hairline border, 8px corners, 44px tall (52px on touch). The command is in Geist Mono with a muted "$ " in front, on one line with an ellipsis on wide screens and wrapped in full on phones.
-- **Counts:** number above, label below, 40px between each pair. Numbers are read from generated content, never typed by hand.
-- **Tested-with line:** small muted text naming the CLI version and date, or stating plainly that the agent has not been tested.
+- **Agent tabs:** each agent's own mark at 20px in the text colour, then its name at 0.875rem, muted, 24px apart. The selected tab is white with a 2px white underline. Arrow keys, Home and End move between tabs. On phones the six tabs sit two to a row so none is hidden. The marks are the only logos besides AtlasScope's; they are single-colour and never tinted.
+- **Command field:** slate fill, hairline border, 8px corners, tall enough for the longest install so the strip does not jump between agents. Each line is in Geist Mono with a muted "$ " in front. Lines wrap between words at every width and are never cut off.
+- **What to do next:** a title naming the chosen agent and one muted sentence saying where to paste and what to type to see it work.
+- **Tested-with line:** small muted text directly under the command, naming what was tested, the CLI version and the date, or stating plainly that the agent has not been tested and offering the tested command.
 
 ### Navigation
 - **Links:** Geist 500 at 0.9375rem, muted, 36px tall with 12px side padding and 8px corners. The current section is white, weight 600, on a slate fill. Hover fills slate and turns the text white.
@@ -320,9 +306,9 @@ The signature component: pick an agent, copy the install command, see what was t
 - **Do** build dark surfaces from ink (#0B0C12), white, slate (#151821) and muted (#A3A6AD) only, with hairlines at #2C2E34 and control borders at #66686F.
 - **Do** keep the header and the homepage ink in both the light and the dark setting.
 - **Do** set the header as the AtlasScope lockup, a 1px divider, then "Agent Kit", in that order.
-- **Do** set every command, id and count in Geist Mono; that is what marks it.
+- **Do** set every command and id in Geist Mono; that is what marks it.
 - **Do** use one white pill for the primary action in a view and an outlined pill for the second.
-- **Do** put the install command, the counts and the logo on solid ink or slate.
+- **Do** put the install command and the logo on solid ink or slate.
 - **Do** use a 2px white focus ring on dark surfaces.
 - **Do** show a full command on phones, wrapped, so it can be read before it is pasted.
 - **Do** read counts from generated content.
