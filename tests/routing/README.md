@@ -25,7 +25,11 @@ Routes are written as the router shows them: a command (`/impeccable critique`),
 3. A case passes when:
    - the route is in `expect`, or in `without` when the first pick's plugin is missing;
    - the route is not in `disallowed`;
-   - the first line says why, says whether it edits, only reads or advises, and says nothing runs or ships without a yes;
+   - the first line says why and whether the pick edits, only reads or advises, and states the router's own approval boundary:
+     - `/engineer`: nothing runs until they say go;
+     - `/design`: it starts the pick, and edits are shown before anything is committed;
+     - `/database`: it runs the investigation read-only, and any fix waits for a yes;
+   - a fallback for a report-only pick also only reports;
    - with a plugin missing, the agent says so instead of claiming it ran;
    - for a `negative` case, no router starts.
 4. Install the optional plugins the `missing-dep` cases name and run those cases again.
