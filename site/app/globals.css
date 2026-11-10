@@ -315,6 +315,15 @@ svg.i { width: 16px; height: 16px; flex: none; }
 .nav { display: flex; align-items: center; gap: var(--space-sm) var(--space-lg); min-height: 64px; }
 .wordmark { gap: 0; font: 650 1.125rem/1 var(--font-body); letter-spacing: -0.03em; white-space: nowrap; }
 .wordmark b { color: var(--color-cmd); }
+/* AtlasScope logo in the header. Heights are set so its capitals match the "Agent Kit" text beside it;
+   the nudge down keeps both on one baseline, because the symbol's arc hangs below it. */
+.wordmark { align-items: center; }
+.aslogo { display: block; flex: none; }
+.aslogo--full { height: 1.152em; width: auto; transform: translateY(0.173em); }
+.aslogo--mark { display: none; height: 1.109em; width: auto; transform: translateY(0.194em); }
+.wordmark .wordmark__sep { margin-inline: 0.55em 0.5em; color: var(--color-muted); font-weight: 400; font-size: 1em; }
+.wordmark .wordmark__name { color: inherit; font-weight: inherit; font-size: inherit; }
+@media (max-width: 720px) { .aslogo--full { display: none; } .aslogo--mark { display: block; } .wordmark .wordmark__sep { margin-inline: 0.4em 0.35em; } }
 .links { gap: 2px; font-size: 0.9375rem; }
 .links a { display: inline-flex; align-items: center; min-height: 36px; padding: 0 12px; border-radius: 8px; color: var(--color-ink-2); font-weight: 500; }
 .links a[aria-current="page"] { background: var(--color-paper-3); color: var(--color-ink); font-weight: 600; }
