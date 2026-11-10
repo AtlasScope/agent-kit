@@ -140,7 +140,8 @@ function scrub([t, finish]) {
     // it is left where it is. If the page resumes it later, it is picked up then, from that position.
     // The same goes for one that had already finished before the action (an entrance with fill: forwards):
     // it is at rest, and rewinding it would replay motion the action never caused.
-    if (!rec && (a.playState === "paused" || (a.playState === "finished" && reg.held.has(a)))) { reg.held.add(a); continue; }
+    // A playback rate of zero is a freeze too, although the play state still reads "running".
+    if (!rec && (a.playState === "paused" || a.playbackRate === 0 || (a.playState === "finished" && reg.held.has(a)))) { reg.held.add(a); continue; }
     if (!rec) {
       const timing = a.effect?.getComputedTiming?.() || {};
       const frames = a.effect?.getKeyframes?.() || [];
