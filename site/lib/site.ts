@@ -20,7 +20,17 @@ export const HERO = {
 // `testedScope` narrows the claim when only part of the steps was run ("The design-kit install was tested").
 export type Agent = { id: string; label: string; steps: string[]; check: string; tested: string | null; testedScope?: string; cmd: string };
 const agent = (a: Omit<Agent, "cmd">): Agent => ({ ...a, cmd: a.steps[0] });
-const KITS = ["design-kit", "motion-kit", "engineering-kit", "experience-architecture", "working-style"];
+export const KITS = ["design-kit", "motion-kit", "engineering-kit", "experience-architecture", "working-style"];
+
+// What each kit adds, for the homepage list under the install. `type` is what a person types in Claude Code to start it;
+// tests/kits.test.mjs fails if a kit in the catalog has no entry here or a command names a skill the kit doesn't ship.
+export const KIT_GUIDE: Record<string, { line: string; type: string[] }> = {
+  "design-kit": { line: "Layout, typography, color, UX writing, landing copy, usability and native iOS. Describe the job and it picks the skill.", type: ["/design"] },
+  "motion-kit": { line: "Sets up, builds, reviews and fixes interface motion on the web, in React, SwiftUI and React Native.", type: ["/motion"] },
+  "engineering-kit": { line: "Bug diagnosis, test-first work, architecture scans, plan interviews and read-only PostgreSQL investigations.", type: ["/engineer", "/database"] },
+  "experience-architecture": { line: "Finds out why an app's pages, navigation or Back button feel wrong, and whether its structure should change.", type: ["/experience-architecture:diagnose", "/experience-architecture:rethink"] },
+  "working-style": { line: "Plain-English explanations, a straight recommendation, direct critique and a screen checked across sizes.", type: ["/ceo", "/recommend", "/harsh-review", "/viewport-proof"] },
+};
 export const AGENTS: Agent[] = [
   agent({ id: "any", label: "Any agent", steps: [`npx skills add ${SITE.repoSlug}`],
     check: "Copies every skill folder into this project's .agents/skills. Other skills they call aren't installed for you.",

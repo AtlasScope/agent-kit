@@ -220,7 +220,7 @@ The homepage hero is three stacked bands on one left edge, the container's left 
 
 Below 1088px the strip wraps: the command takes a full row, with what to do next under it, and the photograph band sizes to its text. Below 720px the text sits on solid ink at the top and the horizon shows beneath it (ink solid to 44% of the band's height, clear by 82%), the pills go full width, and the strip falls below the first screen; the primary pill jumps to it.
 
-Below the strip the homepage closes with one short band: the three words of the library (prompt, skill, kit), each with its one-line definition and a link, in three columns divided by hairlines, then one line crediting the authors. Below 960px the columns stack.
+Below the strip the homepage closes in three parts. First, what the install adds: one row per kit, between hairlines, with the kit's name and skill count, one muted sentence on what it does, and the commands that start it in Geist Mono. The kit list and the commands come from `KITS` and `KIT_GUIDE` in `site/lib/site.ts`, and a test fails if they drift from the catalog. Then three ways into the library (prompts, skills, fix a problem), each with its one-line definition and a link, in three columns divided by hairlines. Then one line crediting the authors. Below 960px the kit rows put the sentence and commands under the name, and the three columns stack.
 
 Library pages stack sections 40px apart inside the container, with cards in auto-filling grids (minimum column 300px for prompt and skill cards, 250px for rows, 180px or 240px for tiles) and text held to 72 characters.
 

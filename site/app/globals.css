@@ -472,6 +472,27 @@ svg.i { width: 16px; height: 16px; flex: none; }
 .authors a { color: var(--color-ink); text-decoration-color: var(--color-rule-2); text-underline-offset: 0.2em; }
 @media (hover: hover) and (pointer: fine) { .ledger li:hover .i { transform: translateX(3px); } .authors a:hover { text-decoration-color: var(--color-ink); } }
 @media (pointer: coarse) { .authors { line-height: 2.2; } .ledger a { min-height: 40px; } }
+/* What the install adds: one row per kit, name and size, what it does, the commands that start it. Flat, hairlines only. */
+.adds { display: grid; gap: var(--space-lg); margin-bottom: var(--space-lg); }
+.adds__head { display: grid; gap: var(--space-xs); }
+.adds__head h2 { margin: 0; font: 650 clamp(1.25rem, 0.6vw + 1rem, 1.5rem)/1.2 var(--font-body); letter-spacing: -0.025em; }
+.adds__head p { max-width: 60ch; font-size: 0.9375rem; line-height: 1.5; color: var(--color-muted); text-wrap: pretty; }
+.adds__list { margin: 0; padding: 0; list-style: none; border-bottom: 1px solid var(--color-rule); }
+.adds__list > li { position: relative; display: grid; grid-template-columns: 15rem minmax(0, 1fr) minmax(0, 21rem); grid-template-areas: "name line type" "n line type"; column-gap: var(--space-xl); row-gap: 2px; padding-block: 18px; border-top: 1px solid var(--color-rule); }
+.adds h3 { grid-area: name; margin: 0; font: 650 1.0625rem/1.3 var(--font-body); letter-spacing: -0.015em; }
+.adds h3 a { text-decoration: none; text-underline-offset: 0.2em; }
+.adds h3 a::after { content: ""; position: absolute; inset: 0; }
+.adds h3 a:focus-visible { outline: none; } .adds__list > li:has(h3 a:focus-visible) { outline: 2px solid var(--color-focus); outline-offset: 4px; border-radius: 4px; }
+.adds__n { grid-area: n; font-size: 0.8125rem; line-height: 1.46; color: var(--color-muted); font-variant-numeric: tabular-nums; }
+.adds__list > li > p { grid-area: line; max-width: 56ch; font-size: 0.9375rem; line-height: 1.5; color: var(--color-muted); text-wrap: pretty; }
+.adds__type { grid-area: type; position: relative; z-index: 1; display: flex; flex-wrap: wrap; align-content: start; gap: 2px var(--space-md); margin: 0; padding: 0; list-style: none; font: 400 0.875rem/1.6 var(--font-mono); }
+.adds__type code { font: inherit; overflow-wrap: anywhere; }
+@media (hover: hover) and (pointer: fine) { .adds h3 a:hover, .adds__list > li:has(h3 a:hover) h3 a { text-decoration: underline; text-decoration-color: var(--color-rule-2); } }
+@media (max-width: 60rem) {
+  .adds { margin-bottom: 0; }
+  .adds__list > li { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name n" "line line" "type type"; row-gap: 6px; padding-block: var(--space-md); }
+  .adds__n { align-self: baseline; }
+}
 @media (max-width: 60rem) {
   .home-close { gap: var(--space-lg); padding-block: var(--space-xl); }
   .ledger { grid-template-columns: minmax(0, 1fr); gap: 0; }
