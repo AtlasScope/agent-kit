@@ -2,7 +2,7 @@
 # PR's current head commit. Codex keeps one summary comment on the PR with a
 # hidden state block (codex-review-state:v1) that names the commit it reviewed
 # and moves from "running" to done; it also leaves a review with inline
-# findings, or a thumbs-up when it finds nothing. A Codex security review, when
+# findings. A thumbs-up reaction is not tied to a commit, so it never counts. A Codex security review, when
 # one runs, must finish with no unresolved findings. Findings are review
 # threads, and main requires every thread resolved before merge, so "fixed or
 # dismissed" is enforced there, not here.
@@ -45,9 +45,8 @@ jobs:
           api() { gh api --paginate "repos/$GITHUB_REPOSITORY/$1" --jq "$2"; }
           deadline=$(( $(date +%s) + WAIT_MINUTES * 60 ))
           while :; do
-            # Codex reviews and thumbs-up for this exact commit or PR.
+            # Codex reviews of this exact commit.
             reviews=$(api "pulls/$PR/reviews" "[.[] | select(.user.login == env.CODEX_LOGIN and .commit_id == env.HEAD_SHA)] | length")
-            thumbs=$(api "issues/$PR/reactions" "[.[] | select(.user.login == env.CODEX_LOGIN and .content == \"+1\")] | length")
             # Latest state block from Codex's summary comment (code review and security review).
             state=$(api "issues/$PR/comments" '.[] | select(.user.login == env.CODEX_LOGIN) | .body' \
               | sed 's/&#123;/{/g; s/&#125;/}/g' \
@@ -59,7 +58,7 @@ jobs:
             sec_status=$(field .security_review.status)
             sec_sha=$(field .security_review.commit_sha)
             sec_open=$(field .security_review.has_unresolved_findings)
-            echo "$(date -u +%H:%M:%S) code review: ${status:-none} (${sha:0:7}), security review: ${sec_status:-none} (${sec_sha:0:7}, unresolved: ${sec_open:-n/a}), reviews of this commit: $reviews, thumbs-up: $thumbs"
+            echo "$(date -u +%H:%M:%S) code review: ${status:-none} (${sha:0:7}), security review: ${sec_status:-none} (${sec_sha:0:7}, unresolved: ${sec_open:-n/a}), reviews of this commit: $reviews"
 
             # A code review of an older commit means Codex has not started on this one.
             # A security review of an older commit is ignored: it does not run on every push.
@@ -76,7 +75,7 @@ jobs:
                 echo "::error::Codex security review has unresolved findings. Fix them or resolve them on the PR."
                 exit 1
               fi
-              if [ -n "$status" ] || [ "$reviews" -gt 0 ] || { [ -z "$state" ] && [ "$thumbs" -gt 0 ]; }; then
+              if [ -n "$status" ] || [ "$reviews" -gt 0 ]; then
                 echo "Codex has finished reviewing ${HEAD_SHA:0:7}. Unresolved findings still block merge until resolved."
                 exit 0
               fi
@@ -92,7 +91,9 @@ jobs:
   # Backup for a review that lands after the wait ran out (or after '@codex review').
   # Checks from issue_comment runs land on main rather than the PR, so re-run the
   # PR's own push-triggered check instead. Codex edits its summary several times
-  # in a row; skip while that check is still waiting or once it has passed.
+  # in a row, and a security review can start or report after the check passed,
+  # so re-run a finished check (passed or not) on every update. Skip only while
+  # it is still waiting: it reads fresh state on every pass.
   rerun-on-codex-comment:
     if: >-
       github.event_name == 'issue_comment' &&
@@ -107,7 +108,7 @@ jobs:
       actions: write
       pull-requests: read
     steps:
-      - name: Re-run codex-review for the PR head if it gave up
+      - name: Re-check codex-review for the PR head
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.issue.number }}
@@ -118,6 +119,5 @@ jobs:
           read -r run status conclusion <<< "$latest"
           if [ -z "$run" ]; then echo "No codex-review run for ${sha:0:7} yet"; exit 0; fi
           if [ "$status" != "completed" ]; then echo "codex-review for ${sha:0:7} is still waiting; it will see this review"; exit 0; fi
-          if [ "$conclusion" = "success" ]; then echo "codex-review for ${sha:0:7} already passed"; exit 0; fi
           gh run rerun "$run" --repo "$GITHUB_REPOSITORY" \
             || echo "Could not re-run $run (it may have just restarted); the next Codex update will try again"
