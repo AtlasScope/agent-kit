@@ -1,7 +1,7 @@
 {
   "name": "working-style",
   "description": "Four commands for working with an agent: /ceo explains in plain English, /recommend makes the call, /harsh-review gives direct critique with bounded fixes, /viewport-proof judges a screen across viewports with a proof sheet. Each runs only when you call it.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "AtlasScope"
   },
