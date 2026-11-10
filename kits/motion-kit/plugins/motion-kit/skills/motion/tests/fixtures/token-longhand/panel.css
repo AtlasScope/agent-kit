@@ -1,0 +1,2 @@
+.panel { --motion-base: 200ms; transition-property: transform; transition-duration: var(--motion-base); }
+.badge { animation-name: pop; animation-duration: var(--motion-base); }

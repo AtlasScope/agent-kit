@@ -1,0 +1,2 @@
+.fade { transition: opacity 200ms ease-in-out; }
+.panel { @apply transition-all duration-700 ease-in; }

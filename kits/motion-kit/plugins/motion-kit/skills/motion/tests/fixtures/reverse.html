@@ -1,0 +1,18 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Reverse fixture</title>
+<style>
+  body { margin: 0; font: 16px system-ui; background: #fff; }
+  #panel { position: absolute; left: 100px; top: 100px; width: 200px; height: 120px; background: #1d4ed8; }
+  button { position: absolute; left: 100px; top: 500px; }
+</style>
+<button id="close">Close</button>
+<div id="panel"></div>
+<script>
+  // The panel is opened by a Web Animation that has finished. Closing plays the same animation backwards.
+  const open = document.getElementById("panel").animate(
+    [{ opacity: 0, transform: "translateX(-80px)" }, { opacity: 1, transform: "none" }],
+    { duration: 200, fill: "both", easing: "linear" });
+  open.finish();
+  document.getElementById("close").addEventListener("click", () => open.reverse());
+</script>

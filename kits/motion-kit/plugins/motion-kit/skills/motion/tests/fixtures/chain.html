@@ -1,0 +1,35 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Chained and slowed animations</title>
+<style>
+  body { margin: 0; background: #fff; }
+  div { position: absolute; width: 80px; height: 80px; }
+  #a { left: 40px; top: 40px; background: #1d4ed8; }
+  #b { left: 40px; top: 160px; background: #b91c1c; opacity: 0; }
+  #c { left: 40px; top: 280px; background: #15803d; }
+  button { position: absolute; left: 400px; top: 500px; }
+</style>
+<button id="chain">Chain</button><button id="slow" style="left:500px">Slow</button><button id="bounce" style="left:600px">Bounce</button><button id="turn" style="left:700px">Turn</button>
+<div id="a"></div><div id="b"></div><div id="c"></div>
+<script>
+  // The second step starts only when the first one finishes.
+  document.getElementById("chain").addEventListener("click", async () => {
+    await document.getElementById("a").animate([{ transform: "none" }, { transform: "translateX(200px)" }], { duration: 100, fill: "forwards" }).finished;
+    document.getElementById("b").animate([{ opacity: 0 }, { opacity: 1 }], { duration: 100, fill: "forwards" });
+  });
+  // A 200ms animation at half speed takes 400ms.
+  document.getElementById("slow").addEventListener("click", () => {
+    const x = document.getElementById("c").animate([{ transform: "none" }, { transform: "translateX(200px)" }], { duration: 200, fill: "forwards" });
+    x.playbackRate = 0.5;
+  });
+  // Out and back: the same animation object is reversed once it finishes.
+  document.getElementById("bounce").addEventListener("click", () => {
+    const x = document.getElementById("c").animate([{ transform: "none" }, { transform: "translateX(200px)" }], { duration: 100, fill: "both" });
+    x.onfinish = () => { x.onfinish = null; x.reverse(); };
+  });
+  // Turned around part way: a timer reverses the animation 100ms into its 400ms.
+  document.getElementById("turn").addEventListener("click", () => {
+    const x = document.getElementById("c").animate([{ transform: "none" }, { transform: "translateX(200px)" }], { duration: 400, fill: "both", easing: "linear" });
+    setTimeout(() => x.reverse(), 100);
+  });
+</script>

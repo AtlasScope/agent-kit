@@ -1,0 +1,9 @@
+.card { transition: all 0.3s; }
+.menu { transition: height 600ms ease-in, opacity 150ms linear; }
+.badge { animation: pulse 2s ease-in-out infinite; will-change: transform; }
+.tip { transition: opacity 120ms cubic-bezier(0.2, 0, 0, 1), transform 120ms cubic-bezier(0.2, 0, 0, 1); }
+.a { transition: color 100ms ease; } .b { transition: color 175ms ease; } .c { transition: color 250ms ease; }
+.d { transition: color 350ms ease-out; } .e { transition: color 450ms ease-in-out; }
+@keyframes pulse { 50% { opacity: 0.5; } }
+@keyframes pop { from { transform: scale(0); width: 0; } to { transform: scale(1); width: 100px; } }
+.slide { transition: transform 200ms linear; }

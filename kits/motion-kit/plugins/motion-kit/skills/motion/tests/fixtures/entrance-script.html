@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf8">
+<title>Script entrance fixture</title>
+<style>#box { width: 60px; height: 60px; background: #00704a; }</style>
+<div id="box"></div>
+<script>
+  // An 80ms entrance driven by requestAnimationFrame. It cannot be rewound once it has played.
+  const el = document.getElementById("box"); const start = performance.now();
+  const tick = (now) => { const p = Math.min(1, (now - start) / 80); el.style.transform = `translateX(${p * 200}px)`; if (p < 1) requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+</script>
+</html>

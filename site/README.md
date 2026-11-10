@@ -21,7 +21,7 @@ The headline and badge live in `lib/site.ts` (`HERO`). The headline is still bei
 |---|---|
 | `/prompts`, `/prompts/<slug>` | Hub, area pages and one page per library entry. Old ids (`/prompts/A01`) redirect. |
 | `/skills`, `/skills/<name>` | Every skill with its full SKILL.md, install commands, credit and license. |
-| `/kits`, `/kits/<kit>` | The four plugins. |
+| `/kits`, `/kits/<kit>` | The five plugins. |
 | `/fix`, `/fix/<problem>` | Symptom pages that list the prompts to try first. |
 | any of the above + `.md` | Markdown twin, for agents. |
 | `/llms.txt`, `/llms-full.txt`, `/sitemap.xml`, `/robots.txt` | Search and AI crawler files. Every crawler is allowed. |

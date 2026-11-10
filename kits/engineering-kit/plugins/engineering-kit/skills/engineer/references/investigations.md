@@ -682,3 +682,90 @@ Trace every flow where the client updates UI state or local cache optimistically
 - Mode: repro, single pass, narrow scope. Needs: In-app browser or Playwright set to block or alter requests.
 - Skills: `/diagnosing-bugs`
 - Related: `A04`, `A01`
+
+## Motion
+
+How the interface moves: whether animation follows a system, what it costs, who it leaves out, and where it helps or gets in the way. Each prompt works in any agent. The motion-kit plugin's /motion runs the same checks with frame-by-frame captures.
+
+### MO01 Motion nobody chose
+
+```text
+List every animation and transition in this codebase with its duration, easing and animated properties. Count the distinct durations and the distinct easing curves. Find values used only once, transitions that name no property or no easing, and places that should share a value and do not. Propose the smallest set of shared durations and curves that covers what exists, and show which existing values map to which.
+```
+
+- Finds: Shows whether the app's motion follows a system or was typed one animation at a time.
+- Evidence to ask for: A table of distinct durations and curves with counts, each outlier with file:line, and a mapping from existing values to a proposed set of about four durations and three curves.
+- Skip when: Apps with a handful of animations, or a motion token file that everything already uses.
+- Watch for: Agents propose a token system and start migrating. Ask for the mapping only; migrating is a separate change.
+- Mode: read, single pass, wide scope. Needs: Repository access only.
+- Skills: `/motion`
+- Related: `MO02`, `MO05`
+
+### MO02 Animations that cost frames
+
+```text
+Find animations and transitions that make the browser run layout or heavy paint on every frame: width, height, top, left, margin, padding, large shadows and blurs, and anything driven from a scroll or pointer handler through component state. For the worst three, measure the interaction in a browser with CPU throttling and report how many layouts and long frames happen during it. Propose the cheaper equivalent for each (transform, opacity, or a single measured move) and say what would look different.
+```
+
+- Finds: Finds the animations that stutter on slower phones and laptops, and what each one costs.
+- Evidence to ask for: Each candidate with file:line and the property involved; for the worst three, a throttled recording with the layout count and the frames over budget, taken before any change.
+- Skip when: When motion is limited to color and opacity changes on small elements.
+- Watch for: Static reading flags every height transition. A small accordion is fine; ask for the measurement before any rewrite.
+- Mode: read, split, wide scope. Needs: Repository; the app running locally and a browser with performance tooling (DevTools or Playwright).
+- Skills: `/motion`
+- Related: `MO01`, `MO04`, `P01`
+
+### MO03 Motion with no off switch
+
+```text
+Check how this app behaves for people who have asked their system for reduced motion. List every animation that moves, scales, rotates or loops, and say whether it has a reduced-motion version. Find content that only becomes visible through an animation, motion that starts on its own and runs longer than five seconds with no pause control, and gestures with no button or keyboard alternative. For each gap, say what the reduced version should be: usually a short fade or an instant change that keeps the meaning.
+```
+
+- Finds: Finds motion that can make people dizzy or lock them out, and content that disappears when animation is turned off.
+- Evidence to ask for: A list of moving animations with file:line and whether each has a reduced version; a browser run with reduced motion emulated showing what still moves; the WCAG criterion behind each gap (2.2.2, 2.3.1, 2.3.3, 2.5.1 or 2.5.7).
+- Skip when: Internal prototypes nobody else will use.
+- Watch for: Agents add one global rule that zeroes every duration and call it done. That is a floor. Ask what each large movement becomes instead.
+- Mode: read, single pass, wide scope. Needs: Repository; a browser that can emulate prefers-reduced-motion.
+- Skills: `/motion`
+- Related: `MO02`, `MO05`
+
+### MO04 Animations that restart, block or never finish
+
+```text
+Find animations that break when the user does not wait for them. Look for keyframe animations on things that can be triggered twice in a row, exits that never play because the element is removed first, input ignored until an animation ends, focus that moves only after an animation, and end states that differ from the element's resting style. Reproduce the three most reachable cases by triggering the interaction again mid-animation, and propose the smallest fix for each.
+```
+
+- Finds: Finds motion that works in a demo and breaks under fast, real use.
+- Evidence to ask for: Each case with file:line, the sequence of inputs that triggers it, and what the user sees: a restart, a jump, an ignored click or a missing exit.
+- Skip when: Apps whose only motion is hover and focus color.
+- Mode: repro, split, wide scope. Needs: Repository; the app running locally with a browser to trigger interactions quickly.
+- Skills: `/motion`
+- Related: `MO02`, `MO06`
+
+### MO05 Motion with no job
+
+```text
+Go through every animation in this product and say what it tells the user: that their input registered, where something came from or went, where they now are, that work is in progress, or that one thing changed. List the ones that tell the user nothing, and the ones seen so often that they slow people down (tooltips, menus, anything triggered from the keyboard). For each, recommend removing it, shortening it or keeping it, with one sentence of reasoning. Do not propose new animations.
+```
+
+- Finds: Produces a list of animations to delete or shorten, which is usually the cheapest way to make an app feel faster.
+- Evidence to ask for: One row per animation: where it is (file:line), how often a person meets it in a day, the job it does or "none", and remove, shorten or keep.
+- Skip when: Apps with almost no motion. Look for missing feedback instead (MO06).
+- Watch for: Agents defend every animation as polish. Ask what the user learns from it; if the answer is nothing, it goes.
+- Mode: read, single pass, wide scope. Needs: Repository; the running app helps.
+- Skills: `/motion`
+- Related: `MO01`, `MO06`
+
+### MO06 State changes with no feedback
+
+```text
+Walk the main flows of this app and list every moment where the interface changes with no visible answer or explanation: a press with no pressed state, an item that vanishes on delete, a panel that appears with no sign of where it came from, a page change with no sense of direction, a wait of more than a second with no indicator. For each, say what the user is left guessing, and specify the smallest motion that would answer it: what changes, for how long, and what happens with reduced motion. Leave out anything the user triggers many times a minute.
+```
+
+- Finds: Finds the few places where a small animation would remove real confusion.
+- Evidence to ask for: Each moment with its flow, the component (file:line), what the user is left guessing, and a one-line spec for the motion.
+- Skip when: Right after a motion pass, or when the complaint is that the app already moves too much (MO05).
+- Watch for: Agents add an animation to every state change. Ask for ten at most, ranked by how confusing the moment is without one.
+- Mode: read, single pass, narrow scope. Needs: Repository and the running app.
+- Skills: `/motion`
+- Related: `MO05`, `MO04`

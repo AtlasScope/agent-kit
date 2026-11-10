@@ -2,7 +2,7 @@
 
 Generated from `library/library.json` by `kits/design-kit/scripts/build_references.mjs`; do not edit by hand.
 
-Every design skill this library knows, by pack. Skills that ship in the design-kit plugin may be namespaced `design-kit:<name>`. `mode` says what a skill does to files: edits, report (reads only), advice, auto (runs inside another skill, never typed).
+Every design skill this library knows, by pack. Skills that ship in the design-kit plugin may be namespaced `design-kit:<name>`. `mode` says what a skill does to files: edits, edits after a yes (proposes, then writes once approved), report (reads only), advice, auto (runs inside another skill, never typed).
 
 ## Impeccable
 
@@ -197,6 +197,22 @@ Motion, polish and frontend craft from Emil Kowalski. The review, find and impro
 | `/ask-sonner` | The Sonner pop-up notice (toast) library: setup, notices that track a running task, styling, and fixes for toasts that do not show. | advice |
 | `/mobile-native` | Makes a web app feel like an installed app on a phone: tap flashes, the full-screen height bug, inputs that zoom the page, the notch, pull-to-refresh. | edits |
 | `/write-swift` | Modern Swift for Apple apps: Swift 6 concurrency (code safely running at the same time), value types, Swift Testing, memory management (ARC) and performance. | edits |
+
+## Motion kit
+
+One command for interface motion, written for Agent Kit. It measures before it judges: a motion inventory from the code and frame-by-frame captures from a real browser. It runs only when you type it.
+
+- Best for: Deciding how a product should move, building one animation properly, and reviewing or fixing existing motion with evidence.
+- Skip it for: Layout, color and type problems, and WebGL or 3D showpieces.
+
+| Command | What it does | Mode |
+|---|---|---|
+| `/motion` | One command for anything that moves. Say what you want and it picks the mode (set up, storyboard, build, review or fix), says which, and starts. Typed alone, it reports how the project moves today and suggests three next steps. | edits |
+| `/motion setup` | Reads how the project moves today and proposes one small set of durations, curves and springs, showing which existing values fold into which. After you approve, it writes MOTION.md and the token file. It changes no animations. | edits after a yes |
+| `/motion storyboard` | Plans a sequence before any code: each beat with its timing and reason, the total length, the reduced-motion version and what shows if nothing plays. Then waits for your yes. | advice |
+| `/motion build` | Builds one animation from a one-line spec: the lightest tool that works, the project's own values, the interrupted case and a reduced-motion version. Then captures it frame by frame to check the result. | edits |
+| `/motion review` | Read-only review backed by a code inventory and frame captures. Lists motion to cut first, then what is broken, wrong or rough, then where motion is missing, each with its file and what it should be. | report |
+| `/motion fix` | Reproduces motion that stutters, flickers, restarts or feels slow, names the cause with a measurement, makes the smallest change and captures it again. | edits |
 
 ## Web Design Guidelines
 

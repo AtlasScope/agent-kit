@@ -1233,6 +1233,156 @@
    "aka": "Optimistic UI rollback failure"
   },
   {
+   "id": "MO01",
+   "sec": "inv",
+   "group": "Motion",
+   "gk": "MO",
+   "t": "Motion nobody chose",
+   "p": "List every animation and transition in this codebase with its duration, easing and animated properties. Count the distinct durations and the distinct easing curves. Find values used only once, transitions that name no property or no easing, and places that should share a value and do not. Propose the smallest set of shared durations and curves that covers what exists, and show which existing values map to which.",
+   "why": "Shows whether the app's motion follows a system or was typed one animation at a time.",
+   "ev": "A table of distinct durations and curves with counts, each outlier with file:line, and a mapping from existing values to a proposed set of about four durations and three curves.",
+   "skip": "Apps with a handful of animations, or a motion token file that everything already uses.",
+   "mode": "read",
+   "top": "single",
+   "scope": "wide",
+   "tools": "Repository access only.",
+   "kit": [
+    "/motion"
+   ],
+   "rel": [
+    "MO02",
+    "MO05"
+   ],
+   "imp": "M",
+   "blind": "Agents propose a token system and start migrating. Ask for the mapping only; migrating is a separate change.",
+   "aka": "Motion value sprawl"
+  },
+  {
+   "id": "MO02",
+   "sec": "inv",
+   "group": "Motion",
+   "gk": "MO",
+   "t": "Animations that cost frames",
+   "p": "Find animations and transitions that make the browser run layout or heavy paint on every frame: width, height, top, left, margin, padding, large shadows and blurs, and anything driven from a scroll or pointer handler through component state. For the worst three, measure the interaction in a browser with CPU throttling and report how many layouts and long frames happen during it. Propose the cheaper equivalent for each (transform, opacity, or a single measured move) and say what would look different.",
+   "why": "Finds the animations that stutter on slower phones and laptops, and what each one costs.",
+   "ev": "Each candidate with file:line and the property involved; for the worst three, a throttled recording with the layout count and the frames over budget, taken before any change.",
+   "skip": "When motion is limited to color and opacity changes on small elements.",
+   "mode": "read",
+   "top": "split",
+   "scope": "wide",
+   "tools": "Repository; the app running locally and a browser with performance tooling (DevTools or Playwright).",
+   "kit": [
+    "/motion"
+   ],
+   "rel": [
+    "MO01",
+    "MO04",
+    "P01"
+   ],
+   "imp": "H",
+   "blind": "Static reading flags every height transition. A small accordion is fine; ask for the measurement before any rewrite.",
+   "aka": "Layout and paint cost of animation"
+  },
+  {
+   "id": "MO03",
+   "sec": "inv",
+   "group": "Motion",
+   "gk": "MO",
+   "t": "Motion with no off switch",
+   "p": "Check how this app behaves for people who have asked their system for reduced motion. List every animation that moves, scales, rotates or loops, and say whether it has a reduced-motion version. Find content that only becomes visible through an animation, motion that starts on its own and runs longer than five seconds with no pause control, and gestures with no button or keyboard alternative. For each gap, say what the reduced version should be: usually a short fade or an instant change that keeps the meaning.",
+   "why": "Finds motion that can make people dizzy or lock them out, and content that disappears when animation is turned off.",
+   "ev": "A list of moving animations with file:line and whether each has a reduced version; a browser run with reduced motion emulated showing what still moves; the WCAG criterion behind each gap (2.2.2, 2.3.1, 2.3.3, 2.5.1 or 2.5.7).",
+   "skip": "Internal prototypes nobody else will use.",
+   "mode": "read",
+   "top": "single",
+   "scope": "wide",
+   "tools": "Repository; a browser that can emulate prefers-reduced-motion.",
+   "kit": [
+    "/motion"
+   ],
+   "rel": [
+    "MO02",
+    "MO05"
+   ],
+   "imp": "H",
+   "blind": "Agents add one global rule that zeroes every duration and call it done. That is a floor. Ask what each large movement becomes instead.",
+   "aka": "Reduced-motion coverage"
+  },
+  {
+   "id": "MO04",
+   "sec": "inv",
+   "group": "Motion",
+   "gk": "MO",
+   "t": "Animations that restart, block or never finish",
+   "p": "Find animations that break when the user does not wait for them. Look for keyframe animations on things that can be triggered twice in a row, exits that never play because the element is removed first, input ignored until an animation ends, focus that moves only after an animation, and end states that differ from the element's resting style. Reproduce the three most reachable cases by triggering the interaction again mid-animation, and propose the smallest fix for each.",
+   "why": "Finds motion that works in a demo and breaks under fast, real use.",
+   "ev": "Each case with file:line, the sequence of inputs that triggers it, and what the user sees: a restart, a jump, an ignored click or a missing exit.",
+   "skip": "Apps whose only motion is hover and focus color.",
+   "mode": "repro",
+   "top": "split",
+   "scope": "wide",
+   "tools": "Repository; the app running locally with a browser to trigger interactions quickly.",
+   "kit": [
+    "/motion"
+   ],
+   "rel": [
+    "MO02",
+    "MO06"
+   ],
+   "imp": "H",
+   "aka": "Interruption and completion defects"
+  },
+  {
+   "id": "MO05",
+   "sec": "inv",
+   "group": "Motion",
+   "gk": "MO",
+   "t": "Motion with no job",
+   "p": "Go through every animation in this product and say what it tells the user: that their input registered, where something came from or went, where they now are, that work is in progress, or that one thing changed. List the ones that tell the user nothing, and the ones seen so often that they slow people down (tooltips, menus, anything triggered from the keyboard). For each, recommend removing it, shortening it or keeping it, with one sentence of reasoning. Do not propose new animations.",
+   "why": "Produces a list of animations to delete or shorten, which is usually the cheapest way to make an app feel faster.",
+   "ev": "One row per animation: where it is (file:line), how often a person meets it in a day, the job it does or \"none\", and remove, shorten or keep.",
+   "skip": "Apps with almost no motion. Look for missing feedback instead (MO06).",
+   "mode": "read",
+   "top": "single",
+   "scope": "wide",
+   "tools": "Repository; the running app helps.",
+   "kit": [
+    "/motion"
+   ],
+   "rel": [
+    "MO01",
+    "MO06"
+   ],
+   "imp": "M",
+   "blind": "Agents defend every animation as polish. Ask what the user learns from it; if the answer is nothing, it goes.",
+   "aka": "Purposeless and over-frequent motion"
+  },
+  {
+   "id": "MO06",
+   "sec": "inv",
+   "group": "Motion",
+   "gk": "MO",
+   "t": "State changes with no feedback",
+   "p": "Walk the main flows of this app and list every moment where the interface changes with no visible answer or explanation: a press with no pressed state, an item that vanishes on delete, a panel that appears with no sign of where it came from, a page change with no sense of direction, a wait of more than a second with no indicator. For each, say what the user is left guessing, and specify the smallest motion that would answer it: what changes, for how long, and what happens with reduced motion. Leave out anything the user triggers many times a minute.",
+   "why": "Finds the few places where a small animation would remove real confusion.",
+   "ev": "Each moment with its flow, the component (file:line), what the user is left guessing, and a one-line spec for the motion.",
+   "skip": "Right after a motion pass, or when the complaint is that the app already moves too much (MO05).",
+   "mode": "read",
+   "top": "single",
+   "scope": "narrow",
+   "tools": "Repository and the running app.",
+   "kit": [
+    "/motion"
+   ],
+   "rel": [
+    "MO05",
+    "MO04"
+   ],
+   "imp": "M",
+   "blind": "Agents add an animation to every state change. Ask for ten at most, ranked by how confusing the moment is without one.",
+   "aka": "Missing interaction feedback"
+  },
+  {
    "id": "PG00",
    "sec": "db",
    "group": "Start here",
@@ -3758,6 +3908,102 @@
    "dmode": "Changes code"
   },
   {
+   "id": "UI100",
+   "sec": "dcmd",
+   "group": "Motion kit",
+   "sub": "Commands",
+   "badge": "motion-kit plugin",
+   "gnote": "One command for interface motion, written for Agent Kit. It measures before it judges: a motion inventory from the code and frame-by-frame captures from a real browser. It runs only when you type it.",
+   "best": "Deciding how a product should move, building one animation properly, and reviewing or fixing existing motion with evidence.",
+   "skipw": "Layout, color and type problems, and WebGL or 3D showpieces.",
+   "note": "The mode word is optional: /motion with a plain request picks the mode and says which. Frame captures use Playwright if the machine already has it, and the agent's own browser tools otherwise.",
+   "t": "/motion",
+   "cmd": "/motion",
+   "p": "/motion the dropdowns feel slow and each one opens differently",
+   "why": "One command for anything that moves. Say what you want and it picks the mode (set up, storyboard, build, review or fix), says which, and starts. Typed alone, it reports how the project moves today and suggests three next steps.",
+   "dmode": "Changes code"
+  },
+  {
+   "id": "UI101",
+   "sec": "dcmd",
+   "group": "Motion kit",
+   "sub": "Commands",
+   "badge": "motion-kit plugin",
+   "gnote": "One command for interface motion, written for Agent Kit. It measures before it judges: a motion inventory from the code and frame-by-frame captures from a real browser. It runs only when you type it.",
+   "best": "Deciding how a product should move, building one animation properly, and reviewing or fixing existing motion with evidence.",
+   "skipw": "Layout, color and type problems, and WebGL or 3D showpieces.",
+   "note": "The mode word is optional: /motion with a plain request picks the mode and says which. Frame captures use Playwright if the machine already has it, and the agent's own browser tools otherwise.",
+   "t": "/motion setup",
+   "cmd": "/motion setup",
+   "p": "/motion setup",
+   "why": "Reads how the project moves today and proposes one small set of durations, curves and springs, showing which existing values fold into which. After you approve, it writes MOTION.md and the token file. It changes no animations.",
+   "dmode": "Asks before changing"
+  },
+  {
+   "id": "UI102",
+   "sec": "dcmd",
+   "group": "Motion kit",
+   "sub": "Commands",
+   "badge": "motion-kit plugin",
+   "gnote": "One command for interface motion, written for Agent Kit. It measures before it judges: a motion inventory from the code and frame-by-frame captures from a real browser. It runs only when you type it.",
+   "best": "Deciding how a product should move, building one animation properly, and reviewing or fixing existing motion with evidence.",
+   "skipw": "Layout, color and type problems, and WebGL or 3D showpieces.",
+   "note": "The mode word is optional: /motion with a plain request picks the mode and says which. Frame captures use Playwright if the machine already has it, and the agent's own browser tools otherwise.",
+   "t": "/motion storyboard",
+   "cmd": "/motion storyboard",
+   "p": "/motion storyboard the homepage hero entrance",
+   "why": "Plans a sequence before any code: each beat with its timing and reason, the total length, the reduced-motion version and what shows if nothing plays. Then waits for your yes.",
+   "dmode": "Advice"
+  },
+  {
+   "id": "UI103",
+   "sec": "dcmd",
+   "group": "Motion kit",
+   "sub": "Commands",
+   "badge": "motion-kit plugin",
+   "gnote": "One command for interface motion, written for Agent Kit. It measures before it judges: a motion inventory from the code and frame-by-frame captures from a real browser. It runs only when you type it.",
+   "best": "Deciding how a product should move, building one animation properly, and reviewing or fixing existing motion with evidence.",
+   "skipw": "Layout, color and type problems, and WebGL or 3D showpieces.",
+   "note": "The mode word is optional: /motion with a plain request picks the mode and says which. Frame captures use Playwright if the machine already has it, and the agent's own browser tools otherwise.",
+   "t": "/motion build",
+   "cmd": "/motion build",
+   "p": "/motion build make the bottom sheet draggable",
+   "why": "Builds one animation from a one-line spec: the lightest tool that works, the project's own values, the interrupted case and a reduced-motion version. Then captures it frame by frame to check the result.",
+   "dmode": "Changes code"
+  },
+  {
+   "id": "UI104",
+   "sec": "dcmd",
+   "group": "Motion kit",
+   "sub": "Commands",
+   "badge": "motion-kit plugin",
+   "gnote": "One command for interface motion, written for Agent Kit. It measures before it judges: a motion inventory from the code and frame-by-frame captures from a real browser. It runs only when you type it.",
+   "best": "Deciding how a product should move, building one animation properly, and reviewing or fixing existing motion with evidence.",
+   "skipw": "Layout, color and type problems, and WebGL or 3D showpieces.",
+   "note": "The mode word is optional: /motion with a plain request picks the mode and says which. Frame captures use Playwright if the machine already has it, and the agent's own browser tools otherwise.",
+   "t": "/motion review",
+   "cmd": "/motion review",
+   "p": "/motion review the checkout flow",
+   "why": "Read-only review backed by a code inventory and frame captures. Lists motion to cut first, then what is broken, wrong or rough, then where motion is missing, each with its file and what it should be.",
+   "dmode": "Report only"
+  },
+  {
+   "id": "UI105",
+   "sec": "dcmd",
+   "group": "Motion kit",
+   "sub": "Commands",
+   "badge": "motion-kit plugin",
+   "gnote": "One command for interface motion, written for Agent Kit. It measures before it judges: a motion inventory from the code and frame-by-frame captures from a real browser. It runs only when you type it.",
+   "best": "Deciding how a product should move, building one animation properly, and reviewing or fixing existing motion with evidence.",
+   "skipw": "Layout, color and type problems, and WebGL or 3D showpieces.",
+   "note": "The mode word is optional: /motion with a plain request picks the mode and says which. Frame captures use Playwright if the machine already has it, and the agent's own browser tools otherwise.",
+   "t": "/motion fix",
+   "cmd": "/motion fix",
+   "p": "/motion fix the sidebar stutters when it opens on my phone",
+   "why": "Reproduces motion that stutters, flickers, restarts or feels slow, names the cause with a measurement, makes the smallest change and captures it again.",
+   "dmode": "Changes code"
+  },
+  {
    "id": "UI074",
    "sec": "dcmd",
    "group": "Web Design Guidelines",
@@ -4782,6 +5028,33 @@
    ],
    "p": "Hierarchy fix in an hour. The page works but looks amateur.\nRun these in order, and check in with me between steps:\n1. /refactoring-ui: hierarchy, spacing, color and depth\n2. /impeccable layout: rhythm and structure\n3. /impeccable typeset: type sizes and weights\n4. /impeccable polish: tidy the details",
    "dmode": "Changes code"
+  },
+  {
+   "id": "RC23",
+   "sec": "recipe",
+   "group": "Design recipes",
+   "t": "A motion system for the whole app",
+   "why": "Decide once how the product moves, then bring the existing animation in line.",
+   "steps": [
+    [
+     "/motion setup",
+     "agree the durations, curves and springs; writes MOTION.md"
+    ],
+    [
+     "/motion review",
+     "what to cut, fix and add, with frames as evidence"
+    ],
+    [
+     "/motion build",
+     "fix the worst three, one at a time"
+    ],
+    [
+     "/motion review",
+     "check the result against MOTION.md"
+    ]
+   ],
+   "p": "A motion system for the whole app. Decide once how the product moves, then bring the existing animation in line.\nRun these in order, and check in with me between steps:\n1. /motion setup: agree the durations, curves and springs; writes MOTION.md\n2. /motion review: what to cut, fix and add, with frames as evidence\n3. /motion build: fix the worst three, one at a time\n4. /motion review: check the result against MOTION.md",
+   "dmode": "Changes code"
   }
  ],
  "symptoms": [
@@ -4874,6 +5147,15 @@
     "A01",
     "T01"
    ]
+  ],
+  [
+   "Animations stutter, lag or all feel different",
+   [
+    "MO02",
+    "MO01",
+    "MO04",
+    "MO03"
+   ]
   ]
  ],
  "composer": {
@@ -4963,6 +5245,10 @@
     [
      "Not sure where to start in this project",
      "/impeccable"
+    ],
+    [
+     "Decide once how this product should move",
+     "/motion setup"
     ]
    ]
   ],
@@ -4996,6 +5282,10 @@
      "Understand why people stop coming back",
      "/improve-retention",
      "/hooked-ux"
+    ],
+    [
+     "Plan a hero or page entrance before coding it",
+     "/motion storyboard"
     ]
    ]
   ],
@@ -5083,7 +5373,8 @@
     ],
     [
      "Check existing motion",
-     "/review-animations"
+     "/review-animations",
+     "/motion review"
     ],
     [
      "Be brutal about it, then fix the easy things",
@@ -5139,7 +5430,8 @@
     ],
     [
      "Find where motion would help",
-     "/find-animation-opportunities"
+     "/find-animation-opportunities",
+     "/motion review"
     ],
     [
      "Add a little personality",
@@ -5197,7 +5489,8 @@
     ],
     [
      "Animation stutters",
-     "/animation-performance"
+     "/animation-performance",
+     "/motion fix"
     ],
     [
      "Final pass before shipping",
@@ -5325,9 +5618,13 @@
     [
      "/apple-design",
      "Motion that follows your finger: swipes, drags and springs"
+    ],
+    [
+     "/motion",
+     "Agent Kit's own motion command: checks its work with frame captures and keeps one set of values in MOTION.md"
     ]
    ],
-   "/animate for one interaction you want exactly right. Impeccable animate for a light pass over a screen. Apple-design when touch and drag are involved."
+   "/animate for one interaction you want exactly right. Impeccable animate for a light pass over a screen. Apple-design when touch and drag are involved. /motion when you want the result checked frame by frame, or the whole product's motion made consistent."
   ],
   [
    "Variants to choose from",
@@ -5641,7 +5938,8 @@
   "Performance and maintenance": "Where storage, time and write cost actually go, and what grows expensive first. Every claim needs a measurement.",
   "Rebuild and safe change": "Changes and restores proved on a separate database before anyone relies on them.",
   "Agent decisions": "Turns questions agents keep asking you into rules they can apply themselves.",
-  "Workflows": "Short routes through the database prompts for a whole job. Start with the first step and only take the optional ones when the evidence points there."
+  "Workflows": "Short routes through the database prompts for a whole job. Start with the first step and only take the optional ones when the evidence points there.",
+  "Motion": "How the interface moves: whether animation follows a system, what it costs, who it leaves out, and where it helps or gets in the way. Each prompt works in any agent. The motion-kit plugin's /motion runs the same checks with frame-by-frame captures."
  },
  "sources": {
   "intro": "Collected from two field guides, one for agent engineering and one for design skills, plus a set of everyday saved prompts. The skills it points to ship in this repo as plugins.",

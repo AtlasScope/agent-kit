@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf8">
+<title>Timer entrance fixture</title>
+<style>
+  #ready { display: none; width: 120px; padding: 12px; background: #1849c4; color: #fff; }
+  #ready.on { display: block; animation: ready-in 200ms cubic-bezier(0.22, 1, 0.36, 1); }
+  @keyframes ready-in { from { opacity: 0; transform: translateY(8px); } }
+</style>
+<div id="ready">Ready</div>
+<script>setTimeout(() => document.getElementById("ready").classList.add("on"), 300);</script>
+</html>

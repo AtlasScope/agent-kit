@@ -20,7 +20,7 @@ export const HERO = {
 // `testedScope` narrows the claim when only part of the steps was run ("The design-kit install was tested").
 export type Agent = { id: string; label: string; steps: string[]; check: string; tested: string | null; testedScope?: string; cmd: string };
 const agent = (a: Omit<Agent, "cmd">): Agent => ({ ...a, cmd: a.steps[0] });
-const KITS = ["design-kit", "engineering-kit", "experience-architecture", "working-style"];
+const KITS = ["design-kit", "motion-kit", "engineering-kit", "experience-architecture", "working-style"];
 export const AGENTS: Agent[] = [
   agent({ id: "any", label: "Any agent", steps: [`npx skills add ${SITE.repoSlug}`],
     check: "Copies every skill folder into this project's .agents/skills. Other skills they call aren't installed for you.",
