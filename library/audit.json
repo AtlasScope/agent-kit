@@ -73,11 +73,7 @@
    "s": "2222222"
   },
   "R04": {
-   "s": "2122222",
-   "note": "Copy names one city (\"midnight in Memphis\"); use the user's own time zone.",
-   "flags": [
-    "personal"
-   ]
+   "s": "2222222"
   },
   "R05": {
    "s": "2222222"
@@ -135,15 +131,14 @@
    "s": "2222222"
   },
   "I07": {
-   "s": "1122221",
-   "note": "Machine cleanup; the 'viral prompt' framing in its summary will date."
+   "s": "1222221",
+   "note": "Audits the user's computer, not the repo; rarely the job people come for."
   },
   "D01": {
    "s": "2222222"
   },
   "D02": {
-   "s": "2122221",
-   "note": "Assumes the app has \"source filings\"; finance-specific wording."
+   "s": "2222222"
   },
   "D03": {
    "s": "2222222"
@@ -168,8 +163,7 @@
    "s": "2222222"
   },
   "G04": {
-   "s": "2122222",
-   "note": "Summary names specific services (Google, AI Gateway); should be generic."
+   "s": "2222222"
   },
   "G05": {
    "s": "2222222"
@@ -279,11 +273,8 @@
    "s": "2222222"
   },
   "M11": {
-   "s": "1011222",
-   "note": "One vague line (\"be thorough\", \"bold\"); the directive's own example of a weak prompt.",
-   "flags": [
-    "rewrite"
-   ]
+   "s": "2221222",
+   "note": "Rewritten 2026-11-10 from one vague line into checks the agent has to show."
   },
   "M12": {
    "s": "2112222",

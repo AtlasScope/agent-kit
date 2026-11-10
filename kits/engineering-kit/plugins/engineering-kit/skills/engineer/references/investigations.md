@@ -285,7 +285,7 @@ Analyze the system's handling of time: time zones, daylight saving, expiration, 
 ```
 
 - Finds: Finds the date bugs that show up twice a year, at midnight, or in another time zone.
-- Evidence to ask for: Each time-sensitive path with the zone it assumes, and a test at a DST boundary and at midnight in Memphis and UTC.
+- Evidence to ask for: Each time-sensitive path with the zone it assumes, and a test at a DST boundary and at midnight in your users' main time zone and in UTC.
 - Skip when: Features that never show or compare dates.
 - Mode: repro, single pass, wide scope. Needs: Repository; tests with a pinned clock.
 - Skills: `/property-based-testing`
@@ -514,7 +514,7 @@ Audit dependencies for packages declared but unused, imports satisfied only thro
 Inventory actual versions and dependencies of Playwright, Puppeteer, system Chrome, Chromium caches and Electron apps. Verify current vendor-supported and security-fix thresholds rather than trusting hard-coded version numbers. Distinguish safe disposable caches from app-owned runtimes and report the rollback path before any cleanup.
 ```
 
-- Finds: The safe version of the viral 'delete old Chromium builds' prompt.
+- Finds: Finds old browser runtimes on your computer and which are safe to remove, before a cleanup breaks an app that needs them.
 - Evidence to ask for: Each runtime with version, owner app, support status from the vendor, size, and a rollback path.
 - Skip when: When browser tests are stable and disk is fine.
 - Watch for: Do not delete shared runtimes or force a system Chrome until every dependent app is known.
@@ -547,7 +547,7 @@ Trace every derived metric to its raw evidence, transformation logic, assumption
 - Finds: Checks that every number on screen can be traced back to a source document.
 - Evidence to ask for: For each metric: raw inputs, formula with file:line, and an independent recomputation for one real record.
 - Skip when: Metrics that are raw values with no transformation.
-- Mode: read, split, wide scope. Needs: Repository, read-only database, the source filings.
+- Mode: read, split, wide scope. Needs: Repository, read-only database, and the source documents the numbers come from.
 - Skills: `/spec-to-code-compliance`, `/dimensional-analysis`
 - Related: `D01`, `D03`, `G05`
 
@@ -650,7 +650,7 @@ Inspect API responses, Server Component and SSR serialization payloads, and RPC 
 Assume each external API, LLM provider, or webhook source this application depends on either hangs for 30 seconds, returns 429 or 503 for an hour, or delivers a burst of out-of-order webhooks on recovery. Trace which transactions or connection pools are held open during external calls, and whether core journeys degrade gracefully or lock up.
 ```
 
-- Finds: Asks what happens to the app when Google, the AI Gateway or a webhook source goes down.
+- Finds: Asks what happens to the app when an outside API, an AI provider or a webhook sender goes down.
 - Evidence to ask for: Each dependency with its timeout, retry policy, what is held open while waiting, and the user-visible result.
 - Skip when: Features with no outside calls.
 - Mode: read, single pass, wide scope. Needs: Repository; fault injection in a local run.

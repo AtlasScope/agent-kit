@@ -505,7 +505,7 @@
    "t": "Dates, times and time zones",
    "p": "Analyze the system's handling of time: time zones, daylight saving, expiration, scheduled jobs, clock differences, and historical as-of queries.",
    "why": "Finds the date bugs that show up twice a year, at midnight, or in another time zone.",
-   "ev": "Each time-sensitive path with the zone it assumes, and a test at a DST boundary and at midnight in Memphis and UTC.",
+   "ev": "Each time-sensitive path with the zone it assumes, and a test at a DST boundary and at midnight in your users' main time zone and in UTC.",
    "skip": "Features that never show or compare dates.",
    "mode": "repro",
    "top": "single",
@@ -925,7 +925,7 @@
    "gk": "I",
    "t": "Old runtimes and when support ends",
    "p": "Inventory actual versions and dependencies of Playwright, Puppeteer, system Chrome, Chromium caches and Electron apps. Verify current vendor-supported and security-fix thresholds rather than trusting hard-coded version numbers. Distinguish safe disposable caches from app-owned runtimes and report the rollback path before any cleanup.",
-   "why": "The safe version of the viral 'delete old Chromium builds' prompt.",
+   "why": "Finds old browser runtimes on your computer and which are safe to remove, before a cleanup breaks an app that needs them.",
    "ev": "Each runtime with version, owner app, support status from the vendor, size, and a rollback path.",
    "skip": "When browser tests are stable and disk space is fine.",
    "mode": "read",
@@ -978,7 +978,7 @@
    "mode": "read",
    "top": "split",
    "scope": "wide",
-   "tools": "Repository, read-only database, the source filings.",
+   "tools": "Repository, read-only database, and the source documents the numbers come from.",
    "kit": [
     "/spec-to-code-compliance",
     "/dimensional-analysis"
@@ -1166,7 +1166,7 @@
    "gk": "G",
    "t": "When an outside service goes down",
    "p": "Assume each external API, LLM provider, or webhook source this application depends on either hangs for 30 seconds, returns 429 or 503 for an hour, or delivers a burst of out-of-order webhooks on recovery. Trace which transactions or connection pools are held open during external calls, and whether core journeys degrade gracefully or lock up.",
-   "why": "Asks what happens to the app when Google, the AI Gateway or a service that sends it updates goes down.",
+   "why": "Asks what happens to the app when an outside API, an AI provider or a service that sends it updates goes down.",
    "ev": "Each dependency with its timeout, retry policy, what is held open while waiting, and the user-visible result.",
    "skip": "Features with no outside calls.",
    "mode": "read",
@@ -1283,7 +1283,7 @@
     "PG02",
     "PG04"
    ],
-   "tags": "wrong numbers, incorrect numbers, inaccurate data, figures don't match, doesn't match the filings, reconciliation, recompute, verify metrics, data provenance"
+   "tags": "wrong numbers, incorrect numbers, inaccurate data, figures don't match, doesn't match the source, reconciliation, recompute, verify metrics, data provenance"
   },
   {
    "id": "PG02",
@@ -2046,8 +2046,8 @@
    "sec": "think",
    "group": "Thinking prompts",
    "t": "Thorough and bold",
-   "p": "Be thorough in your analysis and bold in your recommendations",
-   "use": "Add it to any prompt when you want depth and a firm recommendation.",
+   "p": "Go past the first answer. For each claim you make, check the original evidence (the code, the data or the docs) and say which claims you verified and which you assumed. Then give one clear recommendation, the strongest argument against it, and the result that would change your mind.",
+   "use": "Add it to any prompt when you want depth and a firm recommendation, with the checking shown.",
    "dmode": "Depends on the task"
   },
   {
