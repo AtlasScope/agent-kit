@@ -31,7 +31,7 @@ Routes are written as the router shows them: a command (`/impeccable critique`),
      - `/database`: it runs the investigation read-only, and any fix waits for a yes;
    - a fallback for a report-only pick also only reports;
    - with a plugin missing, the agent says so instead of claiming it ran;
-   - for a `negative` case, no router starts.
+   - for a `negative` case, no router starts. Run these with the default install, where routers wait to be typed. With a router set to `automatic`, a negative case that asks for that router's kind of work is expected to start it.
 4. Install the optional plugins the `missing-dep` cases name and run those cases again.
 5. Save the run as `tests/routing/results/<yyyy-mm-dd>-<agent>.csv` with the header `id,agent,agent_version,plugins,route,pass,notes`.
 

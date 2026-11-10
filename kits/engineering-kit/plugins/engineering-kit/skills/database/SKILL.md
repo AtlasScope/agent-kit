@@ -1,7 +1,6 @@
 ---
 name: database
-description: Use only when the user explicitly invokes /database or $database. Turns a plain description of a PostgreSQL problem (wrong numbers, heavy writes, a crowded schema, cost, a risky migration, agents escalating decisions) into one starting investigation from the prompt library, says why in a sentence, and runs it read-only when the session can reach the code and database. Ordinary database talk must not activate it.
-disable-model-invocation: true
+description: Use when the user invokes /database or $database, or describes a PostgreSQL problem in their own words while the session carries the Agent Kit note that /database starts automatically. Without that note, ordinary database talk must not activate it. Turns a plain description of a PostgreSQL problem (wrong numbers, heavy writes, a crowded schema, cost, a risky migration, agents escalating decisions) into one starting investigation from the prompt library, says why in a sentence, and runs it read-only when the session can reach the code and database.
 metadata:
   short-description: Pick and run the right database investigation
   author: AtlasScope/agent-kit
@@ -9,9 +8,13 @@ metadata:
 
 # Database
 
-The user types `/database` and what is going on, in their own words. Pick the one investigation that fits, say why in a sentence, then do it. Works on any PostgreSQL host: Supabase, Neon, RDS, Cloud SQL or self-hosted.
+The user types `/database` and what is going on, in their own words, or just describes it if they chose automatic start. Pick the one investigation that fits, say why in a sentence, then do it. Works on any PostgreSQL host: Supabase, Neon, RDS, Cloud SQL or self-hosted.
 
 The prompts are in `references/prompts.md`, generated from the prompt library. Read only the entries you are weighing; do not load all of them.
+
+## Start setting
+
+The person chose this when they installed the engineering kit and can change it in `/config`: **${user_config.start_mode}**. `typed` means `/database` runs only when they type it. `automatic` means it also starts when they describe a PostgreSQL problem in their own words; then say in the first line that you started it, so they can stop you. If the value is blank or not a plain word (Codex and Cursor do not fill it in), treat it as `typed`.
 
 ## Pick one
 
