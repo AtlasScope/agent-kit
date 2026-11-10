@@ -218,6 +218,23 @@ test("a run that cannot capture leaves the previous capture in place", () => {
   assert.ok(fs.existsSync(path.join(out, "filmstrip.json")));
 });
 
+test("a run whose browser cannot launch leaves the previous capture in place", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "filmstrip-nolaunch-"));
+  const out = path.join(dir, "out");
+  fs.mkdirSync(path.join(out, "frames"), { recursive: true });
+  fs.writeFileSync(path.join(out, "frames", "00.png"), "old frame");
+  fs.writeFileSync(path.join(out, "filmstrip.json"), "{}");
+  // A Playwright that loads but has no browser to start.
+  const pw = path.join(dir, "pw", "node_modules", "playwright");
+  fs.mkdirSync(pw, { recursive: true });
+  fs.writeFileSync(path.join(pw, "package.json"), JSON.stringify({ name: "playwright", main: "index.js" }));
+  fs.writeFileSync(path.join(pw, "index.js"), 'module.exports = { chromium: { launch: (o) => (o && o.executablePath ? Promise.reject(new Error("no")) : Promise.reject(new Error("no browser"))) } };');
+  const r = spawnSync(process.execPath, [script, page, "--out", out, "--do", "click:#open-good"], { encoding: "utf8", timeout: 60000, env: { ...process.env, NODE_PATH: "", MOTION_PLAYWRIGHT_DIR: path.join(dir, "pw") } });
+  assert.notEqual(r.status, 0);
+  assert.equal(fs.readFileSync(path.join(out, "frames", "00.png"), "utf8"), "old frame");
+  assert.ok(fs.existsSync(path.join(out, "filmstrip.json")));
+});
+
 test("a spec file supplies the URL, actions and crop without any of them touching a shell", { skip }, () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "filmstrip-spec-"));
   const spec = path.join(dir, "capture.json");

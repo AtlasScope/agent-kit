@@ -282,7 +282,6 @@ function prepareOut() {
 }
 
 async function capture(pw) {
-  prepareOut();
   let browser;
   try { browser = await pw.chromium.launch(); }
   catch (e) {
@@ -296,6 +295,8 @@ async function capture(pw) {
     if (!chrome) fail(`Playwright is installed but has no browser, and Chrome was not found. No frames were captured.\n${String(e.message).split("\n")[0]}`, 3);
     browser = await pw.chromium.launch({ executablePath: chrome });
   }
+  // Only now, with a browser running, is the previous capture cleared: a run that cannot start leaves it alone.
+  prepareOut();
   const actions = all("--do");
   if (!actions.length) actions.push("load");
   const trigger = actions[actions.length - 1];

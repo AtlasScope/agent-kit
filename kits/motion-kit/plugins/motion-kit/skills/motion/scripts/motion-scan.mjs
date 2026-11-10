@@ -184,7 +184,13 @@ function scanText(file, src) {
     : /@react-spring\/|react-native-reanimated|animejs|withTiming|\.animate\(/.test(src) ? "ms" : "?";
   if (usesLib) {
     for (const m of src.matchAll(/(?<![\w.])duration\s*:\s*(\d*\.?\d+)\s*[,}\n]/g)) {
-      const n = parseFloat(m[1]); const v = Math.round(n * (unit === "s" || (unit === "?" && n <= 20) ? 1000 : 1));
+      // One file can use two APIs (Motion beside element.animate()), so the call a duration sits in decides
+      // its unit: the nearest one before it. The file's own unit is the fallback.
+      const before = src.slice(Math.max(0, m.index - 400), m.index);
+      const last = (re) => Math.max(-1, ...[...before.matchAll(re)].map((x) => x.index));
+      const msAt = last(/\.animate\(|withTiming\(|anime(?:\.\w+)?\(/g), sAt = last(/gsap\.\w+\(|\.(?:to|from|fromTo)\(|transition\s*[=:]\s*\{|(?<![.\w])animate\(/g);
+      const u = msAt > sAt ? "ms" : sAt > msAt ? "s" : unit;
+      const n = parseFloat(m[1]); const v = Math.round(n * (u === "s" || (u === "?" && n <= 20) ? 1000 : 1));
       bump(durations, v); totals.literalDurations++; totals.transitions++;
       if (v >= 500 && !/repeat\s*:\s*(Infinity|-1)/.test(src.slice(m.index, m.index + 200))) find("long-transition", "check", file, lineAt(m.index), m[0], `${v}ms is long for a state change. Most interface transitions land between 120 and 320ms.`);
     }

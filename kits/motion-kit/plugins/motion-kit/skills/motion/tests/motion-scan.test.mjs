@@ -116,3 +116,9 @@ test("a longhand duration that comes from a token still counts as motion", () =>
   assert.equal(r.totals.tokenDurations, 2);
   assert.ok(r.system.some((s) => s.rule === "no-reduced-motion"));
 });
+
+test("a file that mixes Motion and element.animate() reads each duration in its own unit", () => {
+  const r = scan("mixed-units");
+  assert.deepEqual(r.durations.map((d) => d.ms).sort((a, b) => a - b), [200, 300]);
+  assert.ok(!rules(r).includes("long-transition"));
+});

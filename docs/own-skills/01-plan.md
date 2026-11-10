@@ -62,7 +62,7 @@ The last three are the case for writing our own. They are also where Agent Kit's
 | A stated judgment | Six jobs, frequency sets intensity, three registers, cut before adding | It decides things; it does not list considerations |
 | An honest ending | Three closing lines: what was measured, what was left unchecked, what to feel by hand | Matches "never claim more than was tested" |
 
-The size is a useful comparison. The nine borrowed motion skills total about 39,000 words. `/motion` is about 17,000 words with three scripts and 51 tests, and adds a project file, storyboarding and browser proof.
+The size is a useful comparison. The nine borrowed motion skills total about 39,000 words. `/motion` is about 17,000 words with three scripts and 53 tests, and adds a project file, storyboarding and browser proof.
 
 ## Proposed set
 
