@@ -1,17 +1,19 @@
-# Required check "codex-review": passes once a Codex review has finished.
-# Codex keeps one summary comment on the PR with a hidden state block
-# (codex-review-state:v1) and edits it from "running" to done; it also leaves a
-# review with inline findings, or a thumbs-up when it finds nothing. A Codex
-# security review, when one runs, must finish with no unresolved findings. Findings
-# are review threads, and main requires every thread resolved before merge, so
-# "fixed or dismissed" is enforced there, not here.
+# Required check "codex-review": passes once Codex has finished reviewing the
+# PR's current head commit. Codex keeps one summary comment on the PR with a
+# hidden state block (codex-review-state:v1) that names the commit it reviewed
+# and moves from "running" to done; it also leaves a review with inline
+# findings, or a thumbs-up when it finds nothing. A Codex security review, when
+# one runs, must finish with no unresolved findings. Findings are review
+# threads, and main requires every thread resolved before merge, so "fixed or
+# dismissed" is enforced there, not here.
+#
+# The check waits for Codex instead of failing while it works. It runs only on
+# pushes, so a review or comment never starts a competing run that cancels it.
 name: Codex review
 
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-  pull_request_review:
-    types: [submitted]
   issue_comment:
     types: [created, edited]
 
@@ -25,49 +27,72 @@ env:
 jobs:
   codex-review:
     name: codex-review
-    if: github.event_name != 'issue_comment'
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 30
     concurrency:
+      # A newer push cancels the wait for an older head; that head no longer matters.
       group: codex-review-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
-      - name: Look for a Codex review
+      - name: Wait for Codex to review this commit
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          WAIT_MINUTES: "25"
         run: |
           api() { gh api --paginate "repos/$GITHUB_REPOSITORY/$1" --jq "$2"; }
-          reviews=$(api "pulls/$PR/reviews" "[.[] | select(.user.login == env.CODEX_LOGIN)] | length")
-          thumbs=$(api "issues/$PR/reactions" "[.[] | select(.user.login == env.CODEX_LOGIN and .content == \"+1\")] | length")
-          # Latest state block from Codex's summary comment (code review and security review).
-          state=$(api "issues/$PR/comments" '.[] | select(.user.login == env.CODEX_LOGIN) | .body' \
-            | sed 's/&#123;/{/g; s/&#125;/}/g' \
-            | grep -o 'codex-review-state:v1 {.*} -->' | tail -1 \
-            | sed 's/^codex-review-state:v1 //; s/ -->$//')
-          field() { [ -n "$state" ] && printf '%s' "$state" | jq -r "$1 // \"\"" 2>/dev/null || true; }
-          status=$(field .code_review.status)
-          sec_status=$(field .security_review.status)
-          sec_open=$(field .security_review.has_unresolved_findings)
-          echo "Codex reviews: $reviews, thumbs-up: $thumbs, code review: ${status:-none}, security review: ${sec_status:-none} (unresolved findings: ${sec_open:-n/a})"
-          case "$status:$sec_status" in
-            running:*|queued:*|pending:*|in_progress:*|*:running|*:queued|*:pending|*:in_progress)
-              echo "::error::Codex is still reviewing this PR."; exit 1 ;;
-          esac
-          if [ "$sec_open" = "true" ]; then
-            echo "::error::Codex security review has unresolved findings. Fix them or resolve them on the PR."
-            exit 1
-          fi
-          if [ -n "$status" ] || [ $((reviews + thumbs)) -gt 0 ]; then
-            echo "Codex has finished reviewing. Unresolved findings still block merge until resolved."
-            exit 0
-          fi
-          echo "::error::Waiting for a Codex review. If none arrives, comment '@codex review' on the PR."
-          exit 1
+          deadline=$(( $(date +%s) + WAIT_MINUTES * 60 ))
+          while :; do
+            # Codex reviews and thumbs-up for this exact commit or PR.
+            reviews=$(api "pulls/$PR/reviews" "[.[] | select(.user.login == env.CODEX_LOGIN and .commit_id == env.HEAD_SHA)] | length")
+            thumbs=$(api "issues/$PR/reactions" "[.[] | select(.user.login == env.CODEX_LOGIN and .content == \"+1\")] | length")
+            # Latest state block from Codex's summary comment (code review and security review).
+            state=$(api "issues/$PR/comments" '.[] | select(.user.login == env.CODEX_LOGIN) | .body' \
+              | sed 's/&#123;/{/g; s/&#125;/}/g' \
+              | grep -o 'codex-review-state:v1 {.*} -->' | tail -1 \
+              | sed 's/^codex-review-state:v1 //; s/ -->$//' || true)
+            field() { [ -n "$state" ] && printf '%s' "$state" | jq -r "$1 // \"\"" 2>/dev/null || true; }
+            status=$(field .code_review.status)
+            sha=$(field .code_review.commit_sha)
+            sec_status=$(field .security_review.status)
+            sec_sha=$(field .security_review.commit_sha)
+            sec_open=$(field .security_review.has_unresolved_findings)
+            echo "$(date -u +%H:%M:%S) code review: ${status:-none} (${sha:0:7}), security review: ${sec_status:-none} (${sec_sha:0:7}, unresolved: ${sec_open:-n/a}), reviews of this commit: $reviews, thumbs-up: $thumbs"
 
-  # A Codex comment or thumbs-up does not fire pull_request_review, and checks from
-  # issue_comment runs land on main rather than the PR. So when Codex comments,
-  # re-run the PR's latest check run instead.
+            # A code review of an older commit means Codex has not started on this one.
+            # A security review of an older commit is ignored: it does not run on every push.
+            stale=""
+            [ -n "$sha" ] && [ "$sha" != "$HEAD_SHA" ] && stale=yes
+            if [ -n "$sec_sha" ] && [ "$sec_sha" != "$HEAD_SHA" ]; then sec_status=""; sec_open=""; fi
+            busy=""
+            case "$status:$sec_status" in
+              running:*|queued:*|pending:*|in_progress:*|*:running|*:queued|*:pending|*:in_progress) busy=yes ;;
+            esac
+
+            if [ -z "$stale" ] && [ -z "$busy" ]; then
+              if [ "$sec_open" = "true" ]; then
+                echo "::error::Codex security review has unresolved findings. Fix them or resolve them on the PR."
+                exit 1
+              fi
+              if [ -n "$status" ] || [ "$reviews" -gt 0 ] || { [ -z "$state" ] && [ "$thumbs" -gt 0 ]; }; then
+                echo "Codex has finished reviewing ${HEAD_SHA:0:7}. Unresolved findings still block merge until resolved."
+                exit 0
+              fi
+            fi
+
+            if [ "$(date +%s)" -ge "$deadline" ]; then
+              echo "::error::No finished Codex review of ${HEAD_SHA:0:7} after $WAIT_MINUTES minutes. Comment '@codex review' on the PR; this check re-runs when Codex replies."
+              exit 1
+            fi
+            sleep 30
+          done
+
+  # Backup for a review that lands after the wait ran out (or after '@codex review').
+  # Checks from issue_comment runs land on main rather than the PR, so re-run the
+  # PR's own push-triggered check instead. Codex edits its summary several times
+  # in a row; skip while that check is still waiting or once it has passed.
   rerun-on-codex-comment:
     if: >-
       github.event_name == 'issue_comment' &&
@@ -75,17 +100,24 @@ jobs:
       github.event.comment.user.login == 'chatgpt-codex-connector[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 2
+    concurrency:
+      group: codex-review-rerun-${{ github.event.issue.number }}
+      cancel-in-progress: false
     permissions:
       actions: write
       pull-requests: read
     steps:
-      - name: Re-run codex-review for the PR head
+      - name: Re-run codex-review for the PR head if it gave up
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.issue.number }}
         run: |
           sha=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq .head.sha)
-          run=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/codex-review.yml/runs?head_sha=$sha&per_page=20" \
-            --jq '[.workflow_runs[] | select(.event != "issue_comment")][0].id // empty')
-          if [ -z "$run" ]; then echo "No codex-review run for $sha yet"; exit 0; fi
-          gh run rerun "$run" --repo "$GITHUB_REPOSITORY"
+          latest=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/codex-review.yml/runs?head_sha=$sha&event=pull_request&per_page=20" \
+            --jq '.workflow_runs[0] | "\(.id // "") \(.status // "") \(.conclusion // "")"')
+          read -r run status conclusion <<< "$latest"
+          if [ -z "$run" ]; then echo "No codex-review run for ${sha:0:7} yet"; exit 0; fi
+          if [ "$status" != "completed" ]; then echo "codex-review for ${sha:0:7} is still waiting; it will see this review"; exit 0; fi
+          if [ "$conclusion" = "success" ]; then echo "codex-review for ${sha:0:7} already passed"; exit 0; fi
+          gh run rerun "$run" --repo "$GITHUB_REPOSITORY" \
+            || echo "Could not re-run $run (it may have just restarted); the next Codex update will try again"
