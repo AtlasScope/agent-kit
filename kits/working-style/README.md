@@ -1,14 +1,12 @@
-# Working Style
+# working-style
 
-Four commands for working with a coding agent. Each runs only when you type it.
+The **Working Style** plugin is in [`plugins/working-style`](plugins/working-style/README.md), with its README. That folder is what Claude Code, Codex and the plugin directory install.
 
-| Command | What it does |
-|---|---|
-| `/ceo` | Explains status, systems or technical work in short plain English, without pushing a recommendation. |
-| `/recommend` | Turns a decision into one clear call: the options, what each costs and risks, why the pick wins, and the one question left for you. |
-| `/harsh-review` | Direct critique of a product or change, ranked by how much it hurts users, with the cheap certain fixes made and the rest listed. |
-| `/viewport-proof` | Screenshots a screen at phone, tablet and desktop sizes and gives a verdict (production ready, minor fixes, or not ready) with a proof sheet. |
+## Install
 
-The skills speak about "the user": whoever invokes them. Put personal preferences in your own project instructions rather than editing these files.
+```sh
+claude plugin marketplace add AtlasScope/agent-kit
+claude plugin install working-style@agent-kit
+```
 
-Install with the rest of [agent-kit](../../README.md#install): `claude plugin install working-style@agent-kit`.
+The [repository README](https://github.com/AtlasScope/agent-kit#install) covers cloud sessions, Codex and Cursor.
