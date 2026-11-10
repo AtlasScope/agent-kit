@@ -56,7 +56,7 @@ Name files for what they hold: `report.md`, `model.json` (from `ea map`), `journ
 
 ## Boundaries that hold in every skill
 
-- Analysis is read-only. Do not edit application code, config, routes or tests, and do not commit, unless the owner explicitly asks for implementation after seeing the recommendation. Finding a better structure is never a reason to start changing the app.
+- Analysis is read-only. Do not edit application code, config, routes or tests, and do not commit, unless the owner explicitly asks for implementation: after seeing the recommendation, or at the outset as part of an assignment carried through under `assignment.md`, which says when to show the recommendation and when to wait. Finding a better structure is never a reason to start changing the app.
 - Do not run destructive app actions in the browser: no deletes, payments, sending messages, or account changes. The crawler and journey runner block write requests (POST, PUT, PATCH, DELETE) unless a spec allows them, and the crawler skips logout/delete-style URLs. Use test accounts the user gives you or the project's seed data; never real credentials.
 - Keep captured data small. Journey logs fingerprint typed values instead of storing them, mask secret-looking URL parameters, and drop page text before writing to disk. Screenshots capture everything on screen; take them only when a visual matters, and never of pages showing real personal data.
 - Starting the user's dev server is allowed when they gave a URL or a run command, asked for browser checks, or agreed when asked. Stop anything you started.

@@ -33,12 +33,13 @@ Open: <what is unknown or not established>
 - **Each stage deepens or acts on what is already known.** Read the case file, then do only what is missing. A cause the walkthrough established is used as it stands. Run a stage in full only when its questions are still open.
 - **Skip a stage that has nothing to add.** A clear repair goes from Understand to Build. A direction that changes no structure skips the site-map options.
 - **Ask once, for the decision that is the owner's.** The direction, when it changes what the product is or what people must relearn. Technical choices are yours. Questions the case file already answers are not asked again.
+- **The go-ahead to build.** Application code changes only on the owner's explicit request. A request that asked at the outset for the improvement to be built is that request, for the journey it named. Before the first edit, say in one message what you are about to build and what it will replace, so the recommendation is seen before the change. Then proceed without waiting when the change is a repair or a clarification of existing screens. Wait for the owner's answer when the direction recomposes a flow, changes structure, or changes what people must relearn: that is the decision that is theirs. Where the owner asked only to examine or recommend, nothing is built until they ask.
 - **Stay inside the authorised scope.** "Examine" and "recommend" change nothing in the app. "Build" covers the journey agreed and the presentation, wording, navigation and state it needs. Data models, sign-in, payments, deployment and merging need their own go-ahead.
 - **Stop at the stage the owner asked for**, and say in one line what the next stage would produce.
 
 ## Before and after
 
-Comparable captures need the same job, role, data, width and application state on both sides. Record the revision of each. Until a capture command exists, take them with `ea journey <spec> --screenshots` or the session's browser tools, run the same spec before and after, and keep the full-size images; a sheet of thumbnails is an index to them.
+Comparable captures need the same job, role, data, width and application state on both sides. Record the revision of each. Until a capture command exists, take them with `ea journey <spec> --screenshots` or the session's browser tools, running the same spec before and after. Give each run its own folder, `--out <output-dir>/before` and `--out <output-dir>/after`: the runner names captures and logs by journey, width and step, so a second run into the same folder overwrites the first. Keep the full-size images; a sheet of thumbnails is an index to them.
 
 ## Where things may be written
 
