@@ -133,7 +133,9 @@ function scrub([t, finish]) {
     let rec = reg.seen.get(a);
     // An animation the page itself holds paused (animation-play-state: paused, or pause()) is not moving, so
     // it is left where it is. If the page resumes it later, it is picked up then, from that position.
-    if (!rec && a.playState === "paused") { reg.held.add(a); continue; }
+    // The same goes for one that had already finished before the action (an entrance with fill: forwards):
+    // it is at rest, and rewinding it would replay motion the action never caused.
+    if (!rec && (a.playState === "paused" || (a.playState === "finished" && reg.held.has(a)))) { reg.held.add(a); continue; }
     if (!rec) {
       const timing = a.effect?.getComputedTiming?.() || {};
       const frames = a.effect?.getKeyframes?.() || [];
@@ -185,6 +187,13 @@ function scrub([t, finish]) {
     try { a.pause(); a.currentTime = Math.max(0, at); } catch { /* finished or detached */ }
   }
   return fresh;
+}
+
+// Runs in the page just before the action: remembers which animations are already finished, so they can be
+// told apart from ones that finish in the moment between the action and the first frame.
+function noteResting() {
+  const reg = (window.__filmstrip ||= { seen: new Map(), from: new Map(), done: new WeakSet(), held: new WeakSet(), n: 0 });
+  for (const a of document.getAnimations()) if (a.playState === "finished") reg.held.add(a);
 }
 
 // Runs in the page before its own scripts. An animation that was just reversed is "pending" until the next
@@ -323,7 +332,7 @@ async function capture(pw) {
     try { await page.clock.pauseAt((await page.evaluate(() => Date.now())) + margin); break; }
     catch (e) { if (tries >= 3) throw e; }
   }
-  if (!isLoad) await act(page, trigger);
+  if (!isLoad) { await page.evaluate(noteResting).catch(() => {}); await act(page, trigger); }
   await page.clock.runFor(34);
   const animations = await page.evaluate(scrub, [0, false]);
   if (lateClip) {

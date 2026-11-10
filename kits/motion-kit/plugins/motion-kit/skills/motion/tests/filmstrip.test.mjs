@@ -290,7 +290,7 @@ test("an animation the page holds paused is left alone until the page resumes it
   };
   const still = go("click:#nothing");
   assert.deepEqual(still.animations, []);
-  assert.equal(still.framesChanged, 0, "a paused spinner does not turn in the frames");
+  assert.equal(still.framesChanged, 0, "a paused spinner does not turn, and an entrance that already finished does not replay");
   const resumed = go("click:#resume");
   assert.equal(resumed.animations.length, 1);
   assert.equal(resumed.framesChanged, 2);
