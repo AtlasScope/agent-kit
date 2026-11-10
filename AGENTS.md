@@ -24,6 +24,6 @@ Removal refuses a lane with uncommitted changes, or with commits that are not on
 
 - Keep each one to one outcome, and keep kit or library changes apart from `site/` changes.
 - Describe the problem, the change, how it was checked and what is unverified, in plain English.
-- Required checks: `ci`, `codex-review`, `osv`, `codeql`. `codex-review` waits for Codex to finish reviewing the current commit. If it times out, comment `@codex review` and it re-runs when Codex replies.
+- Required checks: `ci`, `osv`, `codeql`. Codex reviews each pull request once, when it opens; its notes are review threads like any other.
 - Every review thread must be resolved before merge: fix it, or reply with the reason it stays and resolve it.
 - Changing a kit means raising its version in both plugin manifests, `.claude-plugin/marketplace.json` and any library badges, then running `node library/build.mjs`.
