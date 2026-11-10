@@ -61,10 +61,16 @@ jobs:
             echo "$(date -u +%H:%M:%S) code review: ${status:-none} (${sha:0:7}), security review: ${sec_status:-none} (${sec_sha:0:7}, unresolved: ${sec_open:-n/a}), reviews of this commit: $reviews"
 
             # A code review of an older commit means Codex has not started on this one.
-            # A security review of an older commit is ignored: it does not run on every push.
+            # A security review of an older commit does not run on every push, so it
+            # still counts while it runs: its findings have not posted yet and the
+            # check waits for them. Once it finishes, its findings are review threads
+            # that main requires resolved, so its result is not re-checked here.
             stale=""
             [ -n "$sha" ] && [ "$sha" != "$HEAD_SHA" ] && stale=yes
-            if [ -n "$sec_sha" ] && [ "$sec_sha" != "$HEAD_SHA" ]; then sec_status=""; sec_open=""; fi
+            if [ -n "$sec_sha" ] && [ "$sec_sha" != "$HEAD_SHA" ]; then
+              sec_open=""
+              case "$sec_status" in running|queued|pending|in_progress) ;; *) sec_status="" ;; esac
+            fi
             busy=""
             case "$status:$sec_status" in
               running:*|queued:*|pending:*|in_progress:*|*:running|*:queued|*:pending|*:in_progress) busy=yes ;;
