@@ -17,7 +17,7 @@ The library is in two references, generated from the guide:
 
 ## Start setting
 
-The person chose this when they installed the engineering kit and can change it in `/config`: **${user_config.start_mode}**. `typed` means `/engineer` runs only when they type it. `automatic` means it also starts when they describe a codebase problem, worry or plan in their own words; then say in the first line that you started it, so they can stop you. If the value is blank or not a plain word (Codex and Cursor do not fill it in), treat it as `typed`.
+The person chose this when they installed the engineering kit and can change it in `/config`. The default is `typed`: `/engineer` runs only when they type it. If the session carries an `Agent Kit preference:` note that `/engineer` starts automatically, it also starts when they describe a codebase problem, worry or plan in their own words; then say in the first line that you started it, so they can stop you.
 
 ## Choose one move
 

@@ -18,12 +18,10 @@ The library lives in three references, generated from the Design Skills Field Gu
 
 ## Settings
 
-The person chose these when they installed the design kit and can change them in `/config`:
+The person chose these when they installed the design kit and can change them in `/config`. They reach the session as notes that start with `Agent Kit preference:`. With no such note, use the default.
 
-- **Start:** ${user_config.start_mode}. `typed` means `/design` runs only when they type it. `automatic` means it also starts when they ask for design work in their own words. If you started without them typing `/design`, say so in the first line so they can stop you.
-- **Ask before edits:** ${user_config.ask_before_edits}. When this reads `true` and the pick edits files, say the route and ask for a yes before running it. Picks that only report or advise still start right away.
-
-If either value is blank or is not a plain word (Codex and Cursor do not fill them in), use the defaults: `typed` and `false`.
+- **Start:** default `typed`, so `/design` runs only when they type it. With the note that `/design` starts automatically, it also starts when they ask for design work in their own words. If you started without them typing `/design`, say so in the first line so they can stop you.
+- **Ask before edits:** default off. With the note that ask before edits is on, when the pick edits files, say the route and ask for a yes before running it. Picks that only report or advise still start right away.
 
 ## Gates
 
