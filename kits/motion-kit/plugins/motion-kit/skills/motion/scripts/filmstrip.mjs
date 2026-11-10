@@ -87,7 +87,9 @@ function scrub(t) {
   const COMPOSITED = new Set(["transform", "opacity", "translate", "scale", "rotate", "filter", "backdropFilter", "offsetDistance"]);
   const LAYOUT = /^(width|height|minWidth|minHeight|maxWidth|maxHeight|top|left|right|bottom|inset.*|margin.*|padding.*|fontSize|lineHeight|borderWidth|gap|gridTemplate.*|flexBasis)$/;
   const fresh = [];
-  for (const a of document.getAnimations()) {
+  // Animations already seen are kept by reference: one with no fill drops out of getAnimations() once it has
+  // been moved to its end, and it still has to be rewound.
+  for (const a of new Set([...reg.seen.keys(), ...document.getAnimations()])) {
     let rec = reg.seen.get(a);
     if (!rec) {
       const timing = a.effect?.getComputedTiming?.() || {};
@@ -114,6 +116,7 @@ function scrub(t) {
       reg.seen.set(a, rec);
       fresh.push(rec);
     }
+    if (a.playState === "idle") continue; // cancelled by the page itself; leave it alone
     try { a.pause(); a.currentTime = Math.max(0, t - rec.start); } catch { /* finished or detached */ }
   }
   return fresh;

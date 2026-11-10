@@ -47,6 +47,14 @@ test("transitions written as longhand properties count as motion", () => {
   assert.deepEqual(r.system.map((s) => s.rule), ["no-reduced-motion"]);
 });
 
+test("inline style strings and library durations are read in the right units", () => {
+  const r = scan("inline");
+  const inline = r.findings.filter((f) => f.file === "Inline.tsx").map((f) => f.rule);
+  assert.ok(inline.includes("transition-all") && inline.includes("layout-property"), "quoted values keep their first token");
+  assert.ok(r.durations.some((d) => d.ms === 30000), "30 in a Motion file is thirty seconds");
+  assert.ok(r.durations.some((d) => d.ms === 8) && !r.durations.some((d) => d.ms === 8000), "8 in a Web Animations call is eight milliseconds");
+});
+
 test("a folder with no motion says so and exits cleanly", () => {
   const out = execFileSync(process.execPath, [path.join(here, "../scripts/motion-scan.mjs"), path.join(here, "../agents")], { encoding: "utf8" });
   assert.match(out, /No motion found/);

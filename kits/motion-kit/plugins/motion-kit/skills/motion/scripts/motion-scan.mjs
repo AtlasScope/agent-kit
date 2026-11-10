@@ -115,7 +115,7 @@ function scanText(file, src) {
     if (isScript && !/["'`;]|^\s*$/.test(src.slice(Math.max(0, m.index - 1), m.index)) && /^\s*\{/.test(m[3])) continue; // a JS object, handled below
     if (/^\s*[{[]/.test(m[3])) continue;
     if (m[1] === "transition") { if (prop === "transition") totals.transitions++; } else if (prop === "animation") totals.animations++;
-    scanCssValue(m[1], prop, m[3].replace(/["'`,]\s*$/, ""), file, lineAt(m.index), m[0]);
+    scanCssValue(m[1], prop, m[3].replace(/["'`,]\s*$/, "").replace(/^\s*["'`]/, ""), file, lineAt(m.index), m[0]);
   }
   // Keyframes: which properties they move.
   for (const m of src.matchAll(/@keyframes\s+([\w-]+)\s*\{/g)) {
@@ -162,9 +162,13 @@ function scanText(file, src) {
   const LIBS = [["motion", /from\s+["'](motion(\/react)?(-client)?|framer-motion|motion\/react-client)["']/], ["gsap", /from\s+["']gsap(\/[^"']*)?["']|require\(["']gsap/], ["react-spring", /from\s+["']@react-spring\//], ["reanimated", /from\s+["']react-native-reanimated["']/], ["anime.js", /from\s+["']animejs["']/], ["lottie", /from\s+["'](lottie-web|lottie-react|@lottiefiles\/[^"']+)["']/], ["rive", /from\s+["']@rive-app\//], ["auto-animate", /from\s+["']@formkit\/auto-animate/], ["lenis", /from\s+["'](lenis|@studio-freight\/lenis)/], ["tailwindcss-animate", /tailwindcss-animate|tw-animate-css/]];
   for (const [name, re] of LIBS) if (re.test(src)) bump(libraries, name);
   const usesLib = LIBS.some(([, re]) => re.test(src)) || /\.animate\(|transition=\{|useSpring|withSpring|withTiming/.test(src);
+  // Motion, GSAP and react-spring count in seconds; Reanimated, anime.js and the Web Animations API in
+  // milliseconds. Only a file that names none of them falls back to guessing from the size of the number.
+  const unit = /from\s+["'](motion|framer-motion|gsap|@react-spring)|require\(["']gsap/.test(src) ? "s"
+    : /react-native-reanimated|animejs|withTiming|\.animate\(/.test(src) ? "ms" : "?";
   if (usesLib) {
     for (const m of src.matchAll(/(?<![\w.])duration\s*:\s*(\d*\.?\d+)\s*[,}\n]/g)) {
-      const n = parseFloat(m[1]); const v = n <= 20 ? Math.round(n * 1000) : Math.round(n); // seconds in Motion and GSAP, milliseconds elsewhere
+      const n = parseFloat(m[1]); const v = Math.round(n * (unit === "s" || (unit === "?" && n <= 20) ? 1000 : 1));
       bump(durations, v); totals.literalDurations++; totals.transitions++;
       if (v >= 500 && !/repeat\s*:\s*(Infinity|-1)/.test(src.slice(m.index, m.index + 200))) find("long-transition", "check", file, lineAt(m.index), m[0], `${v}ms is long for a state change. Most interface transitions land between 120 and 320ms.`);
     }

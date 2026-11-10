@@ -30,8 +30,10 @@ export function position(t) {
 }
 
 // Settling time: the last moment the spring is more than 0.1% away from rest.
+// The oscillation shrinks as e^(−ζ·ω0·t), so past this time it cannot be more than 0.1% from rest.
+const horizon = Math.log(1000) / (zeta * w0) + duration;
 let settle = duration;
-for (let t = 10; t > 0; t -= 0.001) if (Math.abs(1 - position(t)) > 0.001) { settle = t + 0.001; break; }
+for (let t = horizon; t > 0; t -= 0.001) if (Math.abs(1 - position(t)) > 0.001) { settle = t + 0.001; break; }
 settle = Math.round(settle * 1000) / 1000;
 
 const stops = Array.from({ length: points + 1 }, (_, i) => position((i / points) * settle));

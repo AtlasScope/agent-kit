@@ -77,6 +77,7 @@ test("--clip on an element the action reveals crops to it instead of capturing t
   assert.equal(m.before, null);
   assert.match(m.note, /after the action revealed/);
   assert.equal(m.animations[0].name, "menu-in");
+  assert.equal(m.framesChanged, 2, "the entrance still plays in the frames after the crop was measured");
 });
 
 test("--perf survives an action that loads a new page", { skip }, () => {

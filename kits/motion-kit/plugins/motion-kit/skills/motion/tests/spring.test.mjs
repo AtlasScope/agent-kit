@@ -33,6 +33,13 @@ test("the Motion output is physical values, not Motion's differently scaled visu
   assert.ok(!JSON.stringify(s).includes("visualDuration"));
 });
 
+test("a slow, bouncy spring is followed until it really settles", () => {
+  const s = spring("--duration", "5", "--bounce", "0.8");
+  assert.ok(s.settleMs > 20000, `settles long after ten seconds, reported ${s.settleMs}ms`);
+  const stops = s.css.easing.slice(7, -1).split(", ").map(Number);
+  assert.ok(Math.abs(stops.at(-2) - 1) < 0.01, "the recording ends at rest without a forced jump");
+});
+
 test("values outside the range are refused", () => {
   assert.equal(spawnSync(process.execPath, [script, "--bounce", "2"]).status, 2);
 });
