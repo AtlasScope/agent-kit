@@ -28,7 +28,7 @@
     {
       "name": "motion-kit",
       "description": "One command, /motion, for interface motion on the web, in React, SwiftUI and React Native: set up a motion system, storyboard a sequence, build an animation, review or fix existing motion. It measures before it judges, with a code inventory and frame-by-frame captures from a real browser. Runs only when you call it.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "source": "./kits/motion-kit/plugins/motion-kit",
       "category": "design",
       "homepage": "https://github.com/AtlasScope/agent-kit/tree/main/kits/motion-kit",
@@ -44,7 +44,7 @@
     {
       "name": "engineering-kit",
       "description": "Engineering skills for AI coding agents, vetted and pinned: bug diagnosis, test-first work, architecture scans, plan interviews, retros, primary-source research, setup wizards and read-only PostgreSQL investigations. Every command runs only when you call it, unless you choose at install to let /engineer and /database start on their own.",
-      "version": "1.5.0",
+      "version": "1.5.1",
       "source": "./kits/engineering-kit/plugins/engineering-kit",
       "category": "engineering",
       "homepage": "https://github.com/AtlasScope/agent-kit/tree/main/kits/engineering-kit",
@@ -73,7 +73,7 @@
     {
       "name": "working-style",
       "description": "Four commands for working with an agent: /ceo explains in plain English, /recommend makes the call, /harsh-review gives direct critique with bounded fixes, /viewport-proof judges a screen across viewports with a proof sheet. Each runs only when you call it.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "source": "./kits/working-style/plugins/working-style",
       "category": "productivity",
       "homepage": "https://github.com/AtlasScope/agent-kit/tree/main/kits/working-style",

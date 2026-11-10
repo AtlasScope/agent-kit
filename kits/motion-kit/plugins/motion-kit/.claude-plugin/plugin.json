@@ -1,7 +1,7 @@
 {
   "name": "motion-kit",
   "description": "One command, /motion, for interface motion on the web, in React, SwiftUI and React Native: set up a motion system, storyboard a sequence, build an animation, review or fix existing motion. It measures before it judges, with a code inventory and frame-by-frame captures from a real browser. Runs only when you call it.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": {
     "name": "AtlasScope"
   },
