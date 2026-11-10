@@ -1,6 +1,6 @@
 # Agent Kit
 
-Skills for AI coding agents, plus a prompt library you can open beside any of them. Every command runs only when you call it.
+Skills for AI coding agents, plus a prompt library you can open beside any of them. Every command runs only when you call it, unless you choose at install to let the /design, /engineer or /database router start on its own.
 
 It's for people who already use a coding agent such as Claude Code, Codex or Cursor and want it to do design, engineering and database work the way an experienced person would.
 
@@ -36,6 +36,13 @@ claude plugin install engineering-kit@agent-kit
 claude plugin install experience-architecture@agent-kit
 claude plugin install working-style@agent-kit
 ```
+
+**Choices at install.** Claude Code asks two short questions when you turn on the design kit and one for the engineering kit. Both default to how the kit has always worked, and you can change them later (a change applies from the next session):
+
+- **How should the router start?** `typed` (the default) runs `/design`, `/engineer` or `/database` only when you type it. `automatic` also starts it when you ask for that kind of work in your own words. The other commands always wait to be typed.
+- **Ask before a design skill edits files?** (design kit only) When on, `/design` names its pick and waits for your yes before anything changes files.
+
+To change an answer, type `/design-setup` or `/engineering-setup`: it explains each choice in plain words and saves your answers after showing you the change. `/config` works too. On Windows these choices need Git for Windows (Git Bash); without it the kits keep the defaults. Codex and claude.ai don't ask; there the routers always wait to be typed.
 
 **Claude Code cloud sessions.** Add this to the repository's `.claude/settings.json`, keeping only the plugins you want:
 

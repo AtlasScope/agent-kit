@@ -1,6 +1,6 @@
 # Engineering Kit
 
-Engineering skills for AI coding agents, picked for a solo operator who wants agents to use judgment and only interview, test-first or write reports when asked. Every command here runs only when you type it. Four helper skills (`grilling`, `codebase-design`, `domain-modeling`, `writing-for-agents`) stay reachable so the commands can call them, with descriptions narrowed so they do not start on their own.
+Engineering skills for AI coding agents, picked for a solo operator who wants agents to use judgment and only interview, test-first or write reports when asked. Every command here runs only when you type it, unless you choose in Claude Code to let `/engineer` and `/database` start on their own (see `/engineering-setup`). Four helper skills (`grilling`, `codebase-design`, `domain-modeling`, `writing-for-agents`) stay reachable so the commands can call them, with descriptions narrowed so they do not start on their own.
 
 It is the engineering sibling of [design-kit](../design-kit). Credits, versions and licenses are in [THIRD_PARTY.md](THIRD_PARTY.md).
 
@@ -20,6 +20,7 @@ It is the engineering sibling of [design-kit](../design-kit). Credits, versions 
 | `/wizard` | Writes a bash script that walks you through steps only a human can do (dashboards, secrets, cutovers). |
 | `/to-questionnaire` | Turns a decision you cannot answer alone into a questionnaire for the person who can. |
 | `/wait-what` | Asks the agent to re-pitch its last message in plain language. |
+| `/engineering-setup` | Claude Code only. Explains in plain words whether `/engineer` and `/database` should start on their own, then saves your answer to your settings after showing the change. Takes effect next session. |
 
 ## Pairs well with
 

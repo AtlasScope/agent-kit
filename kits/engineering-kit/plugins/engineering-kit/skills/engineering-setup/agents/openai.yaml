@@ -1,0 +1,5 @@
+interface:
+  display_name: "Engineering setup"
+  short_description: "Choose how /engineer and /database start"
+policy:
+  allow_implicit_invocation: false

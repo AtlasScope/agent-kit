@@ -2,7 +2,7 @@
 
 A design library for AI coding agents. Type `/design` and what you want; the router picks the one right skill or recipe from the library, says why in a line, and starts it. Recipes run one step at a time and resume with `/design next`.
 
-It bundles 37 skills: the router, Emil Kowalski's motion and polish skills, Hallmark, wondelai's UX design set (typography, Refactoring UI, heuristics, microinteractions, iOS HIG and more), two color skills, UX writing, landing-page copy and conversion, SwiftUI Pro, Stop Slop and fix-writing. Credits, versions and licenses are in [THIRD_PARTY.md](THIRD_PARTY.md).
+It bundles 38 skills: the router, `/design-setup` (which explains and saves the two choices Claude Code asks about at install), Emil Kowalski's motion and polish skills, Hallmark, wondelai's UX design set (typography, Refactoring UI, heuristics, microinteractions, iOS HIG and more), two color skills, UX writing, landing-page copy and conversion, SwiftUI Pro, Stop Slop and fix-writing. Credits, versions and licenses are in [THIRD_PARTY.md](THIRD_PARTY.md).
 
 The router also routes to skills that ship as their own plugins. Install the ones you want alongside this kit:
 

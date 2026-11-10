@@ -67,14 +67,20 @@ for (const c of cases) {
     if (!c.without?.length) fail(`${at}: ${c.expect[0]} is not shipped here, so the case needs a "without" route`);
     for (const r of c.without || []) if (!isShipped(r)) fail(`${at}: fallback ${r} is not shipped here either`);
   }
-  // Negative cases only make sense if the router they guard is explicit-only.
+  // Negative cases assume the default install: routers wait to be typed unless the person chose automatic start.
   if (c.kind === "negative") {
     for (const r of c.disallowed || []) {
       const name = r.slice(1);
       if (!["design", "engineer", "database"].includes(name)) continue;
       const kit = name === "design" ? "design-kit" : "engineering-kit";
-      const skill = read(`kits/${kit}/plugins/${kit}/skills/${name}/SKILL.md`);
+      const base = `kits/${kit}/plugins/${kit}`;
+      const skill = read(`${base}/skills/${name}/SKILL.md`);
+      // Automatic start goes through the session-start note, never the Skill tool, so the router stays command-only.
       if (!/^disable-model-invocation: true$/m.test(skill)) fail(`${at}: ${r} can start on its own (no disable-model-invocation)`);
+      const start = JSON.parse(read(`${base}/.claude-plugin/plugin.json`)).userConfig?.start_mode;
+      if (start && start.default !== "typed") fail(`${at}: ${kit} start_mode must default to "typed"`);
+      if (!/allow_implicit_invocation: false/.test(read(`${base}/skills/${name}/agents/openai.yaml`)))
+        fail(`${at}: ${r} must stay typed-only in Codex (agents/openai.yaml)`);
     }
   }
 }

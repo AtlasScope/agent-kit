@@ -286,6 +286,10 @@
   "EC35": {
    "s": "2222222"
   },
+  "EC36": {
+   "s": "2222221",
+   "note": "Claude Code only, and says so; elsewhere there is nothing to set."
+  },
   "EC02": {
    "s": "2222222"
   },
@@ -477,6 +481,10 @@
   },
   "UI028": {
    "s": "2222222"
+  },
+  "UI106": {
+   "s": "2222221",
+   "note": "Claude Code only, and says so; elsewhere there is nothing to set."
   },
   "UI029": {
    "s": "2202221",
