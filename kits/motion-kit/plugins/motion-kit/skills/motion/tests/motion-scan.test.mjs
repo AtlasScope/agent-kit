@@ -32,6 +32,14 @@ test("a tidy codebase: tokens, two curves, reduced motion handled, nothing to fl
   assert.ok(r.totals.tokenDurations >= 4);
 });
 
+test("Tailwind utilities inside @apply in a stylesheet are counted, and plain CSS keywords are not counted twice", () => {
+  const r = scan("apply");
+  assert.ok(rules(r).includes("transition-all") && rules(r).includes("long-transition") && rules(r).includes("ease-in"));
+  assert.ok(r.durations.some((d) => d.ms === 700));
+  assert.equal(r.easings.find((e) => e.easing === "ease-in-out").count, 1, "the CSS declaration is counted once");
+  assert.equal(r.findings.find((f) => f.rule === "transition-all").line, 2);
+});
+
 test("a folder with no motion says so and exits cleanly", () => {
   const out = execFileSync(process.execPath, [path.join(here, "../scripts/motion-scan.mjs"), path.join(here, "../agents")], { encoding: "utf8" });
   assert.match(out, /No motion found/);

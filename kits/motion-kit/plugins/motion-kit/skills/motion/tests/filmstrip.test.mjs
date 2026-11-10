@@ -38,6 +38,16 @@ test("a height transition is reported as layout work, and the real-time run coun
   assert.ok(m.perf.layouts > 10, `expected a layout on most frames, saw ${m.perf.layouts}`);
 });
 
+test("a page entrance is measured while it plays, not after it has finished", { skip }, () => {
+  const entrance = path.join(here, "fixtures/entrance.html");
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), "filmstrip-test-"));
+  const r = spawnSync(process.execPath, [script, entrance, "--out", out, "--json", "--do", "load", "--perf", "--throttle", "1"], { encoding: "utf8", timeout: 120000 });
+  assert.equal(r.status, 0, r.stderr);
+  const m = JSON.parse(r.stdout);
+  assert.deepEqual(m.animations[0].layout, ["height"]);
+  assert.ok(m.perf.layouts > 10, `the entrance animates height for 500ms, yet only ${m.perf.layouts} layouts were counted`);
+});
+
 test("reduced motion: the good panel drops its movement, the bad one does not", { skip }, () => {
   const good = run("--do", "click:#open-good", "--reduced").json;
   assert.deepEqual(good.animations.map((a) => a.properties.join()), ["opacity"]);

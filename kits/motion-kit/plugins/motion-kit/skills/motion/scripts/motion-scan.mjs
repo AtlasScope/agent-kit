@@ -134,9 +134,14 @@ function scanText(file, src) {
   if (/animation-timeline|scroll-timeline|view-timeline/.test(src)) modern.scrollDriven++;
   if (/@starting-style/.test(src)) modern.startingStyle++;
 
-  if (STYLE.test(file)) return;
-
-  // Tailwind utility classes.
+  // Tailwind utility classes. In a stylesheet they only appear inside @apply, so everything else is blanked
+  // out there (keeping line numbers): otherwise CSS keywords such as ease-in-out would be counted twice.
+  const css = src;
+  if (STYLE.test(file)) {
+    const keep = new Uint8Array(css.length);
+    for (const m of css.matchAll(/@apply\b[^;}]*/g)) keep.fill(1, m.index, m.index + m[0].length);
+    src = [...css].map((ch, i) => (keep[i] || ch === "\n" ? ch : " ")).join("");
+  }
   for (const m of src.matchAll(/(?<![\w-])(?:[a-z0-9-]+:)*duration-(\d+|\[[^\]]+\])/g)) {
     const raw = m[1].replace(/[[\]]/g, ""); const t = raw.match(/^(\d*\.?\d+)(ms|s)?$/);
     if (!t) { totals.tokenDurations++; continue; }
@@ -148,6 +153,7 @@ function scanText(file, src) {
   for (const m of src.matchAll(/(?<![\w-])(?:[a-z0-9-]+:)*transition(?:-(colors|opacity|transform|shadow))?(?![\w-])(?=[\s"'`])/g)) if (/class(Name)?\s*=|cn\(|clsx\(|cva\(|@apply/.test(src.slice(Math.max(0, m.index - 400), m.index))) { totals.transitions++; if (m[1]) bump(properties, m[1]); }
   for (const m of src.matchAll(/(?<![\w-])(?:[a-z0-9-]+:)*animate-(spin|ping|pulse|bounce)(?![\w-])/g)) { totals.animations++; totals.infinite++; find("infinite", "check", file, lineAt(m.index), m[0], "Runs forever. It needs a reduced-motion alternative, and a pause control if it lasts over five seconds beside other content (WCAG 2.2.2)."); }
   reduced.tailwind += (src.match(/motion-(reduce|safe):/g) || []).length;
+  if (STYLE.test(file)) return;
 
   if (!isScript && !MARKUP.test(file)) return;
 

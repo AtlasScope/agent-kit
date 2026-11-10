@@ -220,16 +220,27 @@ async function perf(browser, actions) {
   const cdp = await context.newCDPSession(page);
   const throttle = Number(opt("--throttle", 4));
   await cdp.send("Performance.enable");
-  await page.goto(url, { waitUntil: "load", timeout: 30000 });
-  if (opt("--wait")) await page.locator(opt("--wait")).first().waitFor({ timeout: 10000 });
-  await settle(page);
-  for (const a of [...all("--before"), ...actions.slice(0, -1)]) { await act(page, a); await settle(page); }
-  if (throttle > 1) await cdp.send("Emulation.setCPUThrottlingRate", { rate: throttle });
   const metrics = async () => Object.fromEntries((await cdp.send("Performance.getMetrics")).metrics.map((m) => [m.name, m.value]));
-  await page.evaluate(() => { window.__gaps = []; let last = performance.now(); const tick = (now) => { window.__gaps.push(now - last); last = now; window.__raf = requestAnimationFrame(tick); }; window.__raf = requestAnimationFrame(tick); });
-  const before = await metrics();
+  const sampler = () => { window.__gaps = []; let last = performance.now(); const tick = (now) => { window.__gaps.push(now - last); last = now; window.__raf = requestAnimationFrame(tick); }; window.__raf = requestAnimationFrame(tick); };
   const trigger = actions[actions.length - 1];
-  if (parseAction(trigger).kind !== "load") await act(page, trigger);
+  let before;
+  if (parseAction(trigger).kind === "load") {
+    // A page entrance is measured from navigation: slow the CPU and start sampling before the page loads,
+    // so the numbers cover the entrance itself and not the idle page after it.
+    if (throttle > 1) await cdp.send("Emulation.setCPUThrottlingRate", { rate: throttle });
+    await page.addInitScript(sampler);
+    before = await metrics();
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 });
+  } else {
+    await page.goto(url, { waitUntil: "load", timeout: 30000 });
+    if (opt("--wait")) await page.locator(opt("--wait")).first().waitFor({ timeout: 10000 });
+    await settle(page);
+    for (const a of [...all("--before"), ...actions.slice(0, -1)]) { await act(page, a); await settle(page); }
+    if (throttle > 1) await cdp.send("Emulation.setCPUThrottlingRate", { rate: throttle });
+    await page.evaluate(sampler);
+    before = await metrics();
+    await act(page, trigger);
+  }
   const windowMs = CAP || 600;
   await new Promise((r) => setTimeout(r, windowMs + 100));
   const after = await metrics();
