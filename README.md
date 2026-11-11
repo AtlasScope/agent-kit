@@ -1,6 +1,6 @@
 # Agent Kit
 
-Skills for AI coding agents, plus a prompt library you can open beside any of them. Every command runs only when you call it, unless you choose at install to let the /design, /engineer or /database router start on its own.
+Skills for AI coding agents, plus a prompt library you can open beside any of them. Every command runs only when you call it, unless you choose at install to let the /design, /engineer or /database router start on its own. Browse every skill, prompt and kit at [atlasscope.dev](https://www.atlasscope.dev).
 
 It's for people who already use a coding agent such as Claude Code, Codex or Cursor and want it to do design, engineering and database work the way an experienced person would.
 
@@ -80,7 +80,7 @@ Tested on 9 Nov 2026 in a clean config: the Claude Code steps above, plus `claud
 
 ## Website
 
-`site/` is the public library: one page for every prompt, skill and kit, a read-only MCP server, and optional accounts for Starred and collections. It is a Next.js app deployed on Vercel; see [`site/README.md`](site/README.md) to run it.
+`site/` is the public library at [atlasscope.dev](https://www.atlasscope.dev): one page for every prompt, skill and kit, a read-only MCP server, and optional accounts for Starred and collections. It is a Next.js app deployed on Vercel; see [`site/README.md`](site/README.md) to run it.
 
 ## Prompt library
 
