@@ -1,9 +1,9 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Crumbs } from "@/components/Crumbs";
-import { PromptCards, StartCard } from "@/components/Cards";
+import { StartCard } from "@/components/Cards";
 import { STARTS } from "@/lib/starts";
-import { areas, sections, prompts, counts } from "@/lib/content";
+import { areas, sections, counts } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Prompts for AI coding agents",
@@ -26,30 +26,29 @@ export default function Prompts() {
           {STARTS.map((s) => <StartCard key={s.slug} s={s} />)}
         </div>
       </section>
-      <h2 className="h2">The full library</h2>
-      <nav className="tiles" aria-label="Prompt sections">
-        {sections.map((s) => (
-          <a key={s.id} className="tile" data-sec={s.id} href={`#${s.id}`}>
-            <span className="tile__t"><i className="dot" />{s.title}</span>
-            <span className="tile__n">{prompts.filter((p) => p.sec === s.id).length}<span className="sr"> prompts</span></span>
-          </a>
-        ))}
-      </nav>
-      {sections.map((s) => {
-        const as = areas.filter((a) => a.sec === s.id);
-        return (
-          <section key={s.id} id={s.id} className="section" data-sec={s.id} aria-labelledby={`h-${s.id}`}>
-            <h2 id={`h-${s.id}`}><i className="dot" />{s.title}</h2>
-            <p className="note">{s.blurb}</p>
-            {as.length > 1 && (
-              <div className="chips">
-                {as.map((a) => <Link key={a.slug} className="chip" href={`/prompts/${a.slug}`}>{a.title} <span className="chip__n">{a.prompts.length}<span className="sr"> prompts</span></span></Link>)}
-              </div>
-            )}
-            <PromptCards slugs={as.flatMap((a) => a.prompts)} />
-          </section>
-        );
-      })}
+      {/* The rest of the library lives on its area pages. This page lists them, so it stays short on a phone. */}
+      <section className="section" aria-labelledby="h-browse">
+        <h2 id="h-browse">Browse the library</h2>
+        <p className="note">Every prompt sits on one of these pages, grouped by the job it does.</p>
+        {sections.map((s) => {
+          const as = areas.filter((a) => a.sec === s.id);
+          const n = as.reduce((t, a) => t + a.prompts.length, 0);
+          return (
+            <div key={s.id} id={s.id} className="browse" data-sec={s.id}>
+              <h3 className="browse__h"><i className="dot" />{s.title} <span className="browse__n">{n}<span className="sr"> prompts</span></span></h3>
+              <p className="browse__d">{s.blurb}</p>
+              <nav className="tiles" aria-label={s.title}>
+                {as.map((a) => (
+                  <Link key={a.slug} className="tile" href={`/prompts/${a.slug}`}>
+                    <span className="tile__t">{a.title}</span>
+                    <span className="tile__n">{a.prompts.length}<span className="sr"> prompts</span></span>
+                  </Link>
+                ))}
+              </nav>
+            </div>
+          );
+        })}
+      </section>
     </main>
   );
 }

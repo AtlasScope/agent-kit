@@ -4,6 +4,7 @@ import { CHANGES, type Start } from "@/lib/starts";
 import { KITS } from "@/lib/site";
 import { CopyButton } from "./CopyButton";
 import { Star } from "./Star";
+import { ScardMore } from "./ScardMore";
 
 // A kit named in a Requires line links to that kit's page, where its install command is.
 const KIT_NAME = new RegExp(`\\b(${KITS.join("|")})\\b`);
@@ -80,24 +81,30 @@ export function StartCard({ s }: { s: Start }) {
         <Star kind="prompt" refId={p.id} title={p.t} />
       </div>
       <p className={p.t.startsWith("/") ? "scard__pick scard__pick--cmd" : "scard__pick"}><Link href={`/prompts/${p.slug}`} translate={p.t.startsWith("/") ? "no" : undefined}>{p.t}</Link></p>
-      <dl className="scard__qa">
-        <dt>Use when</dt><dd>{s.useWhen}</dd>
-        <dt>You get</dt><dd>{s.youGet}</dd>
-        <dt>Requires</dt><dd>{withKitLinks(s.requires)}</dd>
-        <dt>Changes code?</dt><dd>{CHANGES[s.changes]}</dd>
-      </dl>
-      <div className="pcard__a">
-        <CopyButton className="btn btn--tint" text={copyText(p)} label={copyLabel(p)} name={`${copyLabel(p)}: ${p.t}`} icon />
-        <Link className="btn" href={`/prompts/${p.slug}`} aria-label={`Details: ${p.t}`}>Details</Link>
-      </div>
-      {s.alts.length > 0 && (
-        <ul className="scard__alts">
-          {s.alts.map((a) => {
-            const x = getPromptById(a.id);
-            return x ? <li key={a.id}><Link href={`/prompts/${x.slug}`}>{x.t}</Link>: {a.when}</li> : null;
-          })}
-        </ul>
-      )}
+      <ScardMore
+        qa={
+          <dl className="scard__qa">
+            <dt>Use when</dt><dd>{s.useWhen}</dd>
+            <dt>You get</dt><dd>{s.youGet}</dd>
+            <dt>Requires</dt><dd>{withKitLinks(s.requires)}</dd>
+            <dt>Changes code?</dt><dd>{CHANGES[s.changes]}</dd>
+          </dl>
+        }
+        actions={
+          <div className="pcard__a">
+            <CopyButton className="btn btn--tint" text={copyText(p)} label={copyLabel(p)} name={`${copyLabel(p)}: ${p.t}`} icon />
+            <Link className="btn" href={`/prompts/${p.slug}`} aria-label={`Details: ${p.t}`}>Details</Link>
+          </div>
+        }
+        alts={s.alts.length > 0 && (
+          <ul className="scard__alts">
+            {s.alts.map((a) => {
+              const x = getPromptById(a.id);
+              return x ? <li key={a.id}><Link href={`/prompts/${x.slug}`}>{x.t}</Link>: {a.when}</li> : null;
+            })}
+          </ul>
+        )}
+      />
     </article>
   );
 }
