@@ -657,8 +657,8 @@ svg.i { width: 16px; height: 16px; flex: none; }
 /* Polish (2026-11-10): one header height for sticky offsets and jump targets, a skip link, reading width,
    balanced headings, hover on in-text links, visible focus, and lighter long lists. */
 :root { --header-h: 65px; --read: 52ch; }
-@media (max-width: 64rem) { :root { --header-h: 107px; } }
-@media (max-width: 40rem) { :root { --header-h: 153px; } }
+/* The header is one row everywhere: 64px plus its hairline, and 56px plus its hairline below 1200px (75rem), where the menu takes over. */
+@media (max-width: 75rem) { :root { --header-h: 57px; } }
 html { scroll-padding-top: calc(var(--header-h) + 16px); }
 @media (pointer: fine) { html { overscroll-behavior-y: none; } }
 .results { overscroll-behavior: contain; }
