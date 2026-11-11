@@ -13,17 +13,23 @@ export type CollectionData = { id: string; name: string; is_starred: boolean; is
 type Action = (s: ActionState, f: FormData) => Promise<ActionState>;
 type Actions = Record<"create" | "rename" | "share" | "remove" | "removeItem", Action>;
 
+const PLUS = <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>;
 const X = <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>;
 
-// The signed-in Collections page: a form to make a collection, then one panel per collection with its items,
-// its sharing state and its actions. Rename, Delete and Remove open in place; Delete and Remove ask once first.
+// The signed-in Collections page: one panel per collection with its items, its sharing state and its actions,
+// under a bar whose New collection button opens the name field in place. Rename, Delete and Remove open in place; Delete and Remove ask once first.
 export function CollectionsView({ cols, actions }: { cols: CollectionData[]; actions: Actions }) {
   return (
     <>
-      <ActionForm action={actions.create} className="col-new" reset>
-        <input className="input" name="name" placeholder="Name it, for example Design reviews…" aria-label="New collection name" maxLength={80} autoComplete="off" required />
-        <Submit className="btn btn--solid" busy="Creating…">Create collection</Submit>
-      </ActionForm>
+      <div className="cols-bar">
+        <p className="cols-bar__n">{cols.length === 1 ? "1 collection" : `${cols.length} collections`}</p>
+        <Pop summary={<>{PLUS}New collection</>} summaryClass="btn btn--sm btn--solid">
+          <ActionForm action={actions.create} className="col__popform" reset>
+            <input className="input" name="name" placeholder="Name it, for example Design reviews…" aria-label="New collection name" maxLength={80} autoComplete="off" required autoFocus />
+            <Submit className="btn btn--sm btn--solid" busy="Creating…">Create</Submit>
+          </ActionForm>
+        </Pop>
+      </div>
       <div className="cols">
         {cols.map((c) => <CollectionPanel key={c.id} c={c} actions={actions} />)}
       </div>

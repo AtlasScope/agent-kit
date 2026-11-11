@@ -631,9 +631,11 @@ svg.i { width: 16px; height: 16px; flex: none; }
 .input::placeholder { color: var(--color-muted); }
 .input:focus { border-color: var(--color-ink); }
 .input:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; }
-.col-new { display: flex; gap: var(--space-xs); max-width: 36rem; }
-.col-new .input { flex: 1; background: var(--color-paper-2); }
-.col-new .btn { min-height: 40px; }
+/* The bar above the collection panels: how many there are, and New collection, which opens its field in place. */
+.cols-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-sm); margin-top: var(--space-md); }
+.cols-bar__n { margin: 0; color: var(--color-muted); font-size: var(--text-sm); }
+.cols-bar .col__popbody { left: auto; right: 0; width: min(22rem, calc(100vw - 2rem)); }
+.cols-bar .col__pop[open] > summary { background: var(--color-accent); border-color: transparent; }
 .cols { display: grid; gap: var(--space-md); }
 .col { display: grid; gap: var(--space-md); padding: var(--space-md) var(--space-lg) var(--space-lg); border: 1px solid var(--color-rule); border-radius: 14px; background: var(--color-paper-2); min-width: 0; }
 .col__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-sm); }
@@ -667,7 +669,7 @@ svg.i { width: 16px; height: 16px; flex: none; }
 .col__install--lead h2 { margin: 0; font: 650 1.0625rem/1.3 var(--font-body); letter-spacing: -0.015em; }
 @media (hover: hover) and (pointer: fine) { .col__rm:hover { background: var(--color-paper-3); color: var(--color-ink); } .col__name:hover { text-decoration: underline; text-decoration-color: var(--color-rule-2); text-underline-offset: 0.2em; } }
 @media (pointer: coarse) { .col__rm { width: 44px; height: 44px; } }
-@media (max-width: 40rem) { .col { padding: var(--space-md); } .col-new { flex-direction: column; } .col__popbody { left: 0; right: auto; } .col__items li, .col__items--full li { grid-template-columns: minmax(0, 1fr) auto; } .col__kind { grid-column: 1 / -1; padding-top: 10px; margin-bottom: -10px; } .col__items--full .col__kind { margin-bottom: 0; padding-top: 0; } }
+@media (max-width: 40rem) { .col { padding: var(--space-md); } .col__popbody { left: 0; right: auto; } .col__items li, .col__items--full li { grid-template-columns: minmax(0, 1fr) auto; } .col__kind { grid-column: 1 / -1; padding-top: 10px; margin-bottom: -10px; } .col__items--full .col__kind { margin-bottom: 0; padding-top: 0; } }
 
 /* Polish (2026-11-10): one header height for sticky offsets and jump targets, a skip link, reading width,
    balanced headings, hover on in-text links, visible focus, and lighter long lists. */
@@ -694,8 +696,6 @@ summary { touch-action: manipulation; -webkit-user-select: none; user-select: no
 .guide-resume { margin: 0; }
 .form-err { margin: 0; color: var(--color-danger); font-size: 0.875rem; line-height: 1.45; }
 .form-err:empty { position: absolute; }
-.col-new { flex-wrap: wrap; }
-.col-new .form-err { flex-basis: 100%; }
 .col__inline { display: contents; }
 .col__popform { display: grid; gap: var(--space-xs); }
 .col__popform .btn { justify-self: start; }
