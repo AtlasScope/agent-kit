@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Launch prototype", robots: { index: 
 export default function LaunchLab() {
   return (
     <main className="home">
-      <LaunchHero headline={HERO.headline} skills={counts.skills} prompts={counts.prompts} kits={KITS.length} blur={HERO_BLUR} />
+      <LaunchHero headline={HERO.headline} skills={counts.skills} prompts={counts.prompts} kits={KITS.length} blur={HERO_BLUR} lab />
       <div className="orbit__rail" id="install">
         <InstallRail />
       </div>
