@@ -14,6 +14,7 @@ export function CopyButton({ text, label = "Copy", className = "copy", icon = fa
     <button
       type="button"
       className={className}
+      data-copied={state === "Copied" || undefined}
       aria-label={name}
       onClick={async () => {
         try { await navigator.clipboard.writeText(text); setState("Copied"); }

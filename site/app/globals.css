@@ -6,7 +6,7 @@
   --color-ink: #0B0C12; --color-ink-2: #2B2F3A; --color-muted: #5A5F6B;
   --color-rule: #DCDFE5; --color-rule-2: #808693;
   --color-accent: #0B0C12; --color-accent-ink: #FFFFFF; --color-focus: #0B0C12;
-  --color-cmd: #0B0C12; --color-amber-soft: #E8EAEE; --color-danger: #B42318; --color-on-danger: #FFFFFF;
+  --color-cmd: #0B0C12; --color-warm: #B45309; --color-warm-soft: #FDF1E3; --color-danger: #B42318; --color-on-danger: #FFFFFF;
   --s-inv: #00704A; --s-db: #5C6B00; --s-think: #5A2FC2; --s-ecmd: #006C80; --s-dcmd: #1849C4; --s-recipe: #BF1F5E;
   --lift: inset 0 1px 0 rgba(255,255,255,.8), 0 1px 2px rgba(11,12,18,.06), 0 6px 14px -6px rgba(11,12,18,.08), 0 20px 34px -22px rgba(11,12,18,.18);
   --lift-hi: inset 0 1px 0 rgba(255,255,255,.8), 0 2px 4px rgba(11,12,18,.07), 0 10px 22px -8px rgba(11,12,18,.13), 0 28px 44px -24px rgba(11,12,18,.26);
@@ -26,7 +26,7 @@
   --color-ink: #FFFFFF; --color-ink-2: #A3A6AD; --color-muted: #A3A6AD;
   --color-rule: #2C2E34; --color-rule-2: #66686F;
   --color-accent: #FFFFFF; --color-accent-ink: #0B0C12; --color-focus: #FFFFFF;
-  --color-cmd: #FFFFFF; --color-amber-soft: #151821; --color-danger: #FF8A75; --color-on-danger: #0B0C12;
+  --color-cmd: #FFFFFF; --color-warm: #F5A524; --color-warm-soft: #2A2113; --color-danger: #FF8A75; --color-on-danger: #0B0C12;
   --s-inv: #4BF0A8; --s-db: #C9E05A; --s-think: #BFA8FF; --s-ecmd: #3FE0F5; --s-dcmd: #8CB6FF; --s-recipe: #FF7FB2;
   --lift: inset 0 1px 0 rgba(255,255,255,.06), 0 1px 2px rgba(0,0,0,.6), 0 8px 20px -10px rgba(0,0,0,.7), 0 24px 40px -24px rgba(0,0,0,.9);
   --lift-hi: inset 0 1px 0 rgba(255,255,255,.08), 0 2px 4px rgba(0,0,0,.6), 0 12px 26px -10px rgba(0,0,0,.8), 0 30px 50px -24px rgba(0,0,0,1);
@@ -38,7 +38,7 @@
   --color-ink: #FFFFFF; --color-ink-2: #A3A6AD; --color-muted: #A3A6AD;
   --color-rule: #2C2E34; --color-rule-2: #66686F;
   --color-accent: #FFFFFF; --color-accent-ink: #0B0C12; --color-focus: #FFFFFF;
-  --color-cmd: #FFFFFF; --color-amber-soft: #151821;
+  --color-cmd: #FFFFFF; --color-warm: #F5A524; --color-warm-soft: #2A2113;
   --s-inv: #4BF0A8; --s-db: #C9E05A; --s-think: #BFA8FF; --s-ecmd: #3FE0F5; --s-dcmd: #8CB6FF; --s-recipe: #FF7FB2;
   --lift: inset 0 1px 0 rgba(255,255,255,.06), 0 1px 2px rgba(0,0,0,.6), 0 8px 20px -10px rgba(0,0,0,.7), 0 24px 40px -24px rgba(0,0,0,.9);
   --lift-hi: inset 0 1px 0 rgba(255,255,255,.08), 0 2px 4px rgba(0,0,0,.6), 0 12px 26px -10px rgba(0,0,0,.8), 0 30px 50px -24px rgba(0,0,0,1);
@@ -49,7 +49,7 @@ html, body { overflow-x: clip; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; scrollbar-color: var(--color-rule-2) var(--color-paper); }
 body { margin: 0; background: var(--color-paper); color: var(--color-ink); font: 400 var(--text-md)/1.55 var(--font-body); -webkit-font-smoothing: antialiased; }
 :focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
-::selection { background: var(--color-rule-2); }
+::selection { background: color-mix(in srgb, var(--color-warm) 30%, transparent); }
 a { color: inherit; }
 p { margin: 0; }
 h1 { margin: 0; font: 600 clamp(2.25rem, 3.6vw + 0.75rem, 3.5rem)/1.05 var(--font-display); letter-spacing: -0.02em; text-wrap: balance; overflow-wrap: break-word; min-width: 0; }
@@ -256,14 +256,17 @@ svg.i { width: 16px; height: 16px; flex: none; }
 .btn--sm { min-height: 34px; border-radius: 8px; }
 .btn--ghost { background: transparent; border-color: transparent; }
 .btn--solid { background: var(--color-accent); color: var(--color-accent-ink); border-color: transparent; }
-.btn[aria-pressed="true"] { background: var(--color-amber-soft); border-color: var(--color-cmd); }
+/* The one warm accent marks what you've chosen or kept: a pressed toggle, a star, a copy that worked, a finished step. */
+.btn[aria-pressed="true"] { background: var(--color-warm-soft); border-color: var(--color-warm); }
 .btn--tint { flex: 1; justify-content: center; }
 .star { display: inline-grid; place-items: center; text-decoration: none; grid-auto-flow: column; gap: 6px; min-width: 32px; min-height: 32px; padding: 0 6px; border: 0; border-radius: 8px; background: none; color: var(--color-muted); font: 550 var(--text-sm)/1 var(--font-body); cursor: pointer; flex: none; position: relative; z-index: 1; }
 .star .i { width: 18px; height: 18px; }
-.star[aria-pressed="true"] { color: var(--color-cmd); }
+.star[aria-pressed="true"] { color: var(--color-warm); }
 .star--label { min-height: 34px; padding: 0 12px; border: 1px solid var(--color-rule-2); background: var(--color-paper-2); color: var(--color-ink); }
-.star--label[aria-pressed="true"] { background: var(--color-amber-soft); border-color: var(--color-cmd); color: var(--color-ink); }
-.star--label[aria-pressed="true"] .i { color: var(--color-cmd); }
+.star--label[aria-pressed="true"] { background: var(--color-warm-soft); border-color: var(--color-warm); color: var(--color-ink); }
+.star--label[aria-pressed="true"] .i { color: var(--color-warm); }
+[data-copied]:not(.btn--solid) .i, .i--warm { color: var(--color-warm); }
+.menu__pop .is-saved { color: var(--color-warm); }
 
 /* Section hues: a dot beside a title. */
 [data-sec="inv"] { --tone: var(--s-inv); } [data-sec="db"] { --tone: var(--s-db); } [data-sec="think"] { --tone: var(--s-think); }
@@ -358,8 +361,11 @@ svg.i { width: 16px; height: 16px; flex: none; }
   .links a:hover { background: var(--color-paper-3); color: var(--color-ink); }
   .btn:hover { background: var(--color-paper-3); }
   .btn--solid:hover { background: var(--color-ink-2); }
-  .star:hover { color: var(--color-cmd); background: var(--color-amber-soft); }
+  .star:hover { color: var(--color-cmd); background: var(--color-warm-soft); }
   .tile:hover, .row:hover { box-shadow: var(--lift-hi); transform: translateY(-1px); }
+  /* A hint of the section's own colour on hover, where a tile belongs to one. */
+  [data-sec] .tile:hover, .tile[data-sec]:hover { border-color: var(--tone, var(--color-rule-2)); }
+  .pcard[data-sec]:has(.stretch:hover) { border-color: var(--tone); }
   .tile--lead:hover { filter: brightness(1.06); }
   .pcard:hover { box-shadow: var(--lift-hi); }
   .pcard__t a:hover { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--color-rule-2); }
@@ -406,7 +412,7 @@ svg.i { width: 16px; height: 16px; flex: none; }
 .guide-list a { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: var(--space-md); align-items: start; padding: 14px 0; color: var(--color-ink); text-decoration: none; }
 .guide-list__n { display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid var(--color-rule-2); border-radius: 999px; font: 500 0.8125rem/1 var(--font-mono); color: var(--color-muted); }
 .guide-list__n .i { width: 14px; height: 14px; }
-.guide-list .is-done .guide-list__n { border-color: var(--color-ink); background: var(--color-ink); color: var(--color-paper); }
+.guide-list .is-done .guide-list__n { border-color: var(--color-warm); background: var(--color-warm); color: var(--color-paper); }
 .guide-list__t { display: grid; gap: 2px; padding-top: 3px; }
 .guide-list__t strong { font-weight: 600; }
 .guide-list__t span { color: var(--color-muted); font-size: 0.875rem; line-height: 1.45; }
@@ -419,7 +425,7 @@ svg.i { width: 16px; height: 16px; flex: none; }
 .guide-rail__n { display: grid; place-items: center; width: 22px; height: 22px; border: 1px solid var(--color-rule-2); border-radius: 999px; font: 500 0.75rem/1 var(--font-mono); }
 .guide-rail__n .i { width: 12px; height: 12px; }
 .guide-rail .is-done a { color: var(--color-ink-2); }
-.guide-rail .is-done .guide-rail__n { border-color: var(--color-ink-2); }
+.guide-rail .is-done .guide-rail__n { border-color: var(--color-warm); color: var(--color-warm); }
 .guide-rail .is-here a { background: var(--color-paper-2); color: var(--color-ink); font-weight: 600; }
 .guide-rail .is-here .guide-rail__n { border-color: var(--color-ink); background: var(--color-ink); color: var(--color-paper); }
 .expect { display: grid; gap: 6px; padding: var(--space-md) var(--space-lg); border: 1px solid var(--color-rule); border-radius: var(--radius); background: var(--color-paper-2); }

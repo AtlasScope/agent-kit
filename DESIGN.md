@@ -17,6 +17,10 @@ colors:
   rule-control-light: "#808693"
   danger: "#B42318"
   danger-dark: "#FF8A75"
+  warm: "#F5A524"
+  warm-light: "#B45309"
+  warm-soft: "#2A2113"
+  warm-soft-light: "#FDF1E3"
   hue-investigate: "#4BF0A8"
   hue-database: "#C9E05A"
   hue-thinking: "#BFA8FF"
@@ -206,7 +210,7 @@ The system has no accent hue. Emphasis comes from contrast, from weight, and fro
 
 ## Colors
 
-Two neutral sets, one for each setting, plus six section hues used as dots and one danger colour used for destructive actions and errors. All tokens live in `site/app/globals.css`.
+Two neutral sets, one for each setting, plus one warm accent for what the visitor has chosen or kept, six section hues used as dots, and one danger colour used for destructive actions and errors. All tokens live in `site/app/globals.css`.
 
 ### Dark set (the brand)
 - **Ink** (#0B0C12): the page ground, the header, the install strip, and the text colour on a white button. A neutral near-black, not tinted warm or violet.
@@ -219,11 +223,15 @@ Two neutral sets, one for each setting, plus six section hues used as dots and o
 ### Light set (library pages)
 - **Paper** (#F4F5F7): the page ground.
 - **Raised** (#FFFFFF): cards, tiles, panels, the guide's "What you need" and "You should see" panels, collection panels, the search results list.
-- **Sunk** (#E8EAEE): pressed and open states: a starred button, an open popover's trigger, the Copy button inside a code block, prompt ids.
+- **Sunk** (#E8EAEE): open states: an open popover's trigger, the Copy button inside a code block, prompt ids.
 - **Ink** (#0B0C12): headings, body emphasis, the solid button, the focus ring, commands.
 - **Ink 2** (#2B2F3A): running text, leads, card descriptions.
 - **Muted** (#5A5F6B): meta lines, counts, crumbs, footer links. Holds 4.5:1 on paper.
 - **Hairline** (#DCDFE5) and **control border** (#808693): the same two roles as in the dark set.
+
+### Warm accent
+- **Warm** (#B45309 on light, #F5A524 on dark) with a **warm tint** behind it (#FDF1E3 on light, #2A2113 on dark). In the manner of Vercel and Resend: the site stays black, white and grey, and one warm colour appears only where the visitor has chosen or kept something. That means a starred star and its tinted Starred button, the star on the header's Starred link, a pressed toggle, the copy icon after a copy worked, "Saved" in the Save to menu, a finished step in the first-app guide, and selected text (the warm colour at 30%).
+- It is never a background for a section, a headline colour, a link colour or a decoration.
 
 ### Danger
 - **Danger** (#B42318 on light, #FF8A75 on dark, with white or ink text on it): the Delete collection button, form error messages and the "has a warning" mark on a prompt card. It appears only where something can be lost or has gone wrong.
@@ -234,13 +242,13 @@ Six hues mark the six sections of the library. On dark they are mint (#4BF0A8), 
 ### Named Rules
 **The Four Colours Rule.** Dark surfaces use ink, white, slate and muted, and nothing else. The two rule colours are muted mixed over ink, not new colours.
 
-**The Cool Paper Rule.** The light set is neutral and cool. Paper, raised white and sunk grey make the surfaces; ink and two greys make the type. No warm paper, no amber.
+**The Cool Paper Rule.** The light set is neutral and cool. Paper, raised white and sunk grey make the surfaces; ink and two greys make the type. No warm paper; the warm accent is a mark, never a surface.
 
-**The No Accent Rule.** There is no accent hue. A command is marked by Geist Mono, a primary action by the solid button, a selection by contrast and an underline.
+**The One Warm Accent Rule.** There is one accent, the warm colour, and it marks only what the visitor has chosen or kept: starred, copied, saved, done, selected. A command is still marked by Geist Mono and a primary action by the solid button.
 
 **The Ink Everywhere Rule.** The header and the homepage are ink in both the light and the dark setting. They do not follow the visitor's light preference.
 
-**The Dots Only Rule.** The six section hues appear only as small dots. They are not fills, borders, text colours, card tints or button tints.
+**The Dots Only Rule.** The six section hues appear as small dots, plus one hint: a card or tile that belongs to a section takes that hue as its border on hover. They are not fills, resting borders, text colours, card tints or button tints.
 
 **The Danger Only Rule.** The danger colour marks destruction and errors and nothing else. A prompt that changes code is normal, so its card label is marked with a dot in ink-2, not red.
 
@@ -427,8 +435,8 @@ The why-column is the page title over a list with small ink squares as markers. 
 - **Do** read counts from generated content.
 
 ### Don't:
-- **Don't** add an accent hue, or use amber or warm paper anywhere.
-- **Don't** use a section hue as a fill, border, text colour or card tint; the six hues are small dots.
+- **Don't** add a second accent, or use the warm colour as a surface, a headline, a link or decoration.
+- **Don't** use a section hue as a fill, resting border, text colour or card tint; the six hues are small dots and a hover border.
 - **Don't** use the danger colour for anything but destruction and errors.
 - **Don't** give a callout a coloured side border.
 - **Don't** place the AtlasScope logo on the photograph or on any image.
