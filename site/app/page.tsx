@@ -14,7 +14,7 @@ export default function Home() {
   const a = authors();
   return (
     <main className="home">
-      <LaunchHero headline={HERO.headline} by={HERO.by} skills={counts.skills} prompts={counts.prompts} kits={KITS.length} blur={HERO_BLUR} />
+      <LaunchHero headline={HERO.headline} blur={HERO_BLUR} />
       <div className="orbit__rail" id="install">
         <InstallRail />
       </div>

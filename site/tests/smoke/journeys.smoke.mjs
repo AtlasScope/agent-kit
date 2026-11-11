@@ -62,6 +62,10 @@ for (const size of SIZES) {
   test(`${size.name}: home page copies the install steps and leads to the library`, async () => {
     const { page, ctx, errors } = await open(size, "/");
     await noSideScroll(page, "/");
+    // The hero's scrolled example ends on the Claude Code install; at its end, Copy all copies every step.
+    await page.evaluate(() => { const el = document.querySelector(".launch"); scrollTo(0, el.getBoundingClientRect().bottom + scrollY - innerHeight); });
+    await page.locator(".launch__copy").click();
+    assert.equal(await clipboard(page), AGENTS.find((a) => a.id === "claude").steps.join("\n"), "hero example copies every Claude Code step");
     for (const agent of ["claude", "any"].map((id) => AGENTS.find((a) => a.id === id))) {
       await page.getByRole("tab", { name: agent.label }).click();
       const copy = page.getByRole("tabpanel").getByRole("button");
