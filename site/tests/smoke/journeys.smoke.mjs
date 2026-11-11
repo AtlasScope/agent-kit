@@ -62,15 +62,15 @@ for (const size of SIZES) {
   test(`${size.name}: home page copies the install steps and leads to the library`, async () => {
     const { page, ctx, errors } = await open(size, "/");
     await noSideScroll(page, "/");
-    // The hero's worked example plays on its own clock once screen 2 is in view. Leaving mid-play jumps it to its
-    // ending, so coming back shows the end Install link, which skips to the install strip and takes keyboard focus.
-    const toExample = () => page.evaluate(() => { const s = document.querySelector(".lh-screen"), h = parseFloat(getComputedStyle(document.querySelector(".launch__scene")).top) || 0; scrollTo(0, s.getBoundingClientRect().top + scrollY - h); });
-    await toExample();
-    await page.locator(".lh-ctl", { hasText: "Pause" }).waitFor();
-    await page.evaluate(() => scrollTo(0, 0));
-    await page.locator(".lh-ctl", { hasText: "Replay" }).waitFor({ state: "attached" });
-    await toExample();
-    await page.locator(".lh-end a", { hasText: "Install Agent Kit" }).click();
+    // The hero's panel shows the first request finished. Picking another swaps in its router, pick and quoted line.
+    const db = page.getByRole("button", { name: /supabase bill doubled/ });
+    await db.click();
+    assert.equal(await db.getAttribute("aria-pressed"), "true");
+    await page.locator(".hx__pick", { hasText: "PG13" }).waitFor();
+    await page.getByText("See every line it read").click();
+    await page.locator(".hx__trail li", { hasText: "Mode: read-only." }).waitFor();
+    // Install skips to the install strip, which sits clear of the sky, and takes keyboard focus.
+    await page.locator(".launch__go", { hasText: "Install Agent Kit" }).click();
     assert.equal(await page.evaluate(() => document.activeElement?.id), "install", "Install focuses the install strip");
     for (const agent of ["claude", "any"].map((id) => AGENTS.find((a) => a.id === id))) {
       await page.getByRole("tab", { name: agent.label }).click();
