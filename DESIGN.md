@@ -388,7 +388,7 @@ A hairline, then four columns: the full AtlasScope lockup (kept on phones, where
 `site/components/DocPage.tsx`. The draft notice is a raised panel with a control-border edge and a bold date. Section headings are headlines. Definitions (the words the site uses) are a two-column term list. The contents list is muted links behind a hairline.
 
 ### Sign-in
-The why-column is the page title over a list with small ink squares as markers. The sign-in form is Clerk's, drawn in the site's own tokens by `site/lib/clerk-appearance.ts`, so it follows the light and dark settings: raised card with a hairline and 14px corners and no shadow, pill buttons, 40px fields.
+The why-column is the page title over a list with small ink squares as markers. The sign-in form is Clerk's, drawn in the site's own tokens by `site/lib/clerk-appearance.ts`, so it follows the light and dark settings: raised card with a hairline and 14px corners and no shadow, pill buttons, 40px fields. On the first step the card drops Clerk's own title, because the page title already says it, and the header shows no Sign in button on this page.
 
 ### Collections
 - **Panel:** raised, hairline, 14px corners. The collection's name as a title, a muted line with its size and whether it is shared, and its actions on the right.

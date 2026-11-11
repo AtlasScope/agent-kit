@@ -604,6 +604,8 @@ svg.i { width: 16px; height: 16px; flex: none; }
 .signin__why li::before { content: ""; position: absolute; left: 0; top: 0.6em; width: 8px; height: 8px; border-radius: 2px; background: var(--color-ink); }
 .signin__why strong { color: var(--color-ink); font-weight: 600; }
 .signin__form { justify-self: end; min-width: 0; }
+/* The page's h1 already says what this is, so Clerk's own title on the first step goes. Later steps ("Check your email") keep theirs. */
+.signin__form .cl-card.cl-signIn-start .cl-header { display: none; }
 @media (max-width: 60rem) { .signin { grid-template-columns: minmax(0, 1fr); row-gap: var(--space-xl); } .signin__form { justify-self: stretch; } .signin__form > * { margin-inline: auto; } }
 
 
