@@ -23,12 +23,13 @@ function SaveTo({ kind, refId, title }: Props) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [naming, setNaming] = useState(false);
   const pop = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
 
   useEffect(() => { loadMe(); }, []);
   useEffect(() => {
-    if (!open) return;
+    if (!open) { setNaming(false); return; }
     const close = (e: MouseEvent | KeyboardEvent) => {
       if (e instanceof KeyboardEvent) { if (e.key === "Escape") { setOpen(false); trigger.current?.focus(); } }
       else if (!pop.current?.contains(e.target as Node)) setOpen(false);
@@ -53,10 +54,21 @@ function SaveTo({ kind, refId, title }: Props) {
                 <span>{c.name}</span><span className="muted">{isIn(me, c.id, kind, refId) ? "Saved" : ""}</span>
               </button>
             ))}
-            <button type="button" disabled={busy} onClick={() => {
-              const name = prompt("Name the new collection");
-              if (name?.trim()) act({ newCollection: name.trim(), on: true });
-            }}>New collection…</button>
+            {/* An inline field, not window.prompt(): the prompt dialog is blocked in some browsers and in-app views. */}
+            {naming ? (
+              <form className="menu__new" onSubmit={async (e) => {
+                e.preventDefault();
+                const name = String(new FormData(e.currentTarget).get("name") || "").trim();
+                if (!name) return;
+                await act({ newCollection: name, on: true });
+                setNaming(false);
+              }}>
+                <input className="input" name="name" placeholder="Name it" aria-label="New collection name" maxLength={80} autoComplete="off" autoFocus required disabled={busy} />
+                <button className="btn btn--sm btn--solid" type="submit" disabled={busy}>Create</button>
+              </form>
+            ) : (
+              <button type="button" disabled={busy} onClick={() => setNaming(true)}>New collection…</button>
+            )}
             <a href="/account">Your collections</a>
           </div>
         )}

@@ -149,6 +149,10 @@ details.lic-text pre { white-space: pre-wrap; font-size: 0.75rem; color: var(--c
 .menu { position: relative; }
 .menu__pop { position: absolute; right: 0; top: calc(100% + 6px); z-index: 10; min-width: 240px; display: grid; gap: 2px; padding: 6px; border: 1px solid var(--color-rule-2); border-radius: var(--radius); background: var(--color-paper-2); box-shadow: var(--lift-hi); }
 .menu__pop button, .menu__pop a { display: flex; justify-content: space-between; gap: var(--space-sm); padding: 8px 10px; border: 0; border-radius: 6px; background: none; color: var(--color-ink-2); font: inherit; font-size: var(--text-sm); text-align: left; cursor: pointer; text-decoration: none; }
+/* New collection, named in place inside the Save to menu. The Create button keeps the library button look, not the menu row look. */
+.menu__new { display: flex; gap: 6px; padding: 4px; }
+.menu__new .input { flex: 1; min-height: 34px; font-size: var(--text-sm); }
+.menu__pop .menu__new .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0 var(--space-sm); border: 1px solid transparent; border-radius: 10px; background: var(--color-accent); color: var(--color-accent-ink); font-weight: 600; }
 
 /* Footer */
 .footer { border-top: 1px solid var(--color-rule); padding-block: var(--space-xl); color: var(--color-muted); font-size: var(--text-sm); display: flex; flex-wrap: wrap; gap: var(--space-md) var(--space-xl); justify-content: space-between; }

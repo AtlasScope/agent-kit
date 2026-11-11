@@ -51,7 +51,8 @@ function Star({ kind, refId, title, label }: StarProps) {
         onClick={async () => { setBusy(true); setErr(await saveItem({ kind, ref: refId, on: !on })); setBusy(false); }}>
         <StarIcon on={on} />{label && <span>{on ? "Starred" : "Star"}</span>}
       </button>
-      <span className="note" role="status">{err}</span>
+      {/* Rendered only when there is an error, so on a card the star stays the last item in its row. */}
+      {err && <span className="note" role="alert">{err}</span>}
     </>
   );
 }
