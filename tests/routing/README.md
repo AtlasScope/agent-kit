@@ -15,6 +15,13 @@
 | `without` | Routes that pass when the first pick's plugin is not installed. `say-missing` means the router must say what is missing and stop. Required whenever the first pick does not ship in this repo. |
 | `context` | What the agent needs to see, and what the case is testing. |
 | `disallowed` | Routes that fail the case even if the agent explains them well. |
+| `source` | Optional. `observed` marks a request taken from a real session, reworded only to remove project details. Cases without it were written for the set. |
+
+## Observed cases
+
+DS20 to DS30 and EN13 come from the first week of real router use, in November 2026. They differ from the written cases in two ways worth keeping: people often ask for several jobs at once, and many requests are follow-ups ("yes, build option B") that only make sense after earlier work in the same session. For a follow-up, `context` says what came before; set that up in the test session before typing the request.
+
+To add one, take the request as typed, remove names of people, products and repositories, keep the wording otherwise, and set `source` to `observed`. Put roughly one in four in the held-out set.
 
 Routes are written as the router shows them: a command (`/impeccable critique`), a library ID (`D01`, `PG17`, `M02`), or a design recipe (`recipe:New landing page`).
 
