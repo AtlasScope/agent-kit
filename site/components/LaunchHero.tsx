@@ -25,7 +25,8 @@ const ARM = `try{var s=document.currentScript.parentElement;if(/[?&]replay/.test
 
 // An illustration of one /design run, written from the router's first-line rule and the refactoring-ui
 // skill's own method. It is not a recorded session.
-const ASK = "/design the settings page feels cramped";
+// The request must be one the router's situations table sends to /refactoring-ui first ("Hierarchy looks amateur").
+const ASK = "/design the dashboard's hierarchy looks amateur";
 const STEPS = [
   "Scores the page against eight checks, out of 10",
   "Puts every gap on one spacing scale",
@@ -220,10 +221,10 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
 
         <figure ref={term} className="launch__term" aria-labelledby="term-cap">
           <div className="launch__bar" aria-hidden="true"><i /><i /><i /><span>claude · example</span></div>
-          <figcaption id="term-cap" className="launch__sr">An example of asking /design for help with a cramped settings page.</figcaption>
+          <figcaption id="term-cap" className="launch__sr">An example of asking /design for help with a dashboard whose hierarchy looks amateur.</figcaption>
           <div className="launch__screen">
             <p className="launch__ask" translate="no"><span className="launch__full">{ASK}</span><span ref={typed} className="launch__typed" aria-hidden="true" /><span ref={caret} className="launch__caret" aria-hidden="true" /></p>
-            <p ref={route} className="launch__route"><b>Route:</b> <code translate="no">/refactoring-ui</code>, because the page needs clearer spacing and hierarchy. It edits files and shows you the change before anything is committed.</p>
+            <p ref={route} className="launch__route"><b>Route:</b> <code translate="no">/refactoring-ui</code>, because everything on the page competes for attention, so nothing stands out. It edits files and shows you the change before anything is committed.</p>
             <ol ref={steps} className="launch__steps">
               {STEPS.map((s, i) => <li key={s}><b aria-hidden="true">{i + 1}</b>{s}</li>)}
             </ol>
