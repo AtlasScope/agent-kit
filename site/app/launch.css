@@ -1,4 +1,4 @@
-/* Launch hero prototype (/lab/launch). Resting state = final frame; [data-intro] stages the opening once. */
+/* Homepage hero: a live orbit (components/orbit-gl.ts). Resting state = final frame; [data-intro] stages the opening once. */
 .launch { --ease-launch: cubic-bezier(0.16, 1, 0.3, 1); --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   position: relative; isolation: isolate; overflow: hidden; margin-inline: calc(50% - 50vw);
   min-height: calc(100svh - var(--header-h, 65px)); display: grid; grid-template-rows: auto 1fr auto; background: #030409; color: #fff; }
@@ -39,6 +39,9 @@
 /* A slow light sweep across the primary button, every few seconds: the one thing on the page that asks. */
 .launch__go::after { content: ""; position: absolute; inset: -1px; z-index: -1; pointer-events: none;
   background: linear-gradient(105deg, transparent 35%, rgba(245,165,36,.35) 50%, transparent 65%); transform: translateX(-120%); animation: launch-sweep 6s var(--ease-in-out) 4.5s infinite; }
+.launch__by { margin: 0; font-size: var(--text-sm); color: rgba(255,255,255,.5); }
+/* Small type that can sit over the bright planet gets a soft dark halo, not a box. */
+.launch__by, .launch__route, .launch__cue, .launch__new { text-shadow: 0 1px 14px rgba(3,4,9,.9), 0 0 2px rgba(3,4,9,.6); }
 .launch__new { display: inline-flex; align-items: center; gap: 6px; color: rgba(255,255,255,.72); font-size: var(--text-sm); text-decoration: none; }
 .launch__new .i, .launch__go .i { width: 15px; height: 15px; transition: transform .35s var(--ease-launch); }
 @media (hover: hover) and (pointer: fine) {
@@ -64,7 +67,7 @@
 .launch[data-intro] .launch__shade { animation: launch-fade 1.4s ease 1.6s backwards; }
 .launch[data-intro] .launch__w > span { animation: launch-word 1.1s var(--ease-launch) calc(2.05s + var(--i) * 75ms) backwards; }
 .launch[data-intro] .launch__lede { animation: launch-up 1s var(--ease-launch) 2.65s backwards; }
-.launch[data-intro] .launch__cta { animation: launch-up 1s var(--ease-launch) 2.85s backwards; }
+.launch[data-intro] .launch__cta, .launch[data-intro] .launch__by { animation: launch-up 1s var(--ease-launch) 2.85s backwards; }
 .launch[data-intro] .launch__foot { animation: launch-fade 1s ease 3.3s backwards; }
 
 @keyframes launch-type { from { max-width: 0; } to { max-width: 100%; } }
@@ -89,6 +92,7 @@
   .launch__tel span { max-width: 24ch; }
   .launch__body { align-self: start; padding-block: 7svh 0; }
   .launch__foot { grid-template-columns: 1fr; justify-items: center; gap: 18px; }
-  .launch__route { justify-items: center; text-align: center; }
+  /* The example route needs width to read; on a phone the cue alone holds the bottom edge. */
+  .launch__route { display: none; }
   .launch__cue { grid-column: 1; }
 }

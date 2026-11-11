@@ -15,7 +15,8 @@ const WIDE = [960, 1440, 1920, 2560, 3840];
 const TALL = [780, 1170];
 const set = (name: string, widths: number[], ext: string) => widths.map((w) => `/hero/${name}-${w}.${ext} ${w}w`).join(", ");
 const ARROW = <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>;
-const ARM = `try{var s=document.currentScript.parentElement;if(!sessionStorage.getItem("${KEY}")&&!matchMedia("(prefers-reduced-motion: reduce)").matches)s.setAttribute("data-intro","")}catch(e){}`;
+// ?replay in the address plays the opening again and shows a Replay button, for tuning it.
+const ARM = `try{var s=document.currentScript.parentElement;if(/[?&]replay/.test(location.search))sessionStorage.removeItem("${KEY}");if(!sessionStorage.getItem("${KEY}")&&!matchMedia("(prefers-reduced-motion: reduce)").matches)s.setAttribute("data-intro","")}catch(e){}`;
 
 // Illustrative requests and the skill /design would pick for each, from the design kit's own catalogue.
 const ROUTES: [string, string][] = [
@@ -29,7 +30,7 @@ const ROUTES: [string, string][] = [
 const pad = (n: number) => String(n).padStart(2, "0");
 const ease = (x: number) => { const t = Math.min(1, Math.max(0, x)); return 1 - Math.pow(1 - t, 4); };
 
-export function LaunchHero({ headline, skills, prompts, kits, blur, lab = false }: { headline: string; skills: number; prompts: number; kits: number; blur: string; lab?: boolean }) {
+export function LaunchHero({ headline, by, skills, prompts, kits, blur }: { headline: string; by: string; skills: number; prompts: number; kits: number; blur: string }) {
   const ref = useRef<HTMLElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const start = useRef(0);
@@ -37,6 +38,7 @@ export function LaunchHero({ headline, skills, prompts, kits, blur, lab = false 
   const [met, setMet] = useState(0);
   const [live, setLive] = useState(false);
   const [route, setRoute] = useState(0);
+  const [lab, setLab] = useState(false);
 
   const finish = useCallback(() => {
     intro.current = false;
@@ -60,6 +62,7 @@ export function LaunchHero({ headline, skills, prompts, kits, blur, lab = false 
     if (!el || !cv) return;
     start.current = performance.now();
     intro.current = el.hasAttribute("data-intro");
+    setLab(/[?&]replay/.test(location.search));
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const clock = setInterval(() => setMet(Math.floor((performance.now() - start.current) / 1000)), 1000);
     const cycle = setInterval(() => setRoute((r) => (r + 1) % ROUTES.length), 5200);
@@ -120,6 +123,7 @@ export function LaunchHero({ headline, skills, prompts, kits, blur, lab = false 
           <a className="btn btn--lg btn--solid launch__go" href="#install"><span>Install Agent Kit</span>{ARROW}</a>
           <Link className="launch__new" href="/start">New to coding agents? Start here{ARROW}</Link>
         </div>
+        <p className="launch__by">{by}</p>
       </div>
 
       <div className="launch__foot container">
