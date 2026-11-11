@@ -12,6 +12,14 @@ function idRedirects() {
   return prompts.map((p) => ({ source: `/prompts/${p.id}`, destination: `/prompts/${p.slug}`, permanent: true }));
 }
 
+// Design commands used to be grouped by author; those pages now point at the design commands index.
+function retiredAreaRedirects() {
+  const file = path.join(process.cwd(), "content", "generated.json");
+  if (!fs.existsSync(file)) return [];
+  const { retired = [] } = JSON.parse(fs.readFileSync(file, "utf8")) as { retired?: string[] };
+  return retired.map((slug) => ({ source: `/prompts/${slug}`, destination: "/prompts#dcmd", permanent: true }));
+}
+
 const config: NextConfig = {
   async redirects() {
     // Clerk's production instance only runs on atlasscope.dev, so account pages on *.vercel.app
@@ -20,7 +28,7 @@ const config: NextConfig = {
     const toSite = ["/sign-in/:path*", "/account", "/collections/:path*"].map((source) => ({
       source, has: vercelHost, destination: `${SITE_URL}${source}`, permanent: false,
     }));
-    return [...toSite, ...idRedirects()];
+    return [...toSite, ...idRedirects(), ...retiredAreaRedirects()];
   },
   // Preview and *.vercel.app hosts serve the same pages as www.atlasscope.dev; keep them out of search results.
   async headers() {

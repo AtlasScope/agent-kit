@@ -7,6 +7,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { marked } from "marked";
 import YAML from "yaml";
+import { DESIGN_JOBS } from "./design-jobs.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "../..");
@@ -117,16 +118,26 @@ const prompts = lib.entries.map((e) => {
   used.add(slug);
   return { ...e, slug };
 });
+// Design commands are grouped by job (scripts/design-jobs.mjs); everything else by its library group.
+const jobOf = {};
+for (const [title, , ids] of DESIGN_JOBS) for (const id of ids) {
+  if (jobOf[id]) throw new Error(`${id} is listed under two design jobs`);
+  jobOf[id] = title;
+}
+for (const e of lib.entries) if (e.sec === "dcmd" && !jobOf[e.id]) throw new Error(`Design command ${e.id} (${e.t}) has no job in site/scripts/design-jobs.mjs`);
+for (const id of Object.keys(jobOf)) if (!lib.entries.some((e) => e.id === id && e.sec === "dcmd")) throw new Error(`design-jobs.mjs lists ${id}, which is not a design command`);
+const areaKey = (e) => (e.sec === "dcmd" ? jobOf[e.id] : e.group);
+const jobBlurb = Object.fromEntries(DESIGN_JOBS.map(([t, b]) => [t, b]));
 const areas = [];
 const areaBySecGroup = {};
 for (const [sec] of SECTIONS) {
-  const groups = [...new Set(lib.entries.filter((e) => e.sec === sec).map((e) => e.group))];
+  const groups = sec === "dcmd" ? DESIGN_JOBS.map(([t]) => t) : [...new Set(lib.entries.filter((e) => e.sec === sec).map((e) => e.group))];
   for (const g of groups) {
     let slug = slugify(g);
     if (used.has(slug)) slug = `${slug}-${sec === "dcmd" || sec === "ecmd" ? "commands" : "prompts"}`;
     if (used.has(slug)) throw new Error(`No free slug for area ${g}`);
     used.add(slug);
-    const a = { slug, title: g, sec, blurb: lib.areaBlurb[g] || null, prompts: [] };
+    const a = { slug, title: g, sec, blurb: (sec === "dcmd" ? jobBlurb[g] : lib.areaBlurb[g]) || null, prompts: [] };
     areas.push(a);
     areaBySecGroup[sec + "|" + g] = a;
   }
@@ -134,12 +145,19 @@ for (const [sec] of SECTIONS) {
 const slugById = Object.fromEntries(prompts.map((p) => [p.id, p.slug]));
 const cmdSkill = (c) => { const w = c.replace(/^\//, "").split(/[\s:]/)[0]; return skillNames.has(w) ? w : null; };
 for (const p of prompts) {
-  const area = areaBySecGroup[p.sec + "|" + p.group];
+  const area = areaBySecGroup[p.sec + "|" + areaKey(p)];
   p.area = area.slug;
   area.prompts.push(p.slug);
   p.related = (p.rel || []).filter((id) => slugById[id]).map((id) => slugById[id]);
   const cmds = [...(p.kit || []), p.cmd, p.sec === "dcmd" ? p.t : null].filter(Boolean);
   p.skills = [...new Set(cmds.map(cmdSkill).filter(Boolean))];
+}
+
+// A design job lists its commands in the order design-jobs.mjs gives, most useful first.
+const idBySlug = Object.fromEntries(prompts.map((p) => [p.slug, p.id]));
+for (const [title, , ids] of DESIGN_JOBS) {
+  const area = areaBySecGroup["dcmd|" + title];
+  area.prompts.sort((x, y) => ids.indexOf(idBySlug[x]) - ids.indexOf(idBySlug[y]));
 }
 
 // ---- Fix pages (symptoms) ----
@@ -154,7 +172,13 @@ for (const [list, scope] of [[lib.symptoms, "code"], [lib.dbSymptoms, "database"
 
 for (const s of skills) s.prompts = prompts.filter((p) => p.skills.includes(s.name)).map((p) => p.slug);
 
+// The old by-author design pages (/prompts/impeccable-commands and so on) now redirect to the design commands index.
+const retired = [...new Set(lib.entries.filter((e) => e.sec === "dcmd").map((e) => e.group))]
+  .flatMap((g) => [slugify(g), `${slugify(g)}-commands`])
+  .filter((s) => !used.has(s));
+
 const content = {
+  retired,
   sections: SECTIONS.map(([id, title, blurb]) => ({ id, title, blurb })),
   areas,
   prompts,

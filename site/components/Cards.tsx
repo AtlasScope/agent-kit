@@ -26,6 +26,7 @@ export function PromptCard({ p, best }: { p: Prompt; best?: boolean }) {
         <p className="pcard__m">
           <code className="pid">{p.id}</code>
           {best && <span className="best">Best first</span>}
+          {p.sec === "dcmd" && <span>By {p.group}</span>}
           {mode && <span className={(p.mode && p.mode !== "read") || p.dmode === "Changes code" ? "warn" : undefined}>{mode}</span>}
         </p>
         <CopyButton className="btn btn--sm" text={copyText(p)} label={copyLabel(p)} name={`${copyLabel(p)}: ${p.t}`} icon />
