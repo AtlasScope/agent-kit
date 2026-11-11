@@ -7,15 +7,17 @@ const CopyIcon = () => (
   </svg>
 );
 
-export function CopyButton({ text, label = "Copy", className = "copy", icon = false }: { text: string; label?: string; className?: string; icon?: boolean }) {
+// `name` is what a screen reader hears when the visible label alone ("Copy") would be ambiguous on the page.
+export function CopyButton({ text, label = "Copy", className = "copy", icon = false, name }: { text: string; label?: string; className?: string; icon?: boolean; name?: string }) {
   const [state, setState] = useState(label);
   return (
     <button
       type="button"
       className={className}
+      aria-label={name}
       onClick={async () => {
         try { await navigator.clipboard.writeText(text); setState("Copied"); }
-        catch { setState("Select and copy"); }
+        catch { setState("Copy blocked: select the text"); setTimeout(() => setState(label), 5000); return; }
         setTimeout(() => setState(label), 1600);
       }}
     >

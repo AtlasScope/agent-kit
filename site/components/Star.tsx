@@ -26,7 +26,7 @@ export function loadMe(fresh = false) {
 }
 export async function saveItem(body: Record<string, unknown>) {
   const r = await fetch("/api/me", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
-  const err = r.ok ? "" : ((await r.json().catch(() => ({}))) as { error?: string }).error || "That didn't save. Try again.";
+  const err = r.ok ? "" : ((await r.json().catch(() => ({}))) as { error?: string }).error || "That didn’t save. Try again.";
   await loadMe(true);
   return err;
 }
@@ -69,11 +69,11 @@ function StarInner({ kind, refId, title, label }: { kind: "prompt" | "skill"; re
   return (
     <>
       <button className={cls} type="button" aria-pressed={on} disabled={busy || !m}
-        aria-label={`${on ? "Unstar" : "Star"} ${title}`} title={on ? "Starred. Click to remove." : "Star"}
+        aria-label={`Star ${title}`} title={on ? "Starred. Click to remove." : "Star"}
         onClick={async () => { setBusy(true); setErr(await saveItem({ kind, ref: refId, on: !on })); setBusy(false); }}>
         <Icon on={on} />{label && <span>{on ? "Starred" : "Star"}</span>}
       </button>
-      {err && <span className="note" role="status">{err}</span>}
+      <span className="note" role="status">{err}</span>
     </>
   );
 }

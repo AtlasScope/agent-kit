@@ -78,8 +78,8 @@ export const STARTS: Start[] = [
     slug: "plan-a-feature",
     job: "Plan a feature before building it",
     pick: "M07",
-    useWhen: "You know what you want but haven't written down what done looks like.",
-    youGet: "A short spec: outcome, scope, what's left out, how to check it, and where to stop.",
+    useWhen: "You know what you want but haven’t written down what done looks like.",
+    youGet: "A short spec: outcome, scope, what’s left out, how to check it, and where to stop.",
     requires: "Nothing. Paste it into any agent.",
     changes: "yes",
     alts: [
@@ -104,8 +104,8 @@ export const STARTS: Start[] = [
     job: "Check accessibility",
     pick: "UI074",
     useWhen: "Before you ship a screen, to catch missing labels, focus and contrast problems.",
-    youGet: "Short findings with file and line numbers, against Vercel's current interface guidelines.",
-    requires: "Vercel's web-design-guidelines skill and internet access while it runs.",
+    youGet: "Short findings with file and line numbers, against Vercel’s current interface guidelines.",
+    requires: "Vercel’s web-design-guidelines skill and internet access while it runs.",
     changes: "no",
     alts: [
       { id: "UI038", when: "People can use it but get lost. Checks usability, not code rules." },
@@ -117,7 +117,7 @@ export const STARTS: Start[] = [
     pick: "EC26",
     useWhen: "A change or pull request is about to merge.",
     youGet: "Bugs in the change, ranked, at the effort level you choose. Use high or above before a PR is ready.",
-    requires: "Claude Code. It's built in.",
+    requires: "Claude Code. It’s built in.",
     changes: "no",
     alts: [
       { id: "PG17", when: "The change includes a database migration or new permissions." },

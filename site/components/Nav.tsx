@@ -27,20 +27,3 @@ export function Nav() {
     </header>
   );
 }
-
-export function Footer() {
-  return (
-    <footer className="footer">
-      <span>{SITE.name} {SITE.byline}. Each skill keeps its author’s license.</span>
-      <nav aria-label="Footer">
-        <Link href="/prompts">Prompts</Link>
-        <Link href="/skills">Skills</Link>
-        <Link href="/kits">Kits</Link>
-        <Link href="/fix">Fix a problem</Link>
-        <Link href="/mcp-setup">MCP server</Link>
-        <a href={`${SITE.repo}/blob/main/CREDITS.md`}>Credits</a>
-        <a href="/llms.txt">llms.txt</a>
-      </nav>
-    </footer>
-  );
-}

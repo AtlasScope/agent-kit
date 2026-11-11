@@ -12,18 +12,17 @@ export function PromptCard({ p, best }: { p: Prompt; best?: boolean }) {
   return (
     <article className={`pcard${best ? " pcard--best" : ""}`} data-sec={p.sec}>
       <div className="pcard__top">
-        <h3 className="pcard__t"><Link href={`/prompts/${p.slug}`}>{p.t}</Link></h3>
+        <h3 className="pcard__t"><Link className="stretch" href={`/prompts/${p.slug}`}>{p.t}</Link></h3>
         <Star kind="prompt" refId={p.id} title={p.t} />
       </div>
-      <p className="pcard__m">
-        <code className="pid">{p.id}</code>
-        {best && <span className="best">Best first</span>}
-        {mode && <span className={(p.mode && p.mode !== "read") || p.dmode === "Changes code" ? "warn" : undefined}>{mode}</span>}
-      </p>
       {(p.why || p.use) && <p className="pcard__d">{p.why || p.use}</p>}
-      <div className="pcard__a">
-        <CopyButton className="btn btn--tint" text={copyText(p)} label={copyLabel(p)} icon />
-        <Link className="btn" href={`/prompts/${p.slug}`}>Details</Link>
+      <div className="pcard__foot">
+        <p className="pcard__m">
+          <code className="pid">{p.id}</code>
+          {best && <span className="best">Best first</span>}
+          {mode && <span className={(p.mode && p.mode !== "read") || p.dmode === "Changes code" ? "warn" : undefined}>{mode}</span>}
+        </p>
+        <CopyButton className="btn btn--sm" text={copyText(p)} label={copyLabel(p)} name={`${copyLabel(p)}: ${p.t}`} icon />
       </div>
     </article>
   );
@@ -37,7 +36,16 @@ export function PromptCards({ slugs, rank }: { slugs: string[]; rank?: boolean }
   );
 }
 
-export function SkillCards({ names }: { names: string[] }) {
+// The first whole sentence of a skill's description, so a card never stops mid-thought.
+export const firstSentence = (d: string) => {
+  const parts = d.split(/(?<=[.!?])\s+(?=[A-Z/"(])/);
+  // A very short opener ("Stop.", "Test-driven development.") reads better with the sentence after it.
+  const s = parts[0].length < 30 && parts[1] ? `${parts[0]} ${parts[1]}` : parts[0];
+  const cut = s.search(/\s[—–-]\s|;\s/);
+  return cut > 20 ? s.slice(0, cut).replace(/[,:]$/, "") + "." : s;
+};
+
+export function SkillCards({ names, kit = true }: { names: string[]; kit?: boolean }) {
   return (
     <div className="pgrid">
       {names.map((n) => getSkill(n)).filter(Boolean).map((s) => (
@@ -46,8 +54,8 @@ export function SkillCards({ names }: { names: string[] }) {
             <h3 className="pcard__t"><Link className="stretch" href={`/skills/${s!.name}`}>{s!.name}</Link></h3>
             <Star kind="skill" refId={s!.name} title={s!.name} />
           </div>
-          <p className="pcard__m"><span>{s!.kit}</span><span>{s!.credit ? s!.credit.author : "Agent Kit"}</span></p>
-          <p className="pcard__d">{s!.description}</p>
+          <p className="pcard__m">{kit && <span>{s!.kit}</span>}<span>{s!.credit ? `By ${s!.credit.author}` : "By Agent Kit"}</span></p>
+          <p className="pcard__d">{firstSentence(s!.description)}</p>
         </article>
       ))}
     </div>
@@ -61,11 +69,11 @@ export function StartCard({ s }: { s: Start }) {
   if (!p) return null;
   return (
     <article className="pcard scard" data-sec={p.sec} id={s.slug}>
-      <p className="scard__job">{s.job}</p>
       <div className="pcard__top">
-        <h3 className="pcard__t"><Link href={`/prompts/${p.slug}`}>{p.t}</Link></h3>
+        <h3 className="pcard__t"><i className="dot" />{s.job}</h3>
         <Star kind="prompt" refId={p.id} title={p.t} />
       </div>
+      <p className={p.t.startsWith("/") ? "scard__pick scard__pick--cmd" : "scard__pick"}><Link href={`/prompts/${p.slug}`} translate={p.t.startsWith("/") ? "no" : undefined}>{p.t}</Link></p>
       <dl className="scard__qa">
         <dt>Use when</dt><dd>{s.useWhen}</dd>
         <dt>You get</dt><dd>{s.youGet}</dd>
@@ -73,8 +81,8 @@ export function StartCard({ s }: { s: Start }) {
         <dt>Changes code?</dt><dd>{CHANGES[s.changes]}</dd>
       </dl>
       <div className="pcard__a">
-        <CopyButton className="btn btn--tint" text={copyText(p)} label={copyLabel(p)} icon />
-        <Link className="btn" href={`/prompts/${p.slug}`}>Details</Link>
+        <CopyButton className="btn btn--tint" text={copyText(p)} label={copyLabel(p)} name={`${copyLabel(p)}: ${p.t}`} icon />
+        <Link className="btn" href={`/prompts/${p.slug}`} aria-label={`Details: ${p.t}`}>Details</Link>
       </div>
       {s.alts.length > 0 && (
         <ul className="scard__alts">

@@ -31,7 +31,7 @@ export default function Prompts() {
         {sections.map((s) => (
           <a key={s.id} className="tile" data-sec={s.id} href={`#${s.id}`}>
             <span className="tile__t"><i className="dot" />{s.title}</span>
-            <span className="tile__n">{prompts.filter((p) => p.sec === s.id).length}</span>
+            <span className="tile__n">{prompts.filter((p) => p.sec === s.id).length}<span className="sr"> prompts</span></span>
           </a>
         ))}
       </nav>
@@ -43,7 +43,7 @@ export default function Prompts() {
             <p className="note">{s.blurb}</p>
             {as.length > 1 && (
               <div className="chips">
-                {as.map((a) => <Link key={a.slug} className="chip" href={`/prompts/${a.slug}`}>{a.title} <span className="chip__n">{a.prompts.length}</span></Link>)}
+                {as.map((a) => <Link key={a.slug} className="chip" href={`/prompts/${a.slug}`}>{a.title} <span className="chip__n">{a.prompts.length}<span className="sr"> prompts</span></span></Link>)}
               </div>
             )}
             <PromptCards slugs={as.flatMap((a) => a.prompts)} />

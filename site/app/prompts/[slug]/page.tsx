@@ -45,9 +45,9 @@ function AreaPage({ a }: { a: Area }) {
     <main className="page">
       <div className="page-head">
         <Crumbs items={[["Prompts", "/prompts"], [a.title, `/prompts/${a.slug}`]]} />
-        <p className="kicker" data-sec={a.sec}><i className="dot" />{s.title}</p>
         <h1>{a.title}</h1>
         <p className="lead ink2">{a.blurb || s.blurb}</p>
+        <p className="kicker" data-sec={a.sec}><i className="dot" />{s.title}</p>
       </div>
       <PromptCards slugs={a.prompts} />
     </main>
@@ -75,9 +75,9 @@ function PromptPage({ p }: { p: Prompt }) {
     <main className="page">
       <div className="page-head">
         <Crumbs items={[["Prompts", "/prompts"], [a.title, `/prompts/${a.slug}`], [p.t, `/prompts/${p.slug}`]]} />
-        <p className="kicker" data-sec={p.sec}><i className="dot" /><span>{kindLabel(p)}</span><span>·</span><span>{p.group}</span>{p.badge && <><span>·</span><span>{p.badge}</span></>}<span>·</span><code>{p.id}</code></p>
         <h1>{p.t}</h1>
         {(p.why || p.use) && <p className="lead ink2">{p.why || p.use}</p>}
+        <p className="kicker" data-sec={p.sec}><i className="dot" /><span>{kindLabel(p)}</span><span aria-hidden="true">·</span><span>{p.group}</span>{p.badge && <><span aria-hidden="true">·</span><span>{p.badge}</span></>}<span aria-hidden="true">·</span><code translate="no">{p.id}</code></p>
         <div className="toolbar">
           <CopyButton className="btn btn--solid" text={text} label={p.steps ? "Copy recipe" : p.sec === "ecmd" ? "Copy command" : "Copy prompt"} icon />
           {authEnabled() && <SaveMenu kind="prompt" refId={p.id} title={p.t} />}
@@ -85,28 +85,33 @@ function PromptPage({ p }: { p: Prompt }) {
         </div>
       </div>
 
-      {p.steps && (
-        <section className="section">
-          <h2>Steps</h2>
-          <ol className="list" style={{ listStyle: "none" }}>
-            {p.steps.map(([c, d], i) => (
-              <li key={i} style={{ padding: "12px 0" }}><span className="list__n">{i + 1}</span>&nbsp; <code>{c}</code> <span className="muted">{d}</span></li>
-            ))}
-          </ol>
-        </section>
-      )}
+      <div className="two two--wide">
+        <div className="stack">
+          {p.steps && (
+            <section className="section">
+              <h2>Steps</h2>
+              <ol className="list" role="list" style={{ listStyle: "none" }}>
+                {p.steps.map(([c, d], i) => (
+                  <li key={i} style={{ padding: "12px 0" }}><span className="list__n">{i + 1}</span>&nbsp; <code>{c}</code> <span className="muted">{d}</span></li>
+                ))}
+              </ol>
+            </section>
+          )}
 
-      <div className="block">
-        <div className="block__head"><span>{blockLabel}</span><CopyButton text={text} /></div>
-        <pre>{text}</pre>
+          <div className="block">
+            <div className="block__head"><span>{blockLabel}</span><CopyButton text={text} /></div>
+            <pre>{text}</pre>
+          </div>
+
+          {p.gnote && <p className="note">{p.gnote}</p>}
+        </div>
+        <aside className="aside" aria-label="About this prompt">
+          <dl className="facts facts--side">
+            {facts.filter(([, v]) => v).map(([k, v]) => [<dt key={k + "t"}>{k}</dt>, <dd key={k + "d"}>{v}</dd>])}
+            {p.src && <><dt>Original post</dt><dd><a href={p.src} rel="noopener">{p.src.replace(/^https?:\/\//, "")}</a></dd></>}
+          </dl>
+        </aside>
       </div>
-
-      {p.gnote && <p className="note">{p.gnote}</p>}
-
-      <dl className="facts">
-        {facts.filter(([, v]) => v).map(([k, v]) => [<dt key={k + "t"}>{k}</dt>, <dd key={k + "d"}>{v}</dd>])}
-        {p.src && <><dt>Original post</dt><dd><a href={p.src} rel="noopener">{p.src.replace(/^https?:\/\//, "")}</a></dd></>}
-      </dl>
 
       {p.skills.length > 0 && (
         <section className="section"><h2>Skills it uses</h2><SkillCards names={p.skills} /></section>

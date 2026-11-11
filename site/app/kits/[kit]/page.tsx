@@ -34,16 +34,16 @@ export default async function KitPage({ params }: { params: Promise<{ kit: strin
     <main className="page">
       <div className="page-head">
         <Crumbs items={[["Kits", "/kits"], [k.title, `/kits/${k.name}`]]} />
-        <p className="kicker"><span>Plugin</span><span>·</span><span>v{k.version}</span><span>·</span><span>{k.skills.length} skills</span></p>
-        <h1>{k.title}</h1>
+        <h1 translate="no">{k.title}</h1>
         <p className="lead ink2">{k.description}</p>
+        <p className="kicker"><span>Plugin</span><span aria-hidden="true">·</span><span>v{k.version}</span><span aria-hidden="true">·</span><span>{k.skills.length} {k.skills.length === 1 ? "skill" : "skills"}</span></p>
       </div>
       <div className="grid">
         <div className="block"><div className="block__head"><span>Claude Code</span><CopyButton text={claude} /></div><pre>{claude}</pre></div>
         <div className="block"><div className="block__head"><span>Codex</span><CopyButton text={codex} /></div><pre>{codex}</pre></div>
       </div>
       <p className="note">In Claude Code, <code>claude plugin update {k.name}@agent-kit</code> updates the kit and <code>claude plugin uninstall {k.name}@agent-kit</code> removes it. Installing a kit doesn’t install the companion plugins its recipes call; those are listed in the kit’s README.</p>
-      <section className="section"><h2>Skills</h2><SkillCards names={k.skills} /></section>
+      <section className="section"><h2>Skills</h2><SkillCards names={k.skills} kit={false} /></section>
       <p className="note"><a className="lic" href={`${SITE.repo}/blob/main/${k.readmePath}`}>Read the kit’s README</a> for setup notes and companion plugins.</p>
     </main>
   );

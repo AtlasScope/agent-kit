@@ -9,6 +9,9 @@ export type Item = { kind: Kind; ref: string };
 const MAX_COLLECTIONS = 100;
 const MAX_ITEMS = 500;
 
+// A problem the visitor can act on. Its message is shown as written; any other error gets a generic one.
+export class UserError extends Error {}
+
 export function validItem(kind: string, ref: string): kind is Kind {
   return (kind === "prompt" && Boolean(getPromptById(ref))) || (kind === "skill" && Boolean(getSkill(ref)));
 }
@@ -55,20 +58,20 @@ async function owns(userId: string, id: string) {
 
 export async function createCollection(userId: string, name: string) {
   const clean = name.trim().slice(0, 80);
-  if (!clean) throw new Error("Give the collection a name.");
+  if (!clean) throw new UserError("Give the collection a name.");
   const db = sql();
   const [{ n }] = await db`select count(*)::int as n from collections where user_id = ${userId}`;
-  if (n >= MAX_COLLECTIONS) throw new Error("You have the most collections allowed.");
+  if (n >= MAX_COLLECTIONS) throw new UserError(`You have ${MAX_COLLECTIONS} collections, the most allowed. Delete one to make room.`);
   const [row] = await db`insert into collections (user_id, name) values (${userId}, ${clean}) returning id`;
   return row.id as string;
 }
 
 export async function setItem(userId: string, collectionId: string, kind: Kind, ref: string, on: boolean) {
-  if (!(await owns(userId, collectionId))) throw new Error("Not your collection.");
+  if (!(await owns(userId, collectionId))) throw new UserError("That collection belongs to another account.");
   const db = sql();
   if (on) {
     const [{ n }] = await db`select count(*)::int as n from collection_items where collection_id = ${collectionId}`;
-    if (n >= MAX_ITEMS) throw new Error("This collection is full.");
+    if (n >= MAX_ITEMS) throw new UserError(`This collection is full at ${MAX_ITEMS} items. Remove some, or save to a new collection.`);
     await db`insert into collection_items (collection_id, kind, ref) values (${collectionId}, ${kind}, ${ref}) on conflict do nothing`;
   } else {
     await db`delete from collection_items where collection_id = ${collectionId} and kind = ${kind} and ref = ${ref}`;

@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 
 type Hit = { kind: "prompt" | "skill"; ref: string; title: string; summary: string };
 
-// Header search: "/" focuses it, arrows move, Enter opens. Results come from /api/search.
+// Header search: "/" focuses it, arrows move, Enter opens, Escape closes the list (a second Escape leaves the box).
+// Each result is also a real link, so Cmd/Ctrl-click and middle-click open it in a new tab. Results come from /api/search.
 export function Search() {
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<Hit[]>([]);
@@ -41,30 +42,35 @@ export function Search() {
   return (
     <div className="search" ref={box} role="search">
       <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
-      <input ref={input} type="search" value={q} placeholder="Search prompts and skills" aria-label="Search prompts and skills"
+      <input ref={input} type="search" name="q" autoComplete="off" spellCheck={false} value={q} placeholder="Search prompts and skills…" aria-label="Search prompts and skills"
         role="combobox" aria-expanded={open && hits.length > 0} aria-controls="search-results" aria-autocomplete="list"
         aria-activedescendant={open && hits[cur] ? `sr-${cur}` : undefined}
         onChange={(e) => setQ(e.target.value)} onFocus={() => hits.length && setOpen(true)}
+        onBlur={(e) => { if (!box.current?.contains(e.relatedTarget as Node | null)) setOpen(false); }}
         onKeyDown={(e) => {
           if (e.key === "ArrowDown") { e.preventDefault(); setCur((c) => Math.min(c + 1, hits.length - 1)); }
           else if (e.key === "ArrowUp") { e.preventDefault(); setCur((c) => Math.max(c - 1, 0)); }
           else if (e.key === "Enter" && hits[cur]) { e.preventDefault(); go(hits[cur]); }
-          else if (e.key === "Escape") { setOpen(false); input.current?.blur(); }
+          else if (e.key === "Escape") { if (open && q.trim()) setOpen(false); else input.current?.blur(); }
         }} />
       {!q && <kbd className="kbd" aria-hidden="true">/</kbd>}
       {open && q.trim() && (
         <ul className="results" id="search-results" role="listbox">
-          {hits.length === 0 && <li className="results__none">Nothing matches. Try the symptom in plain words.</li>}
+          {hits.length === 0 && <li className="results__none" role="option" aria-disabled="true" aria-selected={false}>Nothing matches. Try the symptom in plain words.</li>}
           {hits.map((h, i) => (
             <li key={h.kind + h.ref} id={`sr-${i}`} role="option" aria-selected={i === cur}
-              onMouseEnter={() => setCur(i)} onMouseDown={(e) => { e.preventDefault(); go(h); }}>
-              <span className="results__t">{h.title}</span>
-              <span className="results__k">{h.kind === "skill" ? "Skill" : "Prompt"}</span>
-              {h.summary && <span className="results__d">{h.summary}</span>}
+              onMouseEnter={() => setCur(i)}
+              onMouseDown={(e) => { if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) { e.preventDefault(); go(h); } }}>
+              <a className="results__a" href={href(h)} tabIndex={-1} onClick={(e) => { if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) e.preventDefault(); }}>
+                <span className="results__t">{h.title}</span>
+                <span className="results__k">{h.kind === "skill" ? "Skill" : "Prompt"}</span>
+                {h.summary && <span className="results__d">{h.summary}</span>}
+              </a>
             </li>
           ))}
         </ul>
       )}
+      <p className="sr" aria-live="polite">{open && q.trim() ? (hits.length ? `${hits.length} ${hits.length === 1 ? "result" : "results"}` : "No results") : ""}</p>
     </div>
   );
 }
