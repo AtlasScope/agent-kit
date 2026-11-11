@@ -1,6 +1,6 @@
 # Prompt Library
 
-254 prompts, commands and recipes for coding and design agents. Open prompt-library.html for search, stars and the prompt composer.
+255 prompts, commands and recipes for coding and design agents. Open prompt-library.html for search, stars and the prompt composer.
 
 ## Investigations
 
@@ -1111,6 +1111,12 @@ Deepen modules and simplify interfaces.
 /design-setup
 ```
 
+**UI107 · /ios-safari** Proves how a web app really behaves in Safari on iPhone: records the iOS Simulator during flings, loads, text-size changes, sheets and the keyboard, steps through the frames, then fixes what they show and lists what still needs a real phone.
+
+```text
+/ios-safari the header shakes when I fling to the top
+```
+
 **UI029 · /harsh-review** A blunt review of code or product work, with problems ranked by how serious they are and proof for each one. It then makes the small fixes it is sure of and checks them.
 
 ```text
@@ -1664,6 +1670,7 @@ sg -v docs/*.md
 1. /impeccable adapt: layout across screen sizes
 2. /mobile-native: tap, notch, 100vh and input-zoom fixes
 3. /apple-design: gestures, sheets and springs where it matters
+4. /ios-safari: prove it in Safari on the iOS Simulator
 
 **RC09 · Explore before committing** See real options instead of arguing about one.
 

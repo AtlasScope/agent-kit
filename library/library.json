@@ -3237,6 +3237,22 @@
    "dmode": "Changes code"
   },
   {
+   "id": "UI107",
+   "sec": "dcmd",
+   "group": "Routers and working-style",
+   "sub": "Commands",
+   "badge": "design-kit plugin",
+   "gnote": "/design comes from the design-kit plugin and the rest from the working-style plugin, both in AtlasScope/agent-kit. Each runs only when you type it.",
+   "best": "Picking the right design skill for a job, a blunt critique when you want one, and proving a page works at every screen size.",
+   "skipw": "Jobs where you already know which skill you want; call that skill directly.",
+   "note": "/design picks a skill or recipe from the same catalog, recipes and situations as this guide. Type /design, or /design-kit:design if another skill uses the name.",
+   "t": "/ios-safari",
+   "cmd": "/ios-safari",
+   "p": "/ios-safari the header shakes when I fling to the top",
+   "why": "Proves how a web app really behaves in Safari on iPhone: records the iOS Simulator during flings, loads, text-size changes, sheets and the keyboard, steps through the frames, then fixes what they show and lists what still needs a real phone.",
+   "dmode": "Changes code"
+  },
+  {
    "id": "UI029",
    "sec": "dcmd",
    "group": "Routers and working-style",
@@ -4667,9 +4683,13 @@
     [
      "/apple-design",
      "gestures, sheets and springs where it matters"
+    ],
+    [
+     "/ios-safari",
+     "prove it in Safari on the iOS Simulator"
     ]
    ],
-   "p": "Feels right on a phone. Make a web app feel installed rather than browsed.\nRun these in order, and check in with me between steps:\n1. /impeccable adapt: layout across screen sizes\n2. /mobile-native: tap, notch, 100vh and input-zoom fixes\n3. /apple-design: gestures, sheets and springs where it matters",
+   "p": "Feels right on a phone. Make a web app feel installed rather than browsed.\nRun these in order, and check in with me between steps:\n1. /impeccable adapt: layout across screen sizes\n2. /mobile-native: tap, notch, 100vh and input-zoom fixes\n3. /apple-design: gestures, sheets and springs where it matters\n4. /ios-safari: prove it in Safari on the iOS Simulator",
    "dmode": "Changes code"
   },
   {
