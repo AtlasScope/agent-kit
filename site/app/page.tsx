@@ -5,10 +5,8 @@ import { JsonLd } from "@/components/Crumbs";
 import { HERO, KITS, SITE } from "@/lib/site";
 import { counts, fixes, authors } from "@/lib/content";
 import { KitRows } from "@/components/KitRows";
-
-const WIDE = [960, 1440, 1920, 2560, 3840];
-const TALL = [780, 1170];
-const set = (name: string, widths: number[], ext: string) => widths.map((w) => `/hero/${name}-${w}.${ext} ${w}w`).join(", ");
+import { LaunchHero } from "@/components/LaunchHero";
+import "./launch.css";
 
 const ARROW = <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>;
 
@@ -16,30 +14,10 @@ export default function Home() {
   const a = authors();
   return (
     <main className="home">
-      <section className="orbit" aria-labelledby="hero-h">
-        <div className="orbit__stage">
-          {/* Decorative: the horizon carries no information, so it has no text alternative. */}
-          <picture className="orbit__photo" style={{ backgroundImage: `url(${HERO_BLUR})` }}>
-            <source media="(max-width: 720px)" type="image/avif" srcSet={set("orbit-tall", TALL, "avif")} sizes="100vw" />
-            <source media="(max-width: 720px)" type="image/webp" srcSet={set("orbit-tall", TALL, "webp")} sizes="100vw" />
-            <source type="image/avif" srcSet={set("orbit", WIDE, "avif")} sizes="100vw" />
-            <source type="image/webp" srcSet={set("orbit", WIDE, "webp")} sizes="100vw" />
-            <img src="/hero/orbit-1920.webp" alt="" width={3840} height={2160} fetchPriority="high" decoding="async" />
-          </picture>
-          <div className="container orbit__body">
-            <h1 id="hero-h">{HERO.headline}</h1>
-            <p className="orbit__lede">Agent Kit is a library of {counts.skills} skills and {counts.prompts} prompts for Claude Code, Codex and Cursor. Install it once, describe the job in plain words, and your agent follows a written method for it.</p>
-            <div className="orbit__cta">
-              <a className="btn btn--lg btn--solid" href="#install">Install Agent Kit{ARROW}</a>
-              <Link className="btn btn--lg" href="/start">New to coding agents? Start here</Link>
-            </div>
-            <p className="orbit__by">{HERO.by}</p>
-          </div>
-        </div>
-        <div className="orbit__rail" id="install">
-          <InstallRail />
-        </div>
-      </section>
+      <LaunchHero headline={HERO.headline} by={HERO.by} skills={counts.skills} prompts={counts.prompts} kits={KITS.length} blur={HERO_BLUR} />
+      <div className="orbit__rail" id="install">
+        <InstallRail />
+      </div>
 
       <div className="home-close">
         <section className="adds" aria-labelledby="adds-h">
