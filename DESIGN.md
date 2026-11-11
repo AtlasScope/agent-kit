@@ -1,6 +1,6 @@
 ---
 name: Agent Kit by AtlasScope
-description: Ink, white, slate and muted grey on dark surfaces, a cool grey paper set in the light setting, and one orbit photograph on the homepage.
+description: Ink, white, slate and muted grey on dark surfaces, a cool grey paper set in the light setting, and one orbit photograph, staged as a live scene, on the homepage.
 colors:
   ink: "#0B0C12"
   white: "#FFFFFF"
@@ -290,14 +290,12 @@ The page is a centred container (1280px, growing to 1320px on screens at least 1
 The header is a solid ink bar, 64px tall plus a 1px hairline, fixed to the top of the window. Below 1024px it becomes two rows with search on its own row (107px); below 640px, three rows (153px). The `--header-h` token holds the current height, and every sticky column and jump target is offset by it, so nothing slides under the header. A "Skip to content" link is the first Tab stop.
 
 ### Homepage
-The hero is three stacked bands on one left edge, the container's left edge:
-1. The solid header.
-2. The photograph, full window width, anchored to its bottom edge so the horizon stays in frame. It is clamp(520px, the window height less the header and the strip, 1000px) tall. Headline, sentence, two pills and one line of small print hang from the left edge, 28px apart, vertically centred. Ink is laid over the photograph from the left (solid to 80px past the text edge, clear by 1040px past it) so the text sits in black sky, and a 140px ink fade runs down from the header.
-3. A solid ink strip with a hairline above it: agent tabs, the install commands and the tested-with line on the left (up to 720px wide), and what to do next for the chosen agent in a column behind a hairline on the right.
+The first screen is a live view from orbit, under the solid header (`site/components/LaunchHero.tsx`, `site/components/orbit-gl.ts`, `site/app/launch.css`):
+1. **Readout:** one line of mono telemetry along the top (Agent Kit, kit, skill and prompt counts, "status nominal", with amber separators), and a running T+ clock on the right.
+2. **Message:** the headline (each word in its own mask), one sentence, the Install pill, a "New to coding agents? Start here" text link, and the licence line, hung from the container's left edge and vertically centred. Ink shades the sky side from the left so the text holds contrast.
+3. **Foot:** on wider screens an example /design route types itself in at the bottom left and changes every few seconds; an Install cue with a breathing hairline sits in the middle.
 
-Below 1088px the strip wraps: the command takes a full row, with what to do next under it, and the photograph band sizes to its text. Below 720px the text sits on solid ink at the top and the horizon shows beneath it (ink solid to 44% of the band's height, clear by 82%), the pills go full width, and the strip falls below the first screen; the primary pill jumps to it.
-
-The headline also scales with window height (8.2% of it, 7.2% below 820px tall), and below 820px tall the hero tightens its spacing, so the install command stays on the first screen of a 1280 by 720 or 1366 by 768 laptop. On a phone held sideways the headline runs to two lines and the ink covers the left two thirds of the photograph.
+The hero fills the window below the header. The install strip (agent tabs, commands, tested-with line, what to do next) sits directly under it; the Install pill and the cue jump to it. On phones the text sits at the top over black sky, the horizon is in the lower third, and the example route is left out.
 
 Below the strip the homepage closes in three parts. First, what the install adds: the kit rows (see Components). Then three ways into the library (prompts, skills, fix a problem), each with its one-line definition and a link, in three columns divided by hairlines. Then one line crediting the authors. Below 960px the three columns stack.
 
@@ -317,7 +315,7 @@ Touch screens raise tap targets to 40px or more. Layouts hold from 360px to 2560
 
 ## Elevation & Depth
 
-The hero is flat. Its three bands are separated by hairlines and by the edge of the photograph, with no shadow anywhere in the first screen. The rest of the homepage is flat too: hairlines and no shadow.
+The hero is a scene, not a stack of panels: depth comes from the planet, the atmosphere and the light, with no box shadows in the first screen. The rest of the homepage is flat too: hairlines and no shadow.
 
 On library pages, depth is mostly tonal: a raised panel with a hairline border on the page ground. Cards and tiles also carry a soft shadow, which reads as a slight lift and no more. Pointer hover on a card, tile or row deepens the shadow. Kit rows, guide lists and the footer are flat, separated by hairlines.
 
@@ -330,7 +328,9 @@ On library pages, depth is mostly tonal: a raised panel with a hairline border o
 ### Named Rules
 **The Solid Ground Rule.** Anything a visitor operates or needs to read exactly (the header, the logo, the install command) sits on a solid colour, never on the photograph.
 
-**The One Movement Rule.** The only animation that plays by itself on the homepage is the photograph settling into place on load (1400ms, from 55% opacity and 3.5% oversize). Text is in place from the first frame. With reduced motion set, nothing moves.
+**The Launch Rule.** The homepage opens once per visit as a launch, about four seconds: telemetry types in, a hairline marks the horizon, the planet rises, the sun breaks over the limb, then the headline lifts out of its masks and the actions follow. Any click, key, wheel or touch skips to the end. Every element's resting state is the final frame, so the text is real and readable from the first paint, and with no script it simply shows.
+
+**The Living Scene Rule.** After the opening the scene keeps moving, slowly: cloud flow and a slight turn of the planet, a breathing atmosphere and sun, twinkling stars, a craft on a dashed orbit track (faded out on the text side), a camera that follows the pointer a little and dives toward the planet on scroll, a light sweep across the Install pill every few seconds, and the example route. It pauses when off screen or in a background tab. With reduced motion set, or without WebGL, the still photograph shows and nothing moves.
 
 ## Shapes
 
@@ -407,16 +407,17 @@ The why-column is the page title over a list with small ink squares as markers. 
 - **Errors:** a message in the danger colour directly under the form that caused it, saying what to do next. Raw server errors never reach the screen; an ended session goes to sign-in.
 
 ### Hero photograph
-- **Source:** the supplied 3840 by 2160 orbit photograph, used as supplied: no retouching, regrading or generated variants.
-- **Derivatives:** made by `site/scripts/build-hero-images.mjs` as AVIF and WebP at 960, 1440, 1920, 2560 and 3840px wide. Phones get the middle of the frame cropped to 4:5 at 780 and 1170px wide. A 24px blurred copy is inlined so the horizon is present before the photograph loads.
-- **Placement:** homepage hero backdrop only, under the solid header, anchored bottom centre, covered by the ink overlays described in Layout. It is decorative and has an empty text alternative.
+- **Source:** the supplied 3840 by 2160 orbit photograph. The pixels are used as supplied; the live scene adds light and motion on top (atmosphere, sun, cloud flow) but never regrades or retouches the photograph.
+- **Derivatives:** made by `site/scripts/build-hero-images.mjs` as AVIF and WebP at 960, 1440, 1920, 2560 and 3840px wide, plus phone crops at 780 and 1170px. A 24px blurred copy is inlined so the horizon is present before the photograph loads. The live scene uses the 1920 or 2560 WebP as its texture.
+- **The limb:** a circle fitted to the photograph (in 1920 by 1080 pixels: centre 1872.8, 5941.6; radius 5280.3). The atmosphere, the sun and the orbit track are placed on it, so they sit on the real horizon.
+- **Placement:** homepage hero only, under the solid header. Decorative, with an empty text alternative.
 
 ### Named Rules
 **The One Primary Rule.** One primary action per view: a white pill in the hero, a solid button on library pages. A second action beside it is outlined. Two primaries never sit side by side.
 
 **The Untouched Logo Rule.** The header logo is pixel-fitted. Never scale it, transform it, or set its size from CSS. The logo is ink or white only: no gradient, glow, outline or tint.
 
-**The One Photograph Rule.** The orbit photograph is the only image in the system. It is used as supplied, only as the homepage hero backdrop, and only under a solid header.
+**The One Photograph Rule.** The orbit photograph is the only image in the system. Its pixels are used as supplied, only in the homepage hero, and only under a solid header.
 
 ## Do's and Don'ts
 
@@ -442,6 +443,6 @@ The why-column is the page title over a list with small ink squares as markers. 
 - **Don't** place the AtlasScope logo on the photograph or on any image.
 - **Don't** scale, transform, recolour, outline or shade the header logo, and don't retype the wordmark in live text.
 - **Don't** put a small label above a heading.
-- **Don't** add a second image, crop or regrade the orbit photograph for effect, or use it anywhere but the homepage hero.
+- **Don't** add a second image, regrade or retouch the orbit photograph, or use it anywhere but the homepage hero.
 - **Don't** put two primary buttons in one view.
 - **Don't** animate text into place; only the photograph moves, once, on load.
