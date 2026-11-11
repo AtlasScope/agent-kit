@@ -53,6 +53,7 @@ for (const c of cases) {
   if (!["stable", "heldout"].includes(c.set)) fail(`${at}: set must be stable or heldout`);
   if (!ROUTERS.includes(c.router)) fail(`${at}: unknown router ${c.router}`);
   if (!KINDS.includes(c.kind)) fail(`${at}: unknown kind ${c.kind}`);
+  if (c.source !== undefined && c.source !== "observed") fail(`${at}: source, when present, must be "observed"`);
   if (!c.request || !c.context) fail(`${at}: needs a request and a context line`);
   if (c.router.startsWith("/") && !c.request.startsWith(c.router + " ")) fail(`${at}: an explicit router case must start with "${c.router} "`);
   if (c.router === "none" && /^\/(design|engineer|database)\b/.test(c.request)) fail(`${at}: a negative case must not type a router`);
