@@ -371,7 +371,7 @@ svg.i { width: 16px; height: 16px; flex: none; }
   .pcard__t a:hover { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--color-rule-2); }
   .chip:hover { background: var(--color-paper-3); }
 }
-@media (pointer: coarse) { .star { min-width: 44px; min-height: 44px; } .pcard__a .btn { min-height: 44px; } .links a { min-height: 40px; } }
+@media (pointer: coarse) { .star { min-width: 44px; min-height: 44px; } .pcard__a .btn, .pcard__foot .btn, .menu > .btn { min-height: 44px; } .links a { min-height: 40px; } }
 
 /* Header on tablets and phones: search takes its own row, section links scroll. */
 @media (max-width: 64rem) {
