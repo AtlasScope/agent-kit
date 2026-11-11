@@ -73,7 +73,10 @@
 .launch[data-theatre] .launch__scene { inset: 0; height: auto; }
 .launch[data-theatre] .launch__body { position: absolute; inset: 0; min-height: 0; will-change: transform, opacity, filter; }
 .launch[data-theatre] .launch__term { position: absolute; left: 50%; top: 50%; margin: 0; transform: translate(-50%, -50%); clip-path: inset(50% 0 50% 0 round 16px); visibility: hidden; }
-.launch[data-theatre] .launch__screen { min-height: 340px; align-content: start; }
+/* The terminal never outgrows the stage: on short screens (a phone on its side) it caps its height and its lines scroll inside it. */
+.launch[data-theatre] .launch__term { display: flex; flex-direction: column; max-height: calc(100% - 24px); }
+.launch[data-theatre] .launch__screen { min-height: min(340px, 100%); align-content: start; overflow-y: auto; overscroll-behavior: contain; }
+@media (max-height: 560px) { .launch[data-theatre] .launch__screen { min-height: 0; padding-block: 14px; gap: 10px; } }
 .launch[data-theatre] .launch__full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .launch[data-theatre] .launch__typed { display: inline; }
 .launch[data-theatre] .launch__caret { display: inline-block; }
