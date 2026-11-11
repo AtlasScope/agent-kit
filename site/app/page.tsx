@@ -15,7 +15,7 @@ export default function Home() {
   return (
     <main className="home">
       <LaunchHero headline={HERO.headline} blur={HERO_BLUR} />
-      <div className="orbit__rail" id="install">
+      <div className="orbit__rail" id="install" tabIndex={-1}>
         <InstallRail />
       </div>
 
