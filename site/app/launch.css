@@ -1,13 +1,13 @@
 /* Homepage hero (components/LaunchHero.tsx, content in lib/hero-demo.ts). Two layouts:
    - At rest (reduced motion, or before the script runs): the first screen over the photograph, then the worked
      example laid flat and read top to bottom.
-   - [data-theatre]: a tall section with a pinned stage; scroll position plays the example. [data-intro] stages
-     the opening once per visit. */
+   - [data-theatre]: two screens under one sky. The scene sticks behind both while the page scrolls normally;
+     screen 2 plays the example on its own clock. [data-intro] stages the opening once per visit. */
 .launch { --ease-launch: cubic-bezier(0.16, 1, 0.3, 1); --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); --stage-h: calc(100svh - var(--header-h, 65px));
   --lh-page: #10121A; --lh-warm: #F5A524; --lh-warm-t: #FFD898; --lh-cool: #8CB6FF;
   --lh-t2: rgba(255,255,255,.78); --lh-t3: rgba(255,255,255,.66); --lh-line: rgba(255,255,255,.1);
   position: relative; margin-inline: calc(50% - 50vw); overflow-x: clip; background: #030409; color: #fff; }
-.launch__pin { position: relative; isolation: isolate; }
+.launch { isolation: isolate; }
 
 /* Scene: the photo is the fallback and the first paint; the WebGL canvas fades in over it once it draws. */
 .launch__scene { position: absolute; inset: 0 0 auto; height: var(--stage-h); z-index: -1; overflow: hidden; pointer-events: none; }
@@ -115,12 +115,12 @@
 @media (min-width: 1024px) { .launch:not([data-theatre]) .lh-world { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; gap: 48px; } }
 
 /* ---- The stage ---- */
-.launch[data-theatre] { height: 360vh; }
-.launch[data-theatre] .launch__pin { position: sticky; top: var(--header-h, 65px); height: var(--stage-h); overflow: hidden; }
-.launch[data-theatre] .launch__scene { inset: 0; height: auto; }
+/* The sky sticks behind both screens; its negative margin lets screen 1 sit on top of it in the flow. */
+.launch[data-theatre] .launch__scene { position: sticky; top: var(--header-h, 65px); height: var(--stage-h); margin-bottom: calc(-1 * var(--stage-h)); }
+.lh-screen { position: relative; }
+.launch[data-theatre] .lh-screen { height: var(--stage-h); overflow: hidden; }
+.launch[data-theatre] .lh-screen__in { position: relative; height: 100%; --pad: max(var(--gutter), env(safe-area-inset-left)); }
 /* Absolutely placed layers ignore the container's padding, so they take the gutter themselves. */
-.launch[data-theatre] .launch__frame { position: absolute; inset: 0; --pad: max(var(--gutter), env(safe-area-inset-left)); }
-.launch[data-theatre] .launch__msg { position: absolute; top: 0; left: var(--pad); right: var(--pad); }
 .launch[data-theatre] .lh-demo { display: block; position: absolute; top: 0; bottom: 0; left: var(--pad); right: var(--pad); padding: 0; pointer-events: none; }
 .launch[data-theatre] .lh-demo a { pointer-events: auto; }
 .launch[data-theatre] .lh-intro, .launch[data-theatre] .lh-box__full, .launch[data-theatre] .lh-files-label, .launch[data-theatre] .lh-sum-static { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -156,9 +156,15 @@
 .launch[data-theatre] .lh-threads { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; z-index: 3; pointer-events: none; }
 .launch[data-theatre] .lh-box { visibility: hidden; }
 
-/* Tuning buttons, shown with ?replay only. */
-.launch__lab { position: absolute; right: 16px; bottom: 16px; z-index: 4; display: flex; gap: 6px; }
-.launch__lab button { padding: 8px 12px; border: 1px dashed rgba(245,165,36,.5); border-radius: 999px; background: rgba(3,4,9,.6); color: rgba(255,255,255,.85); font: 500 12px/1 var(--font-mono); cursor: pointer; }
+/* The example's controls: a progress bar marked at each step, and one Pause / Play / Replay button. */
+.lh-controls { display: none; }
+.launch[data-theatre] .lh-controls:not([hidden]) { position: absolute; left: var(--pad); right: var(--pad); bottom: 20px; z-index: 4; display: flex; align-items: center; gap: 14px; }
+.lh-progress { position: relative; flex: 0 1 320px; height: 3px; border-radius: 3px; background: rgba(255,255,255,.14); overflow: hidden; }
+.lh-progress__fill { position: absolute; inset: 0; background: var(--lh-warm); transform-origin: left; transform: scaleX(0); }
+.lh-progress b { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: #030409; }
+.lh-ctl { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px 0 12px; border: 1px solid rgba(255,255,255,.18); border-radius: 999px; background: rgba(3,4,9,.55); color: var(--lh-t2); font: 500 13px/1 var(--font-body); cursor: pointer; }
+.lh-ctl svg { width: 16px; height: 16px; }
+@media (hover: hover) and (pointer: fine) { .lh-ctl:hover { color: #fff; border-color: rgba(255,255,255,.4); } }
 
 /* ---- The opening (about 3.4s), staged with the scene's own clock. ---- */
 .launch[data-intro] .launch__shade { animation: launch-fade 1.4s ease 1.1s backwards; }
@@ -176,7 +182,6 @@
   .launch__earth img { object-position: 60% 100%; }
   .launch__shade { background: linear-gradient(to bottom, rgba(3,4,9,.9) 0%, rgba(3,4,9,.55) 50%, rgba(3,4,9,0) 75%); }
   .launch__msg { align-content: start; padding-block: 7svh 0; }
-  .launch[data-theatre] { height: 330vh; }
   .lh-box__text { font-size: 16px; }
   .lh-page { padding: 18px 16px 14px; } .lh-page h3 { font-size: 19px; } .lh-q { font-size: 14.5px; grid-template-columns: 2em 1fr; gap: 8px; }
   .lh-toc li { height: 24px; font-size: 13px; } .lh-bar { height: 24px; }

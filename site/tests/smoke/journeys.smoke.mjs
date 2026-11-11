@@ -62,8 +62,14 @@ for (const size of SIZES) {
   test(`${size.name}: home page copies the install steps and leads to the library`, async () => {
     const { page, ctx, errors } = await open(size, "/");
     await noSideScroll(page, "/");
-    // The hero's worked example ends on an Install link; it skips to the install strip and takes keyboard focus there.
-    await page.evaluate(() => { const el = document.querySelector(".launch"); scrollTo(0, el.getBoundingClientRect().bottom + scrollY - innerHeight); });
+    // The hero's worked example plays on its own clock once screen 2 is in view. Leaving mid-play jumps it to its
+    // ending, so coming back shows the end Install link, which skips to the install strip and takes keyboard focus.
+    const toExample = () => page.evaluate(() => { const s = document.querySelector(".lh-screen"), h = parseFloat(getComputedStyle(document.querySelector(".launch__scene")).top) || 0; scrollTo(0, s.getBoundingClientRect().top + scrollY - h); });
+    await toExample();
+    await page.locator(".lh-ctl", { hasText: "Pause" }).waitFor();
+    await page.evaluate(() => scrollTo(0, 0));
+    await page.locator(".lh-ctl", { hasText: "Replay" }).waitFor({ state: "attached" });
+    await toExample();
     await page.locator(".lh-end a", { hasText: "Install Agent Kit" }).click();
     assert.equal(await page.evaluate(() => document.activeElement?.id), "install", "Install focuses the install strip");
     for (const agent of ["claude", "any"].map((id) => AGENTS.find((a) => a.id === id))) {
