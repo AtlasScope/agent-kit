@@ -170,8 +170,6 @@ details.lic-text pre { white-space: pre-wrap; font-size: 0.75rem; color: var(--c
 }
 @media (prefers-reduced-motion: reduce) { * { transition-duration: 0.01ms !important; animation: none !important; } }
 
-
-
 /* Hover only where a precise pointer can hover, so taps on phones never leave a stuck state. */
 @media (hover: hover) and (pointer: fine) {
   .links a:hover { color: var(--color-ink); }
@@ -465,64 +463,9 @@ svg.i { width: 16px; height: 16px; flex: none; }
   .guide-list--two { grid-template-columns: minmax(0, 1fr); grid-auto-flow: row; grid-template-rows: none; }
 }
 
-
-.orbit__rail { border-top: 1px solid var(--color-rule); background: var(--color-paper); scroll-margin-top: 80px; }
-.rail { display: flex; align-items: flex-start; gap: var(--space-2xl); padding-block: var(--space-lg); }
-.rail__install { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; flex: 0 1 720px; min-width: 0; }
-/* The padding and matching negative margin leave room for the focus ring inside the scrolling row. */
-.rail__tabs { display: flex; gap: 24px; overflow-x: auto; scrollbar-width: none; padding: 4px; margin: -4px; }
-.rail__tabs button { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 0 0 8px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--color-muted); font: 400 0.875rem/1.4 var(--font-body); white-space: nowrap; cursor: pointer; transition: color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out); }
-.rail__tabs button .i { width: 20px; height: 20px; }
-.rail__tabs button[aria-selected="true"] { color: var(--color-ink); border-bottom-color: var(--color-ink); }
-/* Tall enough for the longest install, so the strip does not change height between agents. Commands wrap; they are never cut off. */
-.rail__cmd { display: flex; align-items: flex-start; gap: var(--space-sm); min-height: 140px; padding: 10px 8px 10px var(--space-md); border: 1px solid var(--color-rule); border-radius: 8px; background: var(--color-paper-2); font: 400 0.9375rem/1 var(--font-mono); }
-.rail__steps { flex: 1; min-width: 0; display: grid; }
-.rail__cmd code { display: block; min-width: 0; padding-left: 2ch; text-indent: -2ch; overflow-wrap: anywhere; line-height: 1.6; }
-.rail__cmd code::before { content: "$ "; color: var(--color-muted); }
-.rail__copy { flex: none; min-height: 32px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--color-accent); color: var(--color-accent-ink); font: 600 0.8125rem/1 var(--font-body); cursor: pointer; }
-.rail__cmd .nw { white-space: nowrap; }
-.rail__tested { font-size: 0.8125rem; line-height: 1.46; color: var(--color-muted); }
-.rail__tested button { padding: 0; border: 0; background: none; color: var(--color-ink); font: inherit; text-decoration: underline; text-decoration-color: var(--color-rule-2); text-underline-offset: 0.2em; cursor: pointer; }
-/* What to do after the copy, for the chosen agent. */
-.rail__next { flex: 1 1 18rem; max-width: 26rem; display: grid; gap: var(--space-xs); padding: 38px 0 0 var(--space-xl); border-left: 1px solid var(--color-rule); align-self: stretch; align-content: start; }
-.rail__next h2 { margin: 0; font: 650 1.0625rem/1.3 var(--font-body); letter-spacing: -0.015em; }
-.rail__next p { color: var(--color-muted); font-size: 0.9375rem; line-height: 1.5; text-wrap: pretty; }
-@media (hover: hover) and (pointer: fine) { .rail__tabs button:hover { color: var(--color-ink); } .rail__copy:hover { background: var(--color-muted); } }
-@media (pointer: coarse) { .rail__tabs button { min-height: 40px; } .rail__copy { min-height: 40px; } .rail__tested button { padding-block: 10px; } }
-
-/* Narrower than the strip can hold in one row: what to do next drops under the command. */
-@media (max-width: 68rem) {
-  .orbit__rail { scroll-margin-top: 56px; }
-  .rail { flex-wrap: wrap; gap: var(--space-lg); }
-  .rail__install { flex: 1 1 100%; }
-  .rail__next { flex: 1 1 100%; max-width: 40rem; padding: 0; border-left: 0; }
-}
-/* Phones: text on ink at the top, the horizon below it. All six agents show, two to a row. */
-@media (max-width: 720px) {
-  .rail__tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px var(--space-md); overflow: visible; }
-  .rail__tabs button { justify-self: start; }
-  .rail__cmd { flex-direction: column; min-height: 0; padding: var(--space-sm); }
-  .rail__cmd code { font-size: 0.8125rem; }
-  .rail__copy { align-self: stretch; }
-}
-
-
-/* Homepage close: what the three words mean, and who wrote the skills. Flat, on ink, no section hues. */
+/* The homepage is one screen: no footer under it (its links are in the header and on every other page). */
 .home { --lift: none; --lift-hi: none; }
-.home .i { transition: transform var(--dur-short) var(--ease-out); }
-.home-close { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-xl); padding-block: var(--space-2xl); }
-.ledger { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-xl); margin: 0; padding: 0; list-style: none; }
-.ledger li { position: relative; display: grid; grid-template-rows: auto 1fr auto; gap: var(--space-xs); padding-left: var(--space-lg); border-left: 1px solid var(--color-rule); }
-.ledger li:first-child { padding-left: 0; border-left: 0; }
-.ledger h2 { margin: 0; font: 650 1.0625rem/1.3 var(--font-body); letter-spacing: -0.015em; }
-.ledger p { max-width: 40ch; font-size: 0.9375rem; line-height: 1.5; color: var(--color-muted); text-wrap: pretty; }
-.ledger a { display: inline-flex; align-items: center; gap: var(--space-xs); margin-top: var(--space-xs); font: 500 0.9375rem/1.2 var(--font-body); font-variant-numeric: tabular-nums; white-space: nowrap; text-decoration: none; }
-.ledger a::after { content: ""; position: absolute; inset: 0; }
-.ledger a:focus-visible { outline: none; } .ledger li:has(a:focus-visible) { outline: 2px solid var(--color-focus); outline-offset: 4px; border-radius: 4px; }
-.authors { padding-right: max(0px, calc(100% - var(--read))); padding-top: var(--space-lg); border-top: 1px solid var(--color-rule); font-size: var(--text-sm); line-height: 1.7; color: var(--color-muted); text-wrap: pretty; }
-.authors a { color: var(--color-ink); text-decoration-color: var(--color-rule-2); text-underline-offset: 0.2em; }
-@media (hover: hover) and (pointer: fine) { .ledger li:hover .i { transform: translateX(3px); } .authors a:hover { text-decoration-color: var(--color-ink); } }
-@media (pointer: coarse) { .authors { line-height: 2.2; } .ledger a { min-height: 40px; } }
+body:has(main.home) .foot { display: none; }
 /* What the install adds: one row per kit, name and size, what it does, the commands that start it. Flat, hairlines only. */
 .adds { display: grid; gap: var(--space-lg); margin-bottom: var(--space-lg); }
 .adds__head { display: grid; gap: var(--space-xs); }
@@ -543,13 +486,6 @@ svg.i { width: 16px; height: 16px; flex: none; }
   .adds { margin-bottom: 0; }
   .adds__list > li { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name n" "line line" "type type"; row-gap: 6px; padding-block: var(--space-md); }
   .adds__n { align-self: baseline; }
-}
-@media (max-width: 60rem) {
-  .home-close { gap: var(--space-lg); padding-block: var(--space-xl); }
-  .ledger { grid-template-columns: minmax(0, 1fr); gap: 0; }
-  .ledger li, .ledger li:first-child { padding: var(--space-md) 0; border-left: 0; border-bottom: 1px solid var(--color-rule); }
-  .ledger li:first-child { padding-top: 0; }
-  .authors { padding-top: 0; border-top: 0; }
 }
 
 /* Small targets: 24px for a mouse, 40px for a finger. */
@@ -606,8 +542,6 @@ svg.i { width: 16px; height: 16px; flex: none; }
 /* The page's h1 already says what this is, so Clerk's own title on the first step goes. Later steps ("Check your email") keep theirs. */
 .signin__form .cl-card.cl-signIn-start .cl-header { display: none; }
 @media (max-width: 60rem) { .signin { grid-template-columns: minmax(0, 1fr); row-gap: var(--space-xl); } .signin__form { justify-self: stretch; } .signin__form > * { margin-inline: auto; } }
-
-
 
 /* Collections: a form to make one, then a panel per collection. Rename and Delete open in place. */
 .input { min-width: 0; min-height: 40px; padding: 0 var(--space-sm); border: 1px solid var(--color-rule-2); border-radius: 10px; background: var(--color-paper); color: var(--color-ink); font: inherit; font-size: 0.9375rem; }
@@ -687,7 +621,6 @@ summary { touch-action: manipulation; -webkit-user-select: none; user-select: no
 @media (hover: hover) and (pointer: fine) {
   .prose a:hover, .scard__pick a:hover, .scard__alts a:hover, .doc__sec a:hover, .lic:hover { text-decoration-color: currentColor; color: var(--color-ink); }
   .start-list a:hover strong { text-decoration: underline; text-decoration-color: var(--color-rule-2); }
-  .rail__tested button:hover { text-decoration-color: currentColor; }
   .results__a:hover .results__t { text-decoration: underline; text-decoration-color: var(--color-rule-2); text-underline-offset: 0.2em; }
 }
 
@@ -704,10 +637,8 @@ summary { touch-action: manipulation; -webkit-user-select: none; user-select: no
 @keyframes sheet-in { from { opacity: 0; transform: translateY(6px); } }
 .swap { animation: swap-in 200ms var(--ease-out); }
 @keyframes swap-in { from { opacity: 0; } }
-.iconbtn, .rail__copy, .rail__tabs button, .sheet__links a { transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), transform var(--dur-micro) var(--ease-out); }
+.iconbtn, .sheet__links a { transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), transform var(--dur-micro) var(--ease-out); }
 .iconbtn:active { background: var(--color-paper-2); transform: scale(0.94); }
-.rail__copy:active { transform: scale(0.97); background: var(--color-muted); }
-.rail__tabs button:active, .sheet__links a:active { color: var(--color-ink); }
-.ledger li:active .i { transform: translateX(3px); }
+.sheet__links a:active { color: var(--color-ink); }
 /* The "/" key hint means nothing without a keyboard. */
 @media (pointer: coarse) { .kbd { display: none; } }

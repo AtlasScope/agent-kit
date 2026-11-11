@@ -193,7 +193,7 @@ components:
 
 AtlasScope is the brand. Agent Kit is its first product, and atlasscope.dev is the Agent Kit site. The system is the AtlasScope identity applied to a working tool: a near-black ink ground, white type, one raised slate tone, one muted grey, and nothing else. The name "Monolithic Minimal" is the owner's own reference board (black and white, a lit planet horizon, white pill buttons); it is used here as the working name for the system.
 
-The homepage carries the one image the system allows, a photograph of a planet horizon, sitting under a solid ink header and above a solid ink strip that holds the install command. Everything a visitor acts on (the command and the Copy button) sits on a solid ground, never on the photograph.
+The homepage carries the one image the system allows, a photograph of a planet horizon, sitting under a solid ink header. The install command lives on its own page, `/install`, on solid black. Everything a visitor acts on sits on a solid ground, never on the photograph.
 
 The rest of the site is a library, a first-app guide, a few reading pages and an account area. These follow the visitor's light or dark setting. Dark is the brand set. Light is the same system turned over: cool grey paper, white raised panels, ink type and ink buttons. Both sets are neutral and cool, with no warm tint.
 
@@ -213,7 +213,7 @@ The system has no accent hue. Emphasis comes from contrast, from weight, and fro
 Two neutral sets, one for each setting, plus one warm accent for what the visitor has chosen or kept, six section hues used as dots, and one danger colour used for destructive actions and errors. All tokens live in `site/app/globals.css`.
 
 ### Dark set (the brand)
-- **Ink** (#0B0C12): the page ground, the header, the install strip, and the text colour on a white button. A neutral near-black, not tinted warm or violet.
+- **Ink** (#0B0C12): the page ground, the header, and the text colour on a white button. A neutral near-black, not tinted warm or violet.
 - **Slate** (#151821): raised panels on ink: cards, the command field, the search field, the current navigation link, hover fills.
 - **White** (#FFFFFF): text, the logo, the primary button, the Copy button, the selected-tab underline and the focus ring.
 - **Muted** (#A3A6AD): secondary text: the hero sentence, tab labels, card meta, the tested-with line, footer links. Also the hover fill of a white button.
@@ -290,14 +290,14 @@ The page is a centred container (1280px, growing to 1320px on screens at least 1
 The header is a solid ink bar fixed to the top of the window, with a hairline under it, and always one row. From 1200px up it is 64px tall and holds the lockup, four links, search, the account button and GitHub. Below 1200px it is 56px tall and holds the lockup, search and a menu button. Below 640px search becomes a button too. The `--header-h` token holds the current height, and every sticky column and jump target is offset by it, so nothing slides under the header. A "Skip to content" link is the first Tab stop.
 
 ### Homepage
-The first screen is a live view from orbit, under the solid header (`site/components/LaunchHero.tsx`, `site/components/orbit-gl.ts`, `site/app/launch.css`):
-1. **Readout:** one line of mono telemetry along the top (Agent Kit, kit, skill and prompt counts, "status nominal", with amber separators), and a running T+ clock on the right.
-2. **Message:** the headline (each word in its own mask), one sentence, the Install pill, a "New to coding agents? Start here" text link, and the licence line, hung from the container's left edge and vertically centred. Ink shades the sky side from the left so the text holds contrast.
-3. **Foot:** on wider screens an example /design route types itself in at the bottom left and changes every few seconds; an Install cue with a breathing hairline sits in the middle.
+The homepage is one screen and nothing below it: no footer, no scrolling (`site/components/LaunchHero.tsx`, `site/components/orbit-gl.ts`, `site/app/launch.css`). A live view from orbit under the solid header holds the headline (each word in its own mask), one sentence, the Install pill and a "New to coding agents? Start here" text link, hung from the container's left edge and vertically centred. Ink shades the sky side from the left so the text holds contrast. Nothing sits on the right but the planet.
 
-The hero fills the window below the header. The install strip (agent tabs, commands, tested-with line, what to do next) sits directly under it; the Install pill and the cue jump to it. On phones the text sits at the top over black sky, the horizon is in the lower third, and the example route is left out.
+Install copies the visitor's install command in the click itself (their last-picked agent, else Claude Code, every line), then hands off to the install page: the words lift away and blur, the planet sinks and the sky fades to black, about half a second, and `/install` settles in out of that black. With reduced motion it goes straight there. A modified click opens the install page in a new tab without copying. Old `/#install` links go to the install page.
 
-Below the strip the homepage closes in three parts. First, what the install adds: the kit rows (see Components). Then three ways into the library (prompts, skills, fix a problem), each with its one-line definition and a link, in three columns divided by hairlines. Then one line crediting the authors. Below 960px the three columns stack.
+### Install page
+`/install` (`site/components/InstallPage.tsx`, `site/app/install/install.css`) continues the homepage's black and is quieter than anything else on the site: a faint grid fading out from the top, one centred column 720px wide, white text, grey for everything secondary, hairlines and no colour but one green for "copied". From the top: "Install Agent Kit", a line with the kit and skill counts, the six agents as a segmented row (three to a row on phones), and a terminal card holding the commands in Geist Mono, each line after a grey `$`. The card's bar says "Terminal" with a white Copy button; once the command is on the clipboard the bar says "On your clipboard" in green, the button reads Copied and the card's border turns green. Under it: what was tested, then two numbered steps (paste with the keys for this computer, shown as keycaps, and what to type first), a row of links on, and the credits line.
+
+Arriving from the homepage's Install, a notice rises at the bottom centre: "Install command copied. Paste it in your terminal with ⌘ V" (Ctrl V off a Mac; on a phone, "in a terminal on your computer"). It stays about eight seconds. If the browser refused the copy it says so and points to Copy. A direct visit copies nothing until Copy is pressed, and the same notice confirms it.
 
 ### Library pages
 Sections stack 40px apart inside the container. Each page opens with crumbs, the page title and a lead. Cards sit in auto-filling grids (minimum column 300px for prompt and skill cards, 250px for rows, 180px or 240px for tiles). A prompt's own page is two columns: the prompt text and its notes on the left, and a sticky 340px side column of facts (when to use it, what it returns, when to skip it) on the right.
@@ -315,7 +315,7 @@ Touch screens raise tap targets to 40px or more. Layouts hold from 360px to 2560
 
 ## Elevation & Depth
 
-The hero is a scene, not a stack of panels: depth comes from the planet, the atmosphere and the light, with no box shadows in the first screen. The rest of the homepage is flat too: hairlines and no shadow.
+The hero is a scene: depth comes from the planet, the atmosphere and the light, with no box shadows in the first screen. The example panel is a flat ink card with a hairline. The rest of the homepage is flat too: hairlines and no shadow.
 
 On library pages, depth is mostly tonal: a raised panel with a hairline border on the page ground. Cards and tiles also carry a soft shadow, which reads as a slight lift and no more. Pointer hover on a card, tile or row deepens the shadow. Kit rows, guide lists and the footer are flat, separated by hairlines.
 
@@ -328,11 +328,11 @@ On library pages, depth is mostly tonal: a raised panel with a hairline border o
 ### Named Rules
 **The Solid Ground Rule.** Anything a visitor operates or needs to read exactly (the header, the logo, the install command) sits on a solid colour, never on the photograph.
 
-**The Launch Rule.** The homepage opens once per visit as a launch, about four seconds: telemetry types in, a hairline marks the horizon, the planet rises, the sun breaks over the limb, then the headline lifts out of its masks and the actions follow. Any click, key, wheel or touch skips to the end. Every element's resting state is the final frame, so the text is real and readable from the first paint, and with no script it simply shows.
+**The Launch Rule.** The homepage opens once per visit, about three and a half seconds: the planet rises out of black, the sun breaks over the limb, then the headline lifts out of its masks and the sentence, actions and panel follow. The opening waits in black until the live scene can draw its first frame (at most about a second, then it plays over the photograph), so the words and the sky always start on the same clock. If the page's script never arrives, the text plays on its own. Any click, key, wheel or touch skips to the end. `?replay` in the address plays it again. Install ends the scene the other way: the words lift away, the planet sinks and the light goes out, into the install page's black.
 
-**The Living Scene Rule.** After the opening the scene keeps moving, slowly: cloud flow and a slight turn of the planet, a breathing atmosphere and sun, twinkling stars, a craft on a dashed orbit track (faded out on the text side), a camera that follows the pointer a little and dives toward the planet on scroll, a light sweep across the Install pill every few seconds, and the example route. It pauses when off screen or in a background tab. With reduced motion set, or without WebGL, the still photograph shows and nothing moves.
+**The Living Scene Rule.** The scene keeps moving, slowly: cloud flow and a slight turn of the planet, a breathing atmosphere and sun, twinkling stars, a craft on a dashed orbit track (faded out on the text side), a camera that follows the pointer a little, and a light sweep across the Install pill every few seconds. Nothing on the page moves on a timer of its own: the example panel changes only when the visitor picks. The scene pauses when off screen or in a background tab. With reduced motion set the still photograph shows and nothing moves.
 
-**The Answer A Press Rule.** Every other movement answers something the visitor did, and none makes them wait. The menu sheet arrives in 240ms (fading in and settling 8px) with its rows following 30ms apart. Changing agent in the install strip fades the new command in over 200ms. A pressed control answers within 120ms: icon buttons and the Copy pill shrink slightly and take their hover fill, because a phone has no hover. All of it uses the one ease-out curve, and all of it is off with reduced motion set.
+**The Answer A Press Rule.** Every other movement answers something the visitor did, and none makes them wait. The menu sheet arrives in 240ms (fading in and settling 8px) with its rows following 30ms apart. Changing agent on the install page fades the new command in over 200ms. A pressed control answers within 120ms: icon buttons and the Copy pill shrink slightly and take their hover fill, because a phone has no hover. All of it uses the one ease-out curve, and all of it is off with reduced motion set.
 
 ## Shapes
 
@@ -361,15 +361,15 @@ The AtlasScope lockup, a hairline divider, then "Agent Kit".
 - **Copy:** a small pill that reads "Copy", or "Copy all" when the install has more than one line, and changes to "Copied" for 1.6 seconds. If the browser blocks the clipboard it reads "Copy blocked: select the text" for 5 seconds. Its accessible name says what it copies ("Copy prompt: …").
 - **Header button:** a borderless 34px control with 8px corners, an icon and a label, used for the GitHub link.
 
-### Install strip
-The signature component: pick an agent, copy the install command, see what was tested.
-- **Agent tabs:** each agent's own mark at 20px in the text colour, then its name at 0.875rem, muted, 24px apart. The selected tab is white with a 2px white underline. Arrow keys, Home and End move between tabs. On phones the six tabs sit two to a row so none is hidden. The marks are the only logos besides AtlasScope's; they are single-colour and never tinted.
-- **Command field:** slate fill, hairline border, 8px corners, tall enough for the longest install so the strip does not jump between agents. Each line is in Geist Mono with a muted "$ " in front. Lines wrap between words at every width and are never cut off.
-- **What to do next:** a title naming the chosen agent and one muted sentence saying where to paste and what to type to see it work.
-- **Tested-with line:** small muted text directly under the command, naming what was tested, the CLI version and the date, or stating plainly that the agent has not been tested and offering the tested command.
+### Install card
+The signature component, on `/install`: pick an agent, copy the install command, see what was tested.
+- **Agent row:** a segmented control on the card colour with a hairline; each agent's own mark at 15px, then its name. The selected agent sits on a lighter segment. Arrow keys, Home and End move between agents. On phones the six sit three to a row so none is hidden. The marks are the only logos besides AtlasScope's; they are single-colour and never tinted.
+- **Terminal card:** near-black fill, hairline border, 12px corners, a bar naming its state with the Copy button, then each line in Geist Mono after a muted "$ ". Lines never cut off: on phones they wrap between words.
+- **Copied state:** the bar reads "On your clipboard" in green, the button Copied, the border green. Picking another agent clears it.
+- **Tested-with line:** small muted text under the card, naming what was tested, the CLI version and the date, or stating plainly that the agent has not been tested and offering the tested command.
 
 ### Kit rows
-One row per kit between hairlines, used on the homepage, `/kits` and `/skills` (`site/components/KitRows.tsx`). Three columns: the kit's name (a title, linking to the kit, the whole row clickable) with its skill count under it; one muted sentence on what it does; and the commands that start it in Geist Mono. Flat, no panel. Below 960px the sentence and commands go under the name. The kit list and the commands come from `KITS` and `KIT_GUIDE` in `site/lib/site.ts`, and a test fails if they drift from the catalog.
+One row per kit between hairlines, used on `/kits` and `/skills` (`site/components/KitRows.tsx`). Three columns: the kit's name (a title, linking to the kit, the whole row clickable) with its skill count under it; one muted sentence on what it does; and the commands that start it in Geist Mono. Flat, no panel. Below 960px the sentence and commands go under the name. The kit list and the commands come from `KITS` and `KIT_GUIDE` in `site/lib/site.ts`, and a test fails if they drift from the catalog.
 
 ### Navigation and search
 - **Links:** Geist 500 at 0.9375rem, muted, 36px tall with 12px side padding and 8px corners. The current section is white, weight 600, on a slate fill. Hover fills slate and turns the text white.

@@ -17,6 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const u = (p: string) => `${SITE.url}${p}`;
   return [
     { url: u("/"), lastModified: now, priority: 1 },
+    { url: u("/install"), lastModified: now, priority: 0.9 },
     ...["/prompts", "/skills", "/kits", "/fix"].map((p) => ({ url: u(p), lastModified: lib, priority: 0.8 })),
     { url: u("/start"), lastModified: now, priority: 0.9 },
     ...STEPS.map((s) => ({ url: u(`/start/${s.slug}`), lastModified: now, priority: 0.7 })),

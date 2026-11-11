@@ -1,7 +1,7 @@
 {
   "name": "engineering-kit",
   "description": "Engineering skills for AI coding agents, vetted and pinned: bug diagnosis, test-first work, architecture scans, plan interviews, retros, primary-source research, setup wizards and read-only PostgreSQL investigations. Every command runs only when you call it, unless you choose at install to let /engineer and /database start on their own.",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "author": {
     "name": "AtlasScope"
   },
@@ -19,6 +19,12 @@
         "automatic"
       ],
       "default": "typed"
+    },
+    "router_log": {
+      "type": "boolean",
+      "title": "Keep a local log of what /engineer or /database picks?",
+      "description": "On: each time /engineer or /database picks a route, the assistant adds one line to .artifacts/agent-kit/router-log.jsonl in that project, with your request, the pick and whether you went with it. The file stays on your machine and is never committed or sent anywhere. Off: nothing is written.",
+      "default": false
     }
   }
 }

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 // Draft written from what the site's code stores (db/schema.sql, lib/mcp-guard.ts, the browser storage
-// in InstallRail and GuideProgress). It has not been reviewed; keep the notice until it has.
+// in components/install-choice.ts, LaunchHero and GuideProgress). It has not been reviewed; keep the notice until it has.
 export default function Privacy() {
   return (
     <DocPage
@@ -28,7 +28,7 @@ export default function Privacy() {
         {
           id: "browser", title: "In your browser",
           body: <>
-            <p>Two things are kept in your own browser’s local storage and never sent to us: the agent you last picked on the homepage, and which steps of the <Link href="/start">first-app guide</Link> and lessons you have finished. Clearing your browsing data removes both.</p>
+            <p>Two things are kept in your own browser’s local storage and never sent to us: the agent you last picked on the install page, and which steps of the <Link href="/start">first-app guide</Link> and lessons you have finished. Clearing your browsing data removes both. For the length of a visit only, the browser also notes whether the homepage opening has played and whether the Install button just copied the command.</p>
           </>,
         },
         {

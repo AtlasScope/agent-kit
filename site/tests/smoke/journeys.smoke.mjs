@@ -62,13 +62,19 @@ for (const size of SIZES) {
   test(`${size.name}: home page copies the install steps and leads to the library`, async () => {
     const { page, ctx, errors } = await open(size, "/");
     await noSideScroll(page, "/");
+    // The homepage is one screen. Install copies the Claude Code command on the click and opens /install, which says so.
+    assert.ok(await page.evaluate(() => document.documentElement.scrollHeight - innerHeight) <= 1, "the homepage does not scroll");
+    await page.locator(".launch__go", { hasText: "Install Agent Kit" }).click();
+    await page.waitForURL(/\/install$/);
+    await page.locator(".inst__note", { hasText: "Install command copied" }).waitFor();
+    assert.equal(await clipboard(page), AGENTS.find((a) => a.id === "claude").steps.join("\n"), "Install copies the Claude Code steps");
     for (const agent of ["claude", "any"].map((id) => AGENTS.find((a) => a.id === id))) {
       await page.getByRole("tab", { name: agent.label }).click();
-      const copy = page.getByRole("tabpanel").getByRole("button");
+      const copy = page.getByRole("tabpanel").getByRole("button", { name: /^Copy/ });
       await copy.click();
       assert.equal(await clipboard(page), agent.steps.join("\n"), `${agent.label} tab copies every step`);
     }
-    await page.getByRole("link", { name: /Browse \d+ prompts/ }).click();
+    await page.locator(".inst__more a", { hasText: "Prompts" }).click();
     await page.waitForURL(/\/prompts$/);
     assert.deepEqual(errors, []);
     await ctx.close();
