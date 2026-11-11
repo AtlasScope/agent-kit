@@ -242,7 +242,7 @@ Six hues mark the six sections of the library. On dark they are mint (#4BF0A8), 
 
 **The Dots Only Rule.** The six section hues appear only as small dots. They are not fills, borders, text colours, card tints or button tints.
 
-**The Danger Only Rule.** The danger colour marks destruction and errors and nothing else.
+**The Danger Only Rule.** The danger colour marks destruction and errors and nothing else. A prompt that changes code is normal, so its card label is marked with a dot in ink-2, not red.
 
 **The Ring Rule.** Keyboard focus is a 2px outline in the focus colour (white on dark, ink on light), 2px off the element.
 
