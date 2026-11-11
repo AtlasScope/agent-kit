@@ -1,11 +1,24 @@
 "use client";
-import { useAuth } from "@clerk/nextjs";
 import { useEffect, useRef, useState } from "react";
-import { Star, useMe, loadMe, saveItem, isIn } from "./Star";
+import { useAuthGate } from "./auth/AuthGate";
+import { useMe, loadMe, saveItem, isIn } from "@/lib/me";
+import { Star } from "./Star";
 
-// Star plus "Save to collection" for one prompt or skill page.
-export function SaveMenu({ kind, refId, title }: { kind: "prompt" | "skill"; refId: string; title: string }) {
-  const { isSignedIn } = useAuth();
+type Props = { kind: "prompt" | "skill"; refId: string; title: string };
+
+// Star plus "Save to collection" for one prompt or skill page. The menu appears only once Clerk has
+// loaded and says the visitor is signed in.
+export function SaveMenu(props: Props) {
+  const { parts } = useAuthGate();
+  return (
+    <>
+      <Star kind={props.kind} refId={props.refId} title={props.title} label />
+      {parts && <parts.SignedIn><SaveTo {...props} /></parts.SignedIn>}
+    </>
+  );
+}
+
+function SaveTo({ kind, refId, title }: Props) {
   const me = useMe();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -13,7 +26,7 @@ export function SaveMenu({ kind, refId, title }: { kind: "prompt" | "skill"; ref
   const pop = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => { if (isSignedIn) loadMe(); }, [isSignedIn]);
+  useEffect(() => { loadMe(); }, []);
   useEffect(() => {
     if (!open) return;
     const close = (e: MouseEvent | KeyboardEvent) => {
@@ -30,27 +43,24 @@ export function SaveMenu({ kind, refId, title }: { kind: "prompt" | "skill"; ref
 
   return (
     <>
-      <Star kind={kind} refId={refId} title={title} label />
-      {isSignedIn && (
-        <div className="menu" ref={pop}>
-          <button ref={trigger} className="btn btn--sm" type="button" aria-expanded={open} aria-controls={`save-${refId}`} disabled={!me} onClick={() => setOpen((o) => !o)}>Save to…</button>
-          {open && me && (
-            <div className="menu__pop" id={`save-${refId}`} role="group" aria-label={`Save ${title} to a collection`}>
-              {me.collections?.filter((c) => !c.is_starred).map((c) => (
-                <button key={c.id} type="button" aria-pressed={isIn(me, c.id, kind, refId)} disabled={busy}
-                  onClick={() => act({ collectionId: c.id, on: !isIn(me, c.id, kind, refId) })}>
-                  <span>{c.name}</span><span className="muted">{isIn(me, c.id, kind, refId) ? "Saved" : ""}</span>
-                </button>
-              ))}
-              <button type="button" disabled={busy} onClick={() => {
-                const name = prompt("Name the new collection");
-                if (name?.trim()) act({ newCollection: name.trim(), on: true });
-              }}>New collection…</button>
-              <a href="/account">Your collections</a>
-            </div>
-          )}
-        </div>
-      )}
+      <div className="menu" ref={pop}>
+        <button ref={trigger} className="btn btn--sm" type="button" aria-expanded={open} aria-controls={`save-${refId}`} disabled={!me} onClick={() => setOpen((o) => !o)}>Save to…</button>
+        {open && me && (
+          <div className="menu__pop" id={`save-${refId}`} role="group" aria-label={`Save ${title} to a collection`}>
+            {me.collections?.filter((c) => !c.is_starred).map((c) => (
+              <button key={c.id} type="button" aria-pressed={isIn(me, c.id, kind, refId)} disabled={busy}
+                onClick={() => act({ collectionId: c.id, on: !isIn(me, c.id, kind, refId) })}>
+                <span>{c.name}</span><span className="muted">{isIn(me, c.id, kind, refId) ? "Saved" : ""}</span>
+              </button>
+            ))}
+            <button type="button" disabled={busy} onClick={() => {
+              const name = prompt("Name the new collection");
+              if (name?.trim()) act({ newCollection: name.trim(), on: true });
+            }}>New collection…</button>
+            <a href="/account">Your collections</a>
+          </div>
+        )}
+      </div>
       <span className="note" role="status">{error}</span>
     </>
   );

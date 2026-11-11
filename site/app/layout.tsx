@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Montserrat } from "next/font/google";
-import { ClerkProvider } from "@clerk/nextjs";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { SITE, authEnabled } from "@/lib/site";
 import { counts } from "@/lib/content";
-import { clerkAppearance } from "@/lib/clerk-appearance";
+import { AuthGate } from "@/components/auth/AuthGate";
+import { SIGNED_IN_HINT } from "@/lib/auth-hint";
 import "./globals.css";
 
 const sans = Geist({ subsets: ["latin"], variable: "--font-geist", display: "swap" });
@@ -24,17 +24,19 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: [{ media: "(prefers-color-scheme: light)", color: "#ECEAE4" }, { media: "(prefers-color-scheme: dark)", color: "#0B0C12" }], colorScheme: "light dark" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const body = (
+  return (
     <html lang="en" suppressHydrationWarning className={`${sans.variable} ${mono.variable} ${display.variable}`}>
+      {authEnabled() && <head><script dangerouslySetInnerHTML={{ __html: SIGNED_IN_HINT }} /></head>}
       <body>
         <a className="skip" href="#main">Skip to content</a>
-        <Nav />
-        <div className="container" id="main">
-          {children}
-          <Footer />
-        </div>
+        <AuthGate>
+          <Nav />
+          <div className="container" id="main">
+            {children}
+            <Footer />
+          </div>
+        </AuthGate>
       </body>
     </html>
   );
-  return authEnabled() ? <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-in" appearance={clerkAppearance}>{body}</ClerkProvider> : body;
 }
