@@ -442,6 +442,8 @@ svg.i { width: 16px; height: 16px; flex: none; }
 
 
 .orbit__rail { border-top: 1px solid var(--color-rule); background: var(--color-paper); scroll-margin-top: 80px; }
+/* The hero's Install links move focus here; the strip is a landing point, not a control, so it shows no ring. */
+.orbit__rail:focus { outline: none; }
 .rail { display: flex; align-items: flex-start; gap: var(--space-2xl); padding-block: var(--space-lg); }
 .rail__install { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; flex: 0 1 720px; min-width: 0; }
 /* The padding and matching negative margin leave room for the focus ring inside the scrolling row. */
