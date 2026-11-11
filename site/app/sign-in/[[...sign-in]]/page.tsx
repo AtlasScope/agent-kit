@@ -1,7 +1,7 @@
-import { SignIn } from "@clerk/nextjs";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { authEnabled } from "@/lib/site";
+import { SignInForm } from "@/components/auth/SignInForm";
 
 export const metadata = { title: "Sign in", robots: { index: false } };
 
@@ -20,7 +20,7 @@ export default function SignInPage() {
         </ul>
         <p className="note">What an account stores is listed on the <Link className="lic" href="/privacy">privacy page</Link>.</p>
       </div>
-      <div className="signin__form"><SignIn withSignUp /></div>
+      <div className="signin__form"><SignInForm /></div>
     </main>
   );
 }

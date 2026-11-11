@@ -22,7 +22,7 @@ export default function Privacy() {
           id: "reading", title: "Reading the site",
           body: <>
             <p>The site is hosted on Vercel. Like any web host, Vercel keeps request logs, which include your IP address, the page you asked for and the time. There are no ads and no tracking scripts, and the site does not run page analytics today. If that changes, this page will say so first.</p>
-            <p>The sign-in service, Clerk, loads on every page so the header can show whether you are signed in, and it sets cookies that keep you signed in.</p>
+            <p>The sign-in service, Clerk, loads only on the sign-in and account pages and for visitors who are already signed in. It sets cookies that keep you signed in. Other pages check one of those cookies in your browser to decide whether to load it; that check sends nothing anywhere.</p>
           </>,
         },
         {
