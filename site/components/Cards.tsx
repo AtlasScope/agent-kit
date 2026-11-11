@@ -1,8 +1,14 @@
 import Link from "next/link";
 import { getPrompt, getPromptById, getSkill, copyText, MODES, type Prompt } from "@/lib/content";
 import { CHANGES, type Start } from "@/lib/starts";
+import { KITS } from "@/lib/site";
 import { CopyButton } from "./CopyButton";
 import { Star } from "./Star";
+
+// A kit named in a Requires line links to that kit's page, where its install command is.
+const KIT_NAME = new RegExp(`\\b(${KITS.join("|")})\\b`);
+const withKitLinks = (text: string) =>
+  text.split(KIT_NAME).map((part, i) => (i % 2 ? <Link key={i} href={`/kits/${part}`}>{part}</Link> : part));
 
 const copyLabel = (p: Prompt) => (p.steps ? "Copy recipe" : p.sec === "ecmd" ? "Copy command" : "Copy prompt");
 
@@ -77,7 +83,7 @@ export function StartCard({ s }: { s: Start }) {
       <dl className="scard__qa">
         <dt>Use when</dt><dd>{s.useWhen}</dd>
         <dt>You get</dt><dd>{s.youGet}</dd>
-        <dt>Requires</dt><dd>{s.requires}</dd>
+        <dt>Requires</dt><dd>{withKitLinks(s.requires)}</dd>
         <dt>Changes code?</dt><dd>{CHANGES[s.changes]}</dd>
       </dl>
       <div className="pcard__a">

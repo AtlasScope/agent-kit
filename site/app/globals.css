@@ -303,7 +303,8 @@ svg.i { width: 16px; height: 16px; flex: none; }
 .pcard__t a { text-decoration: none; }
 .pcard__t a.stretch::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
 .pcard__m { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 0.8125rem; color: var(--color-muted); }
-.pcard__m .warn { color: var(--color-danger); } .pcard__m .warn::before { content: "● "; font-size: 0.6rem; vertical-align: 2px; }
+/* "Changes code" and similar: a marked, brighter label, not the danger colour (the Danger Only Rule). */
+.pcard__m .warn { color: var(--color-ink-2); } .pcard__m .warn::before { content: "● "; font-size: 0.6rem; vertical-align: 2px; }
 .pid { font: 600 0.75rem/1 var(--font-mono); padding: 4px 6px; border-radius: 5px; color: var(--color-ink-2); background: var(--color-paper-3); border: 1px solid var(--color-rule); }
 .best { color: var(--color-ink); font-weight: 650; }
 .pcard__d { color: var(--color-ink-2); font-size: 0.9375rem; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
