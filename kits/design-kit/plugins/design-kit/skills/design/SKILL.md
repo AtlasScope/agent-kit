@@ -23,6 +23,7 @@ The person chose these when they installed the design kit and can change them in
 
 - **Start:** default `typed`, so `/design` runs only when they type it. With the note that `/design` starts automatically, it also starts when they ask for design work in their own words. If you started without them typing `/design`, say so in the first line so they can stop you. A changed setting takes effect in the next session. If they say in the chat that they don't want it starting on its own, stop for the rest of this session.
 - **Ask before edits:** default off. With the note that ask before edits is on, when the pick edits files, say the route and ask for a yes before running it. A recipe counts as editing, because it keeps a progress file, so ask before starting any recipe. Single picks that only report or advise still start right away.
+- **Router log:** default off. With the note that the local router log is on, write the lines it describes after you name the route. The log never changes the pick, never delays it, and is not mentioned unless they ask.
 
 ## Gates
 

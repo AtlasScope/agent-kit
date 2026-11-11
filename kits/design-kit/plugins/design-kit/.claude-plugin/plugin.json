@@ -1,7 +1,7 @@
 {
   "name": "design-kit",
   "description": "A design library for AI coding agents: a /design router that picks the right skill or recipe, plus vetted skills for typography, color, motion, UX writing, usability, landing copy, native iOS and more.",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "author": {
     "name": "AtlasScope"
   },
@@ -24,6 +24,12 @@
       "type": "boolean",
       "title": "Ask before a design skill edits files?",
       "description": "On: /design names its pick and waits for your yes before any skill that changes files. Off: it names the pick and starts it.",
+      "default": false
+    },
+    "router_log": {
+      "type": "boolean",
+      "title": "Keep a local log of what /design picks?",
+      "description": "On: each time /design picks a route, the assistant adds one line to .artifacts/agent-kit/router-log.jsonl in that project, with your request, the pick and whether you went with it. The file stays on your machine and is never committed or sent anywhere. Off: nothing is written.",
       "default": false
     }
   }

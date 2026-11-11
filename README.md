@@ -37,10 +37,11 @@ claude plugin install experience-architecture@agent-kit
 claude plugin install working-style@agent-kit
 ```
 
-**Choices at install.** Claude Code asks two short questions when you turn on the design kit and one for the engineering kit. Both default to how the kit has always worked, and you can change them later (a change applies from the next session):
+**Choices at install.** Claude Code asks three short questions when you turn on the design kit and two for the engineering kit. All default to how the kit has always worked, and you can change them later (a change applies from the next session):
 
 - **How should the router start?** `typed` (the default) runs `/design`, `/engineer` or `/database` only when you type it. `automatic` also starts it when you ask for that kind of work in your own words. The other commands always wait to be typed.
 - **Ask before a design skill edits files?** (design kit only) When on, `/design` names its pick and waits for your yes before anything changes files.
+- **Keep a local log of what the router picks?** Off by default. When on, each pick adds a line to `.artifacts/agent-kit/router-log.jsonl` in that project: your request, the pick, and whether you went with it. The file is never committed or sent anywhere. Attaching it to a GitHub issue is the most useful feedback you can give on the routers.
 
 To change an answer, type `/design-setup` or `/engineering-setup`: it explains each choice in plain words and saves your answers after showing you the change. `/config` works too. On Windows these choices need Git for Windows (Git Bash); without it the kits keep the defaults. Codex and claude.ai don't ask; there the routers always wait to be typed.
 

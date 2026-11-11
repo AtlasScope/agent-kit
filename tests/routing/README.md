@@ -36,3 +36,7 @@ Routes are written as the router shows them: a command (`/impeccable critique`),
 5. Save the run as `tests/routing/results/<yyyy-mm-dd>-<agent>.csv` with the header `id,agent,agent_version,plugins,route,pass,notes`.
 
 When a router changes, run the stable set and the held-out set. If a case passed in the previous run and fails now, keep the old behaviour unless the new one is better for a stated reason, and write that reason in `notes`. After a release, add a few fresh held-out cases written without looking at the router text.
+
+## Cases from a router log
+
+People who turn on the router log (an install choice in Claude Code) keep `.artifacts/agent-kit/router-log.jsonl` in each project: one line per pick, then one line saying whether they accepted it, redirected or stopped. When someone sends one, `node tests/routing/from-log.mjs <file>` prints a draft for each pick and a count of outcomes. A redirected pick is the most useful kind: it is a request the router got wrong in the eyes of the person who typed it. Treat drafts like any other new case: remove project details, decide `expect` against the situations table, and add the case as `stable` or `heldout`.

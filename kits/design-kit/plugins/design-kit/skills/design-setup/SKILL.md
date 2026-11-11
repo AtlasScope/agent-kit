@@ -1,9 +1,9 @@
 ---
 name: design-setup
-description: "Walk through the design kit's two choices in plain words (how /design starts, and whether it asks before editing files) and save the answers with one yes."
+description: "Walk through the design kit's three choices in plain words (how /design starts, whether it asks before editing files, and whether it keeps a local log of its picks) and save the answers with one yes."
 disable-model-invocation: true
 metadata:
-  short-description: Choose how /design starts and whether it asks first
+  short-description: Choose how /design starts, whether it asks first, and whether it keeps a log
   author: AtlasScope/agent-kit
 ---
 
@@ -20,7 +20,7 @@ Only Claude Code has these choices. In Codex or claude.ai, say that `/design` th
 Do both checks before asking anything, and mention a result only when it changes what they should expect.
 
 - **Organisation settings.** An organisation can set these answers for everyone, and its setting wins over the user's file. Read whichever of these exist: `/Library/Application Support/ClaudeCode/managed-settings.json` (macOS), `/etc/claude-code/managed-settings.json` (Linux and WSL), `C:\Program Files\ClaudeCode\managed-settings.json` (Windows), and any `*.json` in the `managed-settings.d` folder beside it. Look only at `pluginConfigs` entries whose key starts with `design-kit@`. If one sets these options, say their organisation has already chosen, name the values only if they are ones in the table below, and stop without writing.
-- **Windows.** The answers reach each session through a small script that needs Git for Windows (Git Bash). On Windows, check that `bash` runs or that `CLAUDE_CODE_GIT_BASH_PATH` is set. If neither, tell them plainly that until Git for Windows is installed the kit keeps the defaults: `/design` waits to be typed and does not ask before edits, whatever is saved. They can still save their answers now.
+- **Windows.** The answers reach each session through a small script that needs Git for Windows (Git Bash). On Windows, check that `bash` runs or that `CLAUDE_CODE_GIT_BASH_PATH` is set. If neither, tell them plainly that until Git for Windows is installed the kit keeps the defaults: `/design` waits to be typed and does not ask before edits or keep a log, whatever is saved. They can still save their answers now.
 
 ## The questions
 
@@ -30,6 +30,7 @@ Ask them in this order. Each has exactly the values listed; save nothing else.
 |---|---|---|
 | `start_mode` | `typed`, `automatic` | `typed` |
 | `ask_before_edits` | `true`, `false` | `false` |
+| `router_log` | `true`, `false` | `false` |
 
 **1. How should `/design` start?**
 
@@ -49,7 +50,16 @@ Some design skills change files in the project, some only report, and some only 
 
 Pick on if you want a moment to say no before anything changes.
 
-Ask one question at a time, in plain words, and say which answer is the default. If they are unsure, recommend the default. If they already gave both answers in the message that started this command, confirm them instead of asking again.
+**3. Keep a local log of what `/design` picks?**
+
+This helps whoever maintains the kit see whether the router picks well. It is for people willing to share what it picked.
+
+- **Off** (the default): nothing is written.
+- **On**: each time `/design` picks, the assistant adds a line to `.artifacts/agent-kit/router-log.jsonl` in that project: your request, the pick, and whether you went with it or asked for something else. The folder gets its own ignore file, so the log is never committed. Nothing is sent anywhere; if you want to help improve the router, you can send the file to the kit's maintainers yourself.
+
+Pick on if you'd like to help tune the router and don't mind your requests sitting in a local file.
+
+Ask one question at a time, in plain words, and say which answer is the default. If they are unsure, recommend the default. If they already gave the answers in the message that started this command, confirm them instead of asking again.
 
 ## Save
 
@@ -64,14 +74,15 @@ The answers live in the user's Claude Code settings file: `$CLAUDE_CONFIG_DIR/se
      "design-kit@agent-kit": {
        "options": {
          "start_mode": "automatic",
-         "ask_before_edits": true
+         "ask_before_edits": true,
+        "router_log": false
        }
      }
    }
    ```
 
    Then ask one question: save this to your settings file?
-4. Only after a clear yes, write it. Change only those two values; keep every other key in the file, in `pluginConfigs` and in the design kit's `options` as it was. Create the file, `pluginConfigs` or the entry if missing. Check the file is still valid JSON afterwards. Claude Code may ask its own permission to edit the file; that is the same yes, not a second question from you.
+4. Only after a clear yes, write it. Change only those three values; keep every other key in the file, in `pluginConfigs` and in the design kit's `options` as it was. Create the file, `pluginConfigs` or the entry if missing. Check the file is still valid JSON afterwards. Claude Code may ask its own permission to edit the file; that is the same yes, not a second question from you.
 5. If they say no, or the edit fails, save nothing and tell them how to set it themselves: run `/config`, open the design kit's plugin options, and choose the same answers.
 
 If the answers are already saved as chosen, say so and write nothing.
