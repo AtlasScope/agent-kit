@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { AGENTS } from "@/lib/site";
+import { AGENTS, HERO } from "@/lib/site";
 import { AgentMark } from "./AgentMark";
 import { CopyButton } from "./CopyButton";
 
@@ -42,6 +42,7 @@ export function InstallRail() {
         <p className="rail__tested" aria-live="polite">
           {agent.tested ? `${agent.testedScope ?? "Tested"} with ${agent.tested}.` : <>Not tested with {agent.label} yet. <button type="button" onClick={() => focus(FALLBACK.id)}>The {FALLBACK.label} command is tested</button>.</>}
         </p>
+        <p className="rail__by">{HERO.by}</p>
       </div>
       <div className="rail__next">
         <h2>Then, in {agent.id === "any" ? "your agent" : agent.label}</h2>
