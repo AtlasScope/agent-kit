@@ -51,7 +51,7 @@ function SaveTo({ kind, refId, title }: Props) {
             {me.collections?.filter((c) => !c.is_starred).map((c) => (
               <button key={c.id} type="button" aria-pressed={isIn(me, c.id, kind, refId)} disabled={busy}
                 onClick={() => act({ collectionId: c.id, on: !isIn(me, c.id, kind, refId) })}>
-                <span>{c.name}</span><span className="muted">{isIn(me, c.id, kind, refId) ? "Saved" : ""}</span>
+                <span>{c.name}</span><span className="muted is-saved">{isIn(me, c.id, kind, refId) ? "Saved" : ""}</span>
               </button>
             ))}
             {/* An inline field, not window.prompt(): the prompt dialog is blocked in some browsers and in-app views. */}
