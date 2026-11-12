@@ -228,6 +228,8 @@ svg.i { width: 16px; height: 16px; flex: none; }
 /* Puts the text on the logo's baseline (20px down the 32px svg). */
 .wordmark .wordmark__name { padding-bottom: 3px; }
 @media (max-width: 720px) { .aslogo--full { display: none; } .aslogo--mark { display: block; } .wordmark .wordmark__sep { margin-inline: 10px; } }
+/* The narrowest phones: the mark alone, so Sign in, GitHub, search and the menu still fit the one row. */
+@media (max-width: 23rem) { .wordmark .wordmark__sep, .wordmark .wordmark__name { display: none; } }
 .links { gap: 2px; font-size: 0.9375rem; }
 .links a { display: inline-flex; align-items: center; white-space: nowrap; min-height: 36px; padding: 0 12px; border-radius: 8px; color: var(--color-ink-2); font-weight: 500; }
 .links a[aria-current="page"] { background: var(--color-paper-3); color: var(--color-ink); font-weight: 600; }
@@ -386,9 +388,6 @@ html:has(.sheet[open]) { overflow: hidden; }
 .sheet__links { margin: 0; padding: var(--space-xs) 0 0; list-style: none; }
 .sheet__links a { display: flex; align-items: center; min-height: 56px; border-bottom: 1px solid var(--color-rule); font: 600 1.25rem/1.2 var(--font-body); letter-spacing: -0.015em; color: var(--color-muted); text-decoration: none; }
 .sheet__links a[aria-current="page"] { color: var(--color-ink); }
-.sheet__end { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm); padding-top: var(--space-lg); }
-.sheet__end .btn { min-height: 44px; padding-inline: var(--space-md); }
-.sheet__end .btn--ghost { border-color: var(--color-rule-2); }
 @media (hover: hover) and (pointer: fine) { .iconbtn:hover { background: var(--color-paper-2); } .sheet__links a:hover { color: var(--color-ink); } }
 
 /* Up to 1280px (80rem), where the links, search and account (signed in, with "Collections") no longer fit one
@@ -396,7 +395,10 @@ html:has(.sheet[open]) { overflow: hidden; }
    pixel at every scale. The switch is in rem, so a larger text size moves it with the text. */
 @media (max-width: 80rem) {
   .nav { min-height: 56px; gap: var(--space-sm); }
-  .nav > .links, .nav__end { display: none; }
+  .nav > .links { display: none; }
+  /* Sign in (or the account) and GitHub stay in the bar; GitHub shows just its mark. */
+  .nav__end .btn--ghost span { display: none; }
+  .nav__end .btn--ghost { padding-inline: 0; min-width: 40px; justify-content: center; }
   .nav__toggles { display: flex; gap: 4px; margin-right: -8px; }
   .nav .search { flex: 0 1 420px; min-width: 0; }
   .nav__find { display: none; }
@@ -406,7 +408,8 @@ html:has(.sheet[open]) { overflow: hidden; }
 @media (max-width: 40rem) {
   :root { --gutter: 16px; }
   .nav { position: relative; }
-  .nav__toggles { margin-left: auto; }
+  .nav__end { margin-left: auto; }
+  .nav__end .auth-coll span { display: none; }
   .nav__find { display: inline-grid; }
   .nav .search { position: absolute; z-index: 1; inset: 0 max(var(--gutter), env(safe-area-inset-right)) 0 max(var(--gutter), env(safe-area-inset-left)); display: flex; align-items: center; gap: 4px; margin: 0; background: var(--color-paper); opacity: 0; visibility: hidden; transition: opacity 150ms var(--ease-out), visibility 0s 150ms; }
   .nav .search.is-shown { opacity: 1; visibility: visible; transition: opacity 150ms var(--ease-out); }
@@ -637,9 +640,9 @@ summary { touch-action: manipulation; -webkit-user-select: none; user-select: no
 .sheet { transition: opacity 240ms var(--ease-out), transform 240ms var(--ease-out), overlay 240ms allow-discrete, display 240ms allow-discrete; }
 .sheet:not([open]) { opacity: 0; }
 @starting-style { .sheet[open] { opacity: 0; transform: translateY(-8px); } }
-.sheet[open] .sheet__links li, .sheet[open] .sheet__end { animation: sheet-in 360ms var(--ease-out) backwards; }
+.sheet[open] .sheet__links li { animation: sheet-in 360ms var(--ease-out) backwards; }
 .sheet[open] .sheet__links li:nth-child(2) { animation-delay: 30ms; } .sheet[open] .sheet__links li:nth-child(3) { animation-delay: 60ms; }
-.sheet[open] .sheet__links li:nth-child(4) { animation-delay: 90ms; } .sheet[open] .sheet__end { animation-delay: 120ms; }
+.sheet[open] .sheet__links li:nth-child(4) { animation-delay: 90ms; }
 @keyframes sheet-in { from { opacity: 0; transform: translateY(6px); } }
 .iconbtn, .sheet__links a { transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), transform var(--dur-micro) var(--ease-out); }
 .iconbtn:active { background: var(--color-paper-2); transform: scale(0.94); }

@@ -13,10 +13,9 @@ const WIDE = "(min-width: 80.0625rem)";
 const OPEN = { commandfor: "site-menu", command: "show-modal" } as Record<string, string>;
 export const openSearch = () => window.dispatchEvent(new Event("agent-kit:search"));
 
-export function NavMenu({ children }: { children?: React.ReactNode }) {
+export function NavMenu() {
   const sheet = useRef<HTMLDialogElement>(null);
   const toggle = useRef<HTMLButtonElement>(null);
-  // The account controls are built only while the sheet is open; the bar has its own copy.
   const [open, setOpen] = useState(false);
   const path = usePathname();
   useEffect(() => { sheet.current?.close(); }, [path]);
@@ -43,10 +42,9 @@ export function NavMenu({ children }: { children?: React.ReactNode }) {
           <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 8h16M4 16h16" /></svg>
         </button>
       </div>
-      {/* A press on a link or on Sign in closes the sheet (Sign in opens its own dialog next). The account avatar
-          does not: its menu opens inside the sheet. */}
+      {/* A press on any link or button inside closes the sheet. Sign in, the account and GitHub stay in the bar. */}
       <dialog ref={sheet} id="site-menu" className="sheet" aria-label="Menu"
-        onClick={(e) => { const t = e.target as HTMLElement; if (t.closest("a, button") && !t.closest("[class*='cl-userButton'], [class*='cl-userPreview'], .cl-rootBox")) sheet.current?.close(); }}>
+        onClick={(e) => { if ((e.target as HTMLElement).closest("a, button")) sheet.current?.close(); }}>
         <div className="container sheet__top">
           {/* The dialog gives its first focus to this title, so Safari draws no ring round Close on open. */}
           <span className="sheet__title" tabIndex={-1} ref={(el) => { el?.setAttribute("autofocus", ""); }}>Menu</span>
@@ -56,7 +54,6 @@ export function NavMenu({ children }: { children?: React.ReactNode }) {
         </div>
         <nav className="container" aria-label="Sections">
           <NavLinks className="sheet__links" />
-          {open && <div className="sheet__end">{children}</div>}
         </nav>
       </dialog>
       {/* Without JavaScript the menu cannot open, so the section links show as a second row instead. */}

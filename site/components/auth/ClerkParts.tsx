@@ -19,9 +19,9 @@ function AuthNav() {
     <>
       <Show when="signed-out"><SignInButton mode="modal" withSignUp><button className="btn btn--sm" type="button">Sign in</button></SignInButton></Show>
       <Show when="signed-in">
-        <a className="btn btn--sm" href="/account">
+        <a className="btn btn--sm auth-coll" href="/account" aria-label="Collections">
           <svg className="i i--warm" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" /></svg>
-          Collections
+          <span>Collections</span>
         </a>
         <span ref={at} className="auth-me"><UNSAFE_PortalProvider getContainer={() => at.current?.closest("dialog") ?? null}><UserButton /></UNSAFE_PortalProvider></span>
       </Show>
