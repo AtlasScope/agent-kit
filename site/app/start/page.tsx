@@ -33,7 +33,7 @@ export default function Start() {
           <Crumbs items={[["Get started", "/start"]]} />
           <h1>Build and publish your first app</h1>
           <p className="hub__lede">Eight steps from nothing installed to a small reading-list app at a public address you can open on your phone. One file, no database, no API keys and no terminal.</p>
-          <p className="hub__tested">{TESTED ? `Tested with ${TESTED}.` : "Written against the official sign-up and download pages on 9 Nov 2026. Not yet tested with a first-time user, so tell us where it goes wrong."}</p>
+          <p className="hub__tested"><i className={`led${TESTED ? " is-on" : ""}`} aria-hidden="true" /> {TESTED ? `Tested with ${TESTED}.` : "Written against the official sign-up and download pages on 9 Nov 2026. Not yet tested with a first-time user, so tell us where it goes wrong."}</p>
         </header>
 
         <StartWelcome enabled={authEnabled()} />

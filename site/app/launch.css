@@ -28,9 +28,10 @@
 .launch__w > span { display: inline-block; }
 .launch__lede { margin: 0; max-width: 33rem; font-size: clamp(1rem, .35vw + .95rem, 1.1875rem); line-height: 1.55; color: var(--lh-t2); text-wrap: pretty; }
 /* One real request and the skill it goes to (HERO.example), in code type: what the kit does, before Install. */
-.launch__eg { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: -8px 0 0; max-width: 40rem; font: 400 0.875rem/1.5 var(--font-mono); color: rgba(255,255,255,.86); }
+.launch__eg { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: -8px 0 0; max-width: 48rem; font: 400 0.875rem/1.5 var(--font-mono); color: rgba(255,255,255,.86); }
 .launch__eg code { font: inherit; }
 .launch__eg > span[aria-hidden] { color: rgba(255,255,255,.5); }
+.launch__to { display: inline-flex; align-items: center; gap: 8px; }
 .launch__eg .launch__pick { color: #fff; text-decoration: underline; text-decoration-color: rgba(255,255,255,.35); text-underline-offset: .25em; }
 /* What Install does, under it: on a computer it copies the command; on a phone it only opens the page. */
 .launch__note { margin: -14px 0 0; font-size: 0.8125rem; line-height: 1.45; color: rgba(255,255,255,.7); text-shadow: 0 1px 10px rgba(3,4,9,.9); }
