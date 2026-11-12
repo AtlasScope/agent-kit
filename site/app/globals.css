@@ -658,23 +658,43 @@ summary { touch-action: manipulation; -webkit-user-select: none; user-select: no
 .welcome__do { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
 @media (pointer: coarse) { .welcome__do .btn { min-height: 44px; } }
 
-/* The quiet pages (/install, /start): black, hairlines, a faint grid fading out from the top centre and a little
-   light under it, one centred column. Always dark, like the homepage they continue from (the rule near the top of
-   this file puts the whole document in the dark set while one shows). */
+/* The quiet pages (/install, /start): black, hairlines, one centred column, always dark like the homepage they
+   continue from (the rule near the top of this file puts the whole document in the dark set while one shows).
+   Depth: the grid is a floor that recedes to a horizon in the first screen, with a faint green and blue glow where it
+   meets the dark, and the cards (.lift) float above it. */
 .quiet { --bg: #030409; --card: #0A0B10; --line: rgba(255,255,255,.09); --line-2: rgba(255,255,255,.16); --t1: #EDEDED; --t2: #A1A1A1; --t3: #8B8B8F; --ok: var(--led);
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   position: relative; isolation: isolate; margin-inline: calc(50% - 50vw); background: var(--bg); color: var(--t1); overflow-x: clip; }
-.quiet::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
-  background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 56px 56px; background-position: center -1px;
-  -webkit-mask-image: radial-gradient(ellipse 70% 55% at 50% 0%, #000 0%, transparent 75%); mask-image: radial-gradient(ellipse 70% 55% at 50% 0%, #000 0%, transparent 75%); opacity: .55; max-height: 1200px; }
-.quiet::after { content: ""; position: absolute; left: 50%; top: 0; width: min(900px, 100%); height: 420px; translate: -50% 0; z-index: -1; pointer-events: none;
-  background: radial-gradient(closest-side, rgba(255,255,255,.06), transparent); }
+.quiet::before { content: ""; position: absolute; left: 0; right: 0; top: 34svh; height: 72svh; z-index: -1; pointer-events: none; opacity: .9;
+  background-image: linear-gradient(rgba(255,255,255,.10) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.10) 1px, transparent 1px);
+  background-size: 64px 64px; background-position: center top;
+  transform: perspective(520px) rotateX(64deg); transform-origin: 50% 0%;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 30%, #000 70%, transparent 100%); mask-image: linear-gradient(to bottom, transparent 0%, #000 30%, #000 70%, transparent 100%); }
+.quiet::after { content: ""; position: absolute; left: 0; right: 0; top: 22svh; height: 260px; z-index: -1; pointer-events: none;
+  background: radial-gradient(60% 50% at 50% 50%, rgba(57,255,136,.10), rgba(140,182,255,.05) 45%, transparent 75%); }
+.quiet :is(.inst__term, .inst__tabs, .hub__card, .hub__way) { box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 30px 60px -20px rgba(0,0,0,.95), 0 12px 24px -12px rgba(0,0,0,.9); }
+.quiet :is(.inst__term, .hub__card, .hub__way) { background: linear-gradient(180deg, #0E1016, #090A0F); }
 
 /* LED green: the site's one status light. A 6px dot, high-contrast green with a soft glow, used only where something
    is true right now or was done: the command was copied, an install was tested, a step is finished, a request was
    routed. Unlit it is a dark socket. Never a fill, never large text, never decoration. */
 :root { --led: #39FF88; --led-glow: rgba(57,255,136,.55); }
-.led { display: inline-block; flex: none; width: 6px; height: 6px; border-radius: 50%; background: #23262C; box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); vertical-align: .12em; }
-.led.is-on { background: var(--led); box-shadow: 0 0 0 1px rgba(57,255,136,.35), 0 0 6px var(--led-glow); }
-.led.is-hot { box-shadow: 0 0 0 1px rgba(57,255,136,.5), 0 0 10px var(--led-glow), 0 0 22px rgba(57,255,136,.22); animation: led-on 520ms steps(1, end) 1; }
+:root { --led-shine: 0 0 0 1px rgba(57,255,136,.55), 0 0 6px var(--led), 0 0 14px var(--led-glow); }
+.led { display: inline-block; flex: none; width: 7px; height: 7px; border-radius: 50%; background: #23262C; box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); vertical-align: .1em; }
+.led.is-on { background: var(--led); box-shadow: var(--led-shine); }
+.led.is-hot { box-shadow: 0 0 0 1px rgba(57,255,136,.7), 0 0 6px var(--led), 0 0 16px rgba(57,255,136,.7), 0 0 34px rgba(57,255,136,.3); animation: led-on 520ms steps(1, end) 1; }
+
+/* The header's green (on every page; the header is ink in both themes): a steady light after the product name, the
+   current section marked by a light, a short lit stretch of the header's bottom line, and Sign in outlined in green. */
+.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; pointer-events: none;
+  background: linear-gradient(90deg, transparent 6%, rgba(57,255,136,.9) 16%, rgba(57,255,136,.35) 28%, transparent 40%); box-shadow: 0 0 10px rgba(57,255,136,.5); }
+.wordmark .wordmark__name { display: inline-flex; align-items: center; gap: 8px; }
+/* Keep the narrowest phones' mark-only header: the product name (and its light) stays hidden there. */
+@media (max-width: 23rem) { .wordmark .wordmark__name { display: none; } }
+.wordmark .wordmark__name::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--led); box-shadow: var(--led-shine); }
+.links a[aria-current="page"] { position: relative; padding-left: 22px; }
+.links a[aria-current="page"]::before, .sheet__links a[aria-current="page"]::before { content: ""; position: absolute; left: 10px; top: 50%; width: 6px; height: 6px; margin-top: -3px; border-radius: 50%; background: var(--led); box-shadow: var(--led-shine); }
+.sheet__links a[aria-current="page"] { position: relative; padding-left: 20px; }
+.sheet__links a[aria-current="page"]::before { left: 2px; }
+.nav__end .auth-out { box-shadow: inset 0 0 0 1px rgba(57,255,136,.4); }
 @keyframes led-on { 0% { opacity: .15; } 18% { opacity: 1; } 32% { opacity: .35; } 50%, 100% { opacity: 1; } }
