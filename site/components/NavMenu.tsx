@@ -3,13 +3,13 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { NavLinks } from "./NavLinks";
 
-// Up to 1280px wide (80rem) the header is one row: brand, search, and these buttons. The menu is a native modal
+// Up to 1248px wide (78rem) the header is one row: brand, search, and these buttons. The menu is a native modal
 // dialog, so the browser traps focus inside it and closes it on Escape. It sits outside the buttons' wrapper, which
 // is hidden on wider screens, and closes itself when the screen gets wider than that, so an open menu can never
 // end up invisible with the page behind it locked (an iPad turned from portrait to landscape, a widened window).
 // Browsers that support invoker commands open it from the button even before the page's script has loaded.
 // Do not call focus() on the dialog after showModal: in iOS Safari that closes it again.
-const WIDE = "(min-width: 80.0625rem)";
+const WIDE = "(min-width: 78.0625rem)";
 const OPEN = { commandfor: "site-menu", command: "show-modal" } as Record<string, string>;
 export const openSearch = () => window.dispatchEvent(new Event("agent-kit:search"));
 
@@ -57,7 +57,7 @@ export function NavMenu() {
         </nav>
       </dialog>
       {/* Without JavaScript the menu cannot open, so the section links show as a second row instead. */}
-      <noscript><style>{"@media (max-width: 80rem) { .nav { flex-wrap: wrap; } .nav > .links { display: flex; order: 9; width: 100%; overflow-x: auto; padding-bottom: 8px; } .nav__toggles { display: none; } }"}</style></noscript>
+      <noscript><style>{"@media (max-width: 78rem) { .nav { flex-wrap: wrap; } .nav > .links { display: flex; order: 9; width: 100%; overflow-x: auto; padding-bottom: 8px; } .nav__toggles { display: none; } }"}</style></noscript>
     </>
   );
 }

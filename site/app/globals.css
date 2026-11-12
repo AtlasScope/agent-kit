@@ -233,6 +233,9 @@ svg.i { width: 16px; height: 16px; flex: none; }
 .links { gap: 2px; font-size: 0.9375rem; }
 .links a { display: inline-flex; align-items: center; white-space: nowrap; min-height: 36px; padding: 0 12px; border-radius: 8px; color: var(--color-ink-2); font-weight: 500; }
 .links a[aria-current="page"] { background: var(--color-paper-3); color: var(--color-ink); font-weight: 600; }
+/* Laptops just past the menu bar (1249 to 1376px): the links sit a little closer, so a signed-in row (Collections
+   and the account) still leaves search its full placeholder. */
+@media (max-width: 86rem) { .links a { padding-inline: 9px; } }
 .nav__end { margin-left: 0; gap: var(--space-xs); }
 /* Search keeps at least room for its placeholder; the menu bar takes over before the row runs short of it. */
 .nav .search { position: relative; margin-left: auto; flex: 0 1 340px; min-width: 15rem; max-width: none; display: block; }
@@ -373,7 +376,7 @@ svg.i { width: 16px; height: 16px; flex: none; }
 }
 @media (pointer: coarse) { .star { min-width: 44px; min-height: 44px; } .pcard__a .btn, .pcard__foot .btn, .menu > .btn { min-height: 44px; } .links a { min-height: 40px; } }
 
-/* Header controls for the menu bar (up to 1280px): icon buttons, and the menu sheet. */
+/* Header controls for the menu bar (up to 1248px): icon buttons, and the menu sheet. */
 .iconbtn { display: inline-grid; place-items: center; flex: none; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--color-ink); cursor: pointer; }
 .iconbtn .i { width: 20px; height: 20px; }
 .nav__toggles, .search__close { display: none; }
@@ -390,10 +393,10 @@ html:has(.sheet[open]) { overflow: hidden; }
 .sheet__links a[aria-current="page"] { color: var(--color-ink); }
 @media (hover: hover) and (pointer: fine) { .iconbtn:hover { background: var(--color-paper-2); } .sheet__links a:hover { color: var(--color-ink); } }
 
-/* Up to 1280px (80rem), where the links, search and account (signed in, with "Collections") no longer fit one
+/* Up to 1248px (78rem), where the links, search and account (signed in, with "Collections") no longer fit one
    row with room to search: a 56px bar with search and a menu button. The 32px logo sits at 12px, a whole device
    pixel at every scale. The switch is in rem, so a larger text size moves it with the text. */
-@media (max-width: 80rem) {
+@media (max-width: 78rem) {
   .nav { min-height: 56px; gap: var(--space-sm); }
   .nav > .links { display: none; }
   /* Sign in (or the account) and GitHub stay in the bar; GitHub shows just its mark. */
@@ -496,10 +499,10 @@ body:has(main.home) .foot { display: none; }
   .adds__n { align-self: baseline; }
 }
 
-/* Small targets: 24px for a mouse, 40px for a finger. */
+/* Small targets: 24px for a mouse, 40px for a finger (44px for the footer's short words, which sit close together). */
 .footer a { display: inline-flex; align-items: center; min-height: 24px; }
 @media (pointer: coarse) {
-  .footer a { min-width: 40px; }
+  .footer a { min-width: 44px; min-height: 44px; }
   .wordmark { min-height: 40px; }
   .nav__end .btn--sm { min-width: 40px; min-height: 40px; justify-content: center; }
 }
@@ -599,8 +602,8 @@ body:has(main.home) .foot { display: none; }
 /* Polish (2026-11-10): one header height for sticky offsets and jump targets, a skip link, reading width,
    balanced headings, hover on in-text links, visible focus, and lighter long lists. */
 :root { --header-h: 65px; --read: 52ch; }
-/* The header is one row everywhere: 64px plus its hairline, and 56px plus its hairline up to 1280px (80rem), where the menu takes over. */
-@media (max-width: 80rem) { :root { --header-h: 57px; } }
+/* The header is one row everywhere: 64px plus its hairline, and 56px plus its hairline up to 1248px (78rem), where the menu takes over. A 1280px laptop gets the full row. */
+@media (max-width: 78rem) { :root { --header-h: 57px; } }
 html { scroll-padding-top: calc(var(--header-h) + 16px); }
 @media (pointer: fine) { html { overscroll-behavior-y: none; } }
 .results { overscroll-behavior: contain; }

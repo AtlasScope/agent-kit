@@ -22,7 +22,8 @@
 .launch__legal { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 0; padding: 0 0 14px; list-style: none; font-size: 12.5px; }
 .launch__legal a { display: inline-flex; align-items: center; min-height: 32px; color: rgba(255,255,255,.72); text-decoration: none; text-shadow: 0 1px 10px rgba(3,4,9,.9); }
 @media (hover: hover) and (pointer: fine) { .launch__legal a:hover { color: #fff; text-decoration: underline; text-underline-offset: .25em; } }
-@media (pointer: coarse) { .launch__legal a { min-height: 40px; } }
+/* Touch: each link is a 44px target; the padding comes out of the gap, so the words keep their spacing. */
+@media (pointer: coarse) { .launch__legal { gap: 0 6px; margin-inline: -6px; } .launch__legal a { min-height: 44px; padding-inline: 6px; } }
 .launch h1 { max-width: 13.5ch; margin: 0; font-size: clamp(2.75rem, min(5.6vw + .4rem, 10svh), 6rem); line-height: 1; letter-spacing: -0.04em; text-wrap: balance; }
 .launch__w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .08em; margin-bottom: -.08em; white-space: pre; }
 .launch__w > span { display: inline-block; }
@@ -76,6 +77,9 @@
   .launch__shade { background: linear-gradient(to bottom, rgba(3,4,9,.9) 0%, rgba(3,4,9,.6) 55%, rgba(3,4,9,.3) 76%, rgba(3,4,9,0) 90%), linear-gradient(to top, rgba(3,4,9,.7), rgba(3,4,9,0) 64px); }
   .launch__msg { align-self: start; padding-block: 5svh 24px; }
 }
+/* Phones: the headline follows the width as well, so "Give your coding" stays on one line on a 390px iPhone
+   instead of leaving "coding" alone on its own line. */
+@media (max-width: 30rem) { .launch h1 { font-size: clamp(1.875rem, 10.4vw, 2.75rem); } }
 /* Short screens (a small phone in Safari, any phone on its side): a smaller headline, a wider sentence and tighter
    spacing, so the message still fits without scrolling. Last in the file so it wins over the rules above. */
 @media (max-height: 640px) {
@@ -90,7 +94,7 @@
 /* Small phones (an iPhone SE or mini, or any phone in Safari with its bars showing): a smaller headline and tighter
    gaps, so the message, the example and Install still fit one screen. */
 @media (max-width: 40rem) and (max-height: 720px) {
-  .launch h1 { font-size: clamp(2rem, 7.2svh, 2.75rem); }
+  .launch h1 { font-size: clamp(2rem, min(7.2svh, 10.4vw), 2.75rem); }
   .launch__msg { gap: 14px; padding-block: 2svh 12px; }
   .launch__lede { font-size: .9375rem; line-height: 1.45; }
   .launch__eg { margin-top: -4px; font-size: 0.8125rem; }
@@ -98,6 +102,8 @@
 }
 /* The tightest screens (a 320px-wide phone, any small phone on its side): the line under Install goes, so the rest fits. */
 @media (max-height: 420px), (max-width: 22rem) { .launch__note { display: none; } }
+/* A phone on its side: the gaps close up a little more, so the page fits without a scroll. */
+@media (max-height: 420px) { .launch__msg { gap: 10px; padding-block: 1svh 4px; } .launch__legal { padding-bottom: max(2px, env(safe-area-inset-bottom)); } }
 @media (max-width: 22rem) { .launch h1 { font-size: 1.875rem; } .launch__msg { padding-top: 1svh; } }
 /* Large screens: the headline is already at its 6rem ceiling, so the sentence, the example and the actions grow
    to keep their proportion to it, and the group breathes more. */

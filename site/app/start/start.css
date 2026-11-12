@@ -4,6 +4,7 @@
 .hub__head { display: grid; justify-items: center; gap: 14px; text-align: center; }
 .hub .crumbs { justify-content: center; color: var(--t3); }
 .hub .crumbs a { color: var(--t2); }
+@media (pointer: coarse) { .hub .crumbs a { display: inline-flex; align-items: center; min-height: 44px; } .hub .crumbs { align-items: center; } }
 .hub h1 { margin: 0; max-width: 16ch; font: 600 clamp(2rem, 2.6vw + 1.2rem, 3.25rem)/1.05 var(--font-body); letter-spacing: -0.045em; text-wrap: balance; }
 .hub__lede { max-width: 38rem; margin: 0; color: var(--t2); font-size: 1.0625rem; line-height: 1.55; text-wrap: balance; }
 .hub__tested { max-width: 38rem; margin: 0; color: var(--t3); font-size: 13px; line-height: 1.5; text-wrap: balance; }
