@@ -26,12 +26,13 @@ html:not([data-os="mac"], [data-os="linux"]) .inst__keys [data-os="other"], html
 @media (hover: none) and (pointer: coarse) { .inst__keys { display: none; } }
 
 .inst__term { border: 1px solid var(--line-2); border-radius: 12px; background: var(--card); overflow: hidden; transition: border-color .4s; }
-.inst__term.is-copied { border-color: rgba(57,255,136,.45); }
+.inst__term.is-copied { border-color: rgba(57,255,136,.55); box-shadow: 0 0 0 1px rgba(57,255,136,.15), 0 0 40px -10px rgba(57,255,136,.45), 0 30px 60px -20px rgba(0,0,0,.95); }
+.inst__term.is-copied .inst__bar { background: linear-gradient(90deg, rgba(57,255,136,.08), transparent 60%); }
 .inst__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding: 0 8px 0 16px; border-bottom: 1px solid var(--line); font: 400 12.5px/1 var(--font-mono); color: var(--t3); }
 .inst__term.is-copied .inst__bar > span { color: var(--ok); }
 .inst__copy { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: #fff; color: #000; font: 600 12.5px/1 var(--font-body); cursor: pointer; transition: background .2s, transform var(--dur-micro, 120ms) var(--ease-out, ease-out); }
 .inst__copy .i { width: 14px; height: 14px; }
-.inst__term.is-copied .inst__copy { background: rgba(57,255,136,.14); color: var(--ok); }
+.inst__term.is-copied .inst__copy { background: var(--led); color: #04110A; }
 .inst pre { margin: 0; padding: 16px 18px 18px; overflow-x: auto; font: 400 14px/1.75 var(--font-mono); }
 .inst pre code { font: inherit; -webkit-user-select: all; user-select: all; }
 .inst__line { display: block; white-space: pre; } .inst__line::before { content: "$ "; color: var(--t3); }
@@ -54,7 +55,7 @@ html:not([data-os="mac"], [data-os="linux"]) .inst__keys [data-os="other"], html
 .inst__by { margin: 0; font-size: 12.5px; line-height: 1.7; color: var(--t3); text-wrap: pretty; }
 .inst__by a { color: var(--t2); text-decoration: underline; text-decoration-color: var(--line-2); text-underline-offset: .2em; }
 @media (hover: hover) and (pointer: fine) {
-  .inst__tabs button:hover { color: var(--t1); } .inst__copy:hover { background: #d4d4d4; } .inst__term.is-copied .inst__copy:hover { background: rgba(57,255,136,.22); }
+  .inst__tabs button:hover { color: var(--t1); } .inst__copy:hover { background: #d4d4d4; } .inst__term.is-copied .inst__copy:hover { background: #6BFFA8; }
   .inst__more a:hover { color: #fff; text-decoration: underline; text-decoration-color: var(--line-2); text-underline-offset: .25em; } .inst__by a:hover { color: var(--t1); }
 }
 /* Pressed controls answer at once, since a phone has no hover. */
