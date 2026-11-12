@@ -24,7 +24,8 @@
 .hub__bar span { font: 400 12.5px/1 var(--font-mono); color: var(--t3); }
 .hub__need { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; margin: 0; padding: 6px 16px 10px; list-style: none; }
 .hub__need li { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 10px; align-items: start; padding: 10px 0; }
-.hub__need li > span { display: grid; place-items: center; width: 20px; height: 20px; margin-top: 1px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--line-2); color: var(--t2); font-size: 11px; }
+.hub__need li > span { display: grid; place-items: center; width: 20px; height: 20px; margin-top: 1px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--line-2); color: var(--t2); }
+.hub__need li > span .i { width: 12px; height: 12px; }
 .hub__need p { margin: 0; color: var(--t2); font-size: 14.5px; line-height: 1.5; }
 .hub__need b { color: var(--t1); font-weight: 600; }
 
@@ -69,4 +70,22 @@
 @media (max-width: 720px) {
   .hub__ways, .hub__need { grid-template-columns: minmax(0, 1fr); }
   .hub .guide-list--two { grid-template-columns: minmax(0, 1fr); grid-auto-flow: row; grid-template-rows: none; }
+}
+/* Large screens: a wider column and larger type, keeping the same structure. */
+@media (min-width: 1800px) and (min-height: 1000px) {
+  .hub__in { width: min(1080px, 100% - 2 * var(--gutter, 24px)); gap: 34px; padding-top: clamp(40px, 11svh, 220px); }
+  .hub h1 { font-size: 4rem; }
+  .hub__lede { max-width: 44rem; font-size: 1.25rem; }
+  .hub__tested { font-size: 14px; }
+  .hub__way { padding: 26px 26px 22px; }
+  .hub__way-t { font-size: 1.25rem; }
+  .hub__way-d { font-size: 16px; }
+  .hub__go { min-height: 42px; font-size: 15px; }
+  .hub .hub__bar h2, .hub__bar span { font-size: 14px; }
+  .hub__need p { font-size: 16px; }
+  .hub h2 { font-size: 1.75rem; }
+  .hub__sub { font-size: 16px; }
+  .hub .guide-list__t strong { font-size: 1.0625rem; }
+  .hub .guide-list__t span { font-size: 15px; }
+  .hub .guide-list__n { width: 30px; height: 30px; font-size: 13px; }
 }

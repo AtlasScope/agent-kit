@@ -104,3 +104,19 @@ html:not([data-os="mac"], [data-os="linux"]) .inst__keys [data-os="other"], html
 /* The card's status light, before Terminal / On your clipboard. */
 .inst__status { display: inline-flex; align-items: center; gap: 8px; }
 .inst__tested .led { margin-right: 4px; }
+/* Large screens: a wider column, larger type throughout, and the column sits lower on a tall screen. */
+@media (min-width: 1800px) and (min-height: 1000px) {
+  .inst__in { width: min(900px, 100% - 2 * var(--gutter, 24px)); padding-top: clamp(48px, 15svh, 300px); gap: 24px; }
+  .inst h1 { font-size: 3.75rem; }
+  .inst__lede { font-size: 1.1875rem; }
+  .inst__tabs button { min-height: 46px; font-size: 15px; }
+  .inst__tabs .i { width: 17px; height: 17px; }
+  .inst__bar { min-height: 50px; font-size: 14px; }
+  .inst__copy { min-height: 36px; font-size: 14px; }
+  .inst pre { padding: 20px 22px 22px; font-size: 16px; }
+  .inst__tested { font-size: 14px; }
+  .inst__next p { font-size: 17px; }
+  .inst__more a { font-size: 16px; }
+  .inst__by { font-size: 14px; }
+  .inst__note { font-size: 15px; }
+}

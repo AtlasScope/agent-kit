@@ -678,3 +678,8 @@ summary { touch-action: manipulation; -webkit-user-select: none; user-select: no
 .led.is-on { background: var(--led); box-shadow: 0 0 0 1px rgba(57,255,136,.35), 0 0 6px var(--led-glow); }
 .led.is-hot { box-shadow: 0 0 0 1px rgba(57,255,136,.5), 0 0 10px var(--led-glow), 0 0 22px rgba(57,255,136,.22); animation: led-on 520ms steps(1, end) 1; }
 @keyframes led-on { 0% { opacity: .15; } 18% { opacity: 1; } 32% { opacity: .35; } 50%, 100% { opacity: 1; } }
+
+/* Large screens: the page container widens from 1800px and again from 2600px, so the header and the homepage
+   use the width instead of sitting in a narrow strip of a 2560px or 4K screen. */
+@media (min-width: 1800px) { :root { --container: 1560px; } }
+@media (min-width: 2600px) { :root { --container: 1800px; } }

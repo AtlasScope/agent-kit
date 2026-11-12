@@ -15,6 +15,7 @@ export const metadata: Metadata = {
 };
 
 const ARROW = <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>;
+const CHECK = <svg className="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>;
 const NEED: [string, string][] = [
   ["About an hour", "Most of it is account setup."],
   ["A Mac or Windows computer", ""],
@@ -54,7 +55,7 @@ export default function Start() {
         <section className="hub__card" aria-labelledby="need-h">
           <div className="hub__bar"><h2 id="need-h">What you need</h2><span>before step 1</span></div>
           <ul className="hub__need">
-            {NEED.map(([t, d]) => <li key={t}><span aria-hidden="true">✓</span><p><b>{t}.</b>{d && ` ${d}`}</p></li>)}
+            {NEED.map(([t, d]) => <li key={t}><span aria-hidden="true">{CHECK}</span><p><b>{t}.</b>{d && ` ${d}`}</p></li>)}
           </ul>
         </section>
 

@@ -99,3 +99,14 @@
 /* The tightest screens (a 320px-wide phone, any small phone on its side): the line under Install goes, so the rest fits. */
 @media (max-height: 420px), (max-width: 22rem) { .launch__note { display: none; } }
 @media (max-width: 22rem) { .launch h1 { font-size: 1.875rem; } .launch__msg { padding-top: 1svh; } }
+/* Large screens: the headline is already at its 6rem ceiling, so the sentence, the example and the actions grow
+   to keep their proportion to it, and the group breathes more. */
+@media (min-width: 1800px) and (min-height: 1000px) {
+  .launch__msg { gap: 32px; }
+  .launch__lede { max-width: 38rem; font-size: 1.3125rem; }
+  .launch__eg { max-width: 56rem; font-size: 1rem; }
+  .launch__note { font-size: 0.9375rem; }
+  .launch__go { min-height: 56px; padding-inline: 28px; font-size: 1.0625rem; }
+  .launch__new { font-size: 1rem; }
+  .launch__legal { font-size: 0.875rem; }
+}
