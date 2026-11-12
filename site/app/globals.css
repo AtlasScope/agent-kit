@@ -31,8 +31,8 @@
   --lift: inset 0 1px 0 rgba(255,255,255,.06), 0 1px 2px rgba(0,0,0,.6), 0 8px 20px -10px rgba(0,0,0,.7), 0 24px 40px -24px rgba(0,0,0,.9);
   --lift-hi: inset 0 1px 0 rgba(255,255,255,.08), 0 2px 4px rgba(0,0,0,.6), 0 12px 26px -10px rgba(0,0,0,.8), 0 30px 50px -24px rgba(0,0,0,1);
 } }
-/* The header and the homepage are ink in both themes. */
-.ink, :root:has(.home) {
+/* The header, the homepage and the install page are ink in both themes. */
+.ink, :root:has(.home, .inst) {
   color-scheme: dark;
   --color-paper: #0B0C12; --color-paper-2: #151821; --color-paper-3: #151821;
   --color-ink: #FFFFFF; --color-ink-2: #A3A6AD; --color-muted: #A3A6AD;
@@ -436,8 +436,8 @@ svg.i { width: 16px; height: 16px; flex: none; }
   .guide-list--two { grid-template-columns: minmax(0, 1fr); grid-auto-flow: row; grid-template-rows: none; }
 }
 
-/* The homepage is one screen: no footer under it (its links are in the header and on every other page). */
-.home { --lift: none; --lift-hi: none; }
+/* The homepage is one screen: no footer under it. Its About, Privacy, Terms and Credits links sit at the foot of the
+   hero instead (LaunchHero.tsx), and the rest are in the header and on every other page. */
 body:has(main.home) .foot { display: none; }
 /* What the install adds: one row per kit, name and size, what it does, the commands that start it. Flat, hairlines only. */
 .adds { display: grid; gap: var(--space-lg); margin-bottom: var(--space-lg); }

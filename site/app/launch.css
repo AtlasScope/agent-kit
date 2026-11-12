@@ -3,23 +3,26 @@
    scene can draw; [data-leave] is the hand-off to /install. With reduced motion, or before the script runs, the
    message simply shows over the photograph. */
 .launch { --ease-launch: cubic-bezier(0.16, 1, 0.3, 1); --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); --stage-h: calc(100svh - var(--header-h, 65px));
-  --lh-page: #10121A; --lh-warm: #F5A524; --lh-warm-t: #FFD898; --lh-cool: #8CB6FF;
-  --lh-t2: rgba(255,255,255,.78); --lh-t3: rgba(255,255,255,.66); --lh-line: rgba(255,255,255,.12);
+  --lh-t2: rgba(255,255,255,.78);
   position: relative; isolation: isolate; margin-inline: calc(50% - 50vw); overflow-x: clip; background: #030409; color: #fff; }
 
-/* Scene: the photo is the first paint and the fallback; the WebGL canvas fades in over it once it draws.
-   It fills the first screen and no more, so nothing below the hero ever sits under it. */
-.launch__scene { position: absolute; inset: 0 0 auto; height: var(--stage-h); z-index: -1; overflow: hidden; pointer-events: none; }
+/* Scene: the photo is the first paint and the fallback; the WebGL canvas fades in over it once it draws. It sits
+   behind the whole hero, so on a screen too short for the message the planet still runs under every line of it. */
+.launch__scene { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
 .launch__earth { position: absolute; inset: 0; background: #030409 72% 100% / cover no-repeat; }
 .launch__earth img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 72% 100%; }
 .launch__gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity .9s var(--ease-launch); }
 .launch.is-live .launch__gl { opacity: 1; }
 .launch.is-live .launch__earth { visibility: hidden; transition: visibility 0s 1s; }
-.launch__shade { position: absolute; inset: 0; background: linear-gradient(100deg, rgba(3,4,9,.92) 0%, rgba(3,4,9,.62) 34%, rgba(3,4,9,0) 62%), linear-gradient(to bottom, rgba(3,4,9,.7), rgba(3,4,9,0) 22%); }
+.launch__shade { position: absolute; inset: 0; background: linear-gradient(100deg, rgba(3,4,9,.92) 0%, rgba(3,4,9,.62) 34%, rgba(3,4,9,0) 62%), linear-gradient(to bottom, rgba(3,4,9,.7), rgba(3,4,9,0) 22%), linear-gradient(to top, rgba(3,4,9,.7), rgba(3,4,9,0) 64px); }
 
-/* The screen: message and panel. */
-.launch__first { min-height: var(--stage-h); display: grid; align-content: center; }
-.launch__msg { display: grid; justify-items: start; align-content: center; gap: 26px; padding-block: 3svh 8svh; }
+/* The screen: the message, centred, and a line of small links at the foot (the homepage has no footer). */
+.launch__first { min-height: var(--stage-h); display: grid; grid-template-rows: minmax(0, 1fr) auto; }
+.launch__msg { align-self: center; display: grid; justify-items: start; gap: 26px; padding-block: 3svh 6svh; }
+.launch__legal { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 0; padding: 0 0 14px; list-style: none; font-size: 12.5px; }
+.launch__legal a { display: inline-flex; align-items: center; min-height: 32px; color: rgba(255,255,255,.72); text-decoration: none; text-shadow: 0 1px 10px rgba(3,4,9,.9); }
+@media (hover: hover) and (pointer: fine) { .launch__legal a:hover { color: #fff; text-decoration: underline; text-underline-offset: .25em; } }
+@media (pointer: coarse) { .launch__legal a { min-height: 40px; } }
 .launch h1 { max-width: 13.5ch; margin: 0; font-size: clamp(2.75rem, min(5.6vw + .4rem, 10svh), 6rem); line-height: 1; letter-spacing: -0.04em; text-wrap: balance; }
 .launch__w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .08em; margin-bottom: -.08em; white-space: pre; }
 .launch__w > span { display: inline-block; }
@@ -51,11 +54,21 @@
 
 /* The hand-off to /install: the words lift away and the sky fades to the install page's black (the scene's camera
    sinks the planet at the same time). */
-.launch[data-leave] .launch__msg { opacity: 0; transform: translateY(-14px); filter: blur(6px); transition: opacity .42s ease, transform .56s var(--ease-launch), filter .42s ease; pointer-events: none; }
+.launch[data-leave] :is(.launch__msg, .launch__legal) { opacity: 0; transform: translateY(-14px); transition: opacity .42s ease, transform .56s var(--ease-launch); pointer-events: none; }
 .launch[data-leave] .launch__scene { opacity: 0; transition: opacity .5s ease .06s; }
 
 @media (max-width: 760px) {
   .launch__earth img { object-position: 60% 100%; }
-  .launch__shade { background: linear-gradient(to bottom, rgba(3,4,9,.9) 0%, rgba(3,4,9,.55) 50%, rgba(3,4,9,0) 75%); }
-  .launch__msg { align-content: start; padding-block: 7svh 0; }
+  /* Phones: the message sits at the top, inside the shade, with the horizon below it. */
+  .launch__shade { background: linear-gradient(to bottom, rgba(3,4,9,.9) 0%, rgba(3,4,9,.6) 55%, rgba(3,4,9,.3) 76%, rgba(3,4,9,0) 90%), linear-gradient(to top, rgba(3,4,9,.7), rgba(3,4,9,0) 64px); }
+  .launch__msg { align-self: start; padding-block: 5svh 24px; }
+}
+/* Short screens (a small phone in Safari, any phone on its side): a smaller headline, a wider sentence and tighter
+   spacing, so the message still fits without scrolling. Last in the file so it wins over the rules above. */
+@media (max-height: 640px) {
+  .launch h1 { font-size: clamp(1.75rem, 8svh, 3.25rem); }
+  .launch__msg { gap: 14px; padding-block: 2svh; }
+  .launch__lede { max-width: 40rem; font-size: .9375rem; line-height: 1.45; }
+  .launch__cta { margin-top: 0; }
+  .launch__legal { padding-bottom: 4px; }
 }
