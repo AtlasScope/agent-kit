@@ -11,6 +11,9 @@ export const SITE = {
 export const HERO = {
   headline: "Give your coding agent better instructions.",
   by: "Free, by AtlasScope. Each skill keeps its author’s license.",
+  // One real request and the skill its router picks, shown under the sentence. tests/hero.test.mjs checks it is a
+  // routing case in tests/routing/cases.json whose first pick is this skill, and that the router's own row says so.
+  example: { router: "/design", request: "why does my dashboard look like a school project", pick: "refactoring-ui", case: "DS31" },
 };
 
 // Install paths per agent. `steps` run in order and Copy copies all of them. `tested` names the CLI

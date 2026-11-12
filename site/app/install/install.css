@@ -105,3 +105,6 @@ html:not([data-os="mac"], [data-os="linux"]) .inst__keys [data-os="other"], html
   .inst pre { font-size: 12.5px; padding: 14px; }
   .inst__line { white-space: pre-wrap; overflow-wrap: anywhere; padding-left: 2ch; text-indent: -2ch; display: block; }
 }
+/* Phones only: the command is for a computer. */
+.inst__phone { display: none; margin: -14px 0 4px; text-align: center; color: var(--t2); font-size: 14px; }
+@media (hover: none) and (pointer: coarse) { .inst__phone { display: block; } }

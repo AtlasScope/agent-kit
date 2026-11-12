@@ -71,6 +71,7 @@ export function InstallPage({ kits, skills, children }: { kits: number; skills: 
       <div className="inst__in">
         <h1 ref={h1} tabIndex={-1}>Install Agent Kit</h1>
         <p className="inst__lede">{kits} kits and {skills} skills, installed with one paste into your terminal.</p>
+        <p className="inst__phone">On a phone? Open this page on your computer, where your terminal is.</p>
 
         <div className="inst__tabs" role="tablist" aria-label="Your agent"
           onKeyDown={(e) => {

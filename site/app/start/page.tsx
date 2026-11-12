@@ -4,6 +4,8 @@ import { Crumbs } from "@/components/Crumbs";
 import { GuideList, GuideResume } from "@/components/GuideProgress";
 import { STEPS, TESTED } from "@/lib/start";
 import { LESSONS } from "@/lib/lessons";
+import { authEnabled } from "@/lib/site";
+import { StartWelcome } from "@/components/StartWelcome";
 
 export const metadata: Metadata = {
   title: "Build and publish your first app with a coding agent",
@@ -31,6 +33,8 @@ export default function Start() {
           </ul>
         </aside>
       </div>
+
+      <StartWelcome enabled={authEnabled()} />
 
       <div className="tiles tiles--start">
         <Link className="tile tile--lead" href={`/start/${STEPS[0].slug}`}><span className="tile__t">I haven’t installed an agent</span><span className="tile__d">Start at step 1.</span></Link>

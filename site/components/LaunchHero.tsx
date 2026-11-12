@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { clearHandoff, commandFor, lastAgent, saveHandoff } from "./install-choice";
 import { startOrbit, type OrbitCamera } from "./orbit-gl";
-import { SITE } from "@/lib/site";
+import { HERO, SITE } from "@/lib/site";
 
 // The homepage: one screen and nothing below it. The headline, one sentence and Install over a live view from orbit.
 // Install copies the visitor's install command on the click, then the planet sinks and the sky fades to black while
@@ -16,7 +16,7 @@ import { SITE } from "@/lib/site";
 const KEY = "agent-kit:launched";
 const INTRO_MS = 3400;
 // How long the opening waits for the scene before it plays over the photograph instead.
-const WAIT_MS = 1200;
+const WAIT_MS = 900;
 // The hand-off to the install page.
 const LEAVE_MS = 560;
 
@@ -29,13 +29,16 @@ const ARROW = <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="no
 // visit, and data-hold keeps it dark until the scene is ready. If the page's script never arrives, the hold lifts on
 // its own and the text plays. ?replay in the address plays the opening again. React does not run this script when the
 // homepage is reached by a link inside the site; the effect below arms the scene itself then, without the opening.
-const ARM = `try{if(location.hash==="#install")location.replace("/install");var s=document.currentScript.parentElement;if(/[?&]replay/.test(location.search))sessionStorage.removeItem("${KEY}");if(!matchMedia("(prefers-reduced-motion: reduce)").matches){s.setAttribute("data-live","");if(!sessionStorage.getItem("${KEY}")){s.setAttribute("data-intro","");s.setAttribute("data-hold","");setTimeout(function(){if(s.hasAttribute("data-hold")){s.setAttribute("data-go",String(performance.now()));s.removeAttribute("data-hold")}},2600)}}}catch(e){}`;
+const ARM = `try{if(location.hash==="#install")location.replace("/install");var s=document.currentScript.parentElement;if(/[?&]replay/.test(location.search))sessionStorage.removeItem("${KEY}");if(!matchMedia("(prefers-reduced-motion: reduce)").matches){s.setAttribute("data-live","");if(!sessionStorage.getItem("${KEY}")){s.setAttribute("data-intro","");s.setAttribute("data-hold","");setTimeout(function(){if(s.hasAttribute("data-hold")){s.setAttribute("data-go",String(performance.now()));s.removeAttribute("data-hold")}},1800)}}}catch(e){}`;
 
 const clamp = (x: number) => Math.min(1, Math.max(0, x));
 const seg = (p: number, a: number, b: number) => clamp((p - a) / (b - a));
 const eo = (x: number) => 1 - Math.pow(1 - clamp(x), 4);
 const eio = (x: number) => { const t = clamp(x); return t < .5 ? 8 * t ** 4 : 1 - Math.pow(-2 * t + 2, 4) / 2; };
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
+
+// Arriving at the guide from Start here, a new visitor is offered a free account there (StartWelcome.tsx).
+const markStartHere = () => { try { sessionStorage.setItem("agent-kit:start-here", String(Date.now())); } catch {} };
 
 export function LaunchHero({ headline, blur }: { headline: string; blur: string }) {
   const ref = useRef<HTMLElement>(null);
@@ -131,13 +134,20 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
   // install page, which reads what happened and says so. A modified click is left to the link, which opens the page in
   // a new tab. Any other navigation during the hand-off wins: a link click, Back or Forward cancels it and brings the
   // homepage back, and if the install page never arrives the homepage comes back on its own.
+  // The agent whose command Install copies, named under the button: the visitor's last pick, else Claude Code.
+  const [agentName, setAgentName] = useState("Claude Code");
+  useEffect(() => { setAgentName(lastAgent().label); }, []);
+
   const install = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;
     e.preventDefault();
     if (leaving.current) return;
     const a = lastAgent(), el = ref.current;
-    let copied: Promise<boolean>;
-    try { copied = navigator.clipboard.writeText(commandFor(a)).then(() => true, () => false); } catch { copied = Promise.resolve(false); }
+    // A phone has no terminal to paste into, so there it opens the install page without touching the clipboard.
+    const phone = matchMedia("(hover: none) and (pointer: coarse)").matches;
+    let copied: Promise<boolean | null>;
+    if (phone) copied = Promise.resolve(null);
+    else try { copied = navigator.clipboard.writeText(commandFor(a)).then(() => true, () => false); } catch { copied = Promise.resolve(false); }
     const quick = matchMedia("(prefers-reduced-motion: reduce)").matches;
     let cancelled = false, safety = 0;
     const onClick = (ev: MouseEvent) => { const t = (ev.target as Element | null)?.closest?.("a"); if (t && !t.classList.contains("launch__go")) stop(); };
@@ -156,7 +166,7 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
     if (!quick) { leaveAt.current = performance.now(); el?.setAttribute("data-leave", ""); }
     Promise.all([copied, new Promise((r) => setTimeout(r, quick ? 0 : LEAVE_MS))]).then(([ok]) => {
       if (cancelled) return;
-      saveHandoff(ok ? { agent: a.id } : { blocked: true });
+      if (ok === null) clearHandoff(); else saveHandoff(ok ? { agent: a.id } : { blocked: true });
       router.push("/install");
       safety = window.setTimeout(() => stop(), 8000);
     });
@@ -186,10 +196,17 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
             ))}
           </h1>
           <p className="launch__lede">Skills and prompts for Claude Code, Codex and Cursor. Describe the job in plain words; your agent follows a written method for it.</p>
+          <p className="launch__eg" translate="no">
+            <code>{HERO.example.router} {HERO.example.request}</code><span aria-hidden="true">→</span><span className="sr"> picks </span><code className="launch__pick">{HERO.example.pick}</code>
+          </p>
           <div className="launch__cta">
-            <Link className="btn btn--lg btn--solid launch__go" href="/install" onClick={install}><span>Install Agent Kit</span>{ARROW}</Link>
-            <Link className="launch__new" href="/start">New to coding agents? Start here{ARROW}</Link>
+            <Link className="btn btn--lg btn--solid launch__go" href="/install" onClick={install} aria-describedby="launch-note"><span>Install Agent Kit</span>{ARROW}</Link>
+            <Link className="launch__new" href="/start" onClick={markStartHere}>New to coding agents? Start here{ARROW}</Link>
           </div>
+          <p className="launch__note" id="launch-note">
+            <span className="launch__note-desk">Copies the install command for {agentName} to your clipboard.</span>
+            <span className="launch__note-phone">Opens the install command, to run on your computer.</span>
+          </p>
         </div>
         <ul className="launch__legal" aria-label="About this site">
           <li><Link href="/about">About</Link></li>
