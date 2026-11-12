@@ -19,7 +19,7 @@ let base = process.env.SMOKE_URL?.replace(/\/$/, "");
 let server, browser;
 
 const SIZES = [
-  // Wider than the 1280px menu bar, so the full header row is under test; the tablet journey covers the menu bar.
+  // Wider than the 1248px menu bar, so the full header row is under test; the tablet journey covers the menu bar.
   { name: "desktop", viewport: { width: 1440, height: 900 } },
   { name: "phone", viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true },
 ];

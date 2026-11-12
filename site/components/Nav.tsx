@@ -13,8 +13,8 @@ const GitHubLink = () => (
   </a>
 );
 
-// One bar everywhere, always with Sign in (or the account) and GitHub. Wider than 1280px (80rem) it also holds the
-// links and search; up to 1280px the links move into the menu and GitHub shrinks to its mark, and up to 640px search
+// One bar everywhere, always with Sign in (or the account) and GitHub. Wider than 1248px (78rem) it also holds the
+// links and search; up to 1248px the links move into the menu and GitHub shrinks to its mark, and up to 640px search
 // collapses to a button and Collections to its star. globals.css holds the switch points.
 export function Nav() {
     return (
