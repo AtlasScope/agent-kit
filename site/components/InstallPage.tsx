@@ -31,6 +31,11 @@ const tested = (a: Agent) => a.tested ? `${a.testedScope ?? "Tested"} with ${a.t
 export function InstallPage({ kits, skills, children }: { kits: number; skills: number; children: React.ReactNode }) {
   const [agent, setAgent] = useState<Agent>(SHOWN[0]);
   const [copied, setCopied] = useState(false);
+  // Once an agent's command has been copied this visit, its card's light stays softly lit (it never says the clipboard
+  // still holds it); another agent's card is unlit until its own command is copied.
+  const [copiedIds, setCopiedIds] = useState<string[]>([]);
+  useEffect(() => { if (copied) setCopiedIds((x) => (x.includes(agent.id) ? x : [...x, agent.id])); }, [copied, agent.id]);
+  const ever = copiedIds.includes(agent.id);
   // Set by the first agent the visitor picks, so the command fades in on a pick and never on load.
   const [picked, setPicked] = useState(false);
   const [note, setNote] = useState<Note | null>(null);
@@ -89,7 +94,7 @@ export function InstallPage({ kits, skills, children }: { kits: number; skills: 
 
         <div className={`inst__term${copied ? " is-copied" : ""}`} id="inst-cmd" role="tabpanel" aria-labelledby={`it-${agent.id}`}>
           <div className="inst__bar">
-            <span>{copied ? "On your clipboard" : "Terminal"}</span>
+            <span className="inst__status"><i className={`led${copied ? " is-on is-hot" : ever ? " is-on" : ""}`} aria-hidden="true" />{copied ? "On your clipboard" : "Terminal"}</span>
             <button type="button" className="inst__copy" onClick={copy} aria-label={copied ? "Copied. Copy again" : `Copy ${many ? "all lines" : "the command"}`}>
               {copied ? <><Check />Copied</> : <><CopyIcon />{many ? "Copy all" : "Copy"}</>}
             </button>
@@ -101,7 +106,7 @@ export function InstallPage({ kits, skills, children }: { kits: number; skills: 
 
         <div className="inst__tested">
           {SHOWN.map((a) => (
-            <p key={a.id} data-a={a.id}>{tested(a)}{!a.tested && <> <button type="button" onClick={() => focus(FALLBACK)}>The {FALLBACK.label} command is tested</button>.</>}</p>
+            <p key={a.id} data-a={a.id}><i className={`led${a.tested ? " is-on" : ""}`} aria-hidden="true" /> {tested(a)}{!a.tested && <> <button type="button" onClick={() => focus(FALLBACK)}>The {FALLBACK.label} command is tested</button>.</>}</p>
           ))}
         </div>
 

@@ -197,7 +197,7 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
           </h1>
           <p className="launch__lede">Skills and prompts for Claude Code, Codex and Cursor. Describe the job in plain words; your agent follows a written method for it.</p>
           <p className="launch__eg" translate="no">
-            <code>{HERO.example.router} {HERO.example.request}</code><span aria-hidden="true">→</span><span className="sr"> picks </span><code className="launch__pick">{HERO.example.pick}</code>
+            <code>{HERO.example.router} {HERO.example.request}</code><span aria-hidden="true">→</span><span className="sr"> picks </span><span className="launch__to"><i className="led is-on" aria-hidden="true" /><code className="launch__pick">{HERO.example.pick}</code></span>
           </p>
           <div className="launch__cta">
             <Link className="btn btn--lg btn--solid launch__go" href="/install" onClick={install} aria-describedby="launch-note"><span>Install Agent Kit</span>{ARROW}</Link>

@@ -661,7 +661,7 @@ summary { touch-action: manipulation; -webkit-user-select: none; user-select: no
 /* The quiet pages (/install, /start): black, hairlines, a faint grid fading out from the top centre and a little
    light under it, one centred column. Always dark, like the homepage they continue from (the rule near the top of
    this file puts the whole document in the dark set while one shows). */
-.quiet { --bg: #030409; --card: #0A0B10; --line: rgba(255,255,255,.09); --line-2: rgba(255,255,255,.16); --t1: #EDEDED; --t2: #A1A1A1; --t3: #8B8B8F; --ok: #4ADE80;
+.quiet { --bg: #030409; --card: #0A0B10; --line: rgba(255,255,255,.09); --line-2: rgba(255,255,255,.16); --t1: #EDEDED; --t2: #A1A1A1; --t3: #8B8B8F; --ok: var(--led);
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   position: relative; isolation: isolate; margin-inline: calc(50% - 50vw); background: var(--bg); color: var(--t1); overflow-x: clip; }
 .quiet::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
@@ -669,3 +669,12 @@ summary { touch-action: manipulation; -webkit-user-select: none; user-select: no
   -webkit-mask-image: radial-gradient(ellipse 70% 55% at 50% 0%, #000 0%, transparent 75%); mask-image: radial-gradient(ellipse 70% 55% at 50% 0%, #000 0%, transparent 75%); opacity: .55; max-height: 1200px; }
 .quiet::after { content: ""; position: absolute; left: 50%; top: 0; width: min(900px, 100%); height: 420px; translate: -50% 0; z-index: -1; pointer-events: none;
   background: radial-gradient(closest-side, rgba(255,255,255,.06), transparent); }
+
+/* LED green: the site's one status light. A 6px dot, high-contrast green with a soft glow, used only where something
+   is true right now or was done: the command was copied, an install was tested, a step is finished, a request was
+   routed. Unlit it is a dark socket. Never a fill, never large text, never decoration. */
+:root { --led: #39FF88; --led-glow: rgba(57,255,136,.55); }
+.led { display: inline-block; flex: none; width: 6px; height: 6px; border-radius: 50%; background: #23262C; box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); vertical-align: .12em; }
+.led.is-on { background: var(--led); box-shadow: 0 0 0 1px rgba(57,255,136,.35), 0 0 6px var(--led-glow); }
+.led.is-hot { box-shadow: 0 0 0 1px rgba(57,255,136,.5), 0 0 10px var(--led-glow), 0 0 22px rgba(57,255,136,.22); animation: led-on 520ms steps(1, end) 1; }
+@keyframes led-on { 0% { opacity: .15; } 18% { opacity: 1; } 32% { opacity: .35; } 50%, 100% { opacity: 1; } }
