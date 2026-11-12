@@ -31,6 +31,8 @@ const tested = (a: Agent) => a.tested ? `${a.testedScope ?? "Tested"} with ${a.t
 export function InstallPage({ kits, skills, children }: { kits: number; skills: number; children: React.ReactNode }) {
   const [agent, setAgent] = useState<Agent>(SHOWN[0]);
   const [copied, setCopied] = useState(false);
+  // Set by the first agent the visitor picks, so the command fades in on a pick and never on load.
+  const [picked, setPicked] = useState(false);
   const [note, setNote] = useState<Note | null>(null);
   const [said, setSaid] = useState("");
   const h1 = useRef<HTMLHeadingElement>(null);
@@ -51,6 +53,7 @@ export function InstallPage({ kits, skills, children }: { kits: number; skills: 
   useEffect(() => { if (!note) return; const t = setTimeout(() => setNote(null), NOTE_MS); return () => clearTimeout(t); }, [note]);
 
   const pick = (a: Agent) => {
+    setPicked(true);
     setAgent(a); setCopied(false); setSaid(`${a.label}. ${tested(a)}`);
     try { localStorage.setItem(AGENT_KEY, a.id); } catch {}
   };
@@ -63,7 +66,7 @@ export function InstallPage({ kits, skills, children }: { kits: number; skills: 
   const many = agent.steps.length > 1;
 
   return (
-    <main className="inst" data-agent={agent.id} suppressHydrationWarning style={{ "--note": `${NOTE_MS}ms` } as React.CSSProperties}>
+    <main className="inst" data-agent={agent.id} data-picked={picked || undefined} suppressHydrationWarning style={{ "--note": `${NOTE_MS}ms` } as React.CSSProperties}>
       <script dangerouslySetInnerHTML={{ __html: AGENT_SCRIPT + OS_SCRIPT }} />
       <div className="inst__in">
         <h1 ref={h1} tabIndex={-1}>Install Agent Kit</h1>

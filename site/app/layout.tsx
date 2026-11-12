@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 };
 
 // viewport-fit=cover lets the page run under the notch in landscape; the container pads back with safe-area insets.
-export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: [{ media: "(prefers-color-scheme: light)", color: "#ECEAE4" }, { media: "(prefers-color-scheme: dark)", color: "#0B0C12" }], colorScheme: "light dark" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#0B0C12", colorScheme: "light dark" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

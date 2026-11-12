@@ -1,6 +1,6 @@
 "use client";
-import { ClerkProvider, Show, SignIn, SignInButton, UserButton, useAuth } from "@clerk/nextjs";
-import { useEffect, useState } from "react";
+import { ClerkProvider, Show, SignIn, SignInButton, UNSAFE_PortalProvider, UserButton, useAuth } from "@clerk/nextjs";
+import { useEffect, useRef, useState } from "react";
 import { clerkAppearance } from "@/lib/clerk-appearance";
 import { useMe, loadMe, saveItem, isIn } from "@/lib/me";
 import { StarIcon, type StarProps } from "../StarIcon";
@@ -12,15 +12,18 @@ function Root({ children }: { children: React.ReactNode }) {
 }
 
 function AuthNav() {
+  // In the phone and tablet menu (a modal dialog) the account menu must open inside the dialog to be usable;
+  // in the bar it opens over the page as usual. Clerk's portal provider points it at the nearest dialog, if any.
+  const at = useRef<HTMLSpanElement>(null);
   return (
     <>
       <Show when="signed-out"><SignInButton mode="modal" withSignUp><button className="btn btn--sm" type="button">Sign in</button></SignInButton></Show>
       <Show when="signed-in">
         <a className="btn btn--sm" href="/account">
           <svg className="i i--warm" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" /></svg>
-          Starred
+          Collections
         </a>
-        <UserButton />
+        <span ref={at} className="auth-me"><UNSAFE_PortalProvider getContainer={() => at.current?.closest("dialog") ?? null}><UserButton /></UNSAFE_PortalProvider></span>
       </Show>
     </>
   );

@@ -23,6 +23,9 @@
 
 /* Every agent's command, test note and steps are in the page; data-agent (set before paint) shows the chosen one. */
 .inst [data-a] { display: none; }
+/* After a pick, the newly shown command fades in (showing it restarts the animation); on load nothing moves. */
+.inst[data-picked] pre [data-a] { animation: inst-swap 200ms var(--ease-out); }
+@keyframes inst-swap { from { opacity: 0; } }
 :is(.inst[data-agent="claude"] [data-a="claude"], .inst[data-agent="codex"] [data-a="codex"], .inst[data-agent="cursor"] [data-a="cursor"], .inst[data-agent="gemini"] [data-a="gemini"], .inst[data-agent="copilot"] [data-a="copilot"], .inst[data-agent="any"] [data-a="any"]) { display: block; }
 /* The paste keys for this computer (html[data-os], set before paint); none on a phone, where the command is for a computer. */
 .inst__keys [data-os] { display: none; }
@@ -33,7 +36,7 @@ html:not([data-os="mac"], [data-os="linux"]) .inst__keys [data-os="other"], html
 .inst__term.is-copied { border-color: rgba(74,222,128,.45); }
 .inst__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding: 0 8px 0 16px; border-bottom: 1px solid var(--line); font: 400 12.5px/1 var(--font-mono); color: var(--t3); }
 .inst__term.is-copied .inst__bar > span { color: var(--ok); }
-.inst__copy { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: #fff; color: #000; font: 600 12.5px/1 var(--font-body); cursor: pointer; transition: background .2s; }
+.inst__copy { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: #fff; color: #000; font: 600 12.5px/1 var(--font-body); cursor: pointer; transition: background .2s, transform var(--dur-micro, 120ms) var(--ease-out, ease-out); }
 .inst__copy .i { width: 14px; height: 14px; }
 .inst__term.is-copied .inst__copy { background: rgba(74,222,128,.14); color: var(--ok); }
 .inst pre { margin: 0; padding: 16px 18px 18px; overflow-x: auto; font: 400 14px/1.75 var(--font-mono); }
@@ -61,6 +64,9 @@ html:not([data-os="mac"], [data-os="linux"]) .inst__keys [data-os="other"], html
   .inst__tabs button:hover { color: var(--t1); } .inst__copy:hover { background: #d4d4d4; } .inst__term.is-copied .inst__copy:hover { background: rgba(74,222,128,.22); }
   .inst__more a:hover { color: #fff; text-decoration: underline; text-decoration-color: var(--line-2); text-underline-offset: .25em; } .inst__by a:hover { color: var(--t1); }
 }
+/* Pressed controls answer at once, since a phone has no hover. */
+.inst__copy:active { transform: scale(0.97); }
+.inst__tabs button:active { color: var(--t1); }
 .inst :is(button, a):focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 /* The heading takes focus on arrival from the homepage, so keyboard and screen reader users start at the top. */
 .inst h1:focus { outline: none; }

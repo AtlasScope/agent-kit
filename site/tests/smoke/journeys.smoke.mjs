@@ -19,7 +19,8 @@ let base = process.env.SMOKE_URL?.replace(/\/$/, "");
 let server, browser;
 
 const SIZES = [
-  { name: "desktop", viewport: { width: 1280, height: 800 } },
+  // Wider than the 1280px menu bar, so the full header row is under test; the tablet journey covers the menu bar.
+  { name: "desktop", viewport: { width: 1440, height: 900 } },
   { name: "phone", viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true },
 ];
 
@@ -76,6 +77,25 @@ for (const size of SIZES) {
     }
     await page.locator(".inst__more a", { hasText: "Prompts" }).click();
     await page.waitForURL(/\/prompts$/);
+    assert.deepEqual(errors, []);
+    await ctx.close();
+  });
+
+  test(`${size.name}: the header reaches every section and search`, async () => {
+    const { page, ctx, errors } = await open(size, "/prompts");
+    if (size.name === "phone") {
+      await page.getByRole("button", { name: "Menu", exact: true }).click();
+      await page.getByRole("dialog").getByRole("link", { name: "Skills" }).click();
+    } else {
+      await page.getByRole("banner").getByRole("link", { name: "Skills" }).click();
+    }
+    await page.waitForURL(/\/skills$/);
+    // On phones the field opens from the header's Search button; it is hidden until then.
+    if (size.name === "phone") await page.getByRole("banner").getByRole("button", { name: "Search", exact: true }).click();
+    await page.getByRole("combobox", { name: "Search prompts and skills" }).fill("slow page");
+    // A real result, not the "Nothing matches" row (also an option).
+    await page.locator('#search-results [role="option"] a').first().waitFor();
+    await noSideScroll(page, "/skills");
     assert.deepEqual(errors, []);
     await ctx.close();
   });
@@ -147,3 +167,19 @@ for (const size of SIZES) {
     await ctx.close();
   });
 }
+
+// Tablet width (the menu bar with search in it): the menu opens and links work, and an open menu closes itself when
+// the window widens past the menu bar (an iPad turned to landscape), so the page never stays locked behind it.
+test("tablet: the menu works and closes when the window widens", async () => {
+  const size = { name: "tablet", viewport: { width: 1024, height: 768 } };
+  const { page, ctx, errors } = await open(size, "/prompts");
+  await page.getByRole("button", { name: "Menu", exact: true }).click();
+  await page.getByRole("dialog").waitFor();
+  await page.setViewportSize({ width: 1366, height: 1024 });
+  await page.getByRole("dialog").waitFor({ state: "hidden" });
+  await page.getByRole("banner").getByRole("link", { name: "Skills" }).click();
+  await page.waitForURL(/\/skills$/);
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
