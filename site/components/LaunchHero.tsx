@@ -29,7 +29,9 @@ const ARROW = <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="no
 // visit, and data-hold keeps it dark until the scene is ready. If the page's script never arrives, the hold lifts on
 // its own and the text plays. ?replay in the address plays the opening again. React does not run this script when the
 // homepage is reached by a link inside the site; the effect below arms the scene itself then, without the opening.
-const ARM = `try{if(location.hash==="#install")location.replace("/install");var s=document.currentScript.parentElement;if(/[?&]replay/.test(location.search))sessionStorage.removeItem("${KEY}");if(!matchMedia("(prefers-reduced-motion: reduce)").matches){s.setAttribute("data-live","");if(!sessionStorage.getItem("${KEY}")){s.setAttribute("data-intro","");s.setAttribute("data-hold","");setTimeout(function(){if(s.hasAttribute("data-hold")){s.setAttribute("data-go",String(performance.now()));s.removeAttribute("data-hold")}},1800)}}}catch(e){}`;
+// Under `next dev` the opening plays on every full load, so a refresh shows the whole flow while tuning it.
+const REPLAY = process.env.NODE_ENV === "development" ? "true" : `/[?&]replay/.test(location.search)`;
+const ARM = `try{if(location.hash==="#install")location.replace("/install");var s=document.currentScript.parentElement;if(${REPLAY})sessionStorage.removeItem("${KEY}");if(!matchMedia("(prefers-reduced-motion: reduce)").matches){s.setAttribute("data-live","");if(!sessionStorage.getItem("${KEY}")){s.setAttribute("data-intro","");s.setAttribute("data-hold","");setTimeout(function(){if(s.hasAttribute("data-hold")){s.setAttribute("data-go",String(performance.now()));s.removeAttribute("data-hold")}},1800)}}}catch(e){}`;
 
 const clamp = (x: number) => Math.min(1, Math.max(0, x));
 const seg = (p: number, a: number, b: number) => clamp((p - a) / (b - a));
