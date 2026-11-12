@@ -67,8 +67,14 @@ for (const size of SIZES) {
     assert.ok(await page.evaluate(() => document.documentElement.scrollHeight - innerHeight) <= 1, "the homepage does not scroll");
     await page.locator(".launch__go", { hasText: "Install Agent Kit" }).click();
     await page.waitForURL(/\/install$/);
-    await page.locator(".inst__note", { hasText: "Install command copied" }).waitFor();
-    assert.equal(await clipboard(page), AGENTS.find((a) => a.id === "claude").steps.join("\n"), "Install copies the Claude Code steps");
+    if (size.name === "phone") {
+      // A phone has no terminal: Install opens the page without copying, and the page says to use a computer.
+      await page.locator(".inst__phone").waitFor();
+      assert.equal(await page.locator(".inst__note").count(), 0, "no copied notice on a phone");
+    } else {
+      await page.locator(".inst__note", { hasText: "Install command copied" }).waitFor();
+      assert.equal(await clipboard(page), AGENTS.find((a) => a.id === "claude").steps.join("\n"), "Install copies the Claude Code steps");
+    }
     for (const agent of ["claude", "any"].map((id) => AGENTS.find((a) => a.id === id))) {
       await page.getByRole("tab", { name: agent.label }).click();
       const copy = page.getByRole("tabpanel").getByRole("button", { name: /^Copy/ });

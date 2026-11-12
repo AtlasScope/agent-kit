@@ -28,7 +28,7 @@ export default function Privacy() {
         {
           id: "browser", title: "In your browser",
           body: <>
-            <p>Two things are kept in your own browser’s local storage and never sent to us: the agent you last picked on the install page, and which steps of the <Link href="/start">first-app guide</Link> and lessons you have finished. Clearing your browsing data removes both. For the length of a visit only, the browser also notes whether the homepage opening has played and whether the Install button just copied the command.</p>
+            <p>Two things are kept in your own browser’s local storage and never sent to us: the agent you last picked on the install page, and which steps of the <Link href="/start">first-app guide</Link> and lessons you have finished. Clearing your browsing data removes both. For the length of a visit only, the browser also notes whether the homepage opening has played, whether the Install button just copied the command, and whether you just followed Start here (so the guide can offer an account once).</p>
           </>,
         },
         {

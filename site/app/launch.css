@@ -27,6 +27,15 @@
 .launch__w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .08em; margin-bottom: -.08em; white-space: pre; }
 .launch__w > span { display: inline-block; }
 .launch__lede { margin: 0; max-width: 33rem; font-size: clamp(1rem, .35vw + .95rem, 1.1875rem); line-height: 1.55; color: var(--lh-t2); text-wrap: pretty; }
+/* One real request and the skill it goes to (HERO.example), in code type: what the kit does, before Install. */
+.launch__eg { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: -8px 0 0; max-width: 40rem; font: 400 0.875rem/1.5 var(--font-mono); color: rgba(255,255,255,.86); }
+.launch__eg code { font: inherit; }
+.launch__eg > span[aria-hidden] { color: rgba(255,255,255,.5); }
+.launch__eg .launch__pick { color: #fff; text-decoration: underline; text-decoration-color: rgba(255,255,255,.35); text-underline-offset: .25em; }
+/* What Install does, under it: on a computer it copies the command; on a phone it only opens the page. */
+.launch__note { margin: -14px 0 0; font-size: 0.8125rem; line-height: 1.45; color: rgba(255,255,255,.7); text-shadow: 0 1px 10px rgba(3,4,9,.9); }
+.launch__note-phone { display: none; }
+@media (hover: none) and (pointer: coarse) { .launch__note-desk { display: none; } .launch__note-phone { display: inline; } }
 .launch__cta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; margin-top: 6px; }
 .launch__go { position: relative; overflow: hidden; border-radius: 999px; font-weight: 600; isolation: isolate; }
 .launch__go::after { content: ""; position: absolute; inset: -1px; z-index: -1; pointer-events: none;
@@ -37,15 +46,18 @@
 
 
 /* ---- The opening (about 3.4s), started together with the scene's clock. ---- */
-.launch[data-hold] .launch__msg { visibility: hidden; }
+.launch[data-hold] :is(.launch__msg, .launch__legal) { visibility: hidden; }
 .launch[data-hold] .launch__earth, .launch[data-intro] .launch__earth { background-image: none !important; }
 .launch[data-hold] .launch__earth img { opacity: 0; }
 .launch[data-intro] .launch__gl { transition: none; }
 .launch[data-intro].is-live .launch__earth { visibility: hidden; transition: none; }
-.launch[data-intro]:not([data-hold]) .launch__shade { animation: launch-fade 1.4s ease 1.1s backwards; }
-.launch[data-intro]:not([data-hold]) .launch__w > span { animation: launch-word 1.1s var(--ease-launch) calc(1.5s + var(--i) * 80ms) backwards; }
-.launch[data-intro]:not([data-hold]) .launch__lede { animation: launch-up 1s var(--ease-launch) 2.2s backwards; }
-.launch[data-intro]:not([data-hold]) .launch__cta { animation: launch-up 1s var(--ease-launch) 2.4s backwards; }
+/* The words arrive with the planet's rise, not after it: readable about a second after the scene is ready. */
+.launch[data-intro]:not([data-hold]) .launch__shade { animation: launch-fade 1s ease .1s backwards; }
+.launch[data-intro]:not([data-hold]) .launch__w > span { animation: launch-word 1s var(--ease-launch) calc(.3s + var(--i) * 60ms) backwards; }
+.launch[data-intro]:not([data-hold]) .launch__lede { animation: launch-up .9s var(--ease-launch) .75s backwards; }
+.launch[data-intro]:not([data-hold]) .launch__eg { animation: launch-up .9s var(--ease-launch) .85s backwards; }
+.launch[data-intro]:not([data-hold]) .launch__cta { animation: launch-up .9s var(--ease-launch) .95s backwards; }
+.launch[data-intro]:not([data-hold]) :is(.launch__note, .launch__legal) { animation: launch-fade .8s ease 1.15s backwards; }
 @keyframes launch-fade { from { opacity: 0; } }
 @keyframes launch-word { from { transform: translateY(108%) rotate(2deg); } }
 @keyframes launch-up { from { opacity: 0; transform: translateY(14px); } }
@@ -70,5 +82,19 @@
   .launch__msg { gap: 14px; padding-block: 2svh; }
   .launch__lede { max-width: 40rem; font-size: .9375rem; line-height: 1.45; }
   .launch__cta { margin-top: 0; }
+  .launch__eg { margin-top: -4px; font-size: 0.8125rem; }
+  .launch__note { margin-top: -6px; }
   .launch__legal { padding-bottom: 4px; }
 }
+/* Small phones (an iPhone SE or mini, or any phone in Safari with its bars showing): a smaller headline and tighter
+   gaps, so the message, the example and Install still fit one screen. */
+@media (max-width: 40rem) and (max-height: 720px) {
+  .launch h1 { font-size: clamp(2rem, 7.2svh, 2.75rem); }
+  .launch__msg { gap: 14px; padding-block: 2svh 12px; }
+  .launch__lede { font-size: .9375rem; line-height: 1.45; }
+  .launch__eg { margin-top: -4px; font-size: 0.8125rem; }
+  .launch__note { margin-top: -4px; }
+}
+/* The tightest screens (a 320px-wide phone, any small phone on its side): the line under Install goes, so the rest fits. */
+@media (max-height: 420px), (max-width: 22rem) { .launch__note { display: none; } }
+@media (max-width: 22rem) { .launch h1 { font-size: 1.875rem; } .launch__msg { padding-top: 1svh; } }
