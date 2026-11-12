@@ -689,6 +689,8 @@ summary { touch-action: manipulation; -webkit-user-select: none; user-select: no
 .top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; pointer-events: none;
   background: linear-gradient(90deg, transparent 6%, rgba(57,255,136,.9) 16%, rgba(57,255,136,.35) 28%, transparent 40%); box-shadow: 0 0 10px rgba(57,255,136,.5); }
 .wordmark .wordmark__name { display: inline-flex; align-items: center; gap: 8px; }
+/* Keep the narrowest phones' mark-only header: the product name (and its light) stays hidden there. */
+@media (max-width: 23rem) { .wordmark .wordmark__name { display: none; } }
 .wordmark .wordmark__name::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--led); box-shadow: var(--led-shine); }
 .links a[aria-current="page"] { position: relative; padding-left: 22px; }
 .links a[aria-current="page"]::before, .sheet__links a[aria-current="page"]::before { content: ""; position: absolute; left: 10px; top: 50%; width: 6px; height: 6px; margin-top: -3px; border-radius: 50%; background: var(--led); box-shadow: var(--led-shine); }
