@@ -1,51 +1,72 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { Agent } from "@/lib/site";
 import { AgentMark } from "./AgentMark";
-import { AGENT_KEY, COPIED_KEY, FALLBACK, SHOWN, commandFor, lastAgent } from "./install-choice";
+import { AGENT_KEY, FALLBACK, OS_SCRIPT, SHOWN, commandFor, lastAgent, markOS, readHandoff } from "./install-choice";
 
 // The install page. Arriving from the homepage's Install button, the command is already on the clipboard (the button
 // copied it), and a notice says so and how to paste it. Arriving any other way, Copy does the same.
-type Note = { ok: boolean; n: number };
+//
+// Nothing jumps after load: an inline script marks the saved agent (data-agent) and the computer (html[data-os])
+// before paint, every agent's command, test note and next step are in the page, and CSS shows the marked one. React
+// then takes over the same values. On a phone the paste keys are hidden, since the command is for a computer.
+const AGENT_SCRIPT = `try{var a=(localStorage.getItem("${AGENT_KEY}")||"").replace(/^t-/,"");if(/^(${SHOWN.map((a) => a.id).join("|")})$/.test(a))document.currentScript.parentElement.setAttribute("data-agent",a)}catch(e){}`;
+// How long a "copied" state and its notice last. The CSS fade-out reads the same value.
+const NOTE_MS = 6000;
+type Note = { kind: "copied" | "blocked" | "failed"; n: number };
 
-const Check = () => <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>;
-const Keys = ({ k }: { k: string[] }) => <>{k.map((x) => <kbd key={x}>{x}</kbd>)}</>;
+const Check = () => <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>;
 const CopyIcon = () => <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" /></svg>;
+// The paste keys for each kind of computer; html[data-os] decides which shows. Linux terminals paste with Ctrl Shift V.
+const Keys = () => (
+  <span className="inst__keys"> with{" "}
+    <span data-os="mac"><kbd>⌘</kbd><kbd>V</kbd></span>
+    <span data-os="linux"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>V</kbd></span>
+    <span data-os="other"><kbd>Ctrl</kbd><kbd>V</kbd></span>
+  </span>
+);
+const tested = (a: Agent) => a.tested ? `${a.testedScope ?? "Tested"} with ${a.tested}.` : `Not tested with ${a.label} yet.`;
 
 export function InstallPage({ kits, skills, children }: { kits: number; skills: number; children: React.ReactNode }) {
   const [agent, setAgent] = useState<Agent>(SHOWN[0]);
   const [copied, setCopied] = useState(false);
   const [note, setNote] = useState<Note | null>(null);
-  // The paste keys for this computer; none on a phone, where the command is for a terminal elsewhere.
-  const [paste, setPaste] = useState<string[] | null>(["⌘", "V"]);
+  const [said, setSaid] = useState("");
+  const h1 = useRef<HTMLHeadingElement>(null);
 
-  useEffect(() => {
-    if (matchMedia("(hover: none) and (pointer: coarse)").matches) setPaste(null);
-    else if (!/Mac/.test(navigator.platform || navigator.userAgent)) setPaste(["Ctrl", "V"]);
-    let a = lastAgent();
-    try {
-      const c = sessionStorage.getItem(COPIED_KEY); sessionStorage.removeItem(COPIED_KEY);
-      const hit = SHOWN.find((x) => x.id === c);
-      if (hit) { a = hit; setCopied(true); setNote({ ok: true, n: 1 }); }
-      else if (c === "blocked") setNote({ ok: false, n: 1 });
-    } catch {}
-    setAgent(a);
+  // Before paint: the saved agent, and what the homepage's Install button did.
+  useLayoutEffect(() => {
+    if (!document.documentElement.hasAttribute("data-os")) markOS();
+    const h = readHandoff(), hit = h && "agent" in h ? SHOWN.find((x) => x.id === h.agent) : undefined;
+    setAgent(hit ?? lastAgent());
+    if (!h) return;
+    if (hit) setCopied(true);
+    h1.current?.focus({ preventScroll: true });
+    // The notice waits a moment, so a screen reader reads it after the new page's title, not over it.
+    const t = setTimeout(() => setNote({ kind: hit ? "copied" : "blocked", n: 1 }), 600);
+    return () => clearTimeout(t);
   }, []);
-  useEffect(() => { if (!note) return; const t = setTimeout(() => setNote(null), note.ok ? 8000 : 10000); return () => clearTimeout(t); }, [note]);
+  useEffect(() => { if (!copied) return; const t = setTimeout(() => setCopied(false), NOTE_MS); return () => clearTimeout(t); }, [copied]);
+  useEffect(() => { if (!note) return; const t = setTimeout(() => setNote(null), NOTE_MS); return () => clearTimeout(t); }, [note]);
 
-  const pick = (a: Agent) => { setAgent(a); setCopied(false); try { localStorage.setItem(AGENT_KEY, a.id); } catch {} };
+  const pick = (a: Agent) => {
+    setAgent(a); setCopied(false); setSaid(`${a.label}. ${tested(a)}`);
+    try { localStorage.setItem(AGENT_KEY, a.id); } catch {}
+  };
   const focus = (a: Agent) => { pick(a); document.getElementById(`it-${a.id}`)?.focus(); };
+  const show = (kind: Note["kind"]) => setNote((x) => ({ kind, n: (x?.n ?? 0) + 1 }));
   const copy = async () => {
-    try { await navigator.clipboard.writeText(commandFor(agent)); setCopied(true); setNote((x) => ({ ok: true, n: (x?.n ?? 0) + 1 })); }
-    catch { setCopied(false); setNote((x) => ({ ok: false, n: (x?.n ?? 0) + 1 })); }
+    try { await navigator.clipboard.writeText(commandFor(agent)); setCopied(true); show("copied"); }
+    catch { setCopied(false); show("failed"); }
   };
   const many = agent.steps.length > 1;
 
   return (
-    <main className="inst">
+    <main className="inst" data-agent={agent.id} suppressHydrationWarning style={{ "--note": `${NOTE_MS}ms` } as React.CSSProperties}>
+      <script dangerouslySetInnerHTML={{ __html: AGENT_SCRIPT + OS_SCRIPT }} />
       <div className="inst__in">
-        <h1>Install Agent Kit</h1>
+        <h1 ref={h1} tabIndex={-1}>Install Agent Kit</h1>
         <p className="inst__lede">{kits} kits and {skills} skills, installed with one paste into your terminal.</p>
 
         <div className="inst__tabs" role="tablist" aria-label="Your agent"
@@ -69,17 +90,25 @@ export function InstallPage({ kits, skills, children }: { kits: number; skills: 
               {copied ? <><Check />Copied</> : <><CopyIcon />{many ? "Copy all" : "Copy"}</>}
             </button>
           </div>
-          <pre translate="no"><code>{agent.steps.map((s) => <span key={s} className="inst__line">{s}</span>)}</code></pre>
+          <pre translate="no">{SHOWN.map((a) => (
+            <code key={a.id} data-a={a.id}>{a.steps.map((s) => <span key={s} className="inst__line">{s}</span>)}</code>
+          ))}</pre>
         </div>
 
-        <p className="inst__tested">
-          {agent.tested ? `${agent.testedScope ?? "Tested"} with ${agent.tested}.` : <>Not tested with {agent.label} yet. <button type="button" onClick={() => focus(FALLBACK)}>The {FALLBACK.label} command is tested</button>.</>}
-        </p>
+        <div className="inst__tested">
+          {SHOWN.map((a) => (
+            <p key={a.id} data-a={a.id}>{tested(a)}{!a.tested && <> <button type="button" onClick={() => focus(FALLBACK)}>The {FALLBACK.label} command is tested</button>.</>}</p>
+          ))}
+        </div>
 
-        <ol className="inst__next">
-          <li><span>1</span><p>Paste {many ? "the lines" : "it"} into a terminal{paste && <> with <Keys k={paste} /></>} and press Return.</p></li>
-          <li><span>2</span><p>{agent.check.replace(/^Copies/, "It copies")}</p></li>
-        </ol>
+        <div className="inst__next">
+          {SHOWN.map((a) => (
+            <ol key={a.id} data-a={a.id}>
+              <li><span>1</span><p>Paste {a.steps.length > 1 ? "the lines" : "it"} into a terminal<Keys /> and press Return.</p></li>
+              <li><span>2</span><p>{a.check.replace(/^Copies/, "It copies")}</p></li>
+            </ol>
+          ))}
+        </div>
 
         <nav className="inst__more" aria-label="After installing">
           <Link href="/start">New to coding agents? Start here</Link>
@@ -90,10 +119,16 @@ export function InstallPage({ kits, skills, children }: { kits: number; skills: 
         <p className="inst__by">{children}</p>
       </div>
 
-      <div className="inst__toast" role="status" aria-live="polite">
-        {note && (note.ok
-          ? <div className="inst__note" key={note.n}><Check /><p><b>Install command copied.</b> {paste ? <>Paste it in your terminal with <Keys k={paste} />.</> : <>Paste it in a terminal on your computer.</>}</p></div>
-          : <div className="inst__note is-warn" key={note.n}><p><b>Your browser blocked copying.</b> Use Copy, or select the command.</p></div>)}
+      <p className="inst__said" aria-live="polite">{said}</p>
+      <div className="inst__toast" role="status">
+        {note && (
+          <div className={`inst__note${note.kind === "copied" ? "" : " is-warn"}`} key={note.n}>
+            {note.kind === "copied" && <Check />}
+            <p>{note.kind === "copied" ? <><b>Install command copied.</b> Paste it in a terminal<Keys />.</>
+              : note.kind === "blocked" ? <><b>Your browser blocked copying.</b> Press Copy, or select the command.</>
+              : <><b>Copying was blocked.</b> Select the command and copy it yourself.</>}</p>
+          </div>
+        )}
       </div>
     </main>
   );

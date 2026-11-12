@@ -38,7 +38,7 @@ export const STEPS: Step[] = [
     goal: "Choose the coding agent you’ll use for the whole guide.",
     body: [
       "A coding agent is an AI that can read and change the files in a folder on your computer. You describe what you want in plain words, it does the work and shows you what changed, and you decide what to keep.",
-      "This guide uses the Claude desktop app, which runs Claude Code without a terminal, on Mac and Windows. It needs a paid Claude plan. If you already use Codex or Cursor, keep using it: every request in this guide is plain text you can paste into any agent. Only step 4 has agent-specific commands, and the home page lists them for each agent.",
+      "This guide uses the Claude desktop app, which runs Claude Code without a terminal, on Mac and Windows. It needs a paid Claude plan. If you already use Codex or Cursor, keep using it: every request in this guide is plain text you can paste into any agent. Only step 4 has agent-specific commands, and the install page (atlasscope.dev/install) lists them for each agent.",
     ],
     actions: [{ kind: "link", label: "Download the Claude app", href: "https://claude.ai/download" }],
     expect: "The app opens, you’re signed in, and you can see the Code section.",
@@ -103,7 +103,7 @@ export const STEPS: Step[] = [
     ],
     expect: "The agent’s first line names the skill it picked and why. It changes index.html. Refresh the browser at the same narrow width, and the list has more room and larger tap targets.",
     wrong: [
-      ["The agent says the claude command isn’t available.", "Install design-kit from the plugin browser instead: + next to the prompt box, then Add plugins. If Agent Kit isn’t listed there, use the Claude Code tab on the home page from a terminal once; the app picks it up."],
+      ["The agent says the claude command isn’t available.", "Install design-kit from the plugin browser instead: + next to the prompt box, then Add plugins. If Agent Kit isn’t listed there, run the Claude Code commands from the install page (atlasscope.dev/install) in a terminal once; the app picks it up."],
       ["/design isn’t recognized.", "Start a new session in the reading-list folder. Skills load when a session starts."],
       ["The agent says a skill it wanted isn’t installed.", "That’s fine. It uses the closest installed skill and tells you which one. You don’t need to install anything else."],
       ["You don’t like the change.", "Reply: “Undo that change.” Nothing is saved to GitHub until you commit in step 5."],

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { InstallPage } from "@/components/InstallPage";
 import { KITS, SITE } from "@/lib/site";
 import { counts, authors } from "@/lib/content";
@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   description: `Install Agent Kit in Claude Code, Codex, Cursor, Gemini CLI or GitHub Copilot: ${KITS.length} kits and ${counts.skills} skills, one command per agent.`,
   alternates: { canonical: "/install" },
 };
+
+// Always dark, so the browser's own bar matches it in both themes.
+export const viewport: Viewport = { themeColor: "#030409", colorScheme: "dark" };
 
 export default function Install() {
   const a = authors();

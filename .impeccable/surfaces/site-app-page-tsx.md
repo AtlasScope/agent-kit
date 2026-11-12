@@ -11,11 +11,11 @@ Scope: the homepage of atlasscope.dev, the Agent Kit site. Mode: Persuade.
 
 Audience and job: developers who already use a coding agent and want to install; people new to coding agents who need a first step. Action: copy the install command, or follow "New to coding agents? Start here". Proof: the counts read from generated content, and the "tested with" version and date. Constraints: counts never hand-typed; logo never on the photo; reduced motion respected; real HTML text.
 
-Memorable moment: the install command is usable in the first screen, on a solid strip under the horizon.
+Memorable moment (since 2026-11-11): one still screen; Install copies the command in the click and the scene hands off to a black `/install` page that says it is on the clipboard.
 
 Settled by Austin on 2026-11-09: composition A (Horizon rail), picked from three HTML layouts on a Claude Design canvas because no image generator was available, so no generated comp or comp-diff exists for this build; muted grey is `#A3A6AD`; the photo is used as supplied.
 
-On phones the install strip sits below the first screen until the phone header is shortened; the "Install Agent Kit" button jumps to it.
+Superseded on 2026-11-11 (PR #76, Austin): the install strip under the horizon was removed. The homepage is one screen with nothing below it, and the command lives on `/install`. The direction contract below records the 2026-11-09 build and no longer describes the page.
 
 ## Direction contract
 
