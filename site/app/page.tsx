@@ -5,7 +5,7 @@ import { LaunchHero } from "@/components/LaunchHero";
 import "./launch.css";
 
 // One screen and nothing below it: the hero, whose Install button opens /install. The footer is hidden here
-// (globals.css); its links are in the header and on every other page.
+// (globals.css); the hero carries About, Privacy, Terms and Credits at its foot instead.
 export default function Home() {
   return (
     <main className="home">

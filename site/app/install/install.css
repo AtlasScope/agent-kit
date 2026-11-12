@@ -1,5 +1,6 @@
 /* The install page (components/InstallPage.tsx): black, hairlines, one terminal card, one bright button. Always dark,
-   like the homepage it continues from; the homepage's Install button fades its sky to this same black. */
+   like the homepage it continues from (globals.css puts the whole document in the dark set while it shows); the
+   homepage's Install button fades its sky to this same black. */
 .inst { --bg: #030409; --card: #0A0B10; --line: rgba(255,255,255,.09); --line-2: rgba(255,255,255,.16); --t1: #EDEDED; --t2: #A1A1A1; --t3: #8B8B8F; --ok: #4ADE80;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   position: relative; isolation: isolate; margin-inline: calc(50% - 50vw); min-height: calc(100svh - var(--header-h, 65px)); background: var(--bg); color: var(--t1); overflow-x: clip; }
@@ -18,7 +19,15 @@
 .inst__tabs button { flex: 1 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; padding: 0 10px; border: 0; border-radius: 9px; background: none;
   color: var(--t2); font: 500 13.5px/1 var(--font-body); white-space: nowrap; cursor: pointer; transition: color .2s, background .2s; }
 .inst__tabs .i { width: 15px; height: 15px; }
-.inst__tabs button[aria-selected="true"] { background: rgba(255,255,255,.08); color: var(--t1); box-shadow: inset 0 0 0 1px var(--line); }
+:is(.inst[data-agent="claude"] #it-claude, .inst[data-agent="codex"] #it-codex, .inst[data-agent="cursor"] #it-cursor, .inst[data-agent="gemini"] #it-gemini, .inst[data-agent="copilot"] #it-copilot, .inst[data-agent="any"] #it-any) { background: rgba(255,255,255,.08); color: var(--t1); box-shadow: inset 0 0 0 1px var(--line); }
+
+/* Every agent's command, test note and steps are in the page; data-agent (set before paint) shows the chosen one. */
+.inst [data-a] { display: none; }
+:is(.inst[data-agent="claude"] [data-a="claude"], .inst[data-agent="codex"] [data-a="codex"], .inst[data-agent="cursor"] [data-a="cursor"], .inst[data-agent="gemini"] [data-a="gemini"], .inst[data-agent="copilot"] [data-a="copilot"], .inst[data-agent="any"] [data-a="any"]) { display: block; }
+/* The paste keys for this computer (html[data-os], set before paint); none on a phone, where the command is for a computer. */
+.inst__keys [data-os] { display: none; }
+html:not([data-os="mac"], [data-os="linux"]) .inst__keys [data-os="other"], html[data-os="mac"] .inst__keys [data-os="mac"], html[data-os="linux"] .inst__keys [data-os="linux"] { display: inline; }
+@media (hover: none) and (pointer: coarse) { .inst__keys { display: none; } }
 
 .inst__term { border: 1px solid var(--line-2); border-radius: 12px; background: var(--card); overflow: hidden; transition: border-color .4s; }
 .inst__term.is-copied { border-color: rgba(74,222,128,.45); }
@@ -28,13 +37,16 @@
 .inst__copy .i { width: 14px; height: 14px; }
 .inst__term.is-copied .inst__copy { background: rgba(74,222,128,.14); color: var(--ok); }
 .inst pre { margin: 0; padding: 16px 18px 18px; overflow-x: auto; font: 400 14px/1.75 var(--font-mono); }
-.inst pre code { display: grid; font: inherit; }
-.inst__line { white-space: pre; } .inst__line::before { content: "$ "; color: var(--t3); }
+.inst pre code { font: inherit; -webkit-user-select: all; user-select: all; }
+.inst__line { display: block; white-space: pre; } .inst__line::before { content: "$ "; color: var(--t3); }
 
 .inst__tested { margin: -6px 0 0; font-size: 13px; line-height: 1.5; color: var(--t3); }
+.inst__tested p { margin: 0; }
 .inst__tested button { padding: 0; border: 0; background: none; color: var(--t1); font: inherit; text-decoration: underline; text-decoration-color: var(--line-2); text-underline-offset: .2em; cursor: pointer; }
 
-.inst__next { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 14px; }
+.inst__next { margin-top: 8px; }
+.inst__next ol { list-style: none; margin: 0; padding: 0; }
+.inst__next li + li { margin-top: 14px; }
 .inst__next li { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 12px; align-items: start; }
 .inst__next li > span { display: grid; place-items: center; width: 24px; height: 24px; border: 1px solid var(--line-2); border-radius: 50%; font: 500 12px/1 var(--font-mono); color: var(--t2); }
 .inst__next p { margin: 0; padding-top: 2px; font-size: 15px; line-height: 1.5; color: var(--t2); text-wrap: pretty; }
@@ -53,27 +65,40 @@
 .inst__copy:active { transform: scale(0.97); }
 .inst__tabs button:active { color: var(--t1); }
 .inst :is(button, a):focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+/* The heading takes focus on arrival from the homepage, so keyboard and screen reader users start at the top. */
+.inst h1:focus { outline: none; }
+.inst__said { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 /* The notice: bottom centre, says the command is on the clipboard and how to paste it. */
 .inst__toast { position: fixed; left: 50%; bottom: max(24px, env(safe-area-inset-bottom)); translate: -50% 0; z-index: 30; width: max-content; max-width: calc(100vw - 32px); pointer-events: none; }
 .inst__note { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 1px solid var(--line-2); border-radius: 12px; background: #0E0F14; box-shadow: 0 16px 40px -12px rgba(0,0,0,.9);
-  font-size: 14px; line-height: 1.45; color: var(--t2); animation: inst-toast .5s var(--ease) both, inst-toast-out .4s ease 7.5s forwards; }
+  font-size: 14px; line-height: 1.45; color: var(--t2); animation: inst-toast .5s var(--ease) both, inst-toast-out .4s ease calc(var(--note, 6000ms) - 400ms) forwards; }
 .inst__note .i { flex: none; width: 18px; height: 18px; padding: 3px; border-radius: 50%; background: rgba(74,222,128,.14); color: var(--ok); box-sizing: content-box; }
 .inst__note p { margin: 0; } .inst__note b { color: var(--t1); font-weight: 500; }
-.inst__note.is-warn { animation: inst-toast .5s var(--ease) both, inst-toast-out .4s ease 9.5s forwards; }
 
 /* Arriving: the page settles in out of the black the homepage faded to. */
 .inst__in > * { animation: inst-in .7s var(--ease) backwards; }
 .inst__in > :nth-child(2) { animation-delay: .05s; } .inst__in > :nth-child(3) { animation-delay: .1s; } .inst__in > :nth-child(4) { animation-delay: .15s; }
 .inst__in > :nth-child(n + 5) { animation-delay: .22s; }
-@keyframes inst-in { from { opacity: 0; transform: translateY(10px); filter: blur(4px); } }
+@keyframes inst-in { from { opacity: 0; transform: translateY(10px); } }
 @keyframes inst-toast { from { opacity: 0; transform: translateY(12px) scale(.98); } }
 @keyframes inst-toast-out { to { opacity: 0; transform: translateY(6px); } }
-@media (prefers-reduced-motion: reduce) { .inst__in > *, .inst__note, .inst__note.is-warn { animation: none; } }
 
-@media (max-width: 640px) {
+/* Touch screens: 44px for the things people tap. */
+@media (pointer: coarse) {
+  .inst__tabs button { min-height: 44px; }
+  .inst__copy { min-height: 44px; padding: 0 16px; }
+  .inst__tested button { padding-block: 12px; }
+  .inst__more a { min-height: 44px; }
+  .inst__by { line-height: 2.4; }
+}
+/* The six agents fit one row from about 710px; below that, three to a row, and two on the narrowest phones. */
+@media (max-width: 720px) {
   .inst__tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .inst__tabs button { padding: 0 6px; font-size: 12.5px; }
+}
+@media (max-width: 400px) { .inst__tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) {
   .inst pre { font-size: 12.5px; padding: 14px; }
   .inst__line { white-space: pre-wrap; overflow-wrap: anywhere; padding-left: 2ch; text-indent: -2ch; display: block; }
 }
