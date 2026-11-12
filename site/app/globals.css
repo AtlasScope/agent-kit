@@ -232,7 +232,10 @@ svg.i { width: 16px; height: 16px; flex: none; }
 .links a { display: inline-flex; align-items: center; white-space: nowrap; min-height: 36px; padding: 0 12px; border-radius: 8px; color: var(--color-ink-2); font-weight: 500; }
 .links a[aria-current="page"] { background: var(--color-paper-3); color: var(--color-ink); font-weight: 600; }
 .nav__end { margin-left: 0; gap: var(--space-xs); }
-.nav .search { position: relative; margin-left: auto; flex: 0 1 340px; min-width: 0; max-width: none; display: block; }
+/* Search keeps at least room for its placeholder; the menu bar takes over before the row runs short of it. */
+.nav .search { position: relative; margin-left: auto; flex: 0 1 340px; min-width: 15rem; max-width: none; display: block; }
+/* The header row is capped in rem, not px, so it grows with the visitor's text size and its contents still fit. */
+.top > .container { max-width: max(var(--container), 80rem); }
 .nav .search > svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--color-muted); pointer-events: none; }
 .nav .search input { width: 100%; min-height: 40px; padding: 0 36px 0 36px; border: 1px solid var(--color-rule-2); border-radius: 10px; background: var(--color-paper-2); color: var(--color-ink); font: inherit; font-size: 0.9375rem; outline: none; -webkit-appearance: none; appearance: none; }
 .nav .search input::-webkit-search-cancel-button { display: none; }
@@ -276,7 +279,6 @@ svg.i { width: 16px; height: 16px; flex: none; }
 .page-head h1 { font-size: clamp(2.125rem, 2.8vw + 1rem, 3.25rem); line-height: 1.05; letter-spacing: -0.035em; }
 .lead { color: var(--color-ink-2); }
 .section > h2, .h2 { display: flex; align-items: center; font: 650 clamp(1.25rem, 0.6vw + 1rem, 1.5rem)/1.2 var(--font-body); letter-spacing: -0.025em; }
-.section { scroll-margin-top: 88px; }
 
 /* Tiles: the big entry points */
 .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr)); gap: var(--space-sm); }
@@ -369,14 +371,18 @@ svg.i { width: 16px; height: 16px; flex: none; }
 }
 @media (pointer: coarse) { .star { min-width: 44px; min-height: 44px; } .pcard__a .btn, .pcard__foot .btn, .menu > .btn { min-height: 44px; } .links a { min-height: 40px; } }
 
-/* Header on tablets and phones: search takes its own row, section links scroll. */
+/* Header controls for the menu bar (up to 1280px): icon buttons, and the menu sheet. */
 .iconbtn { display: inline-grid; place-items: center; flex: none; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--color-ink); cursor: pointer; }
 .iconbtn .i { width: 20px; height: 20px; }
 .nav__toggles, .search__close { display: none; }
 /* The menu: a full-window sheet on ink with its own top row, so Close sits where Menu was. */
 .sheet { position: fixed; inset: 0; width: 100%; max-width: none; height: 100dvh; max-height: none; margin: 0; padding: 0 0 max(var(--space-lg), env(safe-area-inset-bottom)); border: 0; background: var(--color-paper); color: var(--color-ink); overflow-y: auto; overscroll-behavior: contain; }
-.sheet::backdrop { background: #0B0C12; }
-.sheet__top { display: flex; align-items: center; justify-content: space-between; min-height: 56px; border-bottom: 1px solid var(--color-rule); font: 500 0.9375rem/1 var(--font-body); color: var(--color-muted); }
+.sheet::backdrop { background: var(--color-paper); }
+/* The page behind the open menu stays put (Safari otherwise scrolls it). */
+html:has(.sheet[open]) { overflow: hidden; }
+.sheet__top { display: flex; align-items: center; justify-content: space-between; min-height: var(--header-h); border-bottom: 1px solid var(--color-rule); font: 500 0.9375rem/1 var(--font-body); color: var(--color-muted); }
+.sheet__top .iconbtn { margin-right: -8px; }
+.auth-me { display: inline-flex; }
 .sheet__links { margin: 0; padding: var(--space-xs) 0 0; list-style: none; }
 .sheet__links a { display: flex; align-items: center; min-height: 56px; border-bottom: 1px solid var(--color-rule); font: 600 1.25rem/1.2 var(--font-body); letter-spacing: -0.015em; color: var(--color-muted); text-decoration: none; }
 .sheet__links a[aria-current="page"] { color: var(--color-ink); }
@@ -385,29 +391,28 @@ svg.i { width: 16px; height: 16px; flex: none; }
 .sheet__end .btn--ghost { border-color: var(--color-rule-2); }
 @media (hover: hover) and (pointer: fine) { .iconbtn:hover { background: var(--color-paper-2); } .sheet__links a:hover { color: var(--color-ink); } }
 
-/* Below 1200px, where the links, search and account no longer fit one row: a 56px bar with search and a menu
-   button. The 32px logo sits at 12px, a whole device pixel at every scale. */
-@media (max-width: 75rem) {
+/* Up to 1280px (80rem), where the links, search and account (signed in, with "Collections") no longer fit one
+   row with room to search: a 56px bar with search and a menu button. The 32px logo sits at 12px, a whole device
+   pixel at every scale. The switch is in rem, so a larger text size moves it with the text. */
+@media (max-width: 80rem) {
   .nav { min-height: 56px; gap: var(--space-sm); }
   .nav > .links, .nav__end { display: none; }
   .nav__toggles { display: flex; gap: 4px; margin-right: -8px; }
-  .nav .search { flex: 0 1 420px; }
+  .nav .search { flex: 0 1 420px; min-width: 0; }
   .nav__find { display: none; }
-  .section { scroll-margin-top: 72px; }
 }
-/* Phones: search is a button. The field is in the page all along and covers the bar while it has focus. */
+/* Phones: search is a button. The field covers the bar once the button opens it, and is hidden (out of the tab
+   order and the accessibility tree) until then. */
 @media (max-width: 40rem) {
   :root { --gutter: 16px; }
   .nav { position: relative; }
   .nav__toggles { margin-left: auto; }
   .nav__find { display: inline-grid; }
-  .nav .search { position: absolute; z-index: 1; inset: 0 max(var(--gutter), env(safe-area-inset-right)) 0 max(var(--gutter), env(safe-area-inset-left)); display: flex; align-items: center; gap: 4px; margin: 0; background: var(--color-paper); opacity: 0; pointer-events: none; transition: opacity 150ms var(--ease-out); }
-  .nav .search:focus-within { opacity: 1; pointer-events: auto; }
-  .nav .search input { flex: 1; width: auto; font-size: 1rem; padding-right: 12px; }
-  .nav .search > svg { top: 28px; }
+  .nav .search { position: absolute; z-index: 1; inset: 0 max(var(--gutter), env(safe-area-inset-right)) 0 max(var(--gutter), env(safe-area-inset-left)); display: flex; align-items: center; gap: 4px; margin: 0; background: var(--color-paper); opacity: 0; visibility: hidden; transition: opacity 150ms var(--ease-out), visibility 0s 150ms; }
+  .nav .search.is-shown { opacity: 1; visibility: visible; transition: opacity 150ms var(--ease-out); }
+  .nav .search input { flex: 1; width: auto; padding-right: 12px; }
   .search__close { display: inline-grid; margin-right: -8px; }
-  /* Short enough to stay above the iPhone keyboard. */
-  .results { top: 100%; max-height: min(520px, 42svh); }
+  .results { top: 100%; }
   .kbd { display: none; }
   .tiles:not(.tiles--start) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-xs); }
   .tiles:not(.tiles--start) .tile { padding: 12px; box-shadow: none; }
@@ -591,8 +596,8 @@ body:has(main.home) .foot { display: none; }
 /* Polish (2026-11-10): one header height for sticky offsets and jump targets, a skip link, reading width,
    balanced headings, hover on in-text links, visible focus, and lighter long lists. */
 :root { --header-h: 65px; --read: 52ch; }
-/* The header is one row everywhere: 64px plus its hairline, and 56px plus its hairline below 1200px (75rem), where the menu takes over. */
-@media (max-width: 75rem) { :root { --header-h: 57px; } }
+/* The header is one row everywhere: 64px plus its hairline, and 56px plus its hairline up to 1280px (80rem), where the menu takes over. */
+@media (max-width: 80rem) { :root { --header-h: 57px; } }
 html { scroll-padding-top: calc(var(--header-h) + 16px); }
 @media (pointer: fine) { html { overscroll-behavior-y: none; } }
 .results { overscroll-behavior: contain; }
@@ -625,20 +630,20 @@ summary { touch-action: manipulation; -webkit-user-select: none; user-select: no
 }
 
 /* Motion. The homepage scene (app/launch.css) is the one thing that moves by itself. Everything here answers a press: the menu
-   arriving, the install strip changing agent, and a control acknowledging a tap (phones have no hover).
+   arriving and leaving, and a control acknowledging a tap (phones have no hover). The install page's agent change is
+   in app/install/install.css.
    With reduced motion set, the rule near the top of this file switches all of it off. */
 .sheet__title { outline: none; }
-.sheet { transition: opacity 240ms var(--ease-out), transform 240ms var(--ease-out), overlay 140ms allow-discrete, display 140ms allow-discrete; }
+.sheet { transition: opacity 240ms var(--ease-out), transform 240ms var(--ease-out), overlay 240ms allow-discrete, display 240ms allow-discrete; }
 .sheet:not([open]) { opacity: 0; }
 @starting-style { .sheet[open] { opacity: 0; transform: translateY(-8px); } }
 .sheet[open] .sheet__links li, .sheet[open] .sheet__end { animation: sheet-in 360ms var(--ease-out) backwards; }
 .sheet[open] .sheet__links li:nth-child(2) { animation-delay: 30ms; } .sheet[open] .sheet__links li:nth-child(3) { animation-delay: 60ms; }
 .sheet[open] .sheet__links li:nth-child(4) { animation-delay: 90ms; } .sheet[open] .sheet__end { animation-delay: 120ms; }
 @keyframes sheet-in { from { opacity: 0; transform: translateY(6px); } }
-.swap { animation: swap-in 200ms var(--ease-out); }
-@keyframes swap-in { from { opacity: 0; } }
 .iconbtn, .sheet__links a { transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), transform var(--dur-micro) var(--ease-out); }
 .iconbtn:active { background: var(--color-paper-2); transform: scale(0.94); }
 .sheet__links a:active { color: var(--color-ink); }
-/* The "/" key hint means nothing without a keyboard. */
-@media (pointer: coarse) { .kbd { display: none; } }
+/* The "/" key hint means nothing without a keyboard. Touch screens, phones in either orientation included: a 16px
+   field, so iOS does not zoom the page when it takes focus, and results short enough to stay above the keyboard. */
+@media (pointer: coarse) { .kbd { display: none; } .nav .search input { font-size: 1rem; } .results { max-height: min(520px, 42svh); } }

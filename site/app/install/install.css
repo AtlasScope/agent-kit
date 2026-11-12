@@ -23,6 +23,9 @@
 
 /* Every agent's command, test note and steps are in the page; data-agent (set before paint) shows the chosen one. */
 .inst [data-a] { display: none; }
+/* After a pick, the newly shown command fades in (showing it restarts the animation); on load nothing moves. */
+.inst[data-picked] pre [data-a] { animation: inst-swap 200ms var(--ease-out); }
+@keyframes inst-swap { from { opacity: 0; } }
 :is(.inst[data-agent="claude"] [data-a="claude"], .inst[data-agent="codex"] [data-a="codex"], .inst[data-agent="cursor"] [data-a="cursor"], .inst[data-agent="gemini"] [data-a="gemini"], .inst[data-agent="copilot"] [data-a="copilot"], .inst[data-agent="any"] [data-a="any"]) { display: block; }
 /* The paste keys for this computer (html[data-os], set before paint); none on a phone, where the command is for a computer. */
 .inst__keys [data-os] { display: none; }

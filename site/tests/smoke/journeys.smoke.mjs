@@ -89,8 +89,11 @@ for (const size of SIZES) {
       await page.getByRole("banner").getByRole("link", { name: "Skills" }).click();
     }
     await page.waitForURL(/\/skills$/);
+    // On phones the field opens from the header's Search button; it is hidden until then.
+    if (size.name === "phone") await page.getByRole("banner").getByRole("button", { name: "Search", exact: true }).click();
     await page.getByRole("combobox", { name: "Search prompts and skills" }).fill("slow page");
-    await page.getByRole("option").first().waitFor();
+    // A real result, not the "Nothing matches" row (also an option).
+    await page.locator('#search-results [role="option"] a').first().waitFor();
     await noSideScroll(page, "/skills");
     assert.deepEqual(errors, []);
     await ctx.close();
@@ -163,3 +166,19 @@ for (const size of SIZES) {
     await ctx.close();
   });
 }
+
+// Tablet width (the menu bar with search in it): the menu opens and links work, and an open menu closes itself when
+// the window widens past the menu bar (an iPad turned to landscape), so the page never stays locked behind it.
+test("tablet: the menu works and closes when the window widens", async () => {
+  const size = { name: "tablet", viewport: { width: 1024, height: 768 } };
+  const { page, ctx, errors } = await open(size, "/prompts");
+  await page.getByRole("button", { name: "Menu", exact: true }).click();
+  await page.getByRole("dialog").waitFor();
+  await page.setViewportSize({ width: 1366, height: 1024 });
+  await page.getByRole("dialog").waitFor({ state: "hidden" });
+  await page.getByRole("banner").getByRole("link", { name: "Skills" }).click();
+  await page.waitForURL(/\/skills$/);
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
