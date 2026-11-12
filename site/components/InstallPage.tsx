@@ -66,7 +66,7 @@ export function InstallPage({ kits, skills, children }: { kits: number; skills: 
   const many = agent.steps.length > 1;
 
   return (
-    <main className="inst" data-agent={agent.id} data-picked={picked || undefined} suppressHydrationWarning style={{ "--note": `${NOTE_MS}ms` } as React.CSSProperties}>
+    <main className="quiet inst" data-agent={agent.id} data-picked={picked || undefined} suppressHydrationWarning style={{ "--note": `${NOTE_MS}ms` } as React.CSSProperties}>
       <script dangerouslySetInnerHTML={{ __html: AGENT_SCRIPT + OS_SCRIPT }} />
       <div className="inst__in">
         <h1 ref={h1} tabIndex={-1}>Install Agent Kit</h1>

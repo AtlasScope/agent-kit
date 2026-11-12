@@ -32,7 +32,7 @@
   --lift-hi: inset 0 1px 0 rgba(255,255,255,.08), 0 2px 4px rgba(0,0,0,.6), 0 12px 26px -10px rgba(0,0,0,.8), 0 30px 50px -24px rgba(0,0,0,1);
 } }
 /* The header, the homepage and the install page are ink in both themes. */
-.ink, :root:has(.home, .inst) {
+.ink, :root:has(.home, .quiet) {
   color-scheme: dark;
   --color-paper: #0B0C12; --color-paper-2: #151821; --color-paper-3: #151821;
   --color-ink: #FFFFFF; --color-ink-2: #A3A6AD; --color-muted: #A3A6AD;
@@ -657,3 +657,15 @@ summary { touch-action: manipulation; -webkit-user-select: none; user-select: no
 .welcome p { max-width: 56ch; color: var(--color-muted); font-size: 0.9375rem; line-height: 1.5; }
 .welcome__do { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
 @media (pointer: coarse) { .welcome__do .btn { min-height: 44px; } }
+
+/* The quiet pages (/install, /start): black, hairlines, a faint grid fading out from the top centre and a little
+   light under it, one centred column. Always dark, like the homepage they continue from (the rule near the top of
+   this file puts the whole document in the dark set while one shows). */
+.quiet { --bg: #030409; --card: #0A0B10; --line: rgba(255,255,255,.09); --line-2: rgba(255,255,255,.16); --t1: #EDEDED; --t2: #A1A1A1; --t3: #8B8B8F; --ok: #4ADE80;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative; isolation: isolate; margin-inline: calc(50% - 50vw); background: var(--bg); color: var(--t1); overflow-x: clip; }
+.quiet::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 56px 56px; background-position: center -1px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 55% at 50% 0%, #000 0%, transparent 75%); mask-image: radial-gradient(ellipse 70% 55% at 50% 0%, #000 0%, transparent 75%); opacity: .55; max-height: 1200px; }
+.quiet::after { content: ""; position: absolute; left: 50%; top: 0; width: min(900px, 100%); height: 420px; translate: -50% 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(255,255,255,.06), transparent); }
