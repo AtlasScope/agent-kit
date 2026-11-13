@@ -77,6 +77,7 @@ Make a web app feel like an installed app instead of a website.
 1. `/impeccable adapt`: layout across screen sizes
 2. `/mobile-native`: tap, notch, 100vh and input-zoom fixes
 3. `/apple-design`: gestures, sheets and springs where it matters
+4. `/ios-safari`: prove it in Safari on the iOS Simulator
 
 ## Explore before committing
 

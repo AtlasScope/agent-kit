@@ -486,6 +486,10 @@
    "s": "2222221",
    "note": "Claude Code only, and says so; elsewhere there is nothing to set."
   },
+  "UI107": {
+   "s": "2222221",
+   "note": "Needs macOS with Xcode and an iOS Simulator, and says so; lists what only a real iPhone can check."
+  },
   "UI029": {
    "s": "2202221",
    "note": "Duplicate of EC31 (same /harsh-review skill).",

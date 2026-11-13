@@ -65,6 +65,7 @@ The design-kit router itself.
 | Command | What it does | Mode |
 |---|---|---|
 | `/design` | One command for any design work. Say what you want and it picks the one right skill or recipe from this guide, tells you why, and starts it. /design next picks a recipe back up. | edits |
+| `/ios-safari` | Proves how a web app really behaves in Safari on iPhone: records the iOS Simulator during flings, loads, text-size changes, sheets and the keyboard, steps through the frames, then fixes what they show and lists what still needs a real phone. | edits |
 
 ## Built into Claude
 
