@@ -5,15 +5,15 @@ Agent Kit is an open set of skills for AI coding agents plus a prompt library, p
 ## Content
 
 **Prompt**:
-A single piece of text a person pastes into an agent, with notes on why it exists, what it returns and when to skip it.
+A single piece of text you paste into an agent, with notes on why it exists, what it returns, and when to skip it.
 _Avoid_: Recipe, command (when meaning a library entry)
 
 **Skill**:
-A folder with a SKILL.md that an agent loads to do one kind of job.
+A folder with a `SKILL.md` that an agent loads to do one kind of job.
 _Avoid_: Tool, agent
 
 **Kit**:
-One installable plugin that groups related skills, such as design-kit or engineering-kit.
+One installable plugin that groups related skills, such as `design-kit` or `engineering-kit`.
 _Avoid_: Package, pack, bundle
 
 **Borrowed skill**:
