@@ -5,6 +5,7 @@ license: MIT
 metadata:
   author: wondelai
   version: "1.6.0"
+disable-model-invocation: true
 ---
 
 # Top-Design: Award-Winning Digital Experiences

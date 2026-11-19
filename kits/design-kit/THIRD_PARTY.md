@@ -40,7 +40,7 @@ Every skill below was reviewed before it was added: its instructions read for hi
 | `web-typography` | [wondelai/skills](https://github.com/wondelai/skills) | `d8d5d75f83da` | MIT |
 | `write-swift` | [emilkowalski/skills](https://github.com/emilkowalski/skills) | `bdefda3891d3` | MIT |
 
-Changes from upstream: `steve-jobs-design-review`, `ux-heuristics` and `swiftui-pro` add `disable-model-invocation: true` so these reviews run only when asked. Repository READMEs, evals, demo videos and build files were left out; each skill folder is otherwise as published.
+Changes from upstream: every skill in the table except `apple-design`, `break-ui`, `color-expert`, `mobile-native` and `stop-slop` carries `disable-model-invocation: true` in its frontmatter, added here where upstream did not set it. That keeps the skill out of the list an agent reads at the start of every session; it runs when the user types its name or `/design` picks it. Repository READMEs, evals, demo videos and build files were left out; each skill folder is otherwise as published.
 
 `design` (the router) and `fix-writing` are original to this repo and MIT licensed.
 
