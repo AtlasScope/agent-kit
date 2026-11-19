@@ -68,8 +68,8 @@ The person chose these when they installed the design kit and can change them in
 
 | | Claude Code | Codex | Cursor |
 |---|---|---|---|
-| Run a skill the model can call | Skill tool | `$name` | `/name` |
-| Run a command-only skill (`/harsh-review`, `/image`, `/prototype`, `/ux-heuristics` and other review skills) | The Skill tool cannot call these. Read its SKILL.md from the skills folder and follow it as if they had typed it; their `/design` request, or their choice of automatic start, is the explicit invocation | Read its SKILL.md and follow it | Same as Codex |
+| Run a skill from this kit | Most are command-only, so they stay out of the session's skill list and the Skill tool cannot call them. Read `../<name>/SKILL.md` next to this file and follow it as if they had typed it; their `/design` request, or their choice of automatic start, is the explicit invocation. Six stay callable through the Skill tool: `apple-design`, `break-ui`, `color-expert`, `fix-writing`, `mobile-native`, `stop-slop` | `$name` | `/name` |
+| Run a command-only skill from elsewhere (`/harsh-review`, `/image`) | Read its SKILL.md from the skills folder and follow it the same way | Read its SKILL.md and follow it | Same as Codex |
 | Plugin skills (`/impeccable`, `/interface-design`, `/vale:*`, `example-skills:*`) | Skill tool with the plugin name | Installed as plain skills where present; check first | Check first |
 
 ## Traps

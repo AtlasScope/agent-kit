@@ -5,6 +5,7 @@ argument-hint: "<prompt> | redesign <path> | audit <path>"
 version: 2.0.0
 metadata:
   opencode/slash: "true"
+disable-model-invocation: true
 ---
 
 # Hallmark

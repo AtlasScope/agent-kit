@@ -5,6 +5,7 @@ license: MIT
 metadata:
   author: wondelai
   version: "1.5.0"
+disable-model-invocation: true
 ---
 
 # Web Typography

@@ -5,6 +5,7 @@ license: MIT
 metadata:
   author: wondelai
   version: "1.4.1"
+disable-model-invocation: true
 ---
 
 # Microinteractions Framework
