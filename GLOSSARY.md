@@ -5,7 +5,7 @@ Agent Kit is an open set of skills for AI coding agents plus a prompt library, p
 ## Content
 
 **Prompt**:
-A single piece of text you paste into an agent, with notes on why it exists, what it returns, and when to skip it.
+A single piece of text a person pastes into an agent, with notes on why it exists, what it returns, and when to skip it.
 _Avoid_: Recipe, command (when meaning a library entry)
 
 **Skill**:

@@ -7,13 +7,13 @@ Agent Kit is a curated library, so a new entry has to earn its place. Before add
 1. Edit [`library/library.json`](library/library.json) (and [`library/audit.json`](library/audit.json) for new entries). Each entry needs a stable `id`, a title (`t`), the text people copy (`p` or `cmd`), a `dmode` or `mode`, and a `why` line that says what it finds. Database prompts also need `ev` (evidence to ask for), `skip`, `avoid`, `tools`, `plat`, and `tags`.
 2. Run the checks and rebuild the generated files (including router references if you touched `/design`, `/engineer`, or `/database` entries):
 
-```sh
-node library/build.mjs
-node kits/design-kit/scripts/build_references.mjs
-node kits/engineering-kit/scripts/build_references.mjs
-node kits/engineering-kit/scripts/build_database_references.mjs
-node library/check.mjs
-```
+   ```sh
+   node library/build.mjs
+   node kits/design-kit/scripts/build_references.mjs
+   node kits/engineering-kit/scripts/build_references.mjs
+   node kits/engineering-kit/scripts/build_database_references.mjs
+   node library/check.mjs
+   ```
 
 3. Keep an entry's `id` when you rewrite it. Pages, stars, and links depend on it.
 
@@ -31,12 +31,12 @@ node scripts/check-catalog.mjs  # both plugin catalogs, kit manifests, and skill
 node library/check.mjs          # prompt library IDs, links, audit rows, and generated refs
 node tests/routing/check.mjs    # routing test cases resolve to real entries and skills
 node --test "kits/motion-kit/plugins/motion-kit/skills/motion/tests/*.test.mjs"
-cd kits/experience-architecture && npm test
-cd site && npm ci && npm run content && npm run typecheck && npm test
-cd site && npx playwright install chromium && npx next build && npm run smoke
+(cd kits/experience-architecture && npm test)
+(cd site && npm ci && npm run content && npm run typecheck && npm test)
+(cd site && npx playwright install chromium && npx next build && npm run smoke)
 ```
 
-CI runs the checks that cover the files your pull request touches.
+CI runs the checks that cover the files your pull request touches (except `kits/experience-architecture` `npm test` and `tests/routing/from-log.test.mjs`, which are local-only).
 
 ## What reviewers look for
 

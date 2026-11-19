@@ -9,7 +9,7 @@ metadata:
 
 # Engineer
 
-The user types `/engineer` and what is going on, in their own words, or just describes it if they chose automatic start. They have 50 investigations, 12 thinking prompts and 32 skills, and do not want to remember which fits. They get one starting move and one line on why. This router suggests; it does not run a workflow.
+The user types `/engineer` and what is going on, in their own words, or just describes it if they chose automatic start. They have 50 investigations, 10 thinking prompts and two dozen skills, and do not want to remember which fits. They get one starting move and one line on why. This router suggests; it does not run a workflow.
 
 The library is in two references, generated from the guide:
 

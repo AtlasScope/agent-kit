@@ -44,7 +44,7 @@ node agent-kit/kits/experience-architecture/plugins/experience-architecture/scri
 
 It installs `/experience-architecture-diagnose`, `-rethink`, `-verify` and `-walkthrough`, and keeps the plugin's files in `~/.experience-architecture/plugin`. Rerun it after a `git pull` to update; add `--uninstall` to remove only what it installed. `--codex` writes the same folders to `~/.codex/skills` if you prefer that to the Codex plugin, and `--dir <path>` targets any other tool that reads skill folders.
 
-To try it in Claude Code for one session without installing: `claude --plugin-dir <clone>/kits/experience-architecture/plugins/experience-architecture`.
+To try it in Claude Code for one session without installing: `claude --plugin-dir <clone>/plugins/experience-architecture`.
 
 ## What it does
 

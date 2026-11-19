@@ -9,7 +9,7 @@ metadata:
 
 # Engineering setup
 
-The user typed `/engineering-setup`. Explain both choices so someone who has never seen the kit can answer, ask, then save the answers with one yes. Claude Code also asks these questions when the kit is turned on; this is the friendlier way through the same choices, and it can be run again any time.
+The user typed `/engineering-setup`. Explain the choice so someone who has never seen the kit can answer, ask, then save the answer with one yes. Claude Code also asks this question when the kit is turned on; this is the friendlier way through the same choice, and it can be run again any time.
 
 ## Where this works
 

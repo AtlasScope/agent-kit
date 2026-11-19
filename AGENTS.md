@@ -8,7 +8,7 @@ Agent Kit ships skills for coding agents (`kits/`), a prompt library (`library/`
 - `kits/<kit>/`: kit wrapper README, `LICENSE`, `THIRD_PARTY.md` (when the kit holds borrowed skills), build scripts, and kit-specific tests.
 - `.claude-plugin/marketplace.json` and `.agents/plugins/marketplace.json`: root catalogs for Claude Code and Codex.
 - `library/`: `library.json`, `audit.json`, `template.html`, `EDITORIAL.md`, `check.mjs`, `build.mjs`, and generated files in `library/dist/`.
-- `site/`: Next.js App Router site and `/mcp` server. `site/content/generated.json` and `site/components/AtlasScopeLogo.tsx` are generated; don't edit them by hand.
+- `site/`: Next.js App Router site and `/mcp` server. `site/content/generated.json` (gitignored, built by `npm run content`) and `site/components/AtlasScopeLogo.tsx` are generated; don't edit them by hand.
 - `scripts/`: `check-public.mjs`, `check-catalog.mjs`, `install-local.sh`, `lanes.mjs`.
 - `tests/routing/`: routing test cases (`cases.json`) and validation (`check.mjs`, `from-log.test.mjs`).
 - `docs/`: ADRs (`docs/adr/`), design notes, and handoffs (`docs/handoffs/`).
@@ -36,7 +36,7 @@ Removal refuses a lane with uncommitted changes, or with commits that aren't on 
 - **Skill files:** every skill folder under `skills/<name>/` needs `SKILL.md` whose YAML frontmatter `name` matches `<name>`. Command-only skills also set `disable-model-invocation: true` in `SKILL.md` and `allow_implicit_invocation: false` in `agents/openai.yaml`.
 - **Borrowed skills:** copy at a pinned commit, keep the upstream `LICENSE` in the skill folder, add a row to the kit's `THIRD_PARTY.md` and to `CREDITS.md`, and keep the Markdown table row formats intact (`site/scripts/build-content.mjs` parses them with regexes).
 - **Plugin READMEs:** every `kits/<kit>/plugins/<kit>/README.md` must stay at 40+ words outside code blocks (`scripts/check-catalog.mjs` enforces it).
-- **Bumping a kit:** update its `version` in `kits/<kit>/plugins/<kit>/.claude-plugin/plugin.json`, `kits/<kit>/plugins/<kit>/.codex-plugin/plugin.json`, `.claude-plugin/marketplace.json`, and any library badges in `library/library.json`, then run `node library/build.mjs`.
+- **Version bumps are required:** Any change to a kit's shipped files means raising its version in both plugin manifests (`kits/<kit>/plugins/<kit>/.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`), `.claude-plugin/marketplace.json`, and any library badges in `library/library.json`, then running `node library/build.mjs`.
 - **Rebuilding generated files:**
   - Prompt library: `node library/build.mjs`
   - `/design` router refs: `node kits/design-kit/scripts/build_references.mjs` (design command jobs live in `site/scripts/design-jobs.mjs`)
@@ -60,15 +60,15 @@ node library/check.mjs
 node tests/routing/check.mjs
 node --test tests/routing/from-log.test.mjs
 node --test "kits/motion-kit/plugins/motion-kit/skills/motion/tests/*.test.mjs"
-cd kits/experience-architecture && npm test
-cd site && npm ci && npm run content && npm run typecheck && npm test
-cd site && npx next build
+(cd kits/experience-architecture && npm test)
+(cd site && npm ci && npm run content && npm run typecheck && npm test)
+(cd site && npx next build)
 ```
 
 Browser tests need Playwright:
-- `site/` smoke tests: `cd site && npx playwright install chromium && npx next build && npm run smoke`
-- `motion-kit` full capture suite: runs in CI with `MOTION_PLAYWRIGHT_DIR` set outside the repo and `MOTION_REQUIRE_BROWSER=1`. Without Playwright installed, the 21 browser subtests skip cleanly and the 32 unit subtests run.
-- `experience-architecture` browser tests: require the `fixtures/northwind` app running on `:3100`; without it, those 4 subtests skip cleanly and the 25 unit subtests run.
+- `site/` smoke tests: `(cd site && npx playwright install chromium && npx next build && npm run smoke)`
+- `motion-kit` full capture suite: runs in CI with `MOTION_PLAYWRIGHT_DIR` set outside the repo and `MOTION_REQUIRE_BROWSER=1`. Without Playwright installed, browser subtests skip cleanly and the non-browser unit tests run.
+- `experience-architecture` browser tests: require the `fixtures/northwind` app running on `:3100`; without it, browser subtests skip cleanly and the remaining unit tests run.
 
 ## Pull requests
 

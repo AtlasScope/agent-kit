@@ -33,7 +33,7 @@ The main hero headline ("Give your coding agent better instructions.") was chose
 - **Test `/start` with a first-time user.** The beginner guide is live but untested (`TESTED = null` in `site/lib/start.ts`). `docs/site-rethink/02-plan.md` also proposes reordering steps so "Make the app" runs before setting up GitHub and Vercel.
 - **Finalize `/privacy` and `/terms` and add account controls.** Both pages carry a `Draft, 10 Nov 2026` notice awaiting review, and `/privacy` still says the site runs no analytics even though Vercel Web Analytics (`@vercel/analytics`) was added in PR #80. `/account/settings` (export and delete account) is still unbuilt.
 - **Record real-project trials for `/motion` and `walkthrough`.** Per ADR 0005 and ADR 0006, neither is promoted as a default router pick or primary site path until compared against baselines on real projects.
-- **Continue building original skills (`docs/own-skills/01-plan.md`).** Next planned commands are `/interview`, `/test-first`, and `/design setup` (which needs a decision on staying compatible with Impeccable's `PRODUCT.md` and `DESIGN.md` schemas).
+- **Continue building original skills (`docs/own-skills/01-plan.md`).** Next planned commands are `/interview`, `/test-first`, `/retro`, and the `/design setup` product and design-system interview from `docs/own-skills/01-plan.md` (separate from the shipped `/design-setup` settings command; it needs a decision on staying compatible with Impeccable's `PRODUCT.md` and `DESIGN.md` schemas).
 - **Test non-Claude install paths and record routing baselines.** Verify Codex, Cursor, Gemini CLI, and GitHub Copilot installs in clean setups, and record baseline runs for `tests/routing/cases.json`.
 
 ## Key Decisions
@@ -55,7 +55,8 @@ The main hero headline ("Give your coding agent better instructions.") was chose
 
 - Site content is generated at build time from `library/library.json`, each kit's `SKILL.md` files, `THIRD_PARTY.md`, and `CREDITS.md`. Counts and entries are never edited by hand in `site/`.
 - Words for the content are fixed in `GLOSSARY.md`.
-- Library pages are static and public; Clerk middleware runs only on `/account`, `/collections`, `/sign-in`, and `/api`.
+- Library pages are static and public. Accounts (Clerk) and collections (Neon) are optional; collections are private until shared. Clerk middleware runs only on `/account`, `/collections`, `/sign-in`, and `/api`.
+- Header search was tuned and has tests that must keep passing.
 - The MCP server is public and read-only, with a per-minute limit, a daily cap, and an Edge Config off switch.
 - Vercel Web Analytics is enabled in `site/app/layout.tsx`; `/privacy` needs to reflect that before the draft notice comes off.
 

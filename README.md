@@ -43,7 +43,7 @@ claude plugin install experience-architecture@agent-kit
 claude plugin install working-style@agent-kit
 ```
 
-**Choices at install.** Claude Code asks three short questions when you turn on `design-kit` and two for `engineering-kit`. All default to waiting for you to type the command, and you can change them later (changes take effect in the next session):
+**Choices at install.** Claude Code asks three short questions when you turn on `design-kit` and two for `engineering-kit`. All default to how the kit has always worked, and you can change them later (changes take effect in the next session):
 
 - **How should the router start?** `typed` (the default) runs `/design`, `/engineer`, or `/database` only when you type it. `automatic` also starts it when you ask for that kind of work in plain words. Other commands still wait to be typed.
 - **Ask before a design skill edits files?** (`design-kit` only, off by default.) When on, `/design` names its pick and waits for your yes before changing files.
@@ -131,4 +131,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) to add or improve a prompt or skill, [GLO
 
 ## License
 
-[MIT](LICENSE) covers everything written for Agent Kit: the routers, the 15 original skills, the prompt library, and the website. Borrowed skills keep their own licenses (MIT, and CC BY 4.0 for `color-expert`), shipped in each skill's folder and listed in [CREDITS.md](CREDITS.md) and each kit's `THIRD_PARTY.md`.
+[MIT](LICENSE) covers everything written for Agent Kit: the routers, the 15 original skills, the prompt library, and the website. Borrowed skills keep their own licenses (MIT, and CC BY 4.0 for `color-expert`), shipped in each skill's folder and listed in [CREDITS.md](CREDITS.md) and each kit's `THIRD_PARTY.md`. The MIT license here does not replace them.
