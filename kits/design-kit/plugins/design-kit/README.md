@@ -2,7 +2,7 @@
 
 A design library for AI coding agents. Type `/design` and what you want; the router picks the one right skill or recipe from the library, says why in a line, and starts it. Recipes run one step at a time and resume with `/design next`.
 
-It bundles 38 skills: the router, `/design-setup` (which explains and saves the two choices Claude Code asks about at install), Emil Kowalski's motion and polish skills, Hallmark, wondelai's UX design set (typography, Refactoring UI, heuristics, microinteractions, iOS HIG and more), two color skills, UX writing, landing-page copy and conversion, SwiftUI Pro, Stop Slop and fix-writing. Six of them (`apple-design`, `break-ui`, `color-expert`, `fix-writing`, `mobile-native`, `stop-slop`) are listed to the agent in every session, so it can reach for them unprompted. The rest stay out of that list to keep sessions light: they run when you type their name or when `/design` picks them. Credits, versions and licenses are in [THIRD_PARTY.md](https://github.com/AtlasScope/agent-kit/blob/main/kits/design-kit/THIRD_PARTY.md).
+It bundles 38 skills: the router, `/design-setup` (which explains and saves the three choices Claude Code asks about at install), Emil Kowalski's motion and polish skills, Hallmark, wondelai's UX design set (typography, Refactoring UI, heuristics, microinteractions, iOS HIG, and more), two color skills, UX writing, landing-page copy and conversion, SwiftUI Pro, Stop Slop, and fix-writing. Six of them (`apple-design`, `break-ui`, `color-expert`, `fix-writing`, `mobile-native`, `stop-slop`) are listed to the agent in every session, so it can reach for them unprompted. The rest stay out of that list to keep sessions light: they run when you type their name or when `/design` picks them. Credits, versions, and licenses are in [THIRD_PARTY.md](https://github.com/AtlasScope/agent-kit/blob/main/kits/design-kit/THIRD_PARTY.md).
 
 The router also routes to skills that ship as their own plugins. Install the ones you want alongside this kit:
 
@@ -52,13 +52,13 @@ Cloud sessions only get what the repo declares. Add this to the repo's `.claude/
 
 **claude.ai chats and Projects**
 
-Build one zip that holds the whole library as a single skill, then upload it once per account at Settings > Capabilities > Skills (code execution must be on):
+Build one zip that holds the whole library as a single skill, then upload it once per account at Settings > Capabilities > Skills (code execution must be on). Run from `kits/design-kit`:
 
 ```sh
 scripts/build-claude-ai-zips.sh
 ```
 
-The zip is `dist/claude-ai/design-kit.zip`. Its own instructions (`claude-ai/SKILL.md`) pick the right specialist and read it from inside the bundle. To upload single skills instead, name them: `scripts/build-claude-ai-zips.sh oklch-skill ux-writing`.
+The zip is written to `kits/design-kit/dist/claude-ai/design-kit.zip`. Its own instructions (`claude-ai/SKILL.md`) pick the right specialist and read it from inside the bundle. To upload single skills instead, name them: `scripts/build-claude-ai-zips.sh oklch-skill ux-writing`.
 
 Skills uploaded there run in claude.ai's sandbox: they advise and write, but cannot reach your repos.
 
@@ -80,6 +80,6 @@ The router's references (`catalog.md`, `recipes.md`, `situations.md`) are genera
 node kits/design-kit/scripts/build_references.mjs
 ```
 
-`node library/check.mjs` fails when they are out of date. The Impeccable helper agents are not library entries; their rows live in `scripts/impeccable-helpers.json`.
+`node library/check.mjs` fails when they are out of date. The Impeccable helper agents are not library entries; their rows live in `kits/design-kit/scripts/impeccable-helpers.json`.
 
-Third-party skills change only by re-reading the new upstream version and committing it with its new commit in THIRD_PARTY.md.
+Borrowed skills change only by re-reading the new upstream version and committing it with its new commit in `THIRD_PARTY.md`.

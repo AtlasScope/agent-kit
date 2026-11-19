@@ -5,7 +5,7 @@ description: A whole design library in one skill. Use for any interface design o
 
 # Design Kit
 
-This one skill holds a full design library: about thirty specialist skills, twenty-two recipes that chain them, and the rules for choosing between them. The user does not want to pick a skill. Pick for them, say which in one line, and do the work.
+This one skill holds a full design library: 36 specialist skills, 23 recipes that chain them, and the rules for choosing between them. The user does not want to pick a skill. Pick for them, say which in one line, and do the work.
 
 ## How to choose
 
