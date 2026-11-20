@@ -20,5 +20,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-This license covers the design router and fix-writing. Third-party skills keep
-their own licenses; see THIRD_PARTY.md and each skill's LICENSE file.
+This license covers everything in this kit except the borrowed skill folders
+listed in THIRD_PARTY.md, which keep their own licenses; see THIRD_PARTY.md
+and each skill's LICENSE file.

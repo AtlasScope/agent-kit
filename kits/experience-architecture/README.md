@@ -1,17 +1,17 @@
 # experience-architecture
 
-Source, test fixtures and validation for the **Experience Architecture** plugin for Claude Code, Codex and Cursor. The plugin itself is in [`plugins/experience-architecture`](plugins/experience-architecture/README.md); this repository root is also a plugin marketplace.
+Source, test fixtures, and validation for the **Experience Architecture** plugin for Claude Code, Codex, and Cursor. The plugin itself is in [`plugins/experience-architecture`](plugins/experience-architecture/README.md), and it ships as part of the `AtlasScope/agent-kit` marketplace.
 
 ## Install
 
-See the [plugin README](plugins/experience-architecture/README.md#install) for Claude Code, cloud sessions, Codex and Cursor. In short:
+See the [plugin README](plugins/experience-architecture/README.md#install) for Claude Code, cloud sessions, Codex, and Cursor. In short:
 
 ```bash
 claude plugin marketplace add AtlasScope/agent-kit
 claude plugin install experience-architecture@agent-kit
 ```
 
-For development, `claude --plugin-dir ./plugins/experience-architecture` loads the working copy for one session. `npm run package` writes `dist/experience-architecture-<version>.tgz`, a self-contained marketplace folder for installing without GitHub.
+For development from `kits/experience-architecture/`, `claude --plugin-dir ./plugins/experience-architecture` loads the working copy for one session. `npm run package` writes `dist/experience-architecture-<version>.tgz`, a self-contained marketplace folder for installing without GitHub.
 
 ## Layout
 
@@ -29,11 +29,13 @@ For development, `claude --plugin-dir ./plugins/experience-architecture` loads t
 | `tests/journeys/`, `tests/proposals/` | Journey, proposal and mapping examples used by the tests |
 | `tests/results/` | Recorded validation results |
 | `tests/compare/` | The harness for with/without comparisons (plain Claude, the standalone skill, the plugin) |
-| `.agents/plugins/marketplace.json`, `skills/*/agents/openai.yaml` | Codex marketplace and per-skill settings |
+| `../../.agents/plugins/marketplace.json`, `plugins/experience-architecture/skills/*/agents/openai.yaml` | Codex marketplace (at the repo root) and per-skill settings |
 | `plugins/experience-architecture/scripts/install-skills.mjs` | Installs the skills as plain folders for Cursor (or Codex, or any tool that reads skill folders) |
 | `scripts/package.sh` | Builds the release package |
 
 ## Develop
+
+From `kits/experience-architecture/`:
 
 ```bash
 npm install                 # Playwright for browser tests

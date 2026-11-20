@@ -34,3 +34,7 @@ Every skill below was read in full before it was added (checked 2026-11-06): ins
 ## Scripts that ship with a skill
 
 `diagnosing-bugs/scripts/hitl-loop.template.sh` and `wizard/template.sh` are templates the agent copies and edits. Neither makes network calls. The wizard template opens URLs in your browser, reads secrets with hidden input, writes them to `.env` at mode 0600 and, when you run it, can set GitHub secrets through `gh`. `improve-codebase-architecture` writes its report to the OS temp folder and that page loads Tailwind and Mermaid from public CDNs.
+
+## Original skills
+
+`engineer`, `database`, and `engineering-setup` are original to this repo and MIT licensed.
