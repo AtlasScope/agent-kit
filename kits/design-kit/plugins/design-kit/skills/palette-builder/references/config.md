@@ -73,14 +73,14 @@ That is the shape, cut short. A real config has about 10 to 25 roles (40 at most
 
 When one token does two jobs, choose by what would go wrong. If the jobs can share a colour (link text and button fill), make one role with both contrast pairs and the type of the commoner job. If they can't (a divider that is also a field edge needing 3:1), give the token to the commoner job, leave the other role's list empty and say the token needs splitting in its "used" line.
 
-`name` and `file` are required. `scope` is the selector, with any media query in front (`.dark`, `@media (prefers-color-scheme: dark) :root`); it defaults to `:root`. `format` is how the value is written now: `hex`, `rgb`, `rgb-channels`, `hsl`, `hsl-channels`, `oklch` or `oklch-channels`. Channels means bare numbers, as in shadcn's `240 10% 4%`. The wrong format breaks the project when the pick is applied.
+`name` and `file` are required. `scope` is the selector, with any media query in front (`.dark`, `@media (prefers-color-scheme: dark) :root`); it defaults to `:root`. `format` is how the value is written now: `hex`, `rgb`, `rgb-channels`, `rgb-channels-comma`, `hsl`, `hsl-channels`, `hsl-channels-comma`, `oklch` or `oklch-channels`. Channels means bare numbers, as in shadcn's `240 10% 4%`. Use the `-comma` forms when they have commas (`255, 0, 0`), since `rgba(var(--x), .5)` needs them. The wrong format breaks the project when the pick is applied.
 
 ### Palettes
 
 - `roles` lists only what changes. Everything else comes from Current.
 - `tint` is `[hue, chroma]`. On every role with tint families that you didn't list, it replaces hue and chroma and keeps lightness (roles with hue families are left alone), so seven palettes don't mean a hundred hand-written greys. Useful chroma is 0 (pure grey) to 0.04.
 - Colours you didn't list are nudged until they pass contrast. Colours you listed that fail come back as `fix` lines.
-- `finish` is `built`, `matte`, `depth`, `glass` or `glow`. The user can switch it on any palette.
+- `finish` is `built`, `matte`, `depth`, `glass` or `glow`. The user can switch it on any palette. Glass and Depth change what is behind text, so the page also measures the scenes' text and names any a finish pushes below contrast.
 
 ## Scenes
 

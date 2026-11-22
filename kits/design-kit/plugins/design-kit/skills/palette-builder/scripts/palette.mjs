@@ -53,9 +53,11 @@ export function toHsl(hex) {
   return [hue360(h * 60), (d / (1 - Math.abs(2 * l - 1))) * 100, l * 100];
 }
 
-// How a token is written in the project. Pasting a hex into a token that holds bare HSL channels breaks it.
-export const FORMATS = ["hex", "rgb", "rgb-channels", "hsl", "hsl-channels", "oklch", "oklch-channels"];
+// How a token is written in the project. Pasting a hex into a token that holds bare HSL channels breaks it,
+// and so does swapping the commas in one read by rgba(var(--x), .5) for spaces.
+export const FORMATS = ["hex", "rgb", "rgb-channels", "rgb-channels-comma", "hsl", "hsl-channels", "hsl-channels-comma", "oklch", "oklch-channels"];
 export function formatColor(hex, format = "hex") {
+  if (format.endsWith("-comma")) return formatColor(hex, format.slice(0, -6)).split(" ").join(", ");
   const n = (v, d) => String(+v.toFixed(d));
   const rgb = hexRgb(hex).map((v) => Math.round(v * 255));
   if (format === "rgb") return `rgb(${rgb.join(" ")})`;

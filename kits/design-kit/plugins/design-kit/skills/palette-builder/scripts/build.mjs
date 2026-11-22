@@ -196,6 +196,7 @@ export function changesFrom(data, input) {
   for (const f of P.failures(data.roles, values)) warnings.push(`${f.role} is ${P.showRatio(f.got)}:1 on ${f.bg}, needs ${f.min}`);
   for (const c of changes) if (!c.tokens.length) warnings.push(`${c.role} has no token: change it where it is written`);
   const finish = FINISHES.some(([id]) => id === pick.finish) ? pick.finish : base?.finish || "built";
+  if (finish === "glass" || finish === "depth") warnings.push(`${finish} changes what is behind text, and these ratios are for flat colours: check contrast on the real page after applying it`);
   return { palette: base?.name || "Unknown palette", finish, warnings, changes, hardCoded: changes.length ? data.hardCoded : [] };
 }
 

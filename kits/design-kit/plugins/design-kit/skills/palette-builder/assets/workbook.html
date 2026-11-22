@@ -65,6 +65,7 @@ h2 { margin: 0; font-size: 20px; line-height: 1.2; font-weight: 600; }
 #note { width: 100%; min-height: 40px; padding: 9px 11px; border: 1px solid var(--control); border-radius: 8px; background: var(--raised); resize: vertical; }
 .health { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; color: var(--muted); font-size: 13px; }
 .health a { padding: 2px 4px; color: var(--bad); }
+.finish-health { margin: 0; color: var(--bad); font-size: 13px; }
 .tabs { margin-block: 4px 14px; }
 
 .work { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 18px; align-items: start; }
@@ -155,6 +156,7 @@ td.code-cell { font-family: var(--mono); }
         <button type="button" class="btn" id="copy-css">Copy as CSS</button>
         <button type="button" class="btn" id="copy-picks">Copy picks</button>
       </div>
+      <p class="finish-health" id="finish-health" role="status" hidden></p>
       <details class="stuck" id="stuck" hidden>
         <summary id="stuck-title"></summary>
         <ul id="stuck-list"></ul>
@@ -252,6 +254,12 @@ const record = (p) => ({ ...saved(p), id: key(p), option: p.name, finish: finish
 
 /* ---------- saving ---------- */
 let db = null, mode = "loading";
+// Edits made while saved picks couldn't load. If they load later, these run again on top of them.
+const early = [];
+function act(edit) {
+  if (mode === "none") early.push(edit);
+  edit();
+}
 const writing = new Map();
 function say(text, s = "") { $("#save").textContent = text; $("#save").dataset.s = s; }
 function persist(p) {
@@ -291,9 +299,13 @@ function change(p, patch) {
 }
 function setColor(id, hex) {
   if (!ROLE.has(id) || !HEX.test(hex)) return;
-  const p = pal(), overrides = { ...saved(p).overrides };
-  if (hex === p.roles[id]) { delete overrides[id]; famChoice.delete(`${p.id}:${id}`); } else overrides[id] = hex;
-  change(p, { overrides });
+  const p = pal();
+  if (hex === p.roles[id]) famChoice.delete(`${p.id}:${id}`);
+  act(() => {
+    const overrides = { ...saved(p).overrides };
+    if (hex === p.roles[id]) delete overrides[id]; else overrides[id] = hex;
+    change(p, { overrides });
+  });
   render();
 }
 
@@ -321,7 +333,7 @@ function verdict(id, hex, values) {
 /* ---------- previews ---------- */
 const FINISH_CSS = `
 :host { display: block; contain: layout paint; }
-* { box-sizing: border-box; }
+* { box-sizing: border-box; transition: none !important; animation: none !important; }
 :host([data-finish="matte"]) [data-part] { box-shadow: none !important; background-image: none !important; backdrop-filter: none !important; }
 :host([data-finish="depth"]) [data-part="card"] { background-image: linear-gradient(rgba(255,255,255,.06), transparent) !important; box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 1px 2px rgba(0,0,0,.14), 0 12px 26px var(--drop) !important; }
 :host([data-finish="depth"]) [data-part="primary"] { box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 6px 16px var(--drop) !important; }
@@ -338,7 +350,7 @@ const hosts = [...document.querySelectorAll(".host")].map((host, i) => {
   const root = host.attachShadow({ mode: "open" });
   // Scenes were checked by build.mjs. The finish styles go last so they win.
   root.innerHTML = `${DATA.scenes[i].html}<style>${FINISH_CSS}</style>`;
-  return { host, parts: [...root.querySelectorAll("[data-part]")] };
+  return { host, root, parts: [...root.querySelectorAll("[data-part]")] };
 });
 const glowRole = ROLES.find((r) => r.type === "accent") || ROLES.find((r) => r.type === "fill") || ROLES[0];
 const groundRole = ROLES.find((r) => r.type === "page") || ROLES[0];
@@ -351,14 +363,62 @@ function paint() {
     host.style.setProperty("--glow", v[glowRole.id]);
     host.style.setProperty("--drop", lum(v[groundRole.id]) > 0.4 ? "rgba(0,0,0,.1)" : "rgba(0,0,0,.45)");
     // Measure each piece's own colour before the finish goes on, so scenes don't have to declare it.
-    for (const el of parts) {
-      const transition = el.style.transition;
-      el.style.transition = "none";
-      el.style.setProperty("--fill", getComputedStyle(el).backgroundColor);
-      el.style.transition = transition;
-    }
-    host.dataset.finish = finish;
+    for (const el of parts) el.style.setProperty("--fill", getComputedStyle(el).backgroundColor);
   }
+  // Glass and Depth change what is behind words, which the role pairs can't see. So measure the words.
+  const measure = !comparing && ["glass", "depth"].includes(finish);
+  const before = measure ? paintedText("built", v) : [];
+  for (const { host } of hosts) host.dataset.finish = finish;
+  if (comparing) return;
+  const after = measure ? paintedText(finish, v) : [];
+  const broken = new Set(after.filter((t, i) => before[i].v >= t.min && t.v < t.min).map((t) => t.words));
+  $("#finish-health").hidden = !broken.size;
+  $("#finish-health").textContent = broken.size ? `${FINISHES.find(([id]) => id === finish)[1]} pushes text below contrast: ${[...broken].slice(0, 5).join(", ")}${broken.size > 5 ? ` and ${broken.size - 5} more` : ""}. Try another finish or change those colours.` : "";
+}
+
+const dot = Object.assign(document.createElement("canvas"), { width: 1, height: 1 }).getContext("2d", { willReadFrequently: true });
+const pixels = new Map();
+// Computed colours come as rgb() or color(srgb ...). A pixel settles both.
+function pixel(css) {
+  if (!pixels.has(css)) {
+    if (pixels.size > 4000) pixels.clear();
+    dot.clearRect(0, 0, 1, 1); dot.fillStyle = "rgba(0,0,0,0)"; dot.fillStyle = css; dot.fillRect(0, 0, 1, 1);
+    const [r, g, b, a] = dot.getImageData(0, 0, 1, 1).data;
+    pixels.set(css, { rgb: [r / 255, g / 255, b / 255], a: a / 255 });
+  }
+  return pixels.get(css);
+}
+const over = (top, a, under) => top.map((c, i) => c * a + under[i] * (1 - a));
+// Each piece of text on what is really behind it, at the worst point of the finish's highlight.
+function paintedText(finish, values) {
+  const out = [], page = pixel(getComputedStyle(document.body).backgroundColor).rgb;
+  for (const { host, root } of hosts) {
+    const grounds = new Map();
+    const ground = (el) => {
+      if (!el) return [page];
+      if (grounds.has(el)) return grounds.get(el);
+      const bg = pixel(getComputedStyle(el).backgroundColor);
+      let list = ground(el.parentElement).map((under) => over(bg.rgb, bg.a, under));
+      const part = el.dataset?.part;
+      const sheen = finish === "depth" && part === "card" ? ["#FFFFFF", 0.06] : finish === "glass" && (part === "card" || part === "bar") ? [values[glowRole.id], 0.13] : null;
+      if (sheen) list = [...list, ...list.map((under) => over(hexRgb(sheen[0]), sheen[1], under))];
+      if (list.length > 4) list = [...new Map(list.map((c) => [rgbHex(c), c])).values()];
+      grounds.set(el, list);
+      return list;
+    };
+    for (const el of root.querySelectorAll("*")) {
+      if (el.tagName === "STYLE") continue;
+      const words = [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join(" ").trim();
+      if (!words) continue;
+      const style = getComputedStyle(el), ink = pixel(style.color), size = parseFloat(style.fontSize);
+      out.push({
+        words: `“${words.slice(0, 28)}”`,
+        min: size >= 24 || (size >= 18.66 && +style.fontWeight >= 700) ? 3 : 4.5,
+        v: Math.min(...ground(el).map((bg) => ratio(rgbHex(over(ink.rgb, ink.a, bg)), rgbHex(bg)))),
+      });
+    }
+  }
+  return out;
 }
 
 // A scene with a width is laid out at that width and scaled down, like a desktop screenshot.
@@ -493,9 +553,9 @@ let noteTimer = 0, notePending = null;
 function flushNote() {
   clearTimeout(noteTimer);
   if (!notePending) return;
-  const p = notePending;
+  const p = notePending, note = saved(p).note;
   notePending = null;
-  persist(p);
+  act(() => change(p, { note }));
 }
 $("#palettes").addEventListener("click", (e) => {
   const b = e.target.closest("[data-pal]");
@@ -517,7 +577,8 @@ $("#note").addEventListener("change", flushNote);
 $("#finish").addEventListener("click", (e) => {
   const b = e.target.closest("button");
   if (!b) return;
-  change(pal(), { finish: b.dataset.v });
+  const p = pal();
+  act(() => change(p, { finish: b.dataset.v }));
   render();
 });
 $("#decide").addEventListener("click", (e) => {
@@ -525,11 +586,18 @@ $("#decide").addEventListener("click", (e) => {
   if (!b) return;
   const p = pal(), status = saved(p).status === b.dataset.v ? "" : b.dataset.v;
   // Only one palette can be the pick; the one it replaces becomes a Maybe.
-  if (status === "pick") for (const other of PALS) if (other !== p && saved(other).status === "pick") change(other, { status: "maybe" });
-  change(p, { status });
+  act(() => {
+    if (status === "pick") for (const other of PALS) if (other !== p && saved(other).status === "pick") change(other, { status: "maybe" });
+    change(p, { status });
+  });
   render();
 });
-$("#reset").addEventListener("click", () => { famChoice.clear(); change(pal(), { overrides: {} }); render(); });
+$("#reset").addEventListener("click", () => {
+  const p = pal();
+  famChoice.clear();
+  act(() => change(p, { overrides: {} }));
+  render();
+});
 $("#roles").addEventListener("click", (e) => {
   const f = e.target.closest(".fam");
   if (f) {
@@ -679,9 +747,14 @@ function ready(next, message, s) {
       for (const doc of snap.docs) if (PALS.some((p) => key(p) === doc.id)) next.set(doc.id, clean(doc.data()));
       // An edit still being saved or typed wins over the copy that just arrived.
       for (const id of writing.keys()) if (state.has(id)) next.set(id, state.get(id));
-      if (notePending) next.set(key(notePending), state.get(key(notePending)));
+      // Only the note is still being typed: the rest of that palette comes from what just arrived.
+      if (notePending) { const id = key(notePending); next.set(id, { ...(next.get(id) || clean()), note: saved(notePending).note }); }
       state = next;
-      if (mode !== "db") { clearTimeout(late); ready("db", "Connected. Picks save as you make them."); }
+      if (mode !== "db") {
+        clearTimeout(late);
+        ready("db", "Connected. Picks save as you make them.");
+        for (const edit of early.splice(0)) edit();
+      }
       render();
     }, () => unavailable("Lost the connection to saved picks. Use Copy picks, or reload."));
   } catch {

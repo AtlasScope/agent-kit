@@ -135,3 +135,30 @@ test("the file to open directly is a whole document", (t) => {
   assert.match(html, /<meta charset="utf-8">/);
   assert.equal(html.match(/<body>/g).length, 1);
 });
+
+test("bare channels keep their commas", () => {
+  for (const [value, format] of [["255, 0, 0", "rgb-channels-comma"], ["240, 10%, 4%", "hsl-channels-comma"], ["255 0 0", "rgb-channels"]]) {
+    const read = parseChannels("--brand-color", value);
+    assert.equal(read.format, format);
+    const written = P.formatColor(read.hex, format);
+    assert.equal(written.includes(","), value.includes(","), written);
+    assert.ok(parseChannels("--brand-color", written).hex);
+  }
+  assert.equal(P.formatColor("#0000FF", "rgb-channels-comma"), "0, 0, 255");
+});
+
+test("several paths keep one name per file", (t) => {
+  const css = ":root{--brand:#123456}";
+  const dir = folder(t, { "apps/web/tokens.css": css, "packages/theme/tokens.css": css });
+  const paths = ["apps/web", "packages/theme"].map((p) => path.join(dir, p));
+  assert.deepEqual(scan(paths).tokens.map((x) => x.file), ["apps/web/tokens.css", "packages/theme/tokens.css"]);
+  assert.deepEqual(scan([paths[0]]).tokens.map((x) => x.file), ["tokens.css"]);
+  assert.equal(scan([dir, paths[0]]).filesRead, 2, "an overlapping path isn't read twice");
+});
+
+test("picks with a see-through finish say the ratios are for flat colours", (t) => {
+  const { data } = prepare(config(), folder(t, { "main.html": SCENE }));
+  const warn = (finish) => changesFrom(data, [{ id: "pal-navy", status: "pick", finish }]).warnings.join();
+  assert.match(warn("glass"), /flat colours/);
+  assert.doesNotMatch(warn("matte"), /flat colours/);
+});

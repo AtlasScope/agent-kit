@@ -25,7 +25,7 @@ Work out the target. With none given, use the current repo and say so. Read its 
 node <skill>/scripts/extract.mjs <path> --json <work>/colours.json
 ```
 
-`<work>` is `<project>/.artifacts/palette/` when pointed at a project (leave it uncommitted), otherwise a scratch folder. The printed summary is usually enough; search the JSON instead of reading it whole. In a monorepo, point at the app and its shared tokens, not the root. Source can't say which colours dominate, so open the main layout and two or three central components. If the app already runs, or a browser tool can open it, read the page as well.
+`<work>` is `<project>/.artifacts/palette/` when pointed at a project (leave it uncommitted), otherwise a scratch folder. The printed summary is usually enough; search the JSON instead of reading it whole. In a monorepo, point at the app and its shared tokens, not the root. With several paths, every file is named from the folder they share (the summary says which): use those names in the config. Source can't say which colours dominate, so open the main layout and two or three central components. If the app already runs, or a browser tool can open it, read the page as well.
 
 **A page or URL:** open it with a browser tool, run the whole of `<skill>/scripts/capture-page.js` in it, and take a screenshot. It returns painted backgrounds, text pairs, edges, fonts, tokens and sample pieces. If the page has a dark or light switch, capture both. With no browser tool, use saved HTML with extract.mjs or ask for a screenshot, and say the colours from a screenshot are estimates. Don't sign in for the user.
 

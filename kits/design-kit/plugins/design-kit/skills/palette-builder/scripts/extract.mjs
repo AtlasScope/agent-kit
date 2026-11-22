@@ -47,13 +47,14 @@ export function parseColor(input) {
 // A token can hold bare channels: `240 10% 4%` (shadcn), `15 18 34`, `0.62 0.19 259`.
 export function parseChannels(name, value) {
   const s = value.trim();
-  if (/^[\d.]+(deg)?\s+[\d.]+%\s+[\d.]+%$/.test(s)) return { ...parseColor(`hsl(${s})`), format: "hsl-channels" };
+  const comma = s.includes(",") ? "-comma" : "";
+  if (/^[\d.]+(deg)?(\s+|\s*,\s*)[\d.]+%(\s+|\s*,\s*)[\d.]+%$/.test(s)) return { ...parseColor(`hsl(${s})`), format: `hsl-channels${comma}` };
   if (!/colou?r|bg|background|foreground|ink|text|surface|primary|secondary|accent|muted|border|brand|paper|card|fill/i.test(name)) return null;
   const m = s.match(/^([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)$/);
   if (!m) return null;
   const [a, b, c] = m.slice(1).map(Number);
-  if (a <= 1 && b < 0.5 && c <= 360 && s.includes(".")) return { ...parseColor(`oklch(${a} ${b} ${c})`), format: "oklch-channels" };
-  if ([a, b, c].every((x) => Number.isInteger(x) && x <= 255)) return { ...parseColor(`rgb(${a} ${b} ${c})`), format: "rgb-channels" };
+  if (!comma && a <= 1 && b < 0.5 && c <= 360 && s.includes(".")) return { ...parseColor(`oklch(${a} ${b} ${c})`), format: "oklch-channels" };
+  if ([a, b, c].every((x) => Number.isInteger(x) && x <= 255)) return { ...parseColor(`rgb(${a} ${b} ${c})`), format: `rgb-channels${comma}` };
   return null;
 }
 
@@ -127,6 +128,17 @@ function list(target) {
   return found;
 }
 
+// The deepest folder holding every target, so two files called tokens.css keep different paths.
+function commonBase(dirs) {
+  let base = dirs[0];
+  const inside = (dir) => { const rel = path.relative(base, dir); return rel.split(path.sep)[0] !== ".." && !path.isAbsolute(rel); };
+  while (!dirs.every(inside)) {
+    if (path.dirname(base) === base) return null; // different drives
+    base = path.dirname(base);
+  }
+  return base;
+}
+
 export function scan(targets) {
   const colors = new Map(), tokens = [], families = new Map(), utilities = new Map(), refs = new Map();
   let filesRead = 0, filesSkipped = 0;
@@ -150,12 +162,15 @@ export function scan(targets) {
     colors.set(color.hex, c);
   };
 
-  for (const target of targets.map((t) => path.resolve(t))) {
-    const base = fs.statSync(target).isFile() ? path.dirname(target) : target;
-    for (const file of new Set(list(target))) {
-      const rel = path.relative(base, file).replaceAll("\\", "/");
+  const roots = targets.map((t) => path.resolve(t)).map((target) => ({ target, dir: fs.statSync(target).isFile() ? path.dirname(target) : target }));
+  const base = commonBase(roots.map((r) => r.dir)), done = new Set();
+  for (const { target, dir } of roots) {
+    for (const file of list(target).map((f) => path.resolve(f))) {
+      if (done.has(file)) continue;
+      done.add(file);
+      const local = path.relative(dir, file).replaceAll("\\", "/"), rel = (base ? path.relative(base, file) : file).replaceAll("\\", "/");
       if (SKIP_FILE.test(rel) || !(STYLE.test(rel) || MARKUP.test(rel) || CODE.test(rel))) continue;
-      const tokenFile = TOKEN_FILE.test(rel);
+      const tokenFile = TOKEN_FILE.test(local);
       if (/\.json$/i.test(rel) && !tokenFile) continue;
       let text;
       try {
@@ -250,7 +265,7 @@ export function scan(targets) {
   }
 
   const ranked = (map) => [...map].sort((a, b) => b[1] - a[1]).map(([value, count]) => ({ value, count }));
-  return { filesRead, filesSkipped, tokens, colors: [...colors.values()].sort((a, b) => b.count + b.viaTokens - (a.count + a.viaTokens)), fonts: ranked(families), utilities: ranked(utilities) };
+  return { base, filesRead, filesSkipped, tokens, colors: [...colors.values()].sort((a, b) => b.count + b.viaTokens - (a.count + a.viaTokens)), fonts: ranked(families), utilities: ranked(utilities) };
 }
 
 function main(argv) {
@@ -264,6 +279,7 @@ function main(argv) {
   const r = scan(targets);
   if (json) { fs.mkdirSync(path.dirname(path.resolve(json)), { recursive: true }); fs.writeFileSync(json, JSON.stringify(r, null, 1)); }
 
+  if (targets.length > 1 && r.base) console.log(`File paths below are relative to ${r.base}`);
   console.log(`Read ${r.filesRead} files${r.filesSkipped ? `, skipped ${r.filesSkipped} too large or unreadable` : ""}. ${r.colors.length} distinct colours, ${r.tokens.length} colour tokens.`);
   const used = new Map(r.tokens.filter((t) => t.used).map((t) => [t.name, t.used])), total = (u) => Object.values(u).reduce((a, b) => a + b, 0);
   const colour = r.tokens.filter((t) => t.hex || t.resolves);
