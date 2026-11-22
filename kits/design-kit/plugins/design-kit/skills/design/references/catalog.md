@@ -98,6 +98,17 @@ Design skills from wondelai based on books and known methods: Refactoring UI, we
 | `/hooked-ux` | Designs habits people repeat: a prompt, an action, a reward, and something they put in that brings them back. | advice |
 | `/lean-ux` | Turns a design argument into a clear guess you can test with a quick experiment. | advice |
 
+## Palette builder
+
+One command that turns a repo or page into a palette workbook. It reads the colors in use, gives each one a job, and shows whole palettes on that product's own screens, with a family and shade picker for every job, finishes and contrast checks.
+
+- Best for: Choosing or rethinking a product's palette when you want to see options and decide yourself.
+- Skip it for: One color to convert or one contrast failure to fix. Use oklch-skill.
+
+| Command | What it does | Mode |
+|---|---|---|
+| `/palette-builder` | Reads a repo or page's colors and builds a workbook where you compare whole palettes on its own screens, adjust every color by family and shade, and pick. It changes tokens only when you ask. | edits after a yes |
+
 ## Color skills
 
 Two color specialists. oklch-skill is short and practical; color-expert is a deep reference of about 200 files on color science and contrast.

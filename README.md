@@ -18,11 +18,11 @@ Some `/design` recipes hand steps to external plugins Agent Kit doesn't ship, li
 
 ## What's inside
 
-Agent Kit has 5 kits (64 skills total) and 254 library entries.
+Agent Kit has 5 kits (65 skills total) and 255 library entries.
 
 | Kit | Skills | What it does |
 |---|---|---|
-| [design-kit](kits/design-kit) | 38 | `/design` routes to the right design skill or recipe: layout, typography, color, motion, UX writing, usability, landing copy, native iOS, and more. Includes `/design-setup` and `fix-writing`. |
+| [design-kit](kits/design-kit) | 39 | `/design` routes to the right design skill or recipe: layout, typography, color, motion, UX writing, usability, landing copy, native iOS, and more. Includes `/design-setup`, `/palette-builder` and `fix-writing`. |
 | [motion-kit](kits/motion-kit) | 1 | `/motion` sets up a motion system, storyboards a sequence, builds an animation, and reviews or fixes existing motion using code scans and browser frame captures. |
 | [engineering-kit](kits/engineering-kit) | 17 | `/engineer` routes to bug diagnosis, test-first work, architecture scans, plan interviews, retros, and research. `/database` picks and runs a read-only PostgreSQL investigation. Includes `/engineering-setup`. |
 | [experience-architecture](kits/experience-architecture) | 4 | `diagnose`, `rethink`, `verify`, and `walkthrough` (preview) inspect and test how a web app's pages, navigation, URLs, and Back button hang together. |
@@ -131,4 +131,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) to add or improve a prompt or skill, [GLO
 
 ## License
 
-[MIT](LICENSE) covers everything written for Agent Kit: the routers, the 15 original skills, the prompt library, and the website. Borrowed skills keep their own licenses (MIT, and CC BY 4.0 for `color-expert`), shipped in each skill's folder and listed in [CREDITS.md](CREDITS.md) and each kit's `THIRD_PARTY.md`. The MIT license here does not replace them.
+[MIT](LICENSE) covers everything written for Agent Kit: the routers, the 16 original skills, the prompt library, and the website. Borrowed skills keep their own licenses (MIT, and CC BY 4.0 for `color-expert`), shipped in each skill's folder and listed in [CREDITS.md](CREDITS.md) and each kit's `THIRD_PARTY.md`. The MIT license here does not replace them.

@@ -24,8 +24,8 @@ The main hero headline ("Give your coding agent better instructions.") was chose
 
 ## What It Is Today
 
-- **Five plugins, 64 skills.** `design-kit` (38 skills), `motion-kit` (1), `engineering-kit` (17), `experience-architecture` (4), and `working-style` (4). Fifteen skills are original to Agent Kit; 49 are borrowed at pinned commits from 10 authors and credited in `CREDITS.md` and each kit's `THIRD_PARTY.md`.
-- **Prompt library.** 254 entries in `library/library.json` (56 investigations, 23 database prompts and workflows, 12 thinking prompts, 35 engineering commands, 105 design commands, 23 design recipes), audited in `library/audit.json` and compiled to `library/dist/prompt-library.html` and `prompt-library.md`.
+- **Five plugins, 65 skills.** `design-kit` (39 skills), `motion-kit` (1), `engineering-kit` (17), `experience-architecture` (4), and `working-style` (4). Sixteen skills are original to Agent Kit; 49 are borrowed at pinned commits from 10 authors and credited in `CREDITS.md` and each kit's `THIRD_PARTY.md`.
+- **Prompt library.** 255 entries in `library/library.json` (56 investigations, 23 database prompts and workflows, 12 thinking prompts, 35 engineering commands, 106 design commands, 23 design recipes), audited in `library/audit.json` and compiled to `library/dist/prompt-library.html` and `prompt-library.md`.
 - **Public website (`site/`).** Live Next.js App Router site on Vercel (`https://www.atlasscope.dev`) with a one-screen orbit hero and WebGL scene, `/install`, `/start` (8-step beginner guide) and `/learn` (5 lessons), `/prompts`, `/skills`, `/kits`, `/fix`, `/about`, draft `/privacy` and `/terms`, `.md` twins, `llms.txt`, Clerk sign-in + Neon collections, Vercel Web Analytics, and a read-only `/mcp` server.
 
 ## What's Next

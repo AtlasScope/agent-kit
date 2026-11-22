@@ -834,6 +834,10 @@
   },
   "RC23": {
    "s": "2212221"
+  },
+  "UI108": {
+   "s": "2221222",
+   "note": "Written here and new: tested on this site's code and a fixture app, not yet used by other people. Needs Node."
   }
  },
  "clusters": [

@@ -3,6 +3,13 @@
 Decisions about what the library says, newest first. Each line names the entries it touched and why.
 The full inventory is `library/dist/inventory.csv`, rebuilt by `node library/build.mjs`.
 
+## 2026-11-21 (palette builder)
+
+- One design command, UI108 `/palette-builder`, written here. The color skills advise and write exact
+  values; none lets a person compare whole palettes on their own screens and choose. It is the first
+  pick for that one new situation only, and `/oklch-skill` keeps scales, dark mode and contrast.
+- Audit score: 1 for evidence, because it is new and only tested on our own codebase and a fixture app.
+
 ## 2026-11-10 (motion)
 
 - Six investigation prompts for motion, MO01 to MO06, in a new "Motion" group: values nobody chose, frame

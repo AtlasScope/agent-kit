@@ -1,0 +1,765 @@
+<title>__TITLE__</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="__FONTS__">
+<style>
+/* Layout: palettes across the top; the project's pieces on the left, staying in view; every colour job on the right.
+   Light by default on purpose: shades of dark greys can't be told apart on a dark page, and these are long sessions.
+   The page's own colours are neutral so they don't compete with the palette being judged. */
+:root {
+  color-scheme: light;
+  --bg: #F4F5F7; --raised: #FFFFFF; --sunk: #E8EAEE; --line: #DCDFE5; --control: #808693;
+  --fg: #0B0C12; --fg-2: #2B2F3A; --muted: #5A5F6B; --faint: #5E636E;
+  --good: #00703F; --good-ink: #FFFFFF; --maybe: #A24E06; --bad: #B42318;
+  --font: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0D0E12; --raised: #17191F; --sunk: #101217; --line: #2C2E34; --control: #6C6F77;
+  --fg: #F4F5F7; --fg-2: #C9CBD1; --muted: #A3A6AD; --faint: #8C9098;
+  --good: #5BE39A; --good-ink: #04130A; --maybe: #F5A524; --bad: #FF8A75;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 400 14px/1.5 var(--font); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+.wrap { max-width: 1480px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px 24px; }
+.top-text { min-width: 0; display: grid; gap: 6px; }
+h1 { margin: 0; font-size: 30px; line-height: 1.1; font-weight: 600; letter-spacing: -0.02em; text-wrap: balance; overflow-wrap: anywhere; }
+h2 { margin: 0; font-size: 20px; line-height: 1.2; font-weight: 600; }
+.lede { margin: 0; max-width: 66ch; color: var(--muted); }
+.meta { margin: 0; color: var(--faint); font: 400 12px/1.5 var(--mono); overflow-wrap: anywhere; }
+.meta[data-s="err"] { color: var(--bad); }
+
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 10px; background: var(--sunk); }
+.seg button { min-height: 32px; padding: 0 12px; border: 0; border-radius: 7px; background: transparent; color: var(--muted); font-size: 13px; }
+.seg button[aria-pressed="true"] { background: var(--raised); color: var(--fg); box-shadow: 0 0 0 1px var(--line); }
+.seg button[data-v="pick"][aria-pressed="true"] { background: var(--good); color: var(--good-ink); }
+.seg button[data-v="maybe"][aria-pressed="true"] { color: var(--maybe); }
+.seg button[data-v="no"][aria-pressed="true"] { color: var(--bad); }
+.btn { min-height: 38px; padding: 0 14px; border: 1px solid var(--control); border-radius: 8px; background: var(--raised); font-size: 13px; font-weight: 500; }
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.bar .spacer { flex: 1; }
+
+.palettes { display: grid; grid-template-columns: repeat(auto-fill, minmax(162px, 1fr)); gap: 10px; margin-block: 22px; }
+.pcard { display: grid; gap: 8px; align-content: start; min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--raised); text-align: left; }
+.pcard[aria-pressed="true"] { border-color: var(--fg); box-shadow: 0 0 0 1px var(--fg); }
+.pcard b { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-weight: 600; }
+.pcard small { color: var(--muted); font-size: 12px; line-height: 1.4; }
+.strip { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); height: 26px; overflow: hidden; border: 1px solid var(--line); border-radius: 6px; }
+.status { font: 500 11px/1 var(--mono); text-transform: uppercase; letter-spacing: .04em; }
+.status[data-s="pick"] { color: var(--good); }
+.status[data-s="maybe"] { color: var(--maybe); }
+.status[data-s="no"] { color: var(--bad); }
+
+.detail { display: grid; gap: 12px; margin-bottom: 16px; }
+.idea { margin: 0; color: var(--muted); max-width: 72ch; }
+#note { width: 100%; min-height: 40px; padding: 9px 11px; border: 1px solid var(--control); border-radius: 8px; background: var(--raised); resize: vertical; }
+.health { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; color: var(--muted); font-size: 13px; }
+.health a { padding: 2px 4px; color: var(--bad); }
+.finish-health { margin: 0; color: var(--bad); font-size: 13px; }
+.tabs { margin-block: 4px 14px; }
+
+.work { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.preview { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 8px); display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-width: 0; max-height: calc(100vh - 16px); overflow: auto; }
+.scene { min-width: 0; }
+.scene h3 { margin: 0 0 6px; font: 500 11px/1.4 var(--mono); text-transform: uppercase; letter-spacing: .05em; color: var(--faint); }
+.host { display: block; min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; container-type: inline-size; }
+@media (max-width: 1000px) {
+  .work { grid-template-columns: minmax(0, 1fr); }
+  .preview { position: static; max-height: none; }
+}
+
+.roles { display: grid; gap: 6px; min-width: 0; }
+.roles h3 { margin: 10px 0 2px; font: 500 11px/1.4 var(--mono); text-transform: uppercase; letter-spacing: .05em; color: var(--faint); }
+.hint { margin: 0; color: var(--muted); font-size: 12.5px; }
+.role { display: grid; gap: 8px; min-width: 0; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--raised); }
+.role[data-changed] { border-color: var(--maybe); }
+.role-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.role-name { flex: 1 1 130px; min-width: 0; }
+.role-name b { font-size: 13px; font-weight: 600; }
+.role-name small { display: block; color: var(--muted); font-size: 12px; line-height: 1.35; overflow-wrap: anywhere; }
+.picker { flex: none; width: 34px; height: 34px; padding: 2px; border: 1px solid var(--control); border-radius: 8px; background: transparent; cursor: pointer; }
+.code { width: 88px; height: 34px; padding: 0 8px; border: 1px solid var(--control); border-radius: 8px; background: var(--bg); font: 500 12px/1 var(--mono); }
+.code[aria-invalid="true"] { border-color: var(--bad); }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+.lab { min-width: 54px; color: var(--faint); font: 500 10.5px/1 var(--mono); text-transform: uppercase; letter-spacing: .03em; }
+.name { margin-left: 2px; color: var(--fg-2); font-size: 12px; }
+.fam { width: 26px; height: 26px; padding: 0; border: 1px solid var(--line); border-radius: 50%; }
+.fam[aria-pressed="true"], .chip[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--raised), 0 0 0 4px var(--fg); }
+.shades { display: grid; grid-template-columns: 54px repeat(7, 24px); gap: 5px; align-items: center; }
+.chip { position: relative; flex: none; width: 24px; height: 24px; padding: 0; border: 1px solid var(--line); border-radius: 5px; }
+.chip[data-default]::after { content: ""; position: absolute; right: 2px; bottom: 2px; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.chip[data-fail]::before { content: ""; position: absolute; inset: 0; border-radius: inherit; opacity: .6; background: linear-gradient(to top right, transparent calc(50% - .75px), currentColor calc(50% - .75px), currentColor calc(50% + .75px), transparent calc(50% + .75px)); }
+.chip.wide { width: auto; min-width: 72px; padding: 0 8px; font: 500 11px/1 var(--mono); }
+.checks { color: var(--muted); font: 400 11.5px/1.5 var(--mono); }
+.checks:empty { display: none; }
+.checks .bad { color: var(--bad); }
+.stuck { font-size: 12.5px; color: var(--muted); }
+.stuck summary { width: fit-content; cursor: pointer; }
+.stuck ul { max-height: 220px; overflow: auto; margin: 8px 0 0; padding: 0; list-style: none; }
+.stuck li { display: flex; gap: 8px; padding-block: 3px; font-family: var(--mono); font-size: 11.5px; overflow-wrap: anywhere; }
+.stuck i { flex: none; width: 16px; height: 16px; border: 1px solid var(--line); border-radius: 4px; }
+
+.filters select, .filters input[type="search"] { height: 38px; min-width: 0; padding: 0 10px; border: 1px solid var(--control); border-radius: 8px; background: var(--raised); }
+.filters input[type="search"] { flex: 1 1 170px; }
+.filters label { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; }
+.table { overflow-x: auto; margin-top: 10px; }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+th { color: var(--faint); font: 500 11px/1.3 var(--mono); text-transform: uppercase; }
+td.code-cell { font-family: var(--mono); }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="top-text">
+      <h1>__TITLE__</h1>
+      <p class="lede">Choose a whole palette, try a finish, then change any colour’s job by family and shade. Mark one Pick when it’s right and tell your agent.</p>
+      <p class="meta" id="source"></p>
+      <p class="meta" id="save" role="status">Opening your picks…</p>
+    </div>
+    <div class="seg" id="theme" role="group" aria-label="Workbook theme">
+      <button type="button" data-v="light">Light</button>
+      <button type="button" data-v="dark">Dark</button>
+    </div>
+  </header>
+
+  <main id="main" inert>
+    <div class="palettes" id="palettes"></div>
+    <section class="detail" aria-label="Chosen palette">
+      <div class="bar">
+        <h2 id="palette-name"></h2>
+        <span class="spacer"></span>
+        <div class="seg" id="finish" role="group" aria-label="Finish"></div>
+        <div class="seg" id="decide" role="group" aria-label="Decision">
+          <button type="button" data-v="pick">Pick</button>
+          <button type="button" data-v="maybe">Maybe</button>
+          <button type="button" data-v="no">No</button>
+        </div>
+      </div>
+      <p class="idea" id="palette-idea"></p>
+      <label class="sr" for="note">Note on this palette</label>
+      <textarea id="note" rows="1" placeholder="Note on this palette: what works, what to change"></textarea>
+      <div class="bar">
+        <div class="health" id="health" aria-live="polite"></div>
+        <span class="spacer"></span>
+        <button type="button" class="btn" id="reset" hidden>Reset swaps</button>
+        <button type="button" class="btn" id="copy-css">Copy as CSS</button>
+        <button type="button" class="btn" id="copy-picks">Copy picks</button>
+      </div>
+      <p class="finish-health" id="finish-health" role="status" hidden></p>
+      <details class="stuck" id="stuck" hidden>
+        <summary id="stuck-title"></summary>
+        <ul id="stuck-list"></ul>
+      </details>
+      <textarea id="copy-out" class="code" style="width:100%;height:120px" readonly hidden aria-label="Text to copy"></textarea>
+    </section>
+
+    <div class="work">
+      <div class="preview" tabindex="0" aria-label="Preview">
+        <div class="bar">
+          <div class="seg" id="scene-pick" role="group" aria-label="Screen"></div>
+          <span class="spacer"></span>
+          <button type="button" class="btn" id="compare" aria-pressed="false">Compare with Current</button>
+        </div>
+        <div id="scenes"></div>
+      </div>
+      <div style="min-width:0">
+        <div class="seg tabs" id="tabs" role="group" aria-label="How to choose colours">
+          <button type="button" data-v="roles">By role</button>
+          <button type="button" data-v="shades">All shades</button>
+        </div>
+        <div class="roles" id="roles"></div>
+        <section id="shades" hidden aria-label="All shades">
+          <div class="bar filters">
+            <select id="shade-role" aria-label="Role"></select>
+            <select id="shade-family" aria-label="Family"></select>
+            <input id="shade-q" type="search" placeholder="Search code or family" aria-label="Search shades">
+            <select id="shade-sort" aria-label="Sort">
+              <option value="family">By family</option>
+              <option value="dark">Dark to light</option>
+              <option value="contrast">Most contrast</option>
+            </select>
+            <label><input id="shade-pass" type="checkbox" checked> Passing only</label>
+            <span class="meta" id="shade-count"></span>
+          </div>
+          <div class="table">
+            <table>
+              <thead><tr><th>Shade</th><th>Code</th><th>Family</th><th>Strength</th><th>Contrast</th></tr></thead>
+              <tbody id="shade-rows"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+(() => {
+"use strict";
+/* ---------- colour model: scripts/palette.mjs ---------- */
+__MODEL__
+
+/* ---------- this project ---------- */
+const DATA = __DATA__;
+const ROLES = DATA.roles, PALS = DATA.palettes, FINISHES = DATA.finishes;
+const ROLE = new Map(ROLES.map((r) => [r.id, r]));
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const ink = (h) => (lum(h) > 0.22 ? "#000000" : "#FFFFFF");
+// Files opened from disk share one storage, so the path keeps two workbooks apart.
+const prefix = `palette:${DATA.slug}:${location.protocol === "file:" ? `${location.pathname}:` : ""}`;
+const store = {
+  get(key, fallback) { try { const v = localStorage.getItem(prefix + key); return v === null ? fallback : JSON.parse(v); } catch { return fallback; } },
+  set(key, value) { try { localStorage.setItem(prefix + key, JSON.stringify(value)); return true; } catch { return false; } },
+};
+const has = (list, id, fallback) => (list.some((x) => x === id) ? id : fallback);
+
+let selected = has(PALS.map((p) => p.id), store.get("selected", "current"), "current");
+let tab = has(["roles", "shades"], store.get("tab", "roles"), "roles");
+let scene = has(["all", ...DATA.scenes.map((s, i) => String(i))], store.get("scene", "0"), "0");
+let comparing = false;
+let state = new Map();       // "pal-<id>" to {status, note, finish, overrides}
+const famChoice = new Map(); // the family being browsed, which needn't be the colour chosen
+
+// Saved rows are data from whoever can edit the page: keep only what this page knows.
+function clean(raw) {
+  const d = raw && typeof raw === "object" ? raw : {}, overrides = {};
+  if (d.overrides && typeof d.overrides === "object") {
+    for (const [id, hex] of Object.entries(d.overrides)) if (ROLE.has(id) && typeof hex === "string" && HEX.test(hex)) overrides[id] = hex.toUpperCase();
+  }
+  return {
+    status: ["pick", "maybe", "no"].includes(d.status) ? d.status : "",
+    note: typeof d.note === "string" ? d.note.slice(0, 4000) : "",
+    finish: FINISHES.some(([id]) => id === d.finish) ? d.finish : "",
+    overrides,
+  };
+}
+const key = (p) => `pal-${p.id}`;
+const saved = (p) => state.get(key(p)) || clean();
+const pal = () => PALS.find((p) => p.id === selected);
+const valuesOf = (p) => ({ ...p.roles, ...saved(p).overrides });
+const finishOf = (p) => saved(p).finish || p.finish;
+const record = (p) => ({ ...saved(p), id: key(p), option: p.name, finish: finishOf(p), roles: valuesOf(p) });
+
+/* ---------- saving ---------- */
+let db = null, mode = "loading";
+// Edits made while saved picks couldn't load. If they load later, these run again on top of them.
+const early = [];
+function act(edit) {
+  if (mode === "none") early.push(edit);
+  edit();
+}
+const writing = new Map();
+function say(text, s = "") { $("#save").textContent = text; $("#save").dataset.s = s; }
+function persist(p) {
+  if (mode === "browser") {
+    const ok = store.set("picks", Object.fromEntries(state));
+    say(ok ? "Saved in this browser. Use Copy picks to hand them to your agent." : "Not saved: use Copy picks to keep your choices.", ok ? "" : "err");
+    return;
+  }
+  if (mode !== "db") { say("Not saved: use Copy picks to keep your choices.", "err"); return; }
+  const id = key(p), job = writing.get(id) || { running: false };
+  job.next = { ...record(p), overrides: { ...saved(p).overrides }, at: new Date().toISOString() };
+  writing.set(id, job);
+  if (!job.running) send(id, job);
+}
+// One write at a time per palette, always ending on the newest value.
+async function send(id, job) {
+  job.running = true;
+  say("Saving…");
+  try {
+    while (job.next) {
+      const doc = job.next;
+      job.next = null;
+      await db.collection("picks").doc(id).set(doc);
+    }
+    writing.delete(id);
+    if (!writing.size) say("Saved");
+  } catch (err) {
+    job.running = false;
+    say(err && ["not_granted", "invalid_argument"].includes(err.code)
+      ? "Not saved: you may only have permission to view. Use Copy picks."
+      : "Not saved: the connection dropped. Change something to retry, or use Copy picks.", "err");
+  }
+}
+function change(p, patch) {
+  state.set(key(p), { ...saved(p), ...patch });
+  persist(p);
+}
+function setColor(id, hex) {
+  if (!ROLE.has(id) || !HEX.test(hex)) return;
+  const p = pal();
+  if (hex === p.roles[id]) famChoice.delete(`${p.id}:${id}`);
+  act(() => {
+    const overrides = { ...saved(p).overrides };
+    if (hex === p.roles[id]) delete overrides[id]; else overrides[id] = hex;
+    change(p, { overrides });
+  });
+  render();
+}
+
+/* ---------- contrast ---------- */
+// A role can be the text of one pair and the ground of another, so both are checked.
+const PAIRS = new Map(ROLES.map((r) => [r.id, []]));
+for (const r of ROLES) for (const [bg, min] of r.against) {
+  PAIRS.get(r.id).push({ fg: r.id, bg, min });
+  PAIRS.get(bg).push({ fg: r.id, bg, min });
+}
+function verdict(id, hex, values) {
+  const own = pal().roles[id];
+  let shown = null, broken = null;
+  for (const { fg, bg, min } of PAIRS.get(id)) {
+    const v = ratio(fg === id ? hex : values[fg], bg === id ? hex : values[bg]);
+    const other = fg === id ? `on ${ROLE.get(bg).name}` : `under ${ROLE.get(fg).name}`;
+    const text = `${showRatio(v)}:1 ${other}`;
+    if (!shown) shown = { v, text };
+    // As a ground, a colour is only at fault when it breaks text that passes on the palette's own ground.
+    if (min && v < min && !broken && (fg === id || ratio(values[fg], own) >= min)) broken = { v, text: `${text}, needs ${min}` };
+  }
+  return { fail: !!broken, v: (broken || shown)?.v || 0, text: (broken || shown)?.text || "" };
+}
+
+/* ---------- previews ---------- */
+const FINISH_CSS = `
+:host { display: block; contain: layout paint; }
+* { box-sizing: border-box; transition: none !important; animation: none !important; }
+:host([data-finish="matte"]) [data-part] { box-shadow: none !important; background-image: none !important; backdrop-filter: none !important; }
+:host([data-finish="depth"]) [data-part="card"] { background-image: linear-gradient(rgba(255,255,255,.06), transparent) !important; box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 1px 2px rgba(0,0,0,.14), 0 12px 26px var(--drop) !important; }
+:host([data-finish="depth"]) [data-part="primary"] { box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 6px 16px var(--drop) !important; }
+:host([data-finish="depth"]) [data-part="bar"] { box-shadow: inset 0 1px 0 rgba(255,255,255,.07) !important; }
+:host([data-finish="glass"]) [data-part="card"], :host([data-finish="glass"]) [data-part="bar"] { background-color: color-mix(in srgb, var(--fill) 58%, transparent) !important; background-image: linear-gradient(135deg, color-mix(in srgb, var(--glow) 13%, transparent), transparent 60%) !important; -webkit-backdrop-filter: blur(14px) saturate(1.3); backdrop-filter: blur(14px) saturate(1.3); box-shadow: inset 0 1px 0 color-mix(in srgb, currentColor 16%, transparent) !important; }
+:host([data-finish="glass"]) [data-part="primary"] { background-color: color-mix(in srgb, var(--fill) 86%, transparent) !important; box-shadow: inset 0 1px 0 rgba(255,255,255,.5) !important; }
+:host([data-finish="glow"]) [data-part="card"] { box-shadow: 0 0 0 1px color-mix(in srgb, var(--glow) 16%, transparent), 0 10px 36px color-mix(in srgb, var(--glow) 12%, transparent) !important; }
+:host([data-finish="glow"]) [data-part="primary"] { box-shadow: 0 0 24px color-mix(in srgb, var(--fill) 48%, transparent) !important; }
+:host([data-finish="glow"]) [data-part="input"] { box-shadow: 0 0 0 4px color-mix(in srgb, var(--glow) 24%, transparent) !important; }
+:host([data-finish="glow"]) [data-part="status"] { box-shadow: 0 0 10px var(--fill) !important; }
+`;
+$("#scenes").innerHTML = DATA.scenes.map((s) => `<section class="scene"><h3>${esc(s.name)}</h3><div class="host"></div></section>`).join("");
+const hosts = [...document.querySelectorAll(".host")].map((host, i) => {
+  const root = host.attachShadow({ mode: "open" });
+  // Scenes were checked by build.mjs. The finish styles go last so they win.
+  root.innerHTML = `${DATA.scenes[i].html}<style>${FINISH_CSS}</style>`;
+  return { host, root, parts: [...root.querySelectorAll("[data-part]")] };
+});
+const glowRole = ROLES.find((r) => r.type === "accent") || ROLES.find((r) => r.type === "fill") || ROLES[0];
+const groundRole = ROLES.find((r) => r.type === "page") || ROLES[0];
+function paint() {
+  // Comparing shows the product untouched: Current without swaps or a finish.
+  const p = pal(), v = comparing ? PALS[0].roles : valuesOf(p), finish = comparing ? "built" : finishOf(p);
+  for (const { host, parts } of hosts) {
+    host.dataset.finish = "built";
+    for (const r of ROLES) host.style.setProperty(`--c-${r.id}`, v[r.id]);
+    host.style.setProperty("--glow", v[glowRole.id]);
+    host.style.setProperty("--drop", lum(v[groundRole.id]) > 0.4 ? "rgba(0,0,0,.1)" : "rgba(0,0,0,.45)");
+    // Measure each piece's own colour before the finish goes on, so scenes don't have to declare it.
+    for (const el of parts) el.style.setProperty("--fill", getComputedStyle(el).backgroundColor);
+  }
+  // Glass and Depth change what is behind words, which the role pairs can't see. So measure the words.
+  const measure = !comparing && ["glass", "depth"].includes(finish);
+  const before = measure ? paintedText("built", v) : [];
+  for (const { host } of hosts) host.dataset.finish = finish;
+  if (comparing) return;
+  const after = measure ? paintedText(finish, v) : [];
+  const broken = new Set(after.filter((t, i) => before[i].v >= t.min && t.v < t.min).map((t) => t.words));
+  $("#finish-health").hidden = !broken.size;
+  $("#finish-health").textContent = broken.size ? `${FINISHES.find(([id]) => id === finish)[1]} pushes text below contrast: ${[...broken].slice(0, 5).join(", ")}${broken.size > 5 ? ` and ${broken.size - 5} more` : ""}. Try another finish or change those colours.` : "";
+}
+
+const dot = Object.assign(document.createElement("canvas"), { width: 1, height: 1 }).getContext("2d", { willReadFrequently: true });
+const pixels = new Map();
+// Computed colours come as rgb() or color(srgb ...). A pixel settles both.
+function pixel(css) {
+  if (!pixels.has(css)) {
+    if (pixels.size > 4000) pixels.clear();
+    dot.clearRect(0, 0, 1, 1); dot.fillStyle = "rgba(0,0,0,0)"; dot.fillStyle = css; dot.fillRect(0, 0, 1, 1);
+    const [r, g, b, a] = dot.getImageData(0, 0, 1, 1).data;
+    pixels.set(css, { rgb: [r / 255, g / 255, b / 255], a: a / 255 });
+  }
+  return pixels.get(css);
+}
+const over = (top, a, under) => top.map((c, i) => c * a + under[i] * (1 - a));
+// Each piece of text on what is really behind it, at the worst point of the finish's highlight.
+function paintedText(finish, values) {
+  const out = [], page = pixel(getComputedStyle(document.body).backgroundColor).rgb;
+  for (const { host, root } of hosts) {
+    const grounds = new Map();
+    const ground = (el) => {
+      if (!el) return [page];
+      if (grounds.has(el)) return grounds.get(el);
+      const bg = pixel(getComputedStyle(el).backgroundColor);
+      let list = ground(el.parentElement).map((under) => over(bg.rgb, bg.a, under));
+      const part = el.dataset?.part;
+      const sheen = finish === "depth" && part === "card" ? ["#FFFFFF", 0.06] : finish === "glass" && (part === "card" || part === "bar") ? [values[glowRole.id], 0.13] : null;
+      if (sheen) list = [...list, ...list.map((under) => over(hexRgb(sheen[0]), sheen[1], under))];
+      if (list.length > 4) list = [...new Map(list.map((c) => [rgbHex(c), c])).values()];
+      grounds.set(el, list);
+      return list;
+    };
+    for (const el of root.querySelectorAll("*")) {
+      if (el.tagName === "STYLE") continue;
+      const words = [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join(" ").trim();
+      if (!words) continue;
+      const style = getComputedStyle(el), ink = pixel(style.color), size = parseFloat(style.fontSize);
+      out.push({
+        words: `“${words.slice(0, 28)}”`,
+        min: size >= 24 || (size >= 18.66 && +style.fontWeight >= 700) ? 3 : 4.5,
+        v: Math.min(...ground(el).map((bg) => ratio(rgbHex(over(ink.rgb, ink.a, bg)), rgbHex(bg)))),
+      });
+    }
+  }
+  return out;
+}
+
+// A scene with a width is laid out at that width and scaled down, like a desktop screenshot.
+// On a phone-sized preview it lays out at the width it has.
+function fit() {
+  hosts.forEach(({ host }, i) => {
+    const want = DATA.scenes[i].width, room = host.parentElement.clientWidth;
+    if (!want || !room) return;
+    const scale = want > room && room >= 480;
+    host.style.width = scale ? `${want}px` : "";
+    host.style.zoom = scale ? room / want : "";
+  });
+}
+new ResizeObserver(() => requestAnimationFrame(fit)).observe($("#scenes"));
+
+/* ---------- render ---------- */
+function renderPalettes() {
+  $("#palettes").innerHTML = PALS.map((p) => {
+    const v = valuesOf(p), s = saved(p).status;
+    const label = { pick: "Picked", maybe: "Maybe", no: "No" }[s] || "";
+    return `<button type="button" class="pcard" data-k="pal:${p.id}" data-pal="${p.id}" aria-pressed="${p.id === selected}"><span class="strip">${ROLES.map((r) => `<i style="background:${v[r.id]}"></i>`).join("")}</span><b>${esc(p.name)}<span class="status" data-s="${s}">${label}</span></b><small>${esc(p.idea)}</small></button>`;
+  }).join("");
+}
+function press(selector, value) {
+  for (const b of document.querySelectorAll(`${selector} button`)) b.setAttribute("aria-pressed", b.dataset.v === value);
+}
+function renderDetail() {
+  const p = pal(), s = saved(p), v = valuesOf(p), failed = failures(ROLES, v);
+  $("#palette-name").textContent = p.name;
+  $("#palette-idea").textContent = p.idea;
+  if (document.activeElement !== $("#note")) $("#note").value = s.note;
+  press("#finish", finishOf(p));
+  press("#decide", s.status);
+  $("#reset").hidden = !ROLES.some((r) => v[r.id] !== p.roles[r.id]);
+  $("#health").innerHTML = failed.length
+    ? `Below contrast:${[...new Set(failed.map((f) => f.role))].map((id) => `<a href="#role-${id}" data-jump="${id}">${esc(ROLE.get(id).name)}</a>`).join("")}`
+    : `All ${ROLES.reduce((n, r) => n + r.against.filter(([, min]) => min).length, 0)} checked contrast pairs pass`;
+}
+function chip(r, hex, values, base, spot, wide = false) {
+  const c = verdict(r.id, hex, values), isDefault = hex === base;
+  const tip = [hex + (isDefault ? " (palette default)" : ""), c.text].filter(Boolean).join(" · ");
+  return `<button type="button" class="chip${wide ? " wide" : ""}" data-k="chip:${r.id}:${spot}" data-role="${r.id}" data-hex="${hex}" aria-pressed="${hex === values[r.id]}"${isDefault ? " data-default" : ""}${c.fail ? " data-fail" : ""} title="${esc(tip)}" aria-label="${esc(`${r.name}: ${tip}`)}" style="background:${hex};color:${ink(hex)}">${wide ? hex : ""}</button>`;
+}
+function inPlay(r, values, range) {
+  const all = new Set([values[r.id], ...PALS.map((p) => p.roles[r.id])]);
+  let added = 0;
+  for (const hex of DATA.inUse) {
+    const [L, C] = toOklch(hex);
+    if (added >= 7 || L < range[0] || L > range[1] || (!isColor(r) && C > 0.07) || all.has(hex)) continue;
+    all.add(hex); added++;
+  }
+  return [...all];
+}
+function roleCard(r, p, values) {
+  // The range follows the palette's colour, so the shades don't shift while the user clicks through them.
+  const now = values[r.id], base = p.roles[r.id], range = roleRange(r, base), k = `${p.id}:${r.id}`;
+  const choice = famChoice.get(k) || { color: isColor(r), name: familyOf(now, isColor(r)) };
+  const list = choice.color ? HUES : TINTS, fam = list.find((f) => f[0] === choice.name) || list[0];
+  const families = list.map((f) => `<button type="button" class="fam" data-k="fam:${r.id}:${f[0]}" data-role="${r.id}" data-fam="${f[0]}" data-color="${choice.color}" aria-pressed="${f === fam}" title="${f[0]}" aria-label="${esc(r.name)} family: ${f[0]}" style="background:${familyPreview(r, f, range, choice.color)}"></button>`).join("");
+  const shades = shadeRows(r, fam, range, choice.color).map(([label, row]) => `<span class="lab">${label}</span>${row.map((h, i) => chip(r, h, values, base, `${label}${i}`)).join("")}`).join("");
+  const checks = r.against.map(([bg, min]) => {
+    const x = ratio(now, values[bg]), bad = min && x < min;
+    return `<span class="${bad ? "bad" : ""}">${showRatio(x)}:1 on ${esc(ROLE.get(bg).name)}${min ? (bad ? ` (needs ${min})` : " ✓") : ""}</span>`;
+  }).join(" · ");
+  const used = esc(r.used) + (r.tokens.length ? ` · ${esc([...new Set(r.tokens.map((t) => t.name))].join(", "))}` : "");
+  return `<div class="role" id="role-${r.id}"${now !== base ? " data-changed" : ""}>
+    <div class="role-head">
+      <input class="picker" type="color" data-k="picker:${r.id}" data-role="${r.id}" value="${now.toLowerCase()}" aria-label="${esc(r.name)}: pick any colour">
+      <span class="role-name"><b>${esc(r.name)}</b><small>${used}</small></span>
+      <input class="code" data-k="code:${r.id}" data-role="${r.id}" value="${now}" maxlength="7" spellcheck="false" aria-label="${esc(r.name)} colour code">
+    </div>
+    <div class="row"><span class="lab">Family</span>${families}<span class="name">${fam[0]}</span></div>
+    <div class="shades">${shades}</div>
+    <div class="row"><span class="lab">In play</span>${inPlay(r, values, range).map((h, i) => chip(r, h, values, base, `play${i}`)).join("")}</div>
+    <div class="row"><span class="lab">Default</span>${chip(r, base, values, base, "default", true)}</div>
+    <div class="checks">${checks}</div>
+  </div>`;
+}
+function renderRoles() {
+  const p = pal(), values = valuesOf(p), groups = [...new Set(ROLES.map((r) => r.group))];
+  $("#roles").innerHTML = '<p class="hint">Pick a family, then a shade: dark to light, left to right. A slash fails contrast, a dot is this palette’s own choice, and In play holds colours from the project and the other palettes. Hover any swatch for its code.</p>'
+    + groups.map((g) => `<h3>${esc(g)}</h3>${ROLES.filter((r) => r.group === g).map((r) => roleCard(r, p, values)).join("")}`).join("");
+}
+function renderShades() {
+  const p = pal(), values = valuesOf(p), r = ROLE.get($("#shade-role").value) || ROLES[0];
+  const range = roleRange(r, p.roles[r.id]), all = new Map();
+  for (const color of isColor(r) ? [true, false] : [false, true]) {
+    for (const f of color ? HUES : TINTS) {
+      const family = `${f[0]} ${color ? "colour" : "tint"}`;
+      for (const [strength, row] of shadeRows(r, f, range, color)) for (const hex of row) if (!all.has(hex)) all.set(hex, { hex, family, strength });
+    }
+  }
+  const pick = $("#shade-family"), was = pick.value, families = [...new Set([...all.values()].map((x) => x.family))];
+  pick.innerHTML = '<option value="">All families</option>' + families.map((f) => `<option>${f}</option>`).join("");
+  pick.value = families.includes(was) ? was : "";
+  const q = $("#shade-q").value.trim().toLowerCase(), passing = $("#shade-pass").checked, sort = $("#shade-sort").value;
+  let rows = [...all.values()].filter((x) => (!pick.value || x.family === pick.value) && `${x.hex} ${x.family} ${x.strength}`.toLowerCase().includes(q)).map((x) => ({ ...x, check: verdict(r.id, x.hex, values) }));
+  if (passing) rows = rows.filter((x) => !x.check.fail);
+  if (sort === "dark") rows.sort((a, b) => lum(a.hex) - lum(b.hex));
+  if (sort === "contrast") rows.sort((a, b) => b.check.v - a.check.v);
+  $("#shade-count").textContent = `${rows.length} of ${all.size}`;
+  $("#shade-rows").innerHTML = rows.map((x) => `<tr><td>${chip(r, x.hex, values, p.roles[r.id], `all${x.hex}`)}</td><td class="code-cell">${x.hex}</td><td>${x.family}</td><td>${x.strength}</td><td>${esc(x.check.text)}</td></tr>`).join("")
+    || '<tr><td colspan="5">No shade matches. Clear the search or untick Passing only.</td></tr>';
+}
+function render() {
+  const active = document.activeElement, k = active?.dataset?.k;
+  // A live update mustn't wipe a colour code that's half typed.
+  const typed = active?.classList?.contains("code") && k ? { value: active.value, at: active.selectionStart, dirty: active.value !== active.defaultValue } : null;
+  renderPalettes();
+  renderDetail();
+  press("#tabs", tab);
+  $("#roles").hidden = tab !== "roles";
+  $("#shades").hidden = tab !== "shades";
+  if (tab === "roles") renderRoles(); else renderShades();
+  paint();
+  if (!k) return;
+  const again = document.querySelector(`[data-k="${CSS.escape(k)}"]`);
+  if (!again) return;
+  if (typed?.dirty) again.value = typed.value;
+  again.focus({ preventScroll: true });
+  if (typed) again.setSelectionRange(typed.at, typed.at);
+}
+function showScene() {
+  press("#scene-pick", scene);
+  document.querySelectorAll(".scene").forEach((el, i) => { el.hidden = scene !== "all" && scene !== String(i); });
+  fit();
+  paint();
+}
+
+/* ---------- events ---------- */
+let noteTimer = 0, notePending = null;
+function flushNote() {
+  clearTimeout(noteTimer);
+  if (!notePending) return;
+  const p = notePending, note = saved(p).note;
+  notePending = null;
+  act(() => change(p, { note }));
+}
+$("#palettes").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-pal]");
+  if (!b) return;
+  flushNote();
+  selected = b.dataset.pal;
+  if (comparing) $("#compare").click();
+  store.set("selected", selected);
+  render();
+});
+$("#note").addEventListener("input", (e) => {
+  const p = pal();
+  state.set(key(p), { ...saved(p), note: e.target.value.slice(0, 4000) });
+  notePending = p;
+  clearTimeout(noteTimer);
+  noteTimer = setTimeout(flushNote, 700);
+});
+$("#note").addEventListener("change", flushNote);
+$("#finish").addEventListener("click", (e) => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  const p = pal();
+  act(() => change(p, { finish: b.dataset.v }));
+  render();
+});
+$("#decide").addEventListener("click", (e) => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  const p = pal(), status = saved(p).status === b.dataset.v ? "" : b.dataset.v;
+  // Only one palette can be the pick; the one it replaces becomes a Maybe.
+  act(() => {
+    if (status === "pick") for (const other of PALS) if (other !== p && saved(other).status === "pick") change(other, { status: "maybe" });
+    change(p, { status });
+  });
+  render();
+});
+$("#reset").addEventListener("click", () => {
+  const p = pal();
+  famChoice.clear();
+  act(() => change(p, { overrides: {} }));
+  render();
+});
+$("#roles").addEventListener("click", (e) => {
+  const f = e.target.closest(".fam");
+  if (f) {
+    famChoice.set(`${selected}:${f.dataset.role}`, { name: f.dataset.fam, color: f.dataset.color === "true" });
+    render();
+    return;
+  }
+  const c = e.target.closest(".chip");
+  if (c) setColor(c.dataset.role, c.dataset.hex);
+});
+$("#roles").addEventListener("change", (e) => {
+  const input = e.target.closest("input[data-role]");
+  if (!input) return;
+  let v = input.value.trim().replace(/^#?/, "#");
+  if (/^#[0-9a-f]{3}$/i.test(v)) v = "#" + [...v.slice(1)].map((x) => x + x).join("");
+  if (!HEX.test(v)) {
+    input.setAttribute("aria-invalid", "true");
+    say("That code isn’t a colour. Use six digits, like #1A2B3C.", "err");
+    return;
+  }
+  input.defaultValue = input.value;
+  famChoice.delete(`${selected}:${input.dataset.role}`);
+  setColor(input.dataset.role, v.toUpperCase());
+});
+$("#shade-rows").addEventListener("click", (e) => {
+  const c = e.target.closest(".chip");
+  if (c) setColor(c.dataset.role, c.dataset.hex);
+});
+for (const id of ["shade-role", "shade-family", "shade-q", "shade-sort", "shade-pass"]) $(`#${id}`).addEventListener("input", renderShades);
+$("#tabs").addEventListener("click", (e) => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  tab = b.dataset.v;
+  store.set("tab", tab);
+  render();
+});
+$("#health").addEventListener("click", (e) => {
+  const a = e.target.closest("[data-jump]");
+  if (!a) return;
+  e.preventDefault();
+  tab = "roles";
+  render();
+  const card = $(`#role-${a.dataset.jump}`);
+  card.scrollIntoView({ block: "center" });
+  card.querySelector(".code").focus({ preventScroll: true });
+});
+$("#compare").addEventListener("click", (e) => {
+  comparing = !comparing;
+  e.currentTarget.setAttribute("aria-pressed", comparing);
+  e.currentTarget.textContent = comparing ? "Showing Current. Go back" : "Compare with Current";
+  paint();
+});
+$("#scene-pick").addEventListener("click", (e) => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  scene = b.dataset.v;
+  store.set("scene", scene);
+  showScene();
+});
+async function copy(text, done) {
+  try {
+    await navigator.clipboard.writeText(text);
+    $("#copy-out").hidden = true;
+    say(done);
+  } catch {
+    const out = $("#copy-out");
+    out.hidden = false; out.value = text; out.select();
+    say("Copy was blocked. The text is selected: press Ctrl+C or Cmd+C.", "err");
+  }
+}
+$("#copy-css").addEventListener("click", () => {
+  const p = pal(), v = valuesOf(p), scopes = new Map(), loose = [];
+  for (const r of ROLES) {
+    // Only tokens the project has. Other roles are listed, so no new token is invented.
+    const css = r.tokens.filter((t) => t.name.startsWith("--"));
+    if (!css.length) loose.push(`/* No CSS token. ${r.name}: ${v[r.id]} */`);
+    for (const t of css) {
+      const scope = t.scope || ":root";
+      if (!scopes.has(scope)) scopes.set(scope, []);
+      scopes.get(scope).push(`  ${t.name}: ${formatColor(v[r.id], t.format)}; /* ${r.name} */`);
+    }
+  }
+  const body = [...scopes].map(([scope, lines]) => {
+    const media = scope.match(/^(@media[^:]*(?::[^)]*\))+)\s*(.*)$/);
+    return media ? `${media[1]} {\n${media[2] || ":root"} {\n${lines.join("\n")}\n}\n}` : `${scope} {\n${lines.join("\n")}\n}`;
+  });
+  const label = FINISHES.find(([id]) => id === finishOf(p))[1];
+  copy(`/* ${p.name}, finish: ${label} */\n${[...body, loose.join("\n")].filter(Boolean).join("\n\n")}`, "CSS copied");
+});
+$("#copy-picks").addEventListener("click", () => {
+  flushNote();
+  const touched = PALS.filter((p) => state.has(key(p)) || p.id === selected);
+  copy(JSON.stringify(touched.map(record), null, 2), "Picks copied. Paste them to your agent.");
+});
+
+/* ---------- start ---------- */
+$("#source").textContent = DATA.source ? `Read from ${DATA.source}` : "";
+if (DATA.hardCoded.length) {
+  $("#stuck").hidden = false;
+  $("#stuck-title").textContent = `${DATA.hardCoded.length} colours are typed straight into the code and won’t follow a token change`;
+  $("#stuck-list").innerHTML = DATA.hardCoded.map((c) => `<li><i style="background:${c.hex}"></i><span>${c.hex} · ${esc(c.at.join(", "))}</span></li>`).join("");
+}
+$("#finish").innerHTML = FINISHES.map(([id, label]) => `<button type="button" data-v="${id}">${label}</button>`).join("");
+$("#scene-pick").hidden = DATA.scenes.length < 2;
+$("#scene-pick").innerHTML = '<button type="button" data-v="all">All</button>' + DATA.scenes.map((s, i) => `<button type="button" data-v="${i}">${esc(s.name)}</button>`).join("");
+$("#shade-role").innerHTML = ROLES.map((r) => `<option value="${r.id}">${esc(r.group)}: ${esc(r.name)}</option>`).join("");
+const theme = store.get("theme", null);
+if (theme === "dark" || theme === "light") document.documentElement.dataset.theme = theme;
+const showTheme = () => press("#theme", document.documentElement.dataset.theme === "dark" ? "dark" : "light");
+$("#theme").addEventListener("click", (e) => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  document.documentElement.dataset.theme = b.dataset.v;
+  store.set("theme", b.dataset.v);
+  showTheme();
+});
+showTheme();
+render();
+showScene();
+
+// Nothing can be changed until saved picks have arrived, so an early click can't overwrite them.
+function ready(next, message, s) {
+  mode = next;
+  $("#main").inert = false;
+  say(message, s);
+}
+(async () => {
+  if (!window.claude?.use) {
+    const local = store.get("picks", {});
+    if (local && typeof local === "object") {
+      state = new Map(Object.entries(local).filter(([id]) => PALS.some((p) => key(p) === id)).map(([id, d]) => [id, clean(d)]));
+    }
+    ready("browser", "Picks save in this browser. Use Copy picks to hand them to your agent.");
+    render();
+    return;
+  }
+  const late = setTimeout(() => { if (mode === "loading") ready("none", "Couldn’t load saved picks. Use Copy picks, or reload to save.", "err"); }, 10000);
+  const unavailable = (message) => {
+    clearTimeout(late);
+    ready("none", message, "err");
+  };
+  try {
+    db = await window.claude.use("db");
+    if (!db) { unavailable("Picks can’t be saved here. Use Copy picks, or open this page signed in."); return; }
+    db.collection("picks").onSnapshot((snap) => {
+      const next = new Map();
+      for (const doc of snap.docs) if (PALS.some((p) => key(p) === doc.id)) next.set(doc.id, clean(doc.data()));
+      // An edit still being saved or typed wins over the copy that just arrived.
+      for (const id of writing.keys()) if (state.has(id)) next.set(id, state.get(id));
+      // Only the note is still being typed: the rest of that palette comes from what just arrived.
+      if (notePending) { const id = key(notePending); next.set(id, { ...(next.get(id) || clean()), note: saved(notePending).note }); }
+      state = next;
+      if (mode !== "db") {
+        clearTimeout(late);
+        ready("db", "Connected. Picks save as you make them.");
+        for (const edit of early.splice(0)) edit();
+      }
+      render();
+    }, () => unavailable("Lost the connection to saved picks. Use Copy picks, or reload."));
+  } catch {
+    unavailable("Picks can’t be saved here. Use Copy picks to keep them.");
+  }
+})();
+})();
+</script>
