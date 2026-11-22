@@ -7,6 +7,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import * as P from "./palette.mjs";
+import { safePath, writeSafe } from "./safe-files.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 export const FINISHES = [["built", "As built"], ["matte", "Matte"], ["depth", "Depth"], ["glass", "Glass"], ["glow", "Glow"]];
@@ -128,6 +129,7 @@ export function prepare(cfg, dir, scanned = null) {
     const file = path.resolve(dir, s.file || ""), rel = path.relative(dir, file);
     if (!text(s.name) || !text(s.file)) { problems.push('each scene needs "name" and "file"'); continue; }
     if (rel.startsWith("..") || path.isAbsolute(rel)) { problems.push(`scene "${s.name}": keep the file in the config's folder`); continue; }
+    try { safePath(file); } catch (e) { problems.push(`scene "${s.name}": ${e.message}`); continue; }
     if (!fs.existsSync(file)) { problems.push(`scene "${s.name}": ${s.file} doesn't exist`); continue; }
     const html = fs.readFileSync(file, "utf8");
     if (s.width !== undefined && !(Number.isInteger(s.width) && s.width >= 320 && s.width <= 1920)) problems.push(`scene "${s.name}": width is whole pixels, 320 to 1920`);
@@ -206,24 +208,26 @@ function main([config, option, extra]) {
     return 2;
   }
   let cfg;
-  try { cfg = JSON.parse(fs.readFileSync(config, "utf8")); } catch (e) { console.error(`Can't read ${config}: ${e.message}`); return 1; }
+  try { cfg = JSON.parse(fs.readFileSync(safePath(config), "utf8")); } catch (e) { console.error(`Can't read ${config}: ${e.message}`); return 1; }
   const dir = path.dirname(path.resolve(config)), found = path.join(dir, "colours.json");
   let scanned = null;
-  if (fs.existsSync(found)) { try { scanned = JSON.parse(fs.readFileSync(found, "utf8")); } catch { console.log("note  colours.json can't be read, so hard-coded colours aren't listed"); } }
+  if (fs.existsSync(found)) { try { scanned = JSON.parse(fs.readFileSync(safePath(found), "utf8")); } catch { console.log("note  colours.json can't be read, so hard-coded colours aren't listed"); } }
   const { problems, notes, data } = prepare(cfg, dir, scanned);
   if (option !== "--picks") for (const n of notes) console.log(`note  ${n}`);
   if (problems.length) { console.error(problems.map((p) => `fix   ${p}`).join("\n")); return 1; }
   if (option === "--picks") {
-    try { console.log(JSON.stringify(changesFrom(data, JSON.parse(fs.readFileSync(extra, "utf8"))), null, 2)); } catch (e) { console.error(e.message); return 1; }
+    try { console.log(JSON.stringify(changesFrom(data, JSON.parse(fs.readFileSync(safePath(extra), "utf8"))), null, 2)); } catch (e) { console.error(e.message); return 1; }
     return 0;
   }
   if (option === "--check") { console.log(`OK: ${data.roles.length} roles, ${data.palettes.length} palettes, ${data.scenes.length} scenes.`); return 0; }
   if (option.startsWith("--")) { console.error(`Unknown option ${option}`); return 2; }
-  fs.mkdirSync(path.dirname(path.resolve(option)), { recursive: true });
   const page = render(data), alone = option.replace(/(\.html?)?$/i, ".standalone.html");
-  fs.writeFileSync(option, page);
   // An Artifact host adds the document around the page. A file opened directly needs its own.
-  fs.writeFileSync(alone, standalone(page));
+  try {
+    for (const out of [option, alone]) safePath(out); // both, before either is written
+    writeSafe(option, page, ".html");
+    writeSafe(alone, standalone(page), ".html");
+  } catch (e) { console.error(e.message); return 1; }
   console.log(`Built ${option} to publish, and ${alone} to open as a file: ${data.roles.length} roles, Current + ${data.palettes.length - 1} palettes, scenes: ${data.scenes.length}.`);
   return 0;
 }

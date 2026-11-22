@@ -6,6 +6,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { clamp, oklch, oklabLinear, rgbHex } from "./palette.mjs";
+import { safePath, writeSafe } from "./safe-files.mjs";
 
 const SKIP_DIR = /(^|\/)(node_modules|\.git|\.next|\.nuxt|\.svelte-kit|\.output|\.turbo|\.cache|\.worktrees|\.artifacts|dist|build|out|coverage|vendor|Pods|DerivedData|__pycache__|\.venv|venv)(\/|$)/;
 const SKIP_FILE = /(\.min\.(js|css)|\.map|\.lock|lock\.json|\.snap|\.d\.ts)$/i;
@@ -276,8 +277,12 @@ function main(argv) {
     return 2;
   }
   for (const t of targets) if (!fs.existsSync(t)) { console.error(`Not found: ${t}`); return 2; }
-  const r = scan(targets);
-  if (json) { fs.mkdirSync(path.dirname(path.resolve(json)), { recursive: true }); fs.writeFileSync(json, JSON.stringify(r, null, 1)); }
+  let r;
+  try {
+    if (json) safePath(json); // before the scan, so a bad path fails fast
+    r = scan(targets);
+    if (json) writeSafe(json, JSON.stringify(r, null, 1), ".json");
+  } catch (e) { console.error(e.message); return 1; }
 
   if (targets.length > 1 && r.base) console.log(`File paths below are relative to ${r.base}`);
   console.log(`Read ${r.filesRead} files${r.filesSkipped ? `, skipped ${r.filesSkipped} too large or unreadable` : ""}. ${r.colors.length} distinct colours, ${r.tokens.length} colour tokens.`);

@@ -8,9 +8,10 @@ import vm from "node:vm";
 import * as P from "../scripts/palette.mjs";
 import { parseColor, parseChannels, colorsIn, declarations, scan } from "../scripts/extract.mjs";
 import { prepare, render, standalone, changesFrom } from "../scripts/build.mjs";
+import { safePath, writeSafe } from "../scripts/safe-files.mjs";
 
 function folder(t, files) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "palette-builder-"));
+  const dir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "palette-builder-")));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   for (const [name, body] of Object.entries(files)) {
     fs.mkdirSync(path.dirname(path.join(dir, name)), { recursive: true });
@@ -161,4 +162,38 @@ test("picks with a see-through finish say the ratios are for flat colours", (t) 
   const warn = (finish) => changesFrom(data, [{ id: "pal-navy", status: "pick", finish }]).warnings.join();
   assert.match(warn("glass"), /flat colours/);
   assert.doesNotMatch(warn("matte"), /flat colours/);
+});
+
+test("links are refused, at the file and on the way to it", (t) => {
+  const dir = folder(t, { "real/keep.txt": "SAFE", "real/main.html": SCENE });
+  // A junction needs no special rights on Windows and is a plain symlink elsewhere.
+  for (const name of ["out", "page.html"]) fs.symlinkSync(path.join(dir, "real"), path.join(dir, name), "junction");
+  assert.throws(() => writeSafe(path.join(dir, "out/page.html"), "x", ".html"), /is a link/);
+  assert.throws(() => writeSafe(path.join(dir, "page.html"), "x", ".html"), /is a link/);
+  assert.ok(!fs.existsSync(path.join(dir, "real/page.html")));
+  const cfg = { ...config(), scenes: [{ name: "Main", file: "out/main.html" }] };
+  assert.match(prepare(cfg, dir).problems.join(), /is a link/);
+});
+
+test("a symlinked file is refused", (t) => {
+  const dir = folder(t, { "victim": "SAFE" });
+  try { fs.symlinkSync(path.join(dir, "victim"), path.join(dir, "page.html"), "file"); } catch (e) { if (e.code === "EPERM") return t.skip("no right to make file symlinks here"); throw e; }
+  assert.throws(() => writeSafe(path.join(dir, "page.html"), "x", ".html"), /is a link/);
+  assert.equal(fs.readFileSync(path.join(dir, "victim"), "utf8"), "SAFE");
+});
+
+test("a write replaces a hard link instead of writing through it", (t) => {
+  const dir = folder(t, { "victim": "SAFE" }), out = path.join(dir, "page.html");
+  fs.linkSync(path.join(dir, "victim"), out);
+  writeSafe(out, "page", ".html");
+  assert.equal(fs.readFileSync(path.join(dir, "victim"), "utf8"), "SAFE");
+  assert.equal(fs.readFileSync(out, "utf8"), "page");
+  assert.deepEqual(fs.readdirSync(dir).sort(), ["page.html", "victim"], "no temporary file left");
+});
+
+test("nothing is written into .git or under another extension", (t) => {
+  const dir = folder(t, { "keep": "" });
+  for (const p of [".git/hooks/page.html", ".GIT/page.html", "git~1/page.html"]) assert.throws(() => safePath(path.join(dir, p)), /inside .git/, p);
+  assert.throws(() => writeSafe(path.join(dir, "pre-commit"), "x", ".html"), /has to end in/);
+  assert.equal(safePath(path.join(dir, ".github/page.html")), path.join(dir, ".github", "page.html"));
 });
