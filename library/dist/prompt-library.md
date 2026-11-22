@@ -1,6 +1,6 @@
 # Prompt Library
 
-254 prompts, commands and recipes for coding and design agents. Open prompt-library.html for search, stars and the prompt composer.
+255 prompts, commands and recipes for coding and design agents. Open prompt-library.html for search, stars and the prompt composer.
 
 ## Investigations
 
@@ -1197,6 +1197,14 @@ Deepen modules and simplify interfaces.
 
 ```text
 /lean-ux should the inbox default to unread?
+```
+
+### Palette builder
+
+**UI108 · /palette-builder** Reads a repo or page's colors and builds a workbook where you compare whole palettes on its own screens, adjust every color by family and shade, and pick. It changes tokens only when you ask.
+
+```text
+/palette-builder the marketing site in apps/web
 ```
 
 ### Color skills

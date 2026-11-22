@@ -17,6 +17,7 @@ if [ $# -eq 0 ]; then
     n=$(basename "$d")
     [ "$n" = design ] && continue
     [ "$n" = design-setup ] && continue  # Claude Code settings; nothing to set on claude.ai
+    [ "$n" = palette-builder ] && continue  # needs its scripts and the project's files
     f="$b/skills/$n.md"
     cat "$d/SKILL.md" > "$f"
     (cd "$d" && find . -type f ! -name SKILL.md ! -path './scripts/*' ! -path './agents/*' \( -name '*.md' -o -name '*.json' -o -name '*.txt' -o -name 'LICENSE' \) | sort) | while read -r x; do

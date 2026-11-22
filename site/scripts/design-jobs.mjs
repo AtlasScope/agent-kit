@@ -11,7 +11,7 @@ export const DESIGN_JOBS = [
   ["Polish and refine", "Make a working screen feel finished: louder, quieter, simpler or sturdier.",
     ["UI008", "UI034", "UI059", "UI009", "UI010", "UI011", "UI012", "UI018", "UI019", "UI053", "UI021", "UI022", "UI060", "UI072"]],
   ["Type, colour and layout", "Fonts, colour systems, contrast and spacing.",
-    ["UI016", "UI033", "UI015", "UI044", "UI045", "UI017"]],
+    ["UI016", "UI033", "UI015", "UI108", "UI044", "UI045", "UI017"]],
   ["Motion", "Plan, build, review and fix anything that moves.",
     ["UI101", "UI102", "UI103", "UI104", "UI105", "UI014", "UI063", "UI035", "UI064", "UI065", "UI066", "UI067", "UI068", "UI069"]],
   ["Words in the product", "Clear interface text, and finding and removing signs of AI writing.",

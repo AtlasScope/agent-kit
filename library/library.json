@@ -3461,6 +3461,22 @@
    "dmode": "Advice"
   },
   {
+   "id": "UI108",
+   "sec": "dcmd",
+   "group": "Palette builder",
+   "sub": "Command",
+   "badge": "design-kit plugin",
+   "gnote": "One command that turns a repo or page into a palette workbook. It reads the colors in use, gives each one a job, and shows whole palettes on that product's own screens, with a family and shade picker for every job, finishes and contrast checks.",
+   "best": "Choosing or rethinking a product's palette when you want to see options and decide yourself.",
+   "skipw": "One color to convert or one contrast failure to fix. Use oklch-skill.",
+   "note": "Needs Node 18 or newer. Where the agent can publish artifacts, your picks save on the page. Elsewhere you get an HTML file with a Copy picks button.",
+   "t": "/palette-builder",
+   "cmd": "/palette-builder",
+   "p": "/palette-builder the marketing site in apps/web",
+   "why": "Reads a repo or page's colors and builds a workbook where you compare whole palettes on its own screens, adjust every color by family and shade, and pick. It changes tokens only when you ask.",
+   "dmode": "Asks before changing"
+  },
+  {
    "id": "UI044",
    "sec": "dcmd",
    "group": "Color skills",
@@ -5441,6 +5457,11 @@
      "/web-typography"
     ],
     [
+     "I want to choose a palette and see the options",
+     "/palette-builder",
+     "/oklch-skill"
+    ],
+    [
      "Palette scale, dark mode or contrast",
      "/oklch-skill",
      "/color-expert"
@@ -5759,6 +5780,10 @@
      "Adds color as part of a design pass"
     ],
     [
+     "/palette-builder",
+     "Compares whole palettes on your own screens, for you to choose"
+    ],
+    [
      "/oklch-skill",
      "Exact color steps, dark mode and readable contrast"
     ],
@@ -5771,7 +5796,7 @@
      "Choosing and pairing fonts, size steps and how fonts load, in depth"
     ]
    ],
-   "Impeccable for a pass over a screen. The specialists when you need exact values or a font decision."
+   "Impeccable for a pass over a screen. The palette builder when the person wants to choose the colors. The specialists when you need exact values or a font decision."
   ],
   [
    "Words in the interface vs on the page",

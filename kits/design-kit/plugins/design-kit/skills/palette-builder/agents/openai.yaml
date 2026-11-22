@@ -1,0 +1,5 @@
+interface:
+  display_name: "Palette builder"
+  short_description: "Choose a palette on your product's own screens"
+policy:
+  allow_implicit_invocation: false

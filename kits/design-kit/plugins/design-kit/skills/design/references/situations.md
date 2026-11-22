@@ -75,6 +75,7 @@ It works, but it doesn't look right yet.
 | It looks AI-generated | `/interface-design:design-deslop` | `/impeccable bolder` |
 | Too busy or cluttered | `/impeccable distill` | `/impeccable quieter` |
 | Type feels off | `/impeccable typeset` | `/web-typography` |
+| I want to choose a palette and see the options | `/palette-builder` | `/oklch-skill` |
 | Palette scale, dark mode or contrast | `/oklch-skill` | `/color-expert` |
 | Spacing and rhythm feel off | `/impeccable layout` |  |
 | Flat and gray | `/impeccable colorize` |  |
@@ -193,11 +194,12 @@ Pick: Critique to understand what is wrong. Harsh review when you want it said b
 ### Color and type
 
 - `/impeccable colorize`: Adds color as part of a design pass
+- `/palette-builder`: Compares whole palettes on your own screens, for you to choose
 - `/oklch-skill`: Exact color steps, dark mode and readable contrast
 - `/impeccable typeset`: Fonts and text sizes as part of a design pass
 - `/web-typography`: Choosing and pairing fonts, size steps and how fonts load, in depth
 
-Pick: Impeccable for a pass over a screen. The specialists when you need exact values or a font decision.
+Pick: Impeccable for a pass over a screen. The palette builder when the person wants to choose the colors. The specialists when you need exact values or a font decision.
 
 ### Words in the interface vs on the page
 
