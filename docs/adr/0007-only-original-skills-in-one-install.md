@@ -7,12 +7,12 @@ This reverses part of ADR 0006, which made Motion Kit its own plugin. Its reason
 ## Considered options
 
 - **Fork the borrowed skills and edit them.** Allowed by their licences, but it keeps the kit tied to other authors' wording and structure, and `CONTRIBUTING.md` already rules out rewording someone else's skill to look original.
-- **Keep borrowed skills alongside originals.** This was the recommendation in `docs/own-skills/01-plan.md`. It leaves the overlap in place and the choice with the user.
+- **Keep borrowed skills alongside originals.** This was the recommendation in the earlier plan, `docs/own-skills/01-plan.md`, now closed. It leaves the overlap in place and the choice with the user.
 - **Keep several plugins.** People could install only what they want, but they first have to learn which plugin holds what.
 
 ## Consequences
 
 - A borrowed skill stays until its replacement has been compared with it on real work and approved, then leaves in the same release. Its author stays in the credits as a source.
 - Removing a skill removes its command for everyone who installed it, so each removal is a major version.
-- Every original is the owner's to keep current, including platform facts that specialists maintain today. `01-plan.md` names about 14 skills where that risk is highest; they are replaced last.
+- Every original is the owner's to keep current, including platform facts that specialists maintain today. The fast-moving platform skills, where that risk is highest, are replaced last.
 - The public description changes from a curated set of other people's skills to an original kit. Credits remain for sources and for anything still borrowed.
