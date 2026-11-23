@@ -1,6 +1,6 @@
 # Own skills: the direction the owner chose
 
-Written 2026-11-23, from an interview with the owner. It answers the five decisions left open at the end of [01-plan.md](01-plan.md) and adds what the interview settled beyond them. Where this file and 01 disagree, this file is the later decision. Nothing here has been built.
+Written 2026-11-23, from an interview with the owner. This is the direction for Agent Kit's skills. The earlier plan in [01-plan.md](01-plan.md) is closed and kept only for its inventory of what is borrowed.
 
 ## Who Agent Kit is for
 
@@ -22,21 +22,11 @@ These are the product's point of difference, and every job must meet them before
 - Each area is one command word. The bare word shows a menu; the word plus a job runs that job.
 - Every area has the same two ways in: the menu for "I don't know what to do", and clearly named jobs for a person who wants one specific thing.
 
-## Answers to the open decisions in 01
-
-| Decision in 01 | Answer |
-|---|---|
-| Replace or sit alongside? | Replace. A borrowed skill stays until its replacement is approved, then leaves in the same release. |
-| Consolidate or mirror? | Consolidate by job. Keep every capability, not every skill: each borrowed skill becomes a named job, merges into one, or goes. |
-| Stay compatible with PRODUCT.md and DESIGN.md? | Yes. Same two files, same names. |
-| One design plugin or several? | One install for the whole kit, which reverses the separate plugin for motion recorded in ADR 0006. |
-| What to build next? | Design first, not the small engineering skills. |
-
-01 lists about 14 borrowed skills as better left borrowed, mostly fast-moving platform skills from specialists. The owner's end state is none. Those go last, and the risk 01 describes is to be weighed again when they are reached.
-
 ## How a replacement is written and approved
 
-- Written new, in our own words, from the job and from primary sources, as 01's rules already require. No forks.
+- Written new, in our own words, from the job and from primary sources: specifications, platform documentation, accessibility criteria, published books and papers. No forks, and the borrowed skill's body is not opened while its replacement is written.
+- A borrowed skill stays until its replacement is approved, then leaves in the same release. Every capability is kept, not every skill: each borrowed skill becomes a named job, merges into one, or goes.
+- PRODUCT.md and DESIGN.md keep their names and stay the two project files design work reads.
 - The original author stays on the public credits page under "inspired by" after their skill is removed.
 - Approval test: the replacement and the original run on the same two or three real screens from the owner's own projects, shown side by side. The bar is at least as good and simpler to use, and it meets the four rules.
 - The owner approves in batches by job, not skill by skill.
@@ -95,5 +85,4 @@ Waiting, in no order yet: SEO, computer use, launch readiness, incident response
 
 - The final list of Keen's 20 to 25 jobs and their names.
 - Names for the areas after Keen, beyond the working name Tidy.
-- What happens to the roughly 14 specialist skills 01 recommends keeping borrowed, when they are reached.
 - How the one install is laid out on disk and how existing installs of the five plugins move to it.
