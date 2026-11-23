@@ -1,0 +1,7 @@
+interface:
+  display_name: "Keen"
+  short_description: "Design jobs with a menu, plain English and proof"
+  default_prompt: "Use $keen to look at this project and suggest the one design job worth doing first. Show the menu and wait for my pick."
+
+policy:
+  allow_implicit_invocation: false
