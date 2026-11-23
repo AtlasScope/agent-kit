@@ -17,6 +17,15 @@ const run = (...args) => {
 };
 const probe = run("--do", "click:#open-good", "--frames", "4");
 const skip = probe.status === 3 ? "Playwright or its browser is not available on this machine" : false;
+// Windows lets an account create file symbolic links only with Developer Mode or admin rights. Directory
+// links fall back to a junction, which needs neither and which the script must refuse the same way.
+const canLinkFiles = (() => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "filmstrip-canlink-"));
+  try { fs.writeFileSync(path.join(dir, "a"), ""); fs.symlinkSync(path.join(dir, "a"), path.join(dir, "b")); return true; }
+  catch (e) { if (e.code === "EPERM") return false; throw e; }
+})();
+const skipFileLink = canLinkFiles ? false : "this account cannot create file symbolic links (Windows without Developer Mode or admin rights)";
+const linkDir = (target, at) => fs.symlinkSync(target, at, process.platform === "win32" ? "junction" : "dir");
 
 // CI sets MOTION_REQUIRE_BROWSER so a missing browser fails the run instead of quietly skipping these tests.
 test("a browser is available where one is required", () => {
@@ -138,7 +147,7 @@ test("a Playwright copy inside the project is not loaded unless the project is t
   assert.equal(fs.existsSync(sentinel), true, "with the flag, the project's copy is the first one tried");
 });
 
-test("a symbolic link planted in the output folder is refused, and its target is left untouched", () => {
+test("a symbolic link planted in the output folder is refused, and its target is left untouched", { skip: skipFileLink }, () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "filmstrip-link-"));
   const victim = path.join(dir, "victim.txt");
   fs.writeFileSync(victim, "keep me");
@@ -186,7 +195,7 @@ test("a link higher up the output path is refused before anything is removed", (
   const victim = path.join(outside, "motion", "menu", "frames", "keep.txt");
   fs.mkdirSync(path.dirname(victim), { recursive: true });
   fs.writeFileSync(victim, "keep me");
-  fs.symlinkSync(outside, path.join(proj, ".artifacts"));
+  linkDir(outside, path.join(proj, ".artifacts"));
   const r = spawnSync(process.execPath, [script, page, "--out", ".artifacts/motion/menu", "--do", "click:#open-good", "--frames", "2"], { cwd: proj, encoding: "utf8", timeout: 120000 });
   assert.equal(fs.readFileSync(victim, "utf8"), "keep me");
   assert.equal(r.status, 2);
@@ -210,9 +219,10 @@ test("a run that cannot capture leaves the previous capture in place", () => {
   // A Node copy with no modules beside it, and no NODE_PATH, has no Playwright to find.
   const bare = fs.mkdtempSync(path.join(os.tmpdir(), "filmstrip-bare-"));
   fs.mkdirSync(path.join(bare, "bin"));
-  fs.copyFileSync(process.execPath, path.join(bare, "bin", "node"));
-  fs.chmodSync(path.join(bare, "bin", "node"), 0o755);
-  const r = spawnSync(path.join(bare, "bin", "node"), [script, page, "--out", out, "--do", "click:#open-good"], { encoding: "utf8", timeout: 60000, env: { ...process.env, NODE_PATH: "", MOTION_PLAYWRIGHT_DIR: "" } });
+  const node = path.join(bare, "bin", process.platform === "win32" ? "node.exe" : "node");
+  fs.copyFileSync(process.execPath, node);
+  fs.chmodSync(node, 0o755);
+  const r = spawnSync(node, [script, page, "--out", out, "--do", "click:#open-good"], { encoding: "utf8", timeout: 60000, env: { ...process.env, NODE_PATH: "", MOTION_PLAYWRIGHT_DIR: "" } });
   assert.equal(r.status, 3, r.stderr);
   assert.equal(fs.readFileSync(path.join(out, "frames", "00.png"), "utf8"), "old frame");
   assert.ok(fs.existsSync(path.join(out, "filmstrip.json")));

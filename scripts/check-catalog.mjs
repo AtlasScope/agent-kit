@@ -3,8 +3,9 @@
 //   node scripts/check-catalog.mjs
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (p) => JSON.parse(fs.readFileSync(path.join(root, p), "utf8"));
 const exists = (p) => fs.existsSync(path.join(root, p));
 const problems = [];
@@ -14,7 +15,8 @@ const claude = read(".claude-plugin/marketplace.json");
 const codex = read(".agents/plugins/marketplace.json");
 const claudeByName = new Map(claude.plugins.map((p) => [p.name, p]));
 const codexByName = new Map(codex.plugins.map((p) => [p.name, p]));
-const norm = (p) => path.normalize(p).replace(/\/$/, "");
+// Catalog paths are POSIX on every OS; path.normalize would turn them into backslashes on Windows.
+const norm = (p) => path.posix.normalize(p).replace(/\/$/, "");
 
 // Both catalogs list the same plugins at the same paths.
 for (const name of new Set([...claudeByName.keys(), ...codexByName.keys()])) {
