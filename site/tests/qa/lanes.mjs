@@ -6,12 +6,12 @@ import { chromium } from "playwright";
 import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { DEVICES } from "./config.mjs";
-import { clipboardRecorder } from "./checks.mjs";
+import { clipboardRecorder, copyControls } from "./checks.mjs";
 import { driver } from "./webkit/driver.mjs";
 import { composeCopy } from "../../lib/copy.ts";
 
 const { values: args } = parseArgs({ options: {
-  lane: { type: "string" }, target: { type: "string" }, label: { type: "string" }, webkit: { type: "boolean", default: false },
+  lane: { type: "string" }, target: { type: "string" }, label: { type: "string" }, webkit: { type: "boolean", default: false }, prod: { type: "string" },
   out: { type: "string", default: new URL("../../../.artifacts/qa", import.meta.url).pathname },
 } });
 const base = args.target.replace(/\/$/, "");
@@ -448,6 +448,96 @@ async function skilldetail() {
   }
 }
 
+// ------------------------------------------------------------------------------------------- W10
+// Collections on sample data (/account/fixture, served with ACCOUNT_FIXTURES=1): create, the error path,
+// rename, share, delete, the phone rail, and the shared page's install command. --prod <url> checks that a
+// production build without the flag answers 404 on every sample-data route.
+async function account() {
+  const path = "/account/fixture";
+  await fetch(base + "/account/fixture/reset", { method: "POST" }).catch(() => {});
+  for (const d of ["macbook", "iphone"]) {
+    for (const scheme of ["light", "dark"]) {
+      const where = `${d}/${scheme}`;
+      await fetch(base + "/account/fixture/reset", { method: "POST" }).catch(() => {});
+      const { ctx, page, errors } = await open(d, path, { scheme });
+      const side = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+      side > 1 ? fail("side-scroll", where, "serious", `${side}px`) : pass("side-scroll", where);
+      await page.screenshot({ path: `${dir}/shots-lane/collections--${d}-${scheme}.png`, fullPage: true });
+      if (scheme === "light") {
+        // Create, then the error path.
+        await page.getByText("New collection", { exact: false }).first().click();
+        const field = page.getByLabel("Name the collection");
+        await field.fill("QA list");
+        await field.press("Enter");
+        // On a phone the new collection opens in place of the list, so look for it anywhere in the page.
+        const made = await page.waitForFunction(() => [...document.querySelectorAll("h2, a")].some((e) => e.textContent.includes("QA list")), null, { timeout: 5000 }).then(() => true).catch(() => false);
+        made ? pass("create", where) : fail("create", where, "serious", "the new collection did not appear");
+        await page.goto(base + path + "#all", { waitUntil: "load" });
+        await page.getByText("New collection", { exact: false }).first().click().catch(() => {});
+        await page.getByLabel("Name the collection").fill("fail", { timeout: 5000 });
+        await page.getByLabel("Name the collection").press("Enter");
+        await page.waitForTimeout(1200);
+        const err = await page.evaluate(() => [...document.querySelectorAll('[role="alert"], [role="status"], [aria-live]')].map((e) => e.textContent.trim()).filter(Boolean).join(" | "));
+        /didn.t work|try again/i.test(err) ? pass("error-announced", where, err.slice(0, 80)) : fail("error-announced", where, "serious", `a failed create showed no message in a live region (${err.slice(0, 80) || "none"})`);
+        await page.keyboard.press("Escape");
+        // Share a private collection, then stop.
+        const share = page.getByRole("button", { name: /^Share /i }).first();
+        if (await share.count()) {
+          const label = await share.getAttribute("aria-label");
+          const name = label.replace(/^Share /i, "");
+          if (d === "iphone") await page.getByRole("link", { name: new RegExp(name) }).first().click().catch(() => {});
+          await page.getByRole("button", { name: `Share ${name}` }).click();
+          const on = await page.getByRole("button", { name: `Stop sharing ${name}` }).waitFor({ timeout: 5000 }).then(() => true).catch(() => false);
+          on ? pass("share-toggle", where, name) : fail("share-toggle", where, "serious", `Share on "${name}" did not switch to Stop sharing`);
+        }
+        // The open collection's focus moves to its heading when picked from the rail (keyboard and screen readers).
+        if (d === "iphone") {
+          await page.goto(base + path, { waitUntil: "load" });
+          const link = page.locator('a[href^="#"]').filter({ hasNotText: /all collections|skip/i }).first();
+          await link.click().catch(() => {});
+          await page.waitForTimeout(400);
+          const r = await page.evaluate(() => ({ focus: document.activeElement?.tagName, h: document.activeElement?.textContent?.trim().slice(0, 40), back: [...document.querySelectorAll("a")].some((a) => /all collections/i.test(a.textContent) && a.getBoundingClientRect().width > 0) }));
+          r.back ? pass("phone-open-collection", where) : fail("phone-open-collection", where, "serious", "picking a collection on a phone did not show it with a way back");
+          /^H[1-3]$/.test(r.focus) ? pass("phone-focus-heading", where, r.h) : fail("phone-focus-heading", where, "moderate", `focus is on ${r.focus} after opening a collection`);
+          await page.goBack().catch(() => {});
+          await page.waitForTimeout(300);
+          const rail = await page.evaluate(() => [...document.querySelectorAll('a[href^="#"]')].filter((a) => a.getBoundingClientRect().width > 0).length);
+          rail > 1 ? pass("phone-back-to-rail", where) : fail("phone-back-to-rail", where, "moderate", "Back did not return to the list of collections");
+        }
+      }
+      errors.length ? fail("js-errors", where, "serious", errors.join(" | ")) : pass("js-errors", where);
+      await ctx.close();
+    }
+    // Shared page: the install command copies exactly as shown and names every skill.
+    const { ctx, page } = await open(d, "/account/fixture/shared");
+    const shown = await page.evaluate(() => document.querySelector(".cmdline code, section pre, section code")?.textContent || null);
+    const ctrls = await page.evaluate(copyControls);
+    if (!shown || !ctrls.length) pass("shared-install", `${d}`, "no install command on the default shared sample");
+    else {
+      await page.locator(`[data-qa-copy="${ctrls[0].id}"]`).click();
+      await page.waitForTimeout(200);
+      const got = (await copies(page))[0];
+      got === shown ? pass("shared-install-bytes", d) : fail("shared-install-bytes", d, "blocker", `copied ${JSON.stringify(got)} but shows ${JSON.stringify(shown)}`);
+      /^npx skills add AtlasScope\/agent-kit( --skill [a-z0-9-]+)+$/.test(got || "") ? pass("shared-install-shape", d, got) : fail("shared-install-shape", d, "serious", `unexpected install command ${JSON.stringify(got)}`);
+      const listed = await page.evaluate(() => [...document.querySelectorAll('a[href^="/skills/"]')].map((a) => a.getAttribute("href").split("/")[2]));
+      const named = [...(got || "").matchAll(/--skill ([a-z0-9-]+)/g)].map((m) => m[1]);
+      const missing = [...new Set(listed)].filter((n) => !named.includes(n));
+      missing.length ? fail("shared-install-complete", d, "serious", `skills listed but not in the command: ${missing.join(", ")}`) : pass("shared-install-complete", d);
+    }
+    await page.screenshot({ path: `${dir}/shots-lane/shared--${d}.png`, fullPage: true });
+    await ctx.close();
+  }
+  if (args.prod) {
+    const P = args.prod.replace(/\/$/, "");
+    for (const [m, u] of [["GET", "/account/fixture"], ["GET", "/account/fixture/shared"], ["GET", "/account/fixture/shared?id=x"], ["POST", "/account/fixture/reset"]]) {
+      const r = await fetch(P + u, { method: m, redirect: "manual" });
+      r.status === 404 ? pass("prod-404", `${m} ${u}`) : fail("prod-404", `${m} ${u}`, "blocker", `production build answered ${r.status}`);
+    }
+    const map = await (await fetch(P + "/sitemap.xml")).text();
+    /fixture/.test(map) ? fail("prod-sitemap", "sitemap", "serious", "sample-data pages are in the sitemap") : pass("prod-sitemap", "sitemap");
+  }
+}
+
 // ------------------------------------------------------------------------------------------- W4
 async function browse() {
   const secs = data.sections.map((s) => s.id);
@@ -563,7 +653,7 @@ async function axeOpen(devId, scheme, setup) {
 }
 
 // Results are written even if a check throws, so a partial run still leaves evidence.
-try { await ({ search, detail, browse, skilldetail })[args.lane](); }
+try { await ({ search, detail, browse, skilldetail, account })[args.lane](); }
 catch (e) { fail("harness", "run", "serious", `lane run stopped early: ${String(e.message || e).split("\n")[0]}`); }
 finally {
   await browser.close();

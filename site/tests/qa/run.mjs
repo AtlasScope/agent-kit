@@ -19,7 +19,7 @@ const require = createRequire(import.meta.url);
 const { values: args } = parseArgs({ options: {
   target: { type: "string" }, ref: { type: "string" }, baseline: { type: "string" }, label: { type: "string", default: "target" },
   out: { type: "string", default: new URL("../../../.artifacts/qa", import.meta.url).pathname },
-  quick: { type: "boolean", default: false }, routes: { type: "string" }, shots: { type: "boolean", default: true },
+  quick: { type: "boolean", default: false }, routes: { type: "string" }, paths: { type: "string" }, owner: { type: "string", default: "?" }, shots: { type: "boolean", default: true },
 } });
 if (!args.target) { console.error("need --target"); process.exit(2); }
 
@@ -30,6 +30,8 @@ catch { console.warn("axe-core is not installed; run `npm i --no-save axe-core@4
 
 let ROUTES = routeSample(data);
 if (args.routes) { const want = args.routes.split(","); ROUTES = ROUTES.filter((r) => want.some((w) => r.path === w || r.family === w)); }
+// --paths tests arbitrary pages (say, a lane's fixture pages) instead of the standard sample.
+if (args.paths) ROUTES = args.paths.split(",").map((path) => ({ path, family: "custom", owner: args.owner }));
 const devices = args.quick ? DEVICES.filter((d) => d.id === "macbook" || d.id === "iphone") : DEVICES;
 
 const browser = await chromium.launch();
@@ -108,7 +110,7 @@ async function pass(base, label, shots) {
         if (!f.lang) add(route, where, "serious", "lang", "no lang on <html>");
         if (!f.landmarks.main) add(route, where, "serious", "landmark", "no <main>");
         if (!f.skipLink) add(route, where, "moderate", "skip-link", "no skip link to #main");
-        if (route.status !== 404 && !f.canonical) add(route, where, "moderate", "canonical", "no canonical link");
+        if (route.status !== 404 && !f.canonical && !/noindex/.test(f.robots || "")) add(route, where, "moderate", "canonical", "no canonical link");
         if (/user-scalable=no|maximum-scale=1(\.0)?\b/.test(f.viewport || "")) add(route, where, "serious", "zoom-blocked", `viewport meta blocks zoom: ${f.viewport}`);
         for (const e of errors) add(route, where, e.startsWith("console") ? "minor" : "serious", "js-error", e);
 
@@ -174,7 +176,8 @@ async function focusWalk(page, route, where, add) {
 // Click every visible copy control and record what reached the clipboard. The report compares these
 // payloads byte for byte with the reference, and with the known payloads from lib/copy.ts and lib/site.ts.
 async function copyAll(page, route, where, add) {
-  await page.evaluate(() => { window.__qaCopies = []; });
+  await page.evaluate(() => { window.__qaCopies = []; document.querySelectorAll("details:not([open])").forEach((d) => { d.open = true; }); });
+  await page.waitForTimeout(150);
   const ctrls = await page.evaluate(copyControls);
   const got = [];
   for (const c of ctrls.slice(0, 30)) {
@@ -237,6 +240,7 @@ async function journeys(base, add) {
     const ctx = await browser.newContext({ ...DEVICES[0].ctx });
     const page = await ctx.newPage();
     await page.goto(base + "/prompts", { waitUntil: "load" });
+    await page.waitForLoadState("networkidle", { timeout: 6000 }).catch(() => {}); // let it hydrate
     await page.keyboard.press("/");
     const focused = await page.evaluate(() => ({ tag: document.activeElement?.tagName, role: document.activeElement?.getAttribute("role"), type: document.activeElement?.getAttribute("type") }));
     if (!(focused.role === "combobox" || focused.tag === "INPUT")) add(route, "macbook/keyboard", "serious", "search-slash", `"/" did not focus a search field (focus on ${focused.tag})`);
@@ -255,6 +259,7 @@ async function journeys(base, add) {
     }
     // Escape should leave the field and close any results.
     await page.goto(base + "/prompts", { waitUntil: "load" });
+    await page.waitForLoadState("networkidle", { timeout: 6000 }).catch(() => {}); // let it hydrate
     await page.keyboard.press("/");
     await page.keyboard.type("design");
     await page.waitForTimeout(800);
@@ -273,6 +278,7 @@ async function journeys(base, add) {
     const ctx = await browser.newContext({ ...DEVICES.find((d) => d.id === "ipad").ctx });
     const page = await ctx.newPage();
     await page.goto(base + "/prompts", { waitUntil: "load" });
+    await page.waitForLoadState("networkidle", { timeout: 6000 }).catch(() => {}); // let it hydrate
     const menu = page.getByRole("button", { name: /^menu$/i }).first();
     if (await menu.isVisible().catch(() => false)) {
       await menu.focus();
@@ -301,6 +307,7 @@ async function journeys(base, add) {
     await ctx.addInitScript(clipboardRecorder, true);
     const page = await ctx.newPage();
     await page.goto(base + route.path, { waitUntil: "load" });
+    await page.waitForLoadState("networkidle", { timeout: 6000 }).catch(() => {}); // let it hydrate
     const ctrls = await page.evaluate(copyControls);
     if (ctrls[0]) {
       await page.locator(`[data-qa-copy="${ctrls[0].id}"]`).click();
@@ -321,7 +328,9 @@ async function journeys(base, add) {
     await ctx.addInitScript(clipboardRecorder, false);
     const page = await ctx.newPage();
     await page.goto(base + "/install", { waitUntil: "load" });
-    await page.evaluate(() => { window.__qaCopies = []; });
+    await page.waitForLoadState("networkidle", { timeout: 6000 }).catch(() => {}); // let it hydrate
+    await page.evaluate(() => { window.__qaCopies = []; document.querySelectorAll("details:not([open])").forEach((d) => { d.open = true; }); });
+    await page.waitForTimeout(200);
     // The tabs the reference shows (SHOWN in components/install-choice.ts). Every tab present must copy
     // exactly its agent's steps from lib/site.ts.
     for (const id of ["claude", "codex", "cursor", "any"]) {
