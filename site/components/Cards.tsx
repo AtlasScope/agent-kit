@@ -14,19 +14,22 @@ const withKitLinks = (text: string) =>
   text.split(KIT_NAME).map((part, i) => (i % 2 ? <Link key={i} href={`/kits/${part}`}>{part}</Link> : part));
 
 
+// Row titles are h3 by default; pass `as="h4"` when rows sit under h3 group headings (collections).
+export type RowHeading = "h3" | "h4";
+
 // The one prompt row, used wherever the site lists prompts: area pages, Fix, prompt and skill detail, collections.
 // Id, title and what it finds, when to use it, what it changes, then Star and Copy. The title link stretches over the
 // row; Star and Copy sit above it. `n` numbers the row (ordered lists such as Fix); `best` marks it Best first.
 // `action` adds one control after Copy (collections use it for Remove); it sits above the row link.
 // Put rows in PromptRows, or in a <ul className="prows"> / <ol className="prows prows--ranked"> of <li>s.
-export function PromptRow({ p, n, best, action }: { p: Prompt; n?: number; best?: boolean; action?: ReactNode }) {
+export function PromptRow({ p, n, best, action, as: H = "h3" }: { p: Prompt; n?: number; best?: boolean; action?: ReactNode; as?: RowHeading }) {
   const mode = modeOf(p);
   return (
     <article className={`prow${n != null ? " prow--n" : ""}${best ? " prow--best" : ""}${action ? " prow--action" : ""}`} data-sec={p.sec} data-mode={mode || undefined}>
       {n != null && <span className="prow__n" aria-hidden="true">{n}</span>}
       <code className="pid prow__id" translate="no">{p.id}</code>
       <div className="prow__main">
-        <h3 className="prow__t"><Link className="stretch" href={`/prompts/${p.slug}`} translate={p.t.startsWith("/") ? "no" : undefined}>{p.t}</Link></h3>
+        <H className="prow__t"><Link className="stretch" href={`/prompts/${p.slug}`} translate={p.t.startsWith("/") ? "no" : undefined}>{p.t}</Link></H>
         {whatOf(p) && <p className="prow__d">{whatOf(p)}</p>}
         {whenOf(p) && <p className="prow__w"><b>Use it when:</b> {whenOf(p)}</p>}
       </div>
@@ -48,10 +51,10 @@ export function PromptRow({ p, n, best, action }: { p: Prompt; n?: number; best?
 // A list of prompt rows. `ordered` makes it an <ol> with numbered rows and the first marked Best first (Fix pages:
 // "Prompts to try, in order"). `action` gives each row its trailing control. Each item carries its mode so the
 // area filter can show or hide it.
-export function PromptRows({ slugs, ordered, action }: { slugs: string[]; ordered?: boolean; action?: (p: Prompt) => ReactNode }) {
+export function PromptRows({ slugs, ordered, action, as }: { slugs: string[]; ordered?: boolean; action?: (p: Prompt) => ReactNode; as?: RowHeading }) {
   const list = slugs.map(getPrompt).filter((p): p is Prompt => Boolean(p));
   const items = list.map((p, i) => (
-    <li key={p.slug} data-mode={modeOf(p) || undefined}><PromptRow p={p} n={ordered ? i + 1 : undefined} best={ordered && i === 0} action={action?.(p)} /></li>
+    <li key={p.slug} data-mode={modeOf(p) || undefined}><PromptRow p={p} n={ordered ? i + 1 : undefined} best={ordered && i === 0} action={action?.(p)} as={as} /></li>
   ));
   return ordered ? <ol className="prows prows--ranked">{items}</ol> : <ul className="prows">{items}</ul>;
 }
@@ -76,11 +79,11 @@ export const firstSentence = (d: string) => {
 
 // One skill row: name and Star, kit and author, then the first sentence of what it does. `action` adds one control
 // after Star (collections use it for Remove). Put rows in SkillCards, or in a <ul className="srows"> of <li>s.
-export function SkillRow({ s, kit = true, action }: { s: Skill; kit?: boolean; action?: ReactNode }) {
+export function SkillRow({ s, kit = true, action, as: H = "h3" }: { s: Skill; kit?: boolean; action?: ReactNode; as?: RowHeading }) {
   return (
     <article className={action ? "srow srow--action" : "srow"} data-kit={s.kit}>
       <div className="srow__top">
-        <h3 className="srow__t"><Link className="stretch" href={`/skills/${s.name}`} translate="no">{s.name}</Link></h3>
+        <H className="srow__t"><Link className="stretch" href={`/skills/${s.name}`} translate="no">{s.name}</Link></H>
         <div className="srow__a">
           <Star kind="skill" refId={s.name} title={s.name} />
           {action}
@@ -94,11 +97,11 @@ export function SkillRow({ s, kit = true, action }: { s: Skill; kit?: boolean; a
 
 // Skills as rows, on the skills index, kit, Fix, prompt and collection pages. `action` gives each row its trailing
 // control.
-export function SkillCards({ names, kit = true, action }: { names: string[]; kit?: boolean; action?: (s: Skill) => ReactNode }) {
+export function SkillCards({ names, kit = true, action, as }: { names: string[]; kit?: boolean; action?: (s: Skill) => ReactNode; as?: RowHeading }) {
   const list = names.map((n) => getSkill(n)).filter((s): s is Skill => Boolean(s));
   return (
     <ul className="srows">
-      {list.map((s) => <li key={s.name}><SkillRow s={s} kit={kit} action={action?.(s)} /></li>)}
+      {list.map((s) => <li key={s.name}><SkillRow s={s} kit={kit} action={action?.(s)} as={as} /></li>)}
     </ul>
   );
 }
