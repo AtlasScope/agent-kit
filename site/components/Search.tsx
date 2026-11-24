@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
-import { find, marks, keyOf, pushRecent, readRecent, writeRecent, SCOPES, KIND_LABEL, type Entry, type Recent, type Scope } from "@/lib/palette";
+import { find, marks, keyOf, pushRecent, readRecent, writeRecent, SCOPES, KIND_LABEL, type Entry, type Recent, type Scope } from "@/lib/search";
 import "./search/palette.css";
 
 // Site search as a command palette. The header holds a button; ⌘K or Ctrl+K anywhere, "/" outside a text field,
@@ -79,6 +79,17 @@ export function Search() {
   const hide = useCallback(() => { dlg.current?.close(); }, []);
 
   useEffect(() => { setMounted(true); setMod(isMac() ? "⌘" : "Ctrl"); }, []);
+  // Fetch the index once the page is idle, so a phone's first tap on Search doesn't wait for it. Skipped when the
+  // visitor asked to save data; it then loads on first use instead.
+  useEffect(() => {
+    const conn = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+    if (conn?.saveData) return;
+    const ric = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 2500));
+    const cancel = window.cancelIdleCallback ?? window.clearTimeout;
+    const id = ric(() => warm(), { timeout: 5000 });
+    return () => cancel(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement;
@@ -181,7 +192,7 @@ export function Search() {
           <SearchIcon />
           <input ref={input} className="cmdk__input" type="search" enterKeyHint="go" autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false}
             value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKey}
-            placeholder="Search prompts, skills and kits" aria-label="Search prompts and skills"
+            placeholder="Search prompts, skills, kits and fixes" aria-label="Search the library"
             role="combobox" aria-expanded={items.length > 0} aria-controls="search-results" aria-autocomplete="list"
             aria-activedescendant={active ? optId(active) : undefined} aria-describedby="cmdk-keys" />
           <button type="button" className="cmdk__cancel" onClick={hide}>Cancel</button>
@@ -254,7 +265,7 @@ export function Search() {
         <SearchIcon />
         <button type="button" className="search__trigger" aria-haspopup="dialog" aria-keyshortcuts="Meta+K Control+K /"
           onClick={show} onPointerEnter={warm} onFocus={warm}>
-          <span>Search prompts and skills…</span>
+          <span>Search prompts, skills, kits and fixes</span>
         </button>
         <kbd className="kbd" aria-hidden="true">{mounted ? `${mod === "⌘" ? "⌘" : "Ctrl "}K` : "/"}</kbd>
       </div>

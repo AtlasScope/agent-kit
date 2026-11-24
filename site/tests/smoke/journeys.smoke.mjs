@@ -96,7 +96,7 @@ for (const size of SIZES) {
     // Search opens from the header: the field-shaped button on a computer, the Search button on a phone.
     const banner = page.getByRole("banner");
     await (size.name === "phone" ? banner.getByRole("button", { name: "Search", exact: true }) : banner.getByRole("button", { name: /^Search prompts/ })).click();
-    await page.getByRole("combobox", { name: "Search prompts and skills" }).fill("slow page");
+    await page.getByRole("combobox", { name: "Search the library" }).fill("slow page");
     await page.locator('#search-results a[role="option"]').first().waitFor();
     await noSideScroll(page, "/skills");
     assert.deepEqual(errors, []);
@@ -110,7 +110,7 @@ for (const size of SIZES) {
     // The shortcut hint reads "⌘K" or "Ctrl K" once the page has hydrated and the shortcut listener is attached.
     await page.getByRole("banner").locator(".kbd", { hasText: "K" }).waitFor({ state: "attached" });
     await page.keyboard.press(`${mod}+k`);
-    const box = page.getByRole("combobox", { name: "Search prompts and skills" });
+    const box = page.getByRole("combobox", { name: "Search the library" });
     await box.waitFor();
     assert.ok(await box.evaluate((el) => el === document.activeElement), "the field has focus");
     // With nothing typed it offers the main pages.

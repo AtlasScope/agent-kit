@@ -4,7 +4,7 @@ import { promptDoc, skillDoc } from "./search";
 import { INSTALL_MESSAGE, kitInstallMessage } from "./site";
 import { STEPS } from "./start";
 import { LESSONS } from "./lessons";
-import type { Entry } from "./palette";
+import type { Entry } from "./search";
 
 const lc = (...xs: unknown[]) => xs.flat(2).filter(Boolean).join(" ").toLowerCase();
 

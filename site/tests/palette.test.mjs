@@ -4,8 +4,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { promptDoc, skillDoc } from "../lib/search.ts";
-import { find, marks, pushRecent, keyOf, RECENT_MAX } from "../lib/palette.ts";
+import { promptDoc, skillDoc, find, marks, pushRecent, keyOf, RECENT_MAX } from "../lib/search.ts";
 import { PLAIN, VAGUE } from "./search.test.mjs";
 
 const data = JSON.parse(fs.readFileSync(new URL("../content/generated.json", import.meta.url), "utf8"));

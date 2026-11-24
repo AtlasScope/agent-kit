@@ -26,11 +26,11 @@ export const PLAIN = [
   ["deploy broke production", ["ship-or-recover-safely", "why-production-might-not-match-main"]],
   ["landing page", ["new-landing-page", "landing-page-that-converts"]],
   ["make it look less like AI", ["it-looks-ai-generated", "interface-design-design-deslop", "stop-slop", "s:stop-slop"]],
-  ["duplicate data in the database", ["two-systems-that-disagree", "are-we-storing-the-same-truth-multiple-times", "find-where-records-silently-change-identity", "s:database"]],
+  ["duplicate data in the database", ["two-systems-that-disagree", "find-where-records-silently-change-identity", "s:database"]],
   ["is this migration safe", ["are-our-database-changes-safe-before-we-merge", "database-changes-during-a-deploy", "ship-or-recover-safely"]],
   ["animations feel janky", ["s:animation-performance", "animation-performance", "s:improve-animations", "improve-animations"]],
   ["make the buttons clearer", ["impeccable-clarify", "ux-writing", "s:ux-writing"]],
-  ["database is too expensive", ["reduce-postgresql-resource-cost-rdbr04", "what-breaks-at-ten-times-the-size", "reduce-postgresql-resource-cost", "find-the-true-sources-of-database-waste", "what-will-become-expensive-as-the-database-grows"]],
+  ["database is too expensive", ["reduce-postgresql-resource-cost-rdbr04", "find-the-true-sources-of-database-waste", "what-will-become-expensive-as-the-database-grows"]],
   ["production doesn't match main", ["why-production-might-not-match-main", "settings-that-differ-in-production"]],
   ["memory leak", ["memory-that-keeps-growing", "timers-and-connections-nobody-closes"]],
 ];
@@ -69,4 +69,15 @@ test("exact ids, commands and skill names still come first", () => {
   for (const [q, want] of [["PG02", "find-data-that-is-internally-consistent-but-wrong"], ["/design", "design"], ["ux-writing", "s:ux-writing"], ["impeccable polish", "impeccable-polish"], ["tdd", "s:tdd"]]) {
     assert.equal(key(search(q, 1)[0]), want, q);
   }
+});
+
+// The two intent rows added for cost and duplicates, pinned exactly. /api/search and the MCP server's
+// find tool both call this same search over the listed prompts (lib/content.ts), so these are the
+// results /mcp returns. Before the rows, the top results were the /database router and
+// find-where-write-logic-should-live, neither of which the benchmark above counts as an answer.
+test("cost and duplicate queries return exactly these results", () => {
+  const top = (q) => search(q, 3).map(key);
+  assert.deepEqual(top("database is too expensive"), ["find-the-true-sources-of-database-waste", "reduce-postgresql-resource-cost-rdbr04", "s:database"]);
+  assert.deepEqual(top("duplicate data in the database"), ["find-where-records-silently-change-identity", "two-systems-that-disagree", "find-where-write-logic-should-live"]);
+  assert.deepEqual(top("the database bill doubled"), ["find-the-true-sources-of-database-waste", "reduce-postgresql-resource-cost-rdbr04", "if-a-vendor-doubles-its-price-or-disappears"]);
 });
