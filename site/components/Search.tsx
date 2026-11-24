@@ -8,7 +8,7 @@ import "./search/palette.css";
 // Site search as a command palette. The header holds a button; ⌘K or Ctrl+K anywhere, "/" outside a text field,
 // or the phone header's Search button (the "agent-kit:search" event) opens it. It is a native modal dialog, so the
 // browser traps focus and gives it back on close; it is portalled to <body> so it takes the page's theme rather
-// than the always-dark header's. The index (/search-index.json) loads on the first sign of intent: the pointer or
+// than the always-dark header's. The index (/search-index.v2.json) loads on the first sign of intent: the pointer or
 // focus reaching the button, a tap on it or on the phone header's Search button, ⌘K or "/". Nothing loads before
 // that, so pages that never search never pay for it. Ranking runs in the browser with the same code as /api/search.
 // If the index can't load, typed queries fall back to /api/search. The index leaves out what Copy sends; each
@@ -24,12 +24,14 @@ type Group = { label: string; items: Entry[] };
 
 let indexPromise: Promise<Entry[]> | null = null;
 let loaded: Entry[] | null = null;
-// The browser may keep the index for an hour. If a deploy in that time removed a result, its Copy text is gone
+// The browser may keep the index for an hour, and use it for up to a week while it revalidates (the route's
+// stale-while-revalidate). If a deploy in that time removed a result, its Copy text is gone
 // (404). The palette then says so and drops the index and its cached texts, and the next open fetches the index
 // past the browser cache, which also replaces the cached copy for later pages. `gen` stops an index load from before
-// the drop taking effect, `textGen` a text fetch from before it refilling the text cache.
+// the drop taking effect, `textGen` a text fetch from before it refilling the text cache, and `epoch` (which moves
+// only when a fresh index replaces a stale one) a 404 asked under an older index counting against the current one.
 // (Vercel purges its CDN on each deploy, so skipping the browser cache is enough to reach the new index.)
-let stale = false, gen = 0, textGen = 0;
+let stale = false, gen = 0, textGen = 0, epoch = 0;
 // Results whose text came back gone, left out of the list until a fresh index replaces it.
 const goneKeys = new Set<string>();
 function dropIndex() {
@@ -39,11 +41,11 @@ function dropIndex() {
 }
 function loadIndex() {
   const g = gen;
-  indexPromise ??= fetch("/search-index.json", stale ? { cache: "reload" } : undefined).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+  indexPromise ??= fetch("/search-index.v2.json", stale ? { cache: "reload" } : undefined).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
     .then((e: Entry[]) => {
       if (g !== gen) return e;
       // A fresh index after a drop: texts requested under the old one no longer count, 404s included.
-      if (stale) { texts.clear(); known.clear(); textGen++; goneKeys.clear(); }
+      if (stale) { texts.clear(); known.clear(); textGen++; epoch++; goneKeys.clear(); }
       stale = false; loaded = e;
       return e;
     });
@@ -57,14 +59,11 @@ const GONE = "This result was removed in an update. Close and reopen search for 
 // cached text can go to the clipboard inside the click or key event without waiting.
 const texts = new Map<string, Promise<string>>();
 const known = new Map<string, string>();
-// A 404 counts only if it answers a request made since the last drop, so a late one from before can't drop a fresh
-// index. The first handler to see it marks it, so every other waiter on the same request reads it the same way.
-type Gone = Error & { gen?: number; seen?: boolean };
-const gone = (err: unknown) => err instanceof Error && err.message === "gone" && ((err as Gone).seen || (err as Gone).gen === textGen);
+// A 404 counts only if it was asked under the index in use, so a late one can't drop a fresh index.
+const gone = (err: unknown) => err instanceof Error && err.message === "gone" && (err as Error & { epoch?: number }).epoch === epoch;
 function claimGone(err: unknown, e: Entry) {
   if (!gone(err)) return false;
-  goneKeys.add(keyOf(e));
-  if (!(err as Gone).seen) { (err as Gone).seen = true; dropIndex(); }
+  goneKeys.add(keyOf(e)); dropIndex();
   return true;
 }
 function copyText(e: Entry): Promise<string> {
@@ -72,8 +71,8 @@ function copyText(e: Entry): Promise<string> {
   const k = copyUrl(e);
   let p = texts.get(k);
   if (!p) {
-    const g = textGen;
-    p = fetch(k).then((r) => (r.ok ? r.text() : Promise.reject(Object.assign(new Error(r.status === 404 ? "gone" : String(r.status)), { gen: g })))).then((t) => { if (g === textGen) known.set(k, t); return t; });
+    const g = textGen, ep = epoch;
+    p = fetch(k).then((r) => (r.ok ? r.text() : Promise.reject(Object.assign(new Error(r.status === 404 ? "gone" : String(r.status)), { epoch: ep })))).then((t) => { if (g === textGen) known.set(k, t); return t; });
     const mine = p;
     p.catch(() => { if (texts.get(k) === mine) texts.delete(k); });
     texts.set(k, p);
@@ -128,10 +127,10 @@ export function Search() {
   const hasEntries = useRef(false);
   const warm = useCallback(() => {
     if (loaded) { setEntries(loaded); setStatus("ready"); return; }
+    if (stale) setEntries((prev) => prev && prev.filter((x) => !goneKeys.has(keyOf(x))));
     if (failed.current && Date.now() - lastTry.current < 15000) return;
     lastTry.current = Date.now();
-    if (stale) setEntries((prev) => prev && prev.filter((x) => !goneKeys.has(keyOf(x))));
-    else if (!failed.current) setStatus("loading");
+    if (!stale && !failed.current) setStatus("loading");
     loadIndex().then((e) => { if (loaded !== e) return; failed.current = false; setEntries(e); setStatus("ready"); },
       () => { failed.current = true; setStatus(hasEntries.current ? "ready" : "error"); });
   }, []);
@@ -300,7 +299,8 @@ export function Search() {
     } catch {
       // Settle the text first: the clipboard can fail before the fetch does, and the fetch is the real cause.
       const loadFailed = text ? await text.then(() => null, (err: unknown) => err ?? true) : null;
-      if (claimGone(loadFailed, e)) { setPayload((p) => (p?.key === k ? { key: k, text: null, gone: true } : p)); say(GONE); }
+      // Where the preview shows this result, its note says it (and is announced); the toast would repeat it.
+      if (claimGone(loadFailed, e)) { setPayload((p) => (p?.key === k ? { key: k, text: null, gone: true } : p)); if (!(wide && payload?.key === k)) say(GONE); }
       else say(loadFailed ? "Couldn’t load the text to copy. Open the page and copy from there." : "Copy was blocked. Open the page and copy from there.");
     }
   };

@@ -161,7 +161,7 @@ for (const size of SIZES) {
     await page.waitForTimeout(6000);
     assert.deepEqual(fetched, [], "the index loads before any sign of search");
     const banner = page.getByRole("banner");
-    const index = page.waitForResponse((r) => r.url().endsWith("/search-index.json"));
+    const index = page.waitForResponse((r) => r.url().endsWith("/search-index.v2.json"));
     await (size.name === "phone" ? banner.getByRole("button", { name: "Search", exact: true }).tap() : banner.getByRole("button", { name: /^Search/ }).hover());
     assert.equal((await index).status(), 200);
     const entries = await (await index).json();
@@ -182,9 +182,10 @@ for (const size of SIZES) {
     await opt.waitFor();
     await opt.hover();
     await box.press(`${mod}+Enter`);
-    await page.getByRole("status").filter({ hasText: "removed in an update" }).waitFor();
+    // The preview says it on a wide screen, the toast on a phone.
+    await page.getByText(/removed in an update/).first().waitFor();
     // The palette keeps a loaded index for the page's life, so a second request means it dropped the stale one.
-    const fresh = page.waitForRequest((r) => r.url().endsWith("/search-index.json"));
+    const fresh = page.waitForRequest((r) => r.url().endsWith("/search-index.v2.json"));
     await box.press("Escape"); await box.press("Escape");
     await box.waitFor({ state: "hidden" });
     await page.keyboard.press(`${mod}+k`);
