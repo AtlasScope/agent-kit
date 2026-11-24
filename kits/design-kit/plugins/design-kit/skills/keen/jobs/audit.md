@@ -37,7 +37,7 @@ Accessibility criteria are from the Web Content Accessibility Guidelines 2.2, le
 | Usable with a keyboard | Tab reaches every control in an order that follows the page, and the screen's main job can be finished | By hand: tab through and do the job | 2.1.1, 2.4.3 |
 | You can see where you are | A clearly visible outline on the focused control, never hidden behind a fixed header or bar | By hand, while tabbing | 2.4.7, 2.4.11 |
 | Meaning does not rest on colour alone | Errors, required fields and status have an icon, text or shape as well | By hand: look at each coloured signal | 1.4.1 |
-| Text can grow | At 200 percent browser zoom everything is readable and nothing is cut off | By hand: zoom and capture. If the tool cannot zoom, halve the window's width, which lays the page out the same way, and say that is what you did | 1.4.4 |
+| Text can grow | At 200 percent browser zoom everything is readable and nothing is cut off | By hand: zoom and capture. If the tool cannot zoom, halve both the width and the height of the window, which lays the page out the same way, say that is what you did, and list text enlargement itself as not checked | 1.4.4 |
 | Movement can be turned off | With the reduce-motion setting on, nothing slides, zooms or loops | By hand, if the tool can set it | 2.3.3 (AAA) |
 
 Speed, from Google's Core Web Vitals. "Good" is the published threshold.
