@@ -2,6 +2,8 @@
 import { revalidatePath } from "next/cache";
 import { store, fixturesEnabled, SAMPLE_PATH, FAIL_NAME } from "./store";
 import type { ActionState } from "../actions";
+import type { Item } from "@/lib/collections";
+import { itemKey } from "@/lib/items";
 
 // The same five actions as ../actions.ts, against the sample store. A short wait lets the busy labels show.
 async function run(fn: () => string | void): Promise<ActionState> {
@@ -38,6 +40,8 @@ export async function remove(_: ActionState, f: FormData) {
 export async function removeItem(_: ActionState, f: FormData) {
   return run(() => {
     const c = store().find((x) => x.id === text(f, "id"));
-    if (c) c.items = c.items.filter((i) => !(i.kind === text(f, "kind") && i.ref === text(f, "ref")));
+    // Every spelling of the ref goes, as in setItem.
+    const key = itemKey({ kind: text(f, "kind") as Item["kind"], ref: text(f, "ref") });
+    if (c) c.items = c.items.filter((i) => itemKey(i) !== key);
   });
 }

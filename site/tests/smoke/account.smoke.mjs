@@ -220,3 +220,24 @@ test("On this page marks a short last section after jumping to it", async () => 
   assert.equal(await page.locator('.doc__toc a[aria-current]').getAttribute("href"), "#limits");
   await ctx.close();
 });
+
+test("a prompt saved under two spellings shows once, counts once, and Remove takes both", async () => {
+  // Sample Starred holds RC11 twice, as "RC11" and "rc11". Runs last: it changes Starred.
+  await fetch(`${base}/account/fixture/reset`, { method: "POST" });
+  const { page, ctx, errors } = await open(DESKTOP, `/account/fixture#${STARRED}`);
+  const panel = openPanel(page);
+  const rc = data.prompts.find((x) => x.id === "RC11");
+  const railCount = () => page.locator(`[data-for="${STARRED}"] .ws__n`).evaluate((n) => n.firstChild.textContent);
+  assert.equal(await panel.locator(".prow", { hasText: rc.t }).count(), 1, "one row for both spellings");
+  assert.equal(await railCount(), "4", "the rail counts it once");
+  assert.equal(await panel.locator(".cgroup__n").first().textContent(), "3", "the Prompts group counts it once");
+  await panel.locator(`summary[aria-label^="Remove ${rc.t}"]`).click();
+  await panel.getByRole("button", { name: "Remove", exact: true }).click();
+  await panel.locator(".prow", { hasText: rc.t }).waitFor({ state: "detached", timeout: 10000 });
+  await page.reload({ waitUntil: "networkidle" });
+  assert.equal(await openPanel(page).locator(".prow", { hasText: rc.t }).count(), 0, "it stays gone after a reload");
+  assert.equal(await railCount(), "3");
+  assert.deepEqual(errors, []);
+  await ctx.close();
+  await fetch(`${base}/account/fixture/reset`, { method: "POST" });
+});
