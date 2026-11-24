@@ -1,6 +1,6 @@
 ---
 name: keen
-description: Use only when the user explicitly invokes /keen or $keen. One command for interface design work, written for people who direct the work and judge the result without reading code. Typed alone or with a vague request it shows a short menu, suggests one job and asks. Typed with a job (init, shape, critique, audit, distill, layout, words, type, colour, harden, adapt, polish) it runs that job. Every job ends in plain English with proof the person can look at. Ordinary design talk must not activate it.
+description: Use only when the user explicitly invokes /keen or $keen. One command for interface design work, written for people who direct the work and judge the result without reading code. Typed alone or with a vague request it shows a short menu, suggests one job and asks. Typed with one of its 21 jobs, such as critique, audit, distill, words or polish, it runs that job. Every job ends in plain English with proof the person can look at. Ordinary design talk must not activate it.
 disable-model-invocation: true
 metadata:
   short-description: Design jobs with a menu, plain English and proof
@@ -11,24 +11,57 @@ metadata:
 
 The person types `/keen` and what they want, in their own words. They may not read code. They judge by looking at the screen and by reading what you tell them. Your job is to pick the right piece of design work, do it properly, and show them the result in a form they can check with their own eyes.
 
-Keen is an early version. It has twelve jobs. For motion, a first-run experience, a sales or landing page, and native phone apps, say it is not in Keen yet and point to `/design`.
+Keen has 21 jobs. Movement and animation are not among them: that is `/motion`, a separate command in the same kit. If it is not installed, say so.
 
 ## Jobs
 
-| Job | Use it when | Changes files | Instructions |
+Jobs marked "report" change nothing. Jobs marked "writes" add or update one project file after a yes. The rest edit the screen.
+
+**Set up and plan**
+
+| Job | Use it when | Kind | Instructions |
 |---|---|---|---|
-| `init` | The project has no PRODUCT.md, or nobody has written down who it is for | Writes PRODUCT.md after a yes | [jobs/init.md](jobs/init.md) |
-| `shape` | A screen or feature is about to be built and nobody has planned it | Writes a short brief after a yes | [jobs/shape.md](jobs/shape.md) |
-| `critique` | Something feels off and they want to know what and why | No | [jobs/critique.md](jobs/critique.md) |
-| `audit` | They want measurements, not opinions: can everyone read it, press it and use it | No | [jobs/audit.md](jobs/audit.md) |
-| `distill` | The screen is crowded, busy or hard to scan | Yes | [jobs/distill.md](jobs/distill.md) |
-| `layout` | Things are in the wrong place, or nothing stands out | Yes | [jobs/layout.md](jobs/layout.md) |
-| `words` | Labels, buttons or messages are unclear | Yes, text only | [jobs/words.md](jobs/words.md) |
-| `type` | Text is hard to read, or there are too many sizes | Yes | [jobs/type.md](jobs/type.md) |
-| `colour` | Colours clash, mean nothing, or text is hard to see. `color` works too | Yes | [jobs/colour.md](jobs/colour.md) |
-| `harden` | It looks fine with demo data and breaks with real data | Yes | [jobs/harden.md](jobs/harden.md) |
-| `adapt` | It works on one screen size and not on others | Yes | [jobs/adapt.md](jobs/adapt.md) |
-| `polish` | The screen is right but looks unfinished | Yes | [jobs/polish.md](jobs/polish.md) |
+| `init` | Nobody has written down who the product is for | Writes PRODUCT.md | [jobs/init.md](jobs/init.md) |
+| `document` | The design exists on screen but is not written down anywhere | Writes DESIGN.md | [jobs/document.md](jobs/document.md) |
+| `shape` | A screen or feature is about to be built and nobody has planned it | Writes a brief | [jobs/shape.md](jobs/shape.md) |
+
+**Find out what is wrong**
+
+| Job | Use it when | Kind | Instructions |
+|---|---|---|---|
+| `critique` | Something feels off and they want to know what and why | Report | [jobs/critique.md](jobs/critique.md) |
+| `audit` | They want measurements, not opinions: can everyone read it, press it and use it | Report | [jobs/audit.md](jobs/audit.md) |
+| `variants` | They do not like one part and cannot say why: show three versions and pick | Edits the pick only | [jobs/variants.md](jobs/variants.md) |
+
+**Change what is on the screen**
+
+| Job | Use it when | Kind | Instructions |
+|---|---|---|---|
+| `distill` | The screen is crowded, busy or hard to scan | Edits | [jobs/distill.md](jobs/distill.md) |
+| `layout` | Things are in the wrong place, or nothing stands out | Edits | [jobs/layout.md](jobs/layout.md) |
+| `words` | Labels, buttons or messages are unclear | Edits text only | [jobs/words.md](jobs/words.md) |
+| `onboard` | New people get lost or give up before the product is useful to them | Edits | [jobs/onboard.md](jobs/onboard.md) |
+| `convert` | A landing, pricing or sign-up page is not getting people to act | Edits | [jobs/convert.md](jobs/convert.md) |
+
+**Change how it looks**
+
+| Job | Use it when | Kind | Instructions |
+|---|---|---|---|
+| `type` | Text is hard to read, or there are too many sizes | Edits | [jobs/type.md](jobs/type.md) |
+| `colour` | Colours clash, mean nothing, or text is hard to see. `color` works too | Edits | [jobs/colour.md](jobs/colour.md) |
+| `bolder` | It looks safe, flat or like every other product | Edits | [jobs/bolder.md](jobs/bolder.md) |
+| `quieter` | It shouts: too much colour, weight, boxes or movement | Edits | [jobs/quieter.md](jobs/quieter.md) |
+| `polish` | The screen is right but looks unfinished | Edits | [jobs/polish.md](jobs/polish.md) |
+
+**Make it hold up**
+
+| Job | Use it when | Kind | Instructions |
+|---|---|---|---|
+| `harden` | It looks fine with demo data and breaks with real data | Edits | [jobs/harden.md](jobs/harden.md) |
+| `adapt` | A website works on one screen size and not on others | Edits | [jobs/adapt.md](jobs/adapt.md) |
+| `native` | A phone or tablet app does not feel like it belongs on the device | Edits | [jobs/native.md](jobs/native.md) |
+| `optimize` | The screen feels slow or jumps while loading | Edits | [jobs/optimize.md](jobs/optimize.md) |
+| `extract` | The same values and parts are repeated everywhere and changes keep missing some | Edits, nothing looks different | [jobs/extract.md](jobs/extract.md) |
 
 Read the job's file before running it. Run one job per request.
 
@@ -36,7 +69,8 @@ Read the job's file before running it. Run one job per request.
 
 1. **They named a job** (`/keen critique the pricing page`): run it.
 2. **Their words clearly match one job** ("this page is too busy" is distill; "does this hold up on a phone" is adapt; "the text is too small" is type; "nobody understands this button" is words): say which job you picked in one line and run it.
-3. **Anything else**, including `/keen` alone: show the menu and stop.
+3. **`/keen all`**: list every job from the tables above, grouped the same way, one line each, and stop.
+4. **Anything else**, including `/keen` alone: show the menu and stop.
 
 A request to "make it better", "fix the design" or "improve this page" is vague. Show the menu. Do not guess between a review and an edit.
 
@@ -49,22 +83,16 @@ Suggested: /keen <job> <target>
 <Two lines at most: what it will do and how, and whether it changes files.>
 
 Or, if the problem is something else:
+- <the complaint, in a few plain words>: /keen <job>
+- <up to five lines like this, chosen for this screen>
 - I can't say what's wrong: /keen critique
-- I want numbers, not opinions: /keen audit
-- It isn't built yet: /keen shape
-- It's crowded or hard to scan: /keen distill
-- Things are in the wrong place: /keen layout
-- The wording is unclear: /keen words
-- The text is hard to read: /keen type
-- The colours are off: /keen colour
-- It breaks with real data: /keen harden
-- It breaks on other screen sizes: /keen adapt
-- It's right but looks unfinished: /keen polish
+
+Everything Keen can do: /keen all
 
 Which one?
 ```
 
-List only the jobs that were not suggested. If there is no PRODUCT.md and the request involves judging or changing a screen, the suggestion is `/keen init`, with one line on why it comes first. Keep the whole menu under twenty lines.
+Choose the alternatives from what you saw on the screen, not from a fixed list: the jobs most likely to be the real answer if your suggestion is wrong. Word each one as the complaint a person would make ("It's crowded", "The text is hard to read", "New people get lost"), using the "Use it when" column. Always include `critique` unless it is the suggestion. If there is no PRODUCT.md and the request involves judging or changing a screen, the suggestion is `/keen init`, with one line on why it comes first. Keep the whole menu under fifteen lines.
 
 ## Rules for every job
 
@@ -110,7 +138,7 @@ When there is something to do next, do not hand over one command as a line of te
 
 For each: the command, one plain line on what it will do, and one on why it ranks where it does. The first is marked as the suggestion.
 
-When two or more belong together, say in one line why they run in the order listed. The order that wastes the least work is: remove (`distill`), arrange (`layout`), reword (`words`), then style (`type`, `colour`), then make it hold up (`harden`, `adapt`), and `polish` last, because every earlier job changes what there is to polish. Running several still means one job at a time, with a report after each.
+When two or more belong together, say in one line why they run in the order listed. The order that wastes the least work is: remove (`distill`), arrange (`layout`), reword (`words`), then style (`type`, `colour`, `bolder` or `quieter`), then make it hold up (`harden`, `adapt` or `native`, `optimize`), and `polish` last, because every earlier job changes what there is to polish. `extract` runs after the look is settled. Running several still means one job at a time, with a report after each.
 
 Look past Keen too. When what you found is not a design problem (a slow screen, a number that looks wrong, pages that duplicate each other), offer the Agent Kit command that handles it as a next step, in the same list, if that command is installed.
 
@@ -212,4 +240,4 @@ Before and after are captured at the same sizes: 390 wide for a phone and 1440 w
 
 ## Sources
 
-Keen's jobs are written from published standards and platform guidance, named in each job file: the Web Content Accessibility Guidelines 2.2, Apple's Human Interface Guidelines, Material Design, Jakob Nielsen's ten usability heuristics, Google's Core Web Vitals, the Gestalt principles of grouping, and the CSS Color specification.
+Keen's jobs are written from published standards and platform guidance, named in each job file: the Web Content Accessibility Guidelines 2.2, Apple's Human Interface Guidelines, Material Design, Jakob Nielsen's ten usability heuristics, Google's Core Web Vitals, the Gestalt principles of grouping, Nielsen's response-time limits, and the CSS Color specification.
