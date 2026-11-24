@@ -14,33 +14,42 @@ export interface Direction {
   title: string;
   note: string;
   maps: string;                 // a folder under /horizon
+  detail?: { file: string; west: number; north: number; width: number; height: number }; // a sharper cloud map for the region flown over
   start: string | "now";        // an ISO moment, or the moment of the visit
   orbit: Omit<Orbit, "epoch">;
   wide: View; tall: View;
   rate: number;                 // seconds of orbit per second of visit
+  weather?: number;             // seconds of weather per second of visit (the clouds run on their own, faster clock)
   meter: number;                // exposure compensation, in stops
   look?: Partial<Look>;
 }
 
-const WIDE: View = { heading: 43, pitch: 33, roll: -20, focal: 2.4 }, TALL: View = { heading: 43, pitch: 38, roll: -12, focal: 1.55 };
+const WIDE: View = { heading: 43, pitch: 33, roll: -20, focal: 2.4 };
+// A phone holds the words in its upper half, so the planet takes the lower third: a longer lens, the limb about
+// two thirds of the way down, and less roll, so the arc reads across the narrow frame.
+const TALL: View = { heading: 43, pitch: 32.2, roll: -9, focal: 2.5 };
+const PACIFIC = { file: "clouds-pacific", west: 145, north: -2, width: 150, height: 62 }, IBERIA = { file: "clouds-iberia", west: -25, north: 64, width: 130, height: 62 };
+// Weather seen from orbit hardly moves in the minutes a pass takes, so the clouds keep a faster clock of their own:
+// about two and a half hours of drift for each minute on the page.
+const WEATHER = 150;
 export const DIRECTIONS: Record<string, Direction> = {
   day: {
     title: "Meridian, day",
     note: "A real low over the South Pacific on 22 November 2026, as NASA's VIIRS instrument saw it, lit by that afternoon's sun.",
     maps: "earth", start: "2026-11-22T01:00:00Z",
-    orbit: orbitThrough(-30, -178, 75, 1800), wide: WIDE, tall: TALL, rate: 4, meter: 0,
+    orbit: orbitThrough(-30, -178, 75, 1800), wide: WIDE, tall: TALL, rate: 4, meter: 0, detail: PACIFIC,
   },
   dawn: {
     title: "Meridian, first light",
     note: "The same orbit a few hours earlier, flying toward sunrise. The colour on the limb is computed from the air, not painted.",
     maps: "earth", start: "2026-11-21T16:05:00Z",
-    orbit: orbitThrough(-37, 153, 72, 1800), wide: { ...WIDE, heading: 28 }, tall: { ...TALL, heading: 28 }, rate: 4, meter: 0,
+    orbit: orbitThrough(-37, 153, 72, 1800), wide: { ...WIDE, heading: 28 }, tall: { ...TALL, heading: 20, pitch: 31.5, focal: 3 }, rate: 4, meter: 0, detail: PACIFIC,
   },
   night: {
     title: "Meridian, night",
     note: "Iberia and the Mediterranean after dark: measured city lights, moonlit cloud, and the thin green line of airglow.",
     maps: "earth", start: "2026-11-22T21:30:00Z",
-    orbit: orbitThrough(30, -5, 60, 1800), wide: { ...WIDE, heading: 0 }, tall: { ...TALL, heading: 0 }, rate: 4, meter: 0,
+    orbit: orbitThrough(30, -5, 60, 1800), wide: { ...WIDE, heading: 0 }, tall: { ...TALL, heading: 0 }, rate: 4, meter: 0, detail: IBERIA,
   },
   now: {
     title: "Meridian, now",
@@ -82,6 +91,7 @@ export function createStage(canvas: HTMLCanvasElement, options: { direction: Dir
   const { direction } = options;
   const base = options.base ?? "/horizon";
   const maps: Maps = { cloud: `${base}/${direction.maps}/${options.cloud ?? "clouds"}.jpg`, colour: `${base}/${direction.maps}/colour.jpg`, night: `${base}/${direction.maps}/night.jpg` };
+  if (direction.detail && !options.cloud) maps.detail = { ...direction.detail, url: `${base}/${direction.maps}/${direction.detail.file}.jpg` };
   const horizon = createHorizon(canvas, { maps, onError: options.onError });
   const epoch = options.startAt ?? (direction.start === "now" ? Date.now() : Date.parse(direction.start));
   const orbit: Orbit = { ...direction.orbit, epoch };
@@ -113,6 +123,9 @@ export function createStage(canvas: HTMLCanvasElement, options: { direction: Dir
       const look: Look = { ...LOOK, ...direction.look, focal: view.focal * (1 + 0.1 * arrive) };
       look.exposure = Math.pow(2, stops) * fade;
       look.moonlight = LOOK.moonlight * (0.15 + 0.85 * moon.phase);
+      // The drift slows toward a stop after about eighteen hours of weather, before the shear in the wind has
+      // pulled the cloud systems out of shape.
+      look.cloudDrift = 64800 * (1 - Math.exp(-(seconds * (direction.weather ?? WEATHER)) / 64800));
       horizon.render({ shot, sun, moon: moon.dir, look, time: seconds });
       return true;
     },

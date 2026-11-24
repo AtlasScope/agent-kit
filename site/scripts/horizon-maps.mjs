@@ -19,8 +19,8 @@ import sharp from "sharp";
 
 sharp.cache(false);
 const site = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
-const [source, day = "20261122"] = process.argv.slice(2);
-if (!source) { console.error("usage: node scripts/horizon-maps.mjs <folder with the originals> [day]"); process.exit(1); }
+// With no folder given, the originals are looked for in the repository's ignored scratch folder.
+const [source = path.join(site, "..", ".artifacts", "horizon", "source"), day = "20261122"] = process.argv.slice(2);
 const out = path.join(site, "public", "horizon", "earth");
 await mkdir(out, { recursive: true });
 const big = { limitInputPixels: false };
@@ -57,3 +57,14 @@ const grey = () => sharp(cloud, { raw: { width: W, height: H, channels: 1 }, ...
 await grey().jpeg({ quality: 86, mozjpeg: true }).toFile(path.join(out, "clouds-16k.jpg"));
 await grey().resize(8192, 4096, { kernel: "lanczos3" }).jpeg({ quality: 86, mozjpeg: true }).toFile(path.join(out, "clouds.jpg"));
 console.log("clouds.jpg, clouds-16k.jpg");
+
+// Sharper cloud for the regions the directions fly over (components/horizon/stage.ts names the same boxes): the
+// full-resolution map cut to a box, which may cross the date line. About 2.4 km a pixel, twice the global map.
+const REGIONS = { pacific: { west: 145, north: -2, width: 150, height: 62 }, iberia: { west: -25, north: 64, width: 130, height: 62 } };
+for (const [name, box] of Object.entries(REGIONS)) {
+  const x0 = Math.round(((box.west + 180) / 360) * W), y0 = Math.round(((90 - box.north) / 180) * H);
+  const w = Math.round((box.width / 360) * W), h = Math.round((box.height / 180) * H), cut = Buffer.alloc(w * h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) cut[y * w + x] = cloud[(y0 + y) * W + ((x0 + x) % W)];
+  await sharp(cut, { raw: { width: w, height: h, channels: 1 } }).jpeg({ quality: 86, mozjpeg: true }).toFile(path.join(out, `clouds-${name}.jpg`));
+  console.log(`clouds-${name}.jpg ${w}x${h}`);
+}

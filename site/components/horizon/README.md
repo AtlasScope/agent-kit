@@ -39,9 +39,9 @@ npm run lab                      # then http://localhost:4317/lab/horizon.html?d
 
 ## Known limits
 
-- The committed cloud map is 8,192 pixels wide, about 5 km a pixel. On a Retina laptop the foreground is softer than the photograph was. The 16k map fixes that on a Mac but is too heavy to ship; the answer is tiles for the strip under the orbit, not one global image.
-- One day of polar-orbiting imagery has seams between passes and no data in the polar night (an older composite fills in). The directions avoid both.
-- Clouds do not move relative to the ground. The motion is the orbit and the turning light.
+- Sharpness: each direction lays a regional cloud map (about 2.4 km a pixel, 4 to 5 MB) over the global one (about 5 km a pixel), cut for the part of the globe it flies over. That is the full resolution of the imagery downloaded so far. GIBS serves the same day at 1 km and finer; going sharper means fetching regional tiles at that scale.
+- One day of polar-orbiting imagery has seams between passes (a thin straight line is visible in the day view) and no data in the polar night (an older composite fills in).
+- Weather: the clouds drift along the mean wind for their latitude (trade easterlies, mid-latitude westerlies) on a clock 150 times faster than life, slowing to a stop after about eighteen hours of drift. They are carried, not evolved: no cloud forms or dissolves, and storms do not turn. Real evolution needs a sequence of real frames (geostationary imagery or a weather model's cloud fields).
+- On a phone the shade is deepened over the lower third so the text there stays readable, which dims the planet under it.
 - Clouds are a lit layer with relief, not volumes: no towers casting long shadows across a deck.
 - With reduced motion the experimental pages show no scene yet (there is no still).
-- Phones get a tall framing that is not yet composed well: at dawn most of the planet in frame is still in night.

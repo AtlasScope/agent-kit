@@ -246,7 +246,7 @@ export function LaunchHero({ headline, blur, art }: { headline: string; blur: st
 
   const words = headline.split(" ");
   return (
-    <section ref={ref} className={`launch${live ? " is-live" : ""}`} aria-labelledby="hero-h" suppressHydrationWarning>
+    <section ref={ref} className={`launch${art ? " launch--art" : ""}${live ? " is-live" : ""}`} aria-labelledby="hero-h" suppressHydrationWarning>
       <script dangerouslySetInnerHTML={{ __html: ARM }} />
       <div data-r="scene" className="launch__scene" aria-hidden="true">
         <picture data-r="earth" className="launch__earth" style={art ? { visibility: "hidden" } : { backgroundImage: `url(${blur})` }}>

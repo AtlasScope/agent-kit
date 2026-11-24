@@ -137,3 +137,9 @@
   .launch__new { font-size: 1rem; }
   .launch__legal { font-size: 0.875rem; }
 }
+
+/* The experimental horizon scenes (/horizon/...): on a phone the planet fills the lower third, where the note and
+   the extra requests sit, so the shade deepens at the foot to hold their contrast over sunlit cloud. */
+@media (max-width: 760px) {
+  .launch--art .launch__shade { background: linear-gradient(to bottom, rgba(2,3,2,.6) 0%, rgba(2,3,2,.4) 50%, rgba(2,3,2,.1) 62%, rgba(2,3,2,0) 68%), linear-gradient(to top, rgba(2,3,2,.72) 0%, rgba(2,3,2,.6) 24%, rgba(2,3,2,.42) 34%, rgba(2,3,2,0) 46%); }
+}

@@ -4,7 +4,8 @@ import { MS_SIZE, T_SIZE, multipleScatteringTable, transmittanceTable } from "./
 import type { Shot, Vec3 } from "./ephemeris";
 import { FRAG, VERT } from "./glsl";
 
-export interface Maps { cloud?: string; colour?: string; night?: string }
+// `detail` is a sharper cloud map for one part of the globe: its west and north edges and its size, in degrees.
+export interface Maps { cloud?: string; colour?: string; night?: string; detail?: { url: string; west: number; north: number; width: number; height: number } }
 export interface Look {
   focal: number;        // 1 / tan(half the vertical field of view)
   exposure: number;
@@ -108,11 +109,13 @@ export function createHorizon(canvas: HTMLCanvasElement, options: { maps?: Maps;
   load(0, 2, "uCloud", options.maps?.cloud, false);
   load(1, 3, "uColor", options.maps?.colour, true);
   load(2, 4, "uNight", options.maps?.night, true);
+  load(3, 5, "uCloudHi", options.maps?.detail?.url, false);
+  const detail = options.maps?.detail;
 
   const u = {
     res: U("uRes"), cam: U("uCam"), right: U("uRight"), up: U("uUp"), fwd: U("uFwd"), sun: U("uSun"), moon: U("uMoon"),
     tan: U("uTan"), exposure: U("uExposure"), time: U("uTime"), p3: U("uP3"), steps: U("uSteps"),
-    has: U("uHas"), white: U("uWhite"), cloud: U("uCloudLook"), grade: U("uGrade"), night: U("uNightLook"),
+    has: U("uHas"), white: U("uWhite"), cloud: U("uCloudLook"), region: U("uRegion"), grade: U("uGrade"), night: U("uNightLook"),
   };
   const ratio = () => Math.min(devicePixelRatio || 1, options.maxPixelRatio ?? 2);
 
@@ -130,7 +133,9 @@ export function createHorizon(canvas: HTMLCanvasElement, options: { maps?: Maps;
       gl.uniform1f(u.p3, wideGamut ? 1 : 0); gl.uniform1f(u.steps, look.steps);
       gl.uniform3f(u.white, 1 + look.warmth * (1 / 0.93 - 1), (1 + look.warmth * (1 / 0.86 - 1)) * (1 + look.tint), 1 + look.warmth * (1 / 0.74 - 1));
       gl.uniform4f(u.has, has[0], has[1], has[2], 0);
-      gl.uniform4f(u.cloud, look.cloudDepth, look.cloudRelief, look.cloudHeight, look.cloudDrift);
+      gl.uniform4f(u.cloud, look.cloudDepth, look.cloudRelief, look.cloudHeight, look.cloudDrift / (2 * Math.PI * 6.371e6));
+      if (detail && has[3]) gl.uniform4f(u.region, (detail.west + 180) / 360, (90 - detail.north) / 180, detail.width / 360, detail.height / 180);
+      else gl.uniform4f(u.region, 0, 0, 0, 0);
       gl.uniform4f(u.grade, look.contrast, look.saturation, look.p3, look.glare);
       gl.uniform4f(u.night, look.cityLights, look.airglow, look.moonlight, look.stars);
       gl.drawArrays(gl.TRIANGLES, 0, 3);

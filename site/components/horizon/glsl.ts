@@ -18,9 +18,10 @@ out vec4 o;
 uniform vec2 uRes;
 uniform vec3 uCam, uRight, uUp, uFwd, uSun, uMoon;
 uniform float uTan, uExposure, uTime, uP3, uSteps;
-uniform sampler2D uT, uMS, uCloud, uColor, uNight;
+uniform sampler2D uT, uMS, uCloud, uColor, uNight, uCloudHi;
+uniform vec4 uRegion;    // the sharper cloud map's place on the globe: west edge, north edge, width, height, in map units; no width means none
 uniform vec4 uHas;      // cloud, colour, night lights, unused
-uniform vec4 uCloudLook; // optical depth scale, relief, height km, drift (radians of longitude)
+uniform vec4 uCloudLook; // optical depth scale, relief, height km, weather clock (seconds, as a fraction of the equator per metre a second)
 uniform vec4 uGrade;    // contrast power, saturation, P3 stretch, sun glare
 uniform vec4 uNightLook;
 uniform vec3 uWhite;    // white balance: what the camera calls neutral // city lights, airglow, moonlight, stars
@@ -77,6 +78,31 @@ vec4 readMap(sampler2D map, vec3 n, float drift, vec3 nx, vec3 ny) {
   vec2 dx = mapUV(nx, drift) - uv, dy = mapUV(ny, drift) - uv;
   dx.x -= floor(dx.x + 0.5); dy.x -= floor(dy.x + 0.5);
   return textureGrad(map, uv, dx * gBlur, dy * gBlur);
+}
+
+// The mean wind at cloud level by latitude, metres a second eastward: trade easterlies near the equator and the
+// westerlies of the middle latitudes (a two-bump fit to the zonal-mean climatology). The cloud map is carried along
+// it, so the tropics drift west while the storm tracks run east, as they do in a day of satellite pictures.
+float wind(float lat) {
+  float d = degrees(lat);
+  return -7.0 * exp(-pow(d / 14.0, 2.0)) + 14.0 * exp(-pow((abs(d) - 45.0) / 16.0, 2.0));
+}
+vec2 cloudUV(vec3 n) {
+  float lat = asin(clamp(n.z, -1.0, 1.0));
+  return vec2(atan(n.y, n.x) / (2.0 * PI) + 0.5 - uCloudLook.w * wind(lat) / max(cos(lat), 0.25), 0.5 - lat / PI);
+}
+// Cloud at a place: the global map, and inside the region a direction flies over, a sharper one laid over it.
+float cloudAt(vec3 n, vec3 nx, vec3 ny) {
+  vec2 uv = cloudUV(n), dx = cloudUV(nx) - uv, dy = cloudUV(ny) - uv;
+  dx.x -= floor(dx.x + 0.5); dy.x -= floor(dy.x + 0.5);
+  dx *= gBlur; dy *= gBlur;
+  float c = textureGrad(uCloud, uv, dx, dy).r;
+  if (uRegion.z > 0.0) {
+    vec2 r = vec2(fract(uv.x - uRegion.x), uv.y - uRegion.y) / uRegion.zw;
+    float w = smoothstep(0.0, 0.04, r.x) * smoothstep(1.0, 0.96, r.x) * smoothstep(0.0, 0.04, r.y) * smoothstep(1.0, 0.96, r.y);
+    if (w > 0.0) c = mix(c, textureGrad(uCloudHi, r, dx / uRegion.zw, dy / uRegion.zw).r, w);
+  }
+  return c;
 }
 
 float hash(vec3 p) { p = fract(p * vec3(443.897, 441.423, 437.195)); p += dot(p, p.yzx + 19.19); return fract((p.x + p.y) * p.z); }
@@ -179,22 +205,22 @@ void main() {
       vec3 east = normalize(cross(vec3(0.0, 0.0, 1.0), nc)), north = cross(nc, east);
       vec3 ncx = normalize(nc + (nx - n)), ncy = normalize(nc + (ny - n));
       // Read a touch soft: a map magnified past its own grain should blur, not show its pixels.
-      gBlur = 1.7; cloud = readMap(uCloud, nc, uCloudLook.w, ncx, ncy).r; gBlur = 1.0;
+      gBlur = uRegion.z > 0.0 ? 1.15 : 1.7; cloud = cloudAt(nc, ncx, ncy); gBlur = 1.0;
       // Relief: the same map read a little way toward the sun. Where the cloud there is thicker, this spot is in
       // its lee; where it is thinner, this spot faces the light. At a low sun the reach grows, as shadows do.
       vec3 sunFlat = uSun - nc * dot(uSun, nc);
       float reach = clamp(0.0006 / max(dot(uSun, nc), 0.08), 0.0006, 0.006);
       vec3 ns = normalize(nc + sunFlat * reach);
-      towardSun = readMap(uCloud, ns, uCloudLook.w, normalize(ns + (nx - n)), normalize(ns + (ny - n))).r;
+      towardSun = cloudAt(ns, normalize(ns + (nx - n)), normalize(ns + (ny - n)));
       // The same comparison on a blurred copy models whole cloud masses, not only their grain.
       gBlur = 6.0;
       vec3 nb = normalize(nc + sunFlat * reach * 5.0);
-      massHere = readMap(uCloud, nc, uCloudLook.w, ncx, ncy).r;
-      massSun = readMap(uCloud, nb, uCloudLook.w, normalize(nb + (nx - n)), normalize(nb + (ny - n))).r;
+      massHere = cloudAt(nc, ncx, ncy);
+      massSun = cloudAt(nb, normalize(nb + (nx - n)), normalize(nb + (ny - n)));
       gBlur = 1.0;
       // The shadow the clouds throw on the ground: the map read where the ray to the sun crosses the cloud shell.
       vec3 above = normalize(p + uSun * (height / max(mu, 0.06)));
-      shadow = readMap(uCloud, above, uCloudLook.w, normalize(above + (nx - n)), normalize(above + (ny - n))).r;
+      shadow = cloudAt(above, normalize(above + (nx - n)), normalize(above + (ny - n)));
     }
     float viewCos = max(dot(nc, -rd), 0.05);
     // Seen at a slant a cloud is a longer path, so decks thicken toward the limb as they do from orbit.
