@@ -1,4 +1,3 @@
-/* Ownership: design system (DESIGN-CONTRACT.md). */
 /* AtlasScope design tokens. The one source for colour, type, space, shape, depth and motion on the site.
    Owned by the design-system lane (see DESIGN-CONTRACT.md). Page families read these; they never redefine them.
 
@@ -9,7 +8,6 @@
    - danger (red): destructive actions and errors only.
    - section hues (--s-*): small wayfinding marks beside a title.
    Atmospheric colour belongs to the homepage artwork and never reaches interface roles. */
-
 :root {
   color-scheme: light;
 
@@ -91,7 +89,6 @@
   --dur-page: 320ms;     /* contextual content transitions */
   --travel: 1;           /* multiply translate distances by this; 0 under reduced motion */
 }
-
 /* Dark: near-black canvas, cool greys with almost no chroma, hairlines of white. */
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   color-scheme: dark;
@@ -125,7 +122,6 @@
   --shadow-3: 0 2px 4px oklch(0% 0 0 / .5), 0 16px 40px -8px oklch(0% 0 0 / .75);
   --shadow-inset: inset 0 1px 0 oklch(100% 0 0 / .05);
 }
-
 /* The stage: the homepage and the quiet pages (/install, /start) are dark in both themes. Their palette, including the
    green main action, is frozen here as it was on main so the homepage track can change it on its own schedule. The
    header on those pages reads the same tokens, so it sits on the stage without a seam. */
@@ -145,7 +141,6 @@
   --shadow-3: inset 0 1px 0 rgba(255,255,255,.08), 0 2px 4px rgba(0,0,0,.6), 0 12px 26px -10px rgba(0,0,0,.8), 0 30px 50px -24px rgba(0,0,0,1);
   --shadow-inset: inset 0 1px 0 oklch(100% 0 0 / .06);
 }
-
 /* Wide colour: Display P3 screens get the same hues with more saturation. sRGB keeps the values above. */
 @media (color-gamut: p3) {
   :root {
@@ -161,7 +156,6 @@
     --s-inv: oklch(85.3% .256 160.1); --s-db: oklch(86.4% .227 118.1); --s-think: oklch(78.4% .134 295.6);
     --s-ecmd: oklch(83.5% .169 208.1); --s-dcmd: oklch(77.5% .124 261.1); --s-recipe: oklch(75.6% .208 356.6); }
 }
-
 /* Responsive layout tokens */
 @media (max-width: 78rem) { :root { --header-h: 57px; } }
 @media (max-width: 60rem) { :root { --gutter: 24px; } }
@@ -172,13 +166,12 @@
 @media (min-width: 2600px) { :root { --container: 1800px; } }
 @media (pointer: coarse) { :root { --control-h: 44px; --control-h-sm: 40px; } }
 @media (prefers-reduced-motion: reduce) { :root { --travel: 0; } }
-
 /* Legacy names. Existing page CSS reads these; they now resolve to the tokens above, so every page takes the new
    palette without a rewrite. New code uses the --c-* / --type-* / --space-N names. Do not add to this list. */
 :root, :root:has(.home, .quiet) {
   --color-paper: var(--c-canvas); --color-paper-2: var(--c-surface); --color-paper-3: var(--c-raised);
   --color-ink: var(--c-fg); --color-ink-2: var(--c-fg-2); --color-muted: var(--c-fg-3);
-  --color-rule: var(--c-line); --color-rule-2: var(--c-line-2);
+  --color-rule: var(--c-line); --color-rule-2: var(--c-line-2); /* decorative; controls use --c-edge */
   --color-accent: var(--c-primary); --color-accent-ink: var(--c-on-primary); --color-focus: var(--c-focus);
   --color-link: var(--c-fg); --color-accent-text: var(--c-fg); --color-cmd: var(--c-fg);
   --color-warm: var(--c-warm); --color-warm-soft: var(--c-warm-soft); --color-danger: var(--c-danger); --color-on-danger: var(--c-on-danger);
@@ -194,3 +187,6 @@
 }
 /* The stage keeps green links and green current-section text, as on main. */
 :root:has(.home, .quiet) { --color-link: oklch(78% .16 156); --color-accent-text: oklch(86% .13 155); --accent-wash: color-mix(in oklab, oklch(72% .17 155) 16%, transparent); --accent-edge: color-mix(in oklab, oklch(72% .17 155) 30%, transparent); }
+/* The stage keeps main's timing and line height too. */
+:root:has(.home, .quiet) { --dur-micro: 120ms; --dur-short: 220ms; }
+:root:has(.home, .quiet) body { line-height: 1.55; }

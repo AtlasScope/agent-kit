@@ -12,8 +12,9 @@ export function CopyButton({ text, label = "Copy", className = "copy", icon = fa
   const [state, setState] = useState(label);
   // One reset timer per button: a second press restarts it, so an earlier timer never overwrites a newer state.
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  useEffect(() => () => clearTimeout(timer.current), []);
-  const show = (next: string, ms: number) => { clearTimeout(timer.current); setState(next); timer.current = setTimeout(() => setState(label), ms); };
+  const alive = useRef(true);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; clearTimeout(timer.current); }; }, []);
+  const show = (next: string, ms: number) => { if (!alive.current) return; clearTimeout(timer.current); setState(next); timer.current = setTimeout(() => setState(label), ms); };
   return (
     <button
       type="button"

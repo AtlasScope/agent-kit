@@ -1,11 +1,14 @@
-/* Global shell: header, navigation, menu sheet, header search and results, footer.
-   Ownership: design system (DESIGN-CONTRACT.md). The .search / .results rules pass to the search lane once it starts;
-   the header slot (size, position, breakpoints) stays here.
-
-   One bar everywhere. Wider than 78rem: lockup, section links, search, Sign in, GitHub, Install. Up to 78rem the links
-   move into the menu sheet. Up to 40rem search becomes a button and GitHub moves into the sheet. The switch points are
-   in rem so a larger text size moves them with the text. */
-
+/* Global shell: icon buttons, header, navigation, phone menu sheet, footer.
+   Owner: W2 shell (DESIGN-CONTRACT.md). */
+/* Icon buttons: header controls, close, remove. */
+.iconbtn { display: inline-grid; place-items: center; flex: none; width: 40px; height: 40px; padding: 0; border: 0; border-radius: var(--radius-md); background: none; color: var(--c-fg); cursor: pointer;
+  transition: background-color var(--dur-instant) var(--ease-out), color var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-out); }
+.iconbtn .i { width: 20px; height: 20px; }
+.iconbtn:active { background: var(--c-fill-2); transform: scale(.94); }
+@media (hover: hover) and (pointer: fine) { .iconbtn:hover { background: var(--c-fill); } }
+@media (pointer: coarse) { .iconbtn { width: 44px; height: 44px; } }
+.kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border: 1px solid var(--c-line-2); border-bottom-width: 2px; border-radius: var(--radius-xs);
+  background: var(--c-surface); color: var(--c-fg-3); font: 500 11px/1 var(--font-mono); }
 /* Header */
 .top { position: sticky; top: 0; z-index: 30; color: var(--c-fg); background: var(--c-canvas); border-bottom: 1px solid var(--c-line); }
 @supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
@@ -13,20 +16,21 @@
 }
 .top > .container { max-width: max(var(--container), 80rem); }
 .nav { display: flex; align-items: center; gap: var(--space-3) var(--space-6); min-height: 64px; }
-
 /* Lockup. The svg is drawn on the pixel grid by export_site.py: 32px tall, capitals from 4px to a baseline at 20px.
    Never scale or transform it. The 64px bar puts its top at 16px, so every flat edge lands on a whole device pixel. */
 .wordmark { display: inline-flex; align-items: center; gap: 0; color: var(--c-fg); text-decoration: none; white-space: nowrap; }
 .aslogo { display: block; flex: none; }
 .aslogo--mark { display: none; }
 .aslogo__sym--x125 { display: none; }
-@media (resolution: 1.25dppx) { .aslogo__sym--x1 { display: none; } .aslogo__sym--x125 { display: inline; } }
+@media (resolution: 1.25dppx) { .aslogo__sym--x1 { display: none; } }
+@media (resolution: 1.25dppx) { .aslogo__sym--x125 { display: inline; } }
 .wordmark .wordmark__sep { width: 1px; height: 18px; margin-inline: 14px; background: var(--c-line-2); }
 /* Sits on the logo's baseline (20px down the 32px svg). */
 .wordmark .wordmark__name { padding-bottom: 3px; color: var(--c-fg-2); font: var(--weight-medium) .9375rem/1 var(--font-body); letter-spacing: -0.01em; }
-@media (max-width: 720px) { .aslogo--full { display: none; } .aslogo--mark { display: block; } .wordmark .wordmark__sep { margin-inline: 10px; } }
+@media (max-width: 720px) { .aslogo--full { display: none; } }
+@media (max-width: 720px) { .aslogo--mark { display: block; } }
+@media (max-width: 720px) { .wordmark .wordmark__sep { margin-inline: 10px; } }
 @media (max-width: 23rem) { .wordmark .wordmark__sep, .wordmark .wordmark__name { display: none; } }
-
 /* Section links. The current section is a quiet neutral pill; the text never moves. */
 .links { display: flex; gap: 2px; margin: 0; padding: 0; list-style: none; font-size: .875rem; }
 .links a { display: inline-flex; align-items: center; min-height: 34px; padding: 0 11px; border-radius: var(--radius-sm); color: var(--c-fg-3); font-weight: var(--weight-medium);
@@ -34,7 +38,6 @@
 .links a[aria-current="page"] { background: var(--c-fill); color: var(--c-fg); }
 @media (hover: hover) and (pointer: fine) { .links a:hover { color: var(--c-fg); } }
 @media (max-width: 86rem) { .links a { padding-inline: 9px; } }
-
 .nav__end { display: flex; align-items: center; gap: var(--space-2); }
 /* Signed in (see lib/auth-hint.ts): keep the Sign in link's space but hide it while Clerk loads the account menu. */
 html[data-auth] .auth-out { visibility: hidden; }
@@ -42,22 +45,7 @@ html[data-auth] .auth-out { visibility: hidden; }
 .nav__install { padding-inline: 14px; }
 /* Home and /install carry their own Install action, so the bar's would only repeat it. */
 body:has(main.home, .inst) .nav__install { display: none; }
-
-/* Header search: a field-shaped button that opens the command palette (components/search/palette.css).
-   The slot (.nav .search size and position) is the design system's; the button inside it is the search lane's. */
-.search { display: flex; gap: var(--space-2); max-width: 40rem; }
-.nav .search { position: relative; display: block; flex: 0 1 300px; min-width: 14rem; margin-left: auto; }
-.nav .search > svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--c-fg-3); pointer-events: none; }
-.nav .search .search__trigger { display: flex; align-items: center; width: 100%; min-height: 36px; padding: 0 68px 0 34px; border: 1px solid transparent; border-radius: var(--radius-md);
-  background: var(--c-fill); color: var(--c-fg-3); font: inherit; font-size: .875rem; text-align: left; cursor: text;
-  transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
-.nav .search .search__trigger span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.nav .search .search__trigger:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 1px; }
-.nav .search .kbd { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none; }
-@media (hover: hover) and (pointer: fine) { .nav .search .search__trigger:hover { background: var(--c-fill-2); color: var(--c-fg-2); } }
-
 .nav__toggles { display: none; }
-
 /* Menu sheet: fills the window, own top row so Close sits where Menu was. */
 .sheet { position: fixed; inset: 0; width: 100%; max-width: none; height: 100dvh; max-height: none; margin: 0; padding: 0 0 max(var(--space-6), env(safe-area-inset-bottom));
   border: 0; background: var(--c-canvas); color: var(--c-fg); overflow-y: auto; overscroll-behavior: contain; }
@@ -85,34 +73,22 @@ html:has(.sheet[open]) { overflow: hidden; }
 .sheet[open] .sheet__links li:nth-child(4) { animation-delay: 90ms; }
 .sheet[open] .sheet__links li:nth-child(5) { animation-delay: 120ms; }
 @keyframes sheet-in { from { opacity: 0; transform: translateY(6px); } }
-
 /* Up to 78rem: a 56px bar with search and a menu button. The 32px logo sits at 12px, a whole device pixel. */
-@media (max-width: 78rem) {
-  .nav { min-height: 56px; gap: var(--space-3); }
-  .nav > .links { display: none; }
-  .nav__end .btn--ghost span { display: none; }
-  .nav__end .btn--ghost { min-width: 36px; padding-inline: 0; }
-  .nav__toggles { display: flex; gap: 2px; margin-right: -8px; }
-  .nav .search { flex: 0 1 420px; min-width: 0; }
-  .nav__find { display: none; }
-}
+@media (max-width: 78rem) { .nav { min-height: 56px; gap: var(--space-3); } }
+@media (max-width: 78rem) { .nav > .links { display: none; } }
+@media (max-width: 78rem) { .nav__end .btn--ghost span { display: none; } }
+@media (max-width: 78rem) { .nav__end .btn--ghost { min-width: 36px; padding-inline: 0; } }
+@media (max-width: 78rem) { .nav__toggles { display: flex; gap: 2px; margin-right: -8px; } }
+@media (max-width: 78rem) { .nav__find { display: none; } }
 /* Phones: the Search button (.nav__find) opens the palette as a full-screen sheet; GitHub lives in the sheet. */
-@media (max-width: 40rem) {
-  .nav { position: relative; gap: var(--space-2); }
-  .nav__end { margin-left: auto; }
-  .nav__end .auth-coll span, .nav__gh { display: none; }
-  .nav__find { display: inline-grid; }
-  .nav .search { display: none; }
-}
-/* Touch: 44px targets and no key hint. */
-@media (pointer: coarse) {
-  .nav .search .search__trigger { min-height: 44px; padding-right: 12px; }
-  .wordmark { min-height: 44px; }
-  .links a { min-height: 40px; }
-  .nav__end .btn--sm, .nav__end .btn--ghost { min-width: 44px; min-height: 44px; }
-  .nav .search .kbd { display: none; }
-}
-
+@media (max-width: 40rem) { .nav { position: relative; gap: var(--space-2); } }
+@media (max-width: 40rem) { .nav__end { margin-left: auto; } }
+@media (max-width: 40rem) { .nav__end .auth-coll span, .nav__gh { display: none; } }
+@media (max-width: 40rem) { .nav__find { display: inline-grid; } }
+/* Touch: 44px targets. */
+@media (pointer: coarse) { .wordmark { min-height: 44px; } }
+@media (pointer: coarse) { .links a { min-height: 40px; } }
+@media (pointer: coarse) { .nav__end .btn--sm, .nav__end .btn--ghost { min-width: 44px; min-height: 44px; } }
 /* Footer: lockup and license line, then three groups of links. A hairline above, nothing else. */
 .foot { display: grid; grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, 1fr)); gap: var(--space-10); margin-top: var(--space-8);
   padding-block: var(--space-12) max(var(--space-16), env(safe-area-inset-bottom)); border-top: 1px solid var(--c-line); color: var(--c-fg-3); font-size: .875rem; }
@@ -124,13 +100,14 @@ html:has(.sheet[open]) { overflow: hidden; }
 .foot__group a { display: inline-flex; align-items: center; min-height: 30px; color: var(--c-fg-3); text-decoration: none; transition: color var(--dur-fast) var(--ease-out); }
 @media (hover: hover) and (pointer: fine) { .foot__group a:hover, .foot__logo:hover { color: var(--c-fg); } }
 @media (pointer: coarse) { .foot__group a { min-height: 44px; } }
-@media (max-width: 60rem) { .foot { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-8); } .foot__brand { grid-column: 1 / -1; } }
+@media (max-width: 60rem) { .foot { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-8); } }
+@media (max-width: 60rem) { .foot__brand { grid-column: 1 / -1; } }
 @media (max-width: 40rem) { .foot { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-6); } }
 /* The footer keeps the full lockup on phones; the header swaps to the symbol alone. */
-@media (max-width: 720px) { .foot .aslogo--full { display: block; } .foot .aslogo--mark { display: none; } }
+@media (max-width: 720px) { .foot .aslogo--full { display: block; } }
+@media (max-width: 720px) { .foot .aslogo--mark { display: none; } }
 /* The homepage is one screen: no footer under it (its legal links sit at the foot of the hero, LaunchHero.tsx). */
 body:has(main.home) .foot { display: none; }
-
 /* The old one-line footer, kept for any page that still renders it. */
 .footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-4) var(--space-10); padding-block: var(--space-10) max(var(--space-10), env(safe-area-inset-bottom));
   border-top: 1px solid var(--c-line); color: var(--c-fg-3); font-size: .875rem; }

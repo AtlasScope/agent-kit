@@ -1,17 +1,3 @@
-/* Shared controls and text utilities. Page families use these instead of writing their own.
-   Ownership: design system (DESIGN-CONTRACT.md). Ask before adding a variant here.
-
-   Buttons    .btn  (default: quiet surface)  .btn--primary (= .btn--solid)  .btn--ghost  .btn--danger
-              sizes .btn--sm .btn--lg   layout .btn--tint (fills its row)   state [aria-pressed="true"]
-   Icon       .iconbtn
-   Copy       .copy (CopyButton's default)  .copy--main   state [data-copied]
-   Fields     .input  .field (label + input)  .form-err
-   Labels     .chip (link or filter pill)  .tag (static label: .tag--signal .tag--warn)  .kbd
-   Code       .block > .block__head + pre    .cmdline (one line with Copy)
-   Menus      .menu > .menu__pop
-   Marks      .dot (section hue, set by [data-sec])  .led (.is-on)  .star
-   Text       .lead .kicker .crumbs .muted .ink2 .lic .eyebrow */
-
 /* Buttons. Hairline, 10px radius, medium weight. Primary is neutral: ink on light, white on dark (green on the stage). */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--control-h); padding: 0 var(--space-4);
   border: 1px solid var(--c-line-2); border-radius: var(--radius-md); background: var(--c-surface); color: var(--c-fg); box-shadow: var(--shadow-1);
@@ -20,41 +6,33 @@
 .btn:active { transform: translateY(calc(1px * var(--travel))) scale(.985); }
 .btn:disabled, .btn[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
 .btn--sm { min-height: var(--control-h-sm); padding: 0 var(--space-3); border-radius: var(--radius-sm); font-size: var(--type-xs); }
+/* Touch: small buttons keep their drawn height and get a hit area at least --tap (44px) tall. */
+@media (pointer: coarse) { .btn--sm { position: relative; } .btn--sm::after { content: ""; position: absolute; inset: 50% 0 auto; height: max(100%, var(--tap)); transform: translateY(-50%); } }
 .btn--lg { min-height: var(--control-h-lg); padding: 0 var(--space-6); font-size: var(--type-body); }
-@media (min-width: 100rem) and (min-height: 900px) { .btn--lg { min-height: 52px; } }
+@media (min-width: 100rem) and (min-height: 900px) { .btn--lg { min-height: 56px; } }
 .btn--primary, .btn--solid { background: var(--c-primary); color: var(--c-on-primary); border-color: transparent; box-shadow: none; font-weight: var(--weight-semibold); }
 .btn--ghost { background: transparent; border-color: transparent; box-shadow: none; }
 .btn--danger { background: var(--c-danger); color: var(--c-on-danger); border-color: transparent; box-shadow: none; }
 .btn--tint { flex: 1; }
 /* Pressed toggles are something the visitor chose: the warm accent. */
 .btn[aria-pressed="true"] { background: var(--c-warm-soft); border-color: var(--c-warm); }
-@media (hover: hover) and (pointer: fine) {
-  .btn:hover { background: var(--c-raised); border-color: var(--c-edge); }
-  .btn--primary:hover, .btn--solid:hover, .hub .welcome .btn--solid:hover { background: var(--c-primary-hover); border-color: transparent; }
-  .btn--ghost:hover { background: var(--c-fill); border-color: transparent; }
-  .btn--danger:hover { background: color-mix(in oklab, var(--c-danger), #000 10%); }
-}
-
-/* Icon buttons: header controls, close, remove. */
-.iconbtn { display: inline-grid; place-items: center; flex: none; width: 40px; height: 40px; padding: 0; border: 0; border-radius: var(--radius-md); background: none; color: var(--c-fg); cursor: pointer;
-  transition: background-color var(--dur-instant) var(--ease-out), color var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-out); }
-.iconbtn .i { width: 20px; height: 20px; }
-.iconbtn:active { background: var(--c-fill-2); transform: scale(.94); }
-@media (hover: hover) and (pointer: fine) { .iconbtn:hover { background: var(--c-fill); } }
-@media (pointer: coarse) { .iconbtn { width: 44px; height: 44px; } }
-
+@media (hover: hover) and (pointer: fine) { .btn:hover { background: var(--c-raised); border-color: var(--c-edge); } }
+@media (hover: hover) and (pointer: fine) { .btn--primary:hover, .btn--solid:hover { background: var(--c-primary-hover); border-color: transparent; } }
+@media (hover: hover) and (pointer: fine) { .btn--ghost:hover { background: var(--c-fill); border-color: transparent; } }
+@media (hover: hover) and (pointer: fine) { .btn--danger:hover { background: color-mix(in oklab, var(--c-danger), #000 10%); } }
 /* Copy. Stable width so the label change never moves the row; green only once the copy worked. */
 .copy { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex: 0 0 auto; min-width: 4.75rem; min-height: 32px; padding: 0 var(--space-3);
   border: 1px solid var(--c-line-2); border-radius: var(--radius-sm); background: var(--c-surface); color: var(--c-fg); font: var(--weight-medium) var(--type-xs)/1 var(--font-body); cursor: pointer;
   transition: background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-base) var(--ease-out); }
 .copy[data-copied] { border-color: color-mix(in oklab, var(--c-signal) 55%, transparent); color: var(--c-fg); }
 .copy[data-copied]::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--c-signal); }
-[data-copied]:not(.btn--solid):not(.btn--primary) .i, .i--warm { color: var(--c-signal); }
+[data-copied]:not(.btn--solid):not(.btn--primary) .i { color: var(--c-signal); }
+.i--warm { color: var(--c-warm); }
 .copy--main, .block .copy.copy--main { background: var(--c-primary); color: var(--c-on-primary); border-color: transparent; font-weight: var(--weight-semibold); }
 .copy--main[data-copied]::before { background: currentColor; }
-@media (hover: hover) and (pointer: fine) { .copy:hover { background: var(--c-raised); border-color: var(--c-edge); } .copy--main:hover, .block .copy.copy--main:hover { background: var(--c-primary-hover); } }
+@media (hover: hover) and (pointer: fine) { .copy:hover { background: var(--c-raised); border-color: var(--c-edge); } }
+@media (hover: hover) and (pointer: fine) { .copy--main:hover, .block .copy.copy--main:hover { background: var(--c-primary-hover); } }
 @media (pointer: coarse) { .copy { min-height: 40px; } }
-
 /* Fields */
 .input { min-width: 0; min-height: var(--control-h); padding: 0 var(--space-3); border: 1px solid var(--c-edge); border-radius: var(--radius-md); background: var(--c-surface); color: var(--c-fg);
   font: inherit; font-size: var(--type-sm); transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out); }
@@ -66,7 +44,6 @@
 .field input { min-height: var(--control-h); padding: 0 var(--space-3); border: 1px solid var(--c-edge); border-radius: var(--radius-md); background: var(--c-surface); color: var(--c-fg); font: inherit; }
 .form-err { margin: 0; color: var(--c-danger); font-size: var(--type-xs); line-height: var(--lh-xs); }
 .form-err:empty { position: absolute; }
-
 /* Chips: pills that link or filter. Tags: static labels. Kbd: a key. */
 .chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .chip { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 var(--space-3); border: 1px solid var(--c-line-2); border-radius: var(--radius-pill); background: var(--c-surface);
@@ -81,9 +58,6 @@
   font: var(--weight-medium) var(--type-micro)/1 var(--font-body); white-space: nowrap; }
 .tag--signal::before, .tag--warn::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--c-signal); }
 .tag--warn::before { background: var(--c-warm); }
-.kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border: 1px solid var(--c-line-2); border-bottom-width: 2px; border-radius: var(--radius-xs);
-  background: var(--c-surface); color: var(--c-fg-3); font: 500 11px/1 var(--font-mono); }
-
 /* Code: a block with a labelled head and Copy, or a single command line. Payload text is shown exactly. */
 .block { position: relative; overflow: hidden; border: 1px solid var(--c-line); border-radius: var(--radius-lg); background: var(--c-surface); box-shadow: var(--shadow-1); }
 .block__head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); min-height: 44px; padding: 6px 6px 6px var(--space-4);
@@ -92,7 +66,6 @@
 .cmdline { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-width: 0; padding: 6px 6px 6px var(--space-4);
   border: 1px solid var(--c-line); border-radius: var(--radius-md); background: var(--c-surface); font: 400 var(--type-xs)/1.5 var(--font-mono); }
 .cmdline code { overflow-wrap: anywhere; min-width: 0; }
-
 /* Menus */
 .menu { position: relative; }
 .menu__pop { position: absolute; right: 0; top: calc(100% + 6px); z-index: 10; min-width: 240px; display: grid; gap: 2px; padding: 6px;
@@ -106,7 +79,6 @@
 .menu__new .input { flex: 1; min-height: 34px; font-size: var(--type-xs); }
 .menu__pop .menu__new .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0 var(--space-3); border: 1px solid transparent; border-radius: var(--radius-md);
   background: var(--c-primary); color: var(--c-on-primary); font-weight: var(--weight-semibold); }
-
 /* Stars: keep something. Amber when kept. */
 .star { position: relative; z-index: 1; display: inline-grid; place-items: center; grid-auto-flow: column; gap: 6px; flex: none; min-width: 32px; min-height: 32px; padding: 0 6px;
   border: 0; border-radius: var(--radius-sm); background: none; color: var(--c-fg-3); font: var(--weight-medium) .875rem/1 var(--font-body); text-decoration: none; cursor: pointer;
@@ -118,7 +90,6 @@
 .star--label[aria-pressed="true"] .i { color: var(--c-warm); }
 @media (hover: hover) and (pointer: fine) { .star:hover { color: var(--c-fg); background: var(--c-fill); } }
 @media (pointer: coarse) { .star { min-width: 44px; min-height: 44px; } }
-
 /* Section hues: a small flat dot beside a title. */
 [data-sec="inv"] { --tone: var(--s-inv); }
 [data-sec="db"] { --tone: var(--s-db); }
@@ -128,14 +99,13 @@
 [data-sec="recipe"] { --tone: var(--s-recipe); }
 .dot { display: inline-block; flex: none; width: 8px; height: 8px; margin-right: 10px; border-radius: 50%; background: var(--tone, var(--c-fg-3)); }
 .kicker .dot { margin-right: 2px; }
-
 /* LED: the site's one status light. 7px, lit only where something is true now. Unlit it is a socket. */
-.led { display: inline-block; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--c-line-2); box-shadow: inset 0 0 0 1px var(--c-line-2); vertical-align: .1em; }
-.led.is-on { background: var(--c-signal-bright); box-shadow: 0 0 0 1px color-mix(in oklab, var(--c-signal-bright) 55%, transparent), 0 0 6px color-mix(in oklab, var(--c-signal-bright) 60%, transparent); }
-.led.is-hot { box-shadow: 0 0 0 1px color-mix(in oklab, var(--led) 70%, transparent), 0 0 6px var(--led), 0 0 16px color-mix(in oklab, var(--led) 70%, transparent); animation: led-on 520ms steps(1, end) 1; }
+.led { display: inline-block; flex: none; width: 7px; height: 7px; border-radius: 50%; background: #23262C; box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); vertical-align: .1em; }
+:root:not(:has(.home, .quiet)) .led:not(.is-on) { background: var(--c-line-2); box-shadow: none; }
+.led.is-on { background: var(--led); box-shadow: var(--led-shine); }
+.led.is-hot { box-shadow: 0 0 0 1px color-mix(in oklab, var(--led) 70%, transparent), 0 0 6px var(--led), 0 0 16px color-mix(in oklab, var(--led) 70%, transparent), 0 0 34px color-mix(in oklab, var(--led) 30%, transparent); animation: led-on 520ms steps(1, end) 1; }
 @keyframes led-on { 0% { opacity: .15; } 18% { opacity: 1; } 32% { opacity: .35; } 50%, 100% { opacity: 1; } }
 :root:not(:has(.home, .quiet)) .led.is-on { background: var(--c-signal); box-shadow: none; }
-
 /* Text utilities */
 .lead { max-width: 56ch; font-size: var(--type-lead); line-height: var(--lh-lead); color: var(--c-fg-2); text-wrap: pretty; }
 .eyebrow { display: inline-flex; align-items: center; gap: var(--space-2); font: var(--weight-medium) var(--type-micro)/1 var(--font-mono); letter-spacing: .04em; text-transform: uppercase; color: var(--c-fg-3); }
@@ -148,4 +118,11 @@
 .muted { color: var(--c-fg-3); }
 .ink2 { color: var(--c-fg-2); }
 .lic { text-decoration-color: var(--c-line-2); text-underline-offset: 0.2em; }
-@media (hover: hover) and (pointer: fine) { .crumbs a:hover { color: var(--c-fg); } .lic:hover { color: var(--c-fg); text-decoration-color: currentColor; } }
+@media (hover: hover) and (pointer: fine) { .crumbs a:hover { color: var(--c-fg); } }
+@media (hover: hover) and (pointer: fine) { .lic:hover { color: var(--c-fg); text-decoration-color: currentColor; } }
+/* Stage (Home, /install): buttons keep main's look until Fable's track decides. */
+:root:has(.home, .quiet) { --control-h: 40px; --control-h-sm: 34px; }
+:root:has(.home, .quiet) .btn { border-color: var(--color-rule-2); box-shadow: none; font-weight: 550; letter-spacing: normal; }
+:root:has(.home, .quiet) .btn--sm { border-radius: 8px; font-size: .8125rem; padding: 0 var(--space-sm); }
+:root:has(.home, .quiet) .btn--lg { padding: 0 var(--space-lg); font-size: var(--text-md); }
+:root:has(.home, .quiet) .btn--primary, :root:has(.home, .quiet) .btn--solid { font-weight: 550; border-color: transparent; }

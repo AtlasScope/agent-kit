@@ -28,7 +28,8 @@
 .fix-page__body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 20rem); gap: var(--space-16); align-items: start; }
 .fix-page__aside { display: grid; gap: var(--space-10); }
 .fix-page__aside .section > h2 { font-size: 1.0625rem; }
-@media (max-width: 64rem) { .fix-page__body { grid-template-columns: minmax(0, 1fr); } }
+/* The shared prompt rows need about 56rem; below 80rem the related help moves under the route. */
+@media (max-width: 80rem) { .fix-page__body { grid-template-columns: minmax(0, 1fr); } }
 
 
 .others ul { display: grid; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--c-line); }
