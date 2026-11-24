@@ -9,7 +9,8 @@ import { composeCopy } from "../../lib/copy.ts";
 
 const require = createRequire(import.meta.url);
 const data = require("../../content/generated.json");
-const PORT = 3998;
+// Each smoke file runs its own server, in parallel with the others, so each needs its own port (install uses 3998).
+const PORT = 3997;
 let base = process.env.SMOKE_URL?.replace(/\/$/, "");
 let server, browser;
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { getPrompt, getPromptById, getSkill, copyText, copyLabel, whatOf, whenOf, type Prompt } from "@/lib/content";
+import type { ReactNode } from "react";
+import { getPrompt, getPromptById, getSkill, copyText, copyLabel, whatOf, whenOf, type Prompt, type Skill } from "@/lib/content";
 import { CHANGES, type Start } from "@/lib/starts";
 import { KITS } from "@/lib/site";
 import { CopyButton } from "./CopyButton";
@@ -16,11 +17,12 @@ const withKitLinks = (text: string) =>
 // The one prompt row, used wherever the site lists prompts: area pages, Fix, prompt and skill detail, collections.
 // Id, title and what it finds, when to use it, what it changes, then Star and Copy. The title link stretches over the
 // row; Star and Copy sit above it. `n` numbers the row (ordered lists such as Fix); `best` marks it Best first.
+// `action` adds one control after Copy (collections use it for Remove); it sits above the row link.
 // Put rows in PromptRows, or in a <ul className="prows"> / <ol className="prows prows--ranked"> of <li>s.
-export function PromptRow({ p, n, best }: { p: Prompt; n?: number; best?: boolean }) {
+export function PromptRow({ p, n, best, action }: { p: Prompt; n?: number; best?: boolean; action?: ReactNode }) {
   const mode = modeOf(p);
   return (
-    <article className={`prow${n != null ? " prow--n" : ""}${best ? " prow--best" : ""}`} data-sec={p.sec} data-mode={mode || undefined}>
+    <article className={`prow${n != null ? " prow--n" : ""}${best ? " prow--best" : ""}${action ? " prow--action" : ""}`} data-sec={p.sec} data-mode={mode || undefined}>
       {n != null && <span className="prow__n" aria-hidden="true">{n}</span>}
       <code className="pid prow__id" translate="no">{p.id}</code>
       <div className="prow__main">
@@ -37,17 +39,19 @@ export function PromptRow({ p, n, best }: { p: Prompt; n?: number; best?: boolea
       <div className="prow__a">
         <Star kind="prompt" refId={p.id} title={p.t} />
         <CopyButton className="btn btn--sm" text={copyText(p)} label={copyLabel(p)} name={`${copyLabel(p)}: ${p.t}`} icon />
+        {action}
       </div>
     </article>
   );
 }
 
 // A list of prompt rows. `ordered` makes it an <ol> with numbered rows and the first marked Best first (Fix pages:
-// "Prompts to try, in order"). Each item carries its mode so the area filter can show or hide it.
-export function PromptRows({ slugs, ordered }: { slugs: string[]; ordered?: boolean }) {
+// "Prompts to try, in order"). `action` gives each row its trailing control. Each item carries its mode so the
+// area filter can show or hide it.
+export function PromptRows({ slugs, ordered, action }: { slugs: string[]; ordered?: boolean; action?: (p: Prompt) => ReactNode }) {
   const list = slugs.map(getPrompt).filter((p): p is Prompt => Boolean(p));
   const items = list.map((p, i) => (
-    <li key={p.slug} data-mode={modeOf(p) || undefined}><PromptRow p={p} n={ordered ? i + 1 : undefined} best={ordered && i === 0} /></li>
+    <li key={p.slug} data-mode={modeOf(p) || undefined}><PromptRow p={p} n={ordered ? i + 1 : undefined} best={ordered && i === 0} action={action?.(p)} /></li>
   ));
   return ordered ? <ol className="prows prows--ranked">{items}</ol> : <ul className="prows">{items}</ul>;
 }
@@ -70,24 +74,31 @@ export const firstSentence = (d: string) => {
   return cut > 20 ? s.slice(0, cut).replace(/[,:]$/, "") + "." : s;
 };
 
-// Skills as rows: name and Star, kit and author, then the first sentence of what it does. Used on the skills index,
-// kit pages, Fix pages and prompt pages.
-export function SkillCards({ names, kit = true }: { names: string[]; kit?: boolean }) {
-  const list = names.map((n) => getSkill(n)).filter((s): s is NonNullable<ReturnType<typeof getSkill>> => Boolean(s));
+// One skill row: name and Star, kit and author, then the first sentence of what it does. `action` adds one control
+// after Star (collections use it for Remove). Put rows in SkillCards, or in a <ul className="srows"> of <li>s.
+export function SkillRow({ s, kit = true, action }: { s: Skill; kit?: boolean; action?: ReactNode }) {
+  return (
+    <article className={action ? "srow srow--action" : "srow"} data-kit={s.kit}>
+      <div className="srow__top">
+        <h3 className="srow__t"><Link className="stretch" href={`/skills/${s.name}`} translate="no">{s.name}</Link></h3>
+        <div className="srow__a">
+          <Star kind="skill" refId={s.name} title={s.name} />
+          {action}
+        </div>
+      </div>
+      <p className="srow__m">{kit && <span>{s.kit}</span>}<span>{s.credit ? `By ${s.credit.author}` : "By Agent Kit"}</span></p>
+      <p className="srow__d">{firstSentence(s.description)}</p>
+    </article>
+  );
+}
+
+// Skills as rows, on the skills index, kit, Fix, prompt and collection pages. `action` gives each row its trailing
+// control.
+export function SkillCards({ names, kit = true, action }: { names: string[]; kit?: boolean; action?: (s: Skill) => ReactNode }) {
+  const list = names.map((n) => getSkill(n)).filter((s): s is Skill => Boolean(s));
   return (
     <ul className="srows">
-      {list.map((s) => (
-        <li key={s.name}>
-          <article className="srow" data-kit={s.kit}>
-            <div className="srow__top">
-              <h3 className="srow__t"><Link className="stretch" href={`/skills/${s.name}`} translate="no">{s.name}</Link></h3>
-              <Star kind="skill" refId={s.name} title={s.name} />
-            </div>
-            <p className="srow__m">{kit && <span>{s.kit}</span>}<span>{s.credit ? `By ${s.credit.author}` : "By Agent Kit"}</span></p>
-            <p className="srow__d">{firstSentence(s.description)}</p>
-          </article>
-        </li>
-      ))}
+      {list.map((s) => <li key={s.name}><SkillRow s={s} kit={kit} action={action?.(s)} /></li>)}
     </ul>
   );
 }
