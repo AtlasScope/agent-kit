@@ -92,7 +92,7 @@
 .sk__name a.stretch::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
 .sk__name a:focus-visible { outline: none; }
 .sk:has(.stretch:focus-visible) { background: var(--c-surface); outline: 2px solid var(--c-focus); outline-offset: -2px; }
-.sk__d { grid-area: d; margin: 0; color: var(--c-fg-2); font-size: var(--type-body); line-height: var(--lh-body); text-wrap: pretty; }
+.sk__d { grid-area: d; margin: 0; color: var(--c-fg-2); font-size: var(--type-sm); line-height: var(--lh-sm); text-wrap: pretty; }
 .sk__m { grid-area: m; margin: 0; display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: var(--type-xs); line-height: var(--lh-xs); color: var(--c-fg-3); }
 .sk__own { color: var(--c-fg-2); }
 .sk__start code { font-family: var(--font-mono); font-size: var(--type-micro); font-weight: var(--weight-medium); color: var(--c-fg-2); overflow-wrap: anywhere; }
