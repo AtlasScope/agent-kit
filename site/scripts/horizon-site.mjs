@@ -6,7 +6,7 @@
 // the page at real speed (Playwright's recorder: CSS resolution, about 25 frames a second).
 // `webkit` is Playwright's WebKit build. It is the same engine family as Safari but not Safari itself.
 import { spawn } from "node:child_process";
-import { mkdir, rename } from "node:fs/promises";
+import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { webkit } from "playwright";
 import { launch, site } from "./orbit-browser.mjs";
@@ -37,7 +37,7 @@ try {
     if (film) await page.waitForTimeout(film * 1000);
     const video = page.video();
     await context.close();
-    if (video) await rename(await video.path(), path.join(folder, `${name}.webm`));
+    if (video) await video.saveAs(path.join(folder, `${name}.webm`)).catch((e) => errors.push(`no film: ${e.message}`));
     console.log(name, errors.join(" | ").slice(0, 600));
   }
 } finally {
