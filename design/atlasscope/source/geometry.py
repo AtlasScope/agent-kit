@@ -25,7 +25,7 @@ A_STROKE = 131.0       # leg thickness of the wordmark A, measured square to the
 A_APEX = 150.0         # width of the flat top
 A_RSB = -6.0           # space after the A's right foot, before pair adjustments
 # Pair adjustments, set by eye on the outlines. Positive opens, negative closes.
-PAIRS = {"At": -32, "tl": 4, "la": 2, "as": -2, "sS": 4, "Sc": 2, "co": 0, "op": 2, "pe": 0}
+PAIRS = {"At": -38, "tl": 1, "la": -16, "as": -7, "sS": 18, "Sc": 6, "co": 3, "op": -14, "pe": 8}
 
 # Letters other than the A that carry a small custom detail. Remove a name to switch it off.
 #   t_right  the t's crossbar sits on the right of the stem only
@@ -39,15 +39,15 @@ CUT_DROP = 46.0        # how far the angled cut falls across one stem
 # Drawn on its own grid: apex top at y = 100, horizon centre on the axis x = 0.
 S_H = 100.0            # apex height above the foot circle's top point
 S_STROKE = 21.0        # leg thickness, square to the leg
-S_APEX = 23.0          # flat top width
+S_APEX = 22.75         # flat top width
 S_R = 120.0            # outer radius of the horizon band
-S_BAND = 21.0          # band thickness, equal to the leg
-S_GAP = 12.0           # clear gap between the feet and the band
-S_OVER = 10.0          # how far the band reaches past the outer foot corner, each side
+S_BAND = 21.25         # band thickness
+S_GAP = 12.625         # clear gap between the feet and the band
+S_OVER = 9.375         # how far the band reaches past the outer foot corner, each side
 # Small-size drawing, for 32 px and below: heavier legs, thicker band, wider gap.
 SMALL = dict(stroke=25.0, band=24.0, gap=14.0, over=8.0)
-# 16 px drawing: a flatter band, so the gap stays one clean pixel row.
-TINY = dict(stroke=27.0, band=28.0, gap=14.0, over=5.0, r=260.0)
+# At 16 px the band uses its own radius so its centre still reads higher than its ends.
+TINY = dict(stroke=27.0, band=28.0, gap=14.0, over=5.0, r=150.0)
 
 
 def f(v):

@@ -12,7 +12,14 @@ export default function Home() {
   return (
     <main className="home">
       <HomeHero />
-      <JsonLd data={{ "@context": "https://schema.org", "@type": "Organization", name: "AtlasScope", url: SITE.url, sameAs: [SITE.repo] }} />
+      <JsonLd data={{
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        name: "AtlasScope",
+        url: SITE.url,
+        logo: new URL("/brand/atlasscope-logo.png", SITE.url).href,
+        sameAs: [SITE.repo],
+      }} />
     </main>
   );
 }
