@@ -9,10 +9,12 @@ export type BrowseKit = { name: string; title: string; version: string; line: st
 
 export const AGENT_KIT = "Agent Kit";
 
-// What a person types to run a skill. A kit that namespaces its commands lists them in KIT_GUIDE
-// (/experience-architecture:diagnose); every other skill runs as /<name>.
+// What a person types to run a skill. A kit whose KIT_GUIDE commands are namespaced
+// (/experience-architecture:diagnose) namespaces every one of its skills, including ones KIT_GUIDE
+// doesn't list (/experience-architecture:verify); every other skill runs as /<name>.
 function commandFor(kit: string, name: string) {
-  return KIT_GUIDE[kit]?.type.find((t) => t === `/${name}` || t.endsWith(`:${name}`)) ?? `/${name}`;
+  const namespaced = KIT_GUIDE[kit]?.type.some((t) => t.startsWith(`/${kit}:`));
+  return namespaced ? `/${kit}:${name}` : `/${name}`;
 }
 
 export const browseSkills: BrowseSkill[] = skills.map((s) => ({

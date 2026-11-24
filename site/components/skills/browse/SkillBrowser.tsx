@@ -170,7 +170,7 @@ export function SkillBrowser({ skills, kits }: { skills: BrowseSkill[]; kits: Br
                     <p className="sk__m">
                       {by === "author" && <span translate="no">{s.kit}</span>}
                       {by === "kit" && <span className={s.borrowed ? undefined : "sk__own"}>{s.borrowed ? `By ${s.author}` : "By Agent Kit"}</span>}
-                      {/* How it starts, worded the same on every page: typed-only skills name their command; the rest start automatically and can also be typed. */}
+                      {/* How it starts: typed-only skills name their command; the rest start automatically and can also be typed. */}
                       <span className="sk__start">{s.typed ? <>Type <code translate="no">{s.cmd}</code> to run</> : <>Starts automatically, or type <code translate="no">{s.cmd}</code></>}</span>
                     </p>
                     <span className="sk__star"><Star kind="skill" refId={s.name} title={s.name} /></span>

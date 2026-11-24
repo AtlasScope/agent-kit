@@ -56,6 +56,7 @@ for (const size of SIZES) {
     assert.equal(await rows.count(), data.skills.length, "every skill has a row before any filtering");
     // How a skill starts, in the wording every page shares.
     const typed = data.skills.find((x) => x.typedOnly && x.kit !== "experience-architecture");
+    assert.ok(typed, "the catalog has a typed-only skill to check the wording on");
     assert.ok(await page.locator("li", { has: page.locator(`a[href='/skills/${typed.name}']`) }).getByText(`Type /${typed.name} to run`).count());
     for (const k of data.kits) assert.ok(await page.locator(`section#${k.name}`).count(), `section #${k.name} keeps its anchor`);
 
