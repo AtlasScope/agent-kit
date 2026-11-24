@@ -26,10 +26,11 @@ const Check = () => <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fi
 export function GuideResume({ items, base, store }: { items: Item[]; base: string; store: string }) {
   const done = useDone(store);
   const next = items.find((s) => !done.includes(s.slug));
-  if (!done.length || !next) return null;
+  const n = items.filter((s) => done.includes(s.slug)).length;
+  if (!n || !next) return null;
   return (
     <p className="guide-resume">
-      <span><i className="led is-on" aria-hidden="true" />{done.length} of {items.length} done</span>
+      <span><i className="led is-on" aria-hidden="true" />{n} of {items.length} done</span>
       <Link className="btn btn--sm" href={`${base}/${next.slug}`}>Continue: {next.title}</Link>
     </p>
   );
@@ -85,6 +86,7 @@ export function GuideRail({ items, base, store, current, label }: { items: Item[
 export function StepMeter({ items, base, store, current, noun }: { items: Item[]; base: string; store: string; current: string; noun: string }) {
   const done = useDone(store);
   const here = items.findIndex((s) => s.slug === current);
+  const n = items.filter((s) => done.includes(s.slug)).length;
   return (
     <nav className="meter" aria-label={`${noun} ${here + 1} of ${items.length}`}>
       <ol>
@@ -99,7 +101,7 @@ export function StepMeter({ items, base, store, current, noun }: { items: Item[]
           );
         })}
       </ol>
-      {done.length > 0 && <p className="meter__label"><i className="led is-on" aria-hidden="true" />{done.length} of {items.length} done</p>}
+      {n > 0 && <p className="meter__label"><i className="led is-on" aria-hidden="true" />{n} of {items.length} done</p>}
     </nav>
   );
 }

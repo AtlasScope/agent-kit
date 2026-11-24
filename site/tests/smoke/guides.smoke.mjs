@@ -102,6 +102,13 @@ for (const size of SIZES) {
     const shown = await page.locator("[data-fix]:not([hidden])").count();
     assert.ok(shown > 0 && shown < data.fixes.length, `filter shows ${shown}`);
     await page.getByText(`${shown} of ${data.fixes.length} symptoms`).waitFor();
+    // A group with no matching rows hides with its heading, and each heading counts only what is shown.
+    const groups = await page.locator("[data-fix-group]").evaluateAll((gs) => gs.map((g) => ({
+      visible: g.checkVisibility(), rows: g.querySelectorAll("[data-fix]:not([hidden])").length, count: Number(g.querySelector("[data-fix-count]")?.textContent),
+    })));
+    for (const g of groups) { assert.equal(g.visible, g.rows > 0); if (g.rows) assert.equal(g.count, g.rows); }
+    await box.fill("migration");
+    assert.equal(await page.locator("[data-fix-group]:visible").count(), 1, "only the database group matches migration");
     await box.fill("zzzz-no-such-thing");
     await page.getByText(/No symptom matches/).waitFor();
     await box.press("Escape");

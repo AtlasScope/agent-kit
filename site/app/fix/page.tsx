@@ -31,7 +31,7 @@ export default function Fix() {
           const list = fixes.filter((f) => f.scope === scope);
           return (
             <section key={scope} className="symptoms__group" data-fix-group aria-labelledby={`fix-${scope}`}>
-              <h2 id={`fix-${scope}`}>{label} <span>{list.length}</span></h2>
+              <h2 id={`fix-${scope}`}>{label} <span data-fix-count>{list.length}</span></h2>
               <ul>
                 {list.map((f) => {
                   const first = getPrompt(f.prompts[0]);

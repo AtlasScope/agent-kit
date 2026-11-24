@@ -32,10 +32,10 @@ export function StepNav({ label, back, store, current, next }: {
 }) {
   return (
     <nav className="stepnav" aria-label={label}>
-      <GuideNext store={store} current={current} href={next[1]}>{next[0]}</GuideNext>
       <Link className="btn btn--lg btn--ghost stepnav__back" href={back[1]}>
         <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M11 6l-6 6 6 6" /></svg>{back[0]}
       </Link>
+      <GuideNext store={store} current={current} href={next[1]}>{next[0]}</GuideNext>
     </nav>
   );
 }
