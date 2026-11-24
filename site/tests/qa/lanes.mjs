@@ -2,6 +2,7 @@
 // emulation) and in WebKitGTK where the behaviour can be driven without real input events.
 //   node tests/qa/lanes.mjs --lane search|browse|detail|skilldetail --target http://localhost:4003 [--label w3] [--webkit]
 // Results go to <out>/<label>/lane-<lane>.json. Each check records pass or a finding with severity.
+import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { parseArgs } from "node:util";
@@ -12,7 +13,7 @@ import { composeCopy } from "../../lib/copy.ts";
 
 const { values: args } = parseArgs({ options: {
   lane: { type: "string" }, target: { type: "string" }, label: { type: "string" }, webkit: { type: "boolean", default: false }, prod: { type: "string" },
-  out: { type: "string", default: new URL("../../../.artifacts/qa", import.meta.url).pathname },
+  out: { type: "string", default: fileURLToPath(new URL("../../../.artifacts/qa", import.meta.url)) },
 } });
 const base = args.target.replace(/\/$/, "");
 const label = args.label || args.lane;
@@ -203,7 +204,8 @@ async function search() {
 
 // ------------------------------------------------------------------------------------------- W5
 async function detail() {
-  const picks = [data.prompts.find((x) => x.id === "PG01"), data.prompts.find((x) => x.steps && !x.replacedBy), data.prompts.find((x) => x.sec === "ecmd" && !x.replacedBy)];
+  const picks = [data.prompts.find((x) => x.id === "PG01"), data.prompts.find((x) => x.steps && !x.replacedBy), data.prompts.find((x) => x.sec === "ecmd" && !x.replacedBy)]
+    .map((p) => p || data.prompts.find((x) => !x.replacedBy)).filter((p, i, a) => p && a.indexOf(p) === i);
   for (const p of picks) {
     const path = `/prompts/${p.slug}`;
     const want = composeCopy(p);
@@ -483,9 +485,9 @@ async function account() {
         // Share a private collection, then stop.
         const share = page.getByRole("button", { name: /^Share /i }).first();
         if (await share.count()) {
-          const label = await share.getAttribute("aria-label");
-          const name = label.replace(/^Share /i, "");
-          if (d === "iphone") await page.getByRole("link", { name: new RegExp(name) }).first().click().catch(() => {});
+          const label = (await share.getAttribute("aria-label")) ?? (await share.textContent()) ?? "";
+          const name = label.trim().replace(/\s+/g, " ").replace(/^Share /i, "");
+          if (d === "iphone") await page.getByRole("link", { name }).first().click().catch(() => {});
           await page.getByRole("button", { name: `Share ${name}` }).click();
           const on = await page.getByRole("button", { name: `Stop sharing ${name}` }).waitFor({ timeout: 5000 }).then(() => true).catch(() => false);
           on ? pass("share-toggle", where, name) : fail("share-toggle", where, "serious", `Share on "${name}" did not switch to Stop sharing`);
@@ -548,11 +550,11 @@ async function browse() {
       const { ctx, page, errors } = await open(d, "/prompts", { scheme });
       const missing = await page.evaluate((ids) => ids.filter((id) => !document.getElementById(id)), secs);
       missing.length ? fail("section-anchors", where, "blocker", `missing #${missing.join(", #")}`) : pass("section-anchors", where, secs.join(","));
-      for (const id of ["dcmd", secs[2]]) {
+      for (const id of ["dcmd", secs[2]].filter(Boolean)) {
         await page.goto(`${base}/prompts#${id}`, { waitUntil: "networkidle" });
         await page.waitForTimeout(500);
-        const top = await page.evaluate((id) => { const el = document.getElementById(id); const r = el?.getBoundingClientRect(); const hidden = [...document.elementsFromPoint(innerWidth / 2, Math.max(1, r.top + 4))].some((e) => getComputedStyle(e).position === "sticky" || getComputedStyle(e).position === "fixed"); return { top: r?.top, hidden }; }, id);
-        (top.top >= -2 && top.top < 260) ? pass(`deep-link-#${id}`, where, `top ${Math.round(top.top)}px`) : fail(`deep-link-#${id}`, where, "serious", `#${id} lands at ${Math.round(top.top)}px from the top`);
+        const top = await page.evaluate((id) => { const el = document.getElementById(id); if (!el) return { top: null, hidden: false }; const r = el.getBoundingClientRect(); const hidden = [...document.elementsFromPoint(innerWidth / 2, Math.max(1, r.top + 4))].some((e) => getComputedStyle(e).position === "sticky" || getComputedStyle(e).position === "fixed"); return { top: r?.top, hidden }; }, id);
+        (top.top !== null && top.top >= -2 && top.top < 260) ? pass(`deep-link-#${id}`, where, `top ${Math.round(top.top)}px`) : fail(`deep-link-#${id}`, where, "serious", top.top === null ? `#${id} is missing` : `#${id} lands at ${Math.round(top.top)}px from the top`);
         if (top.hidden) fail(`deep-link-#${id}-covered`, where, "moderate", `the heading of #${id} sits under the sticky header or rail`);
       }
       // Scroll-spy marks the section on screen.

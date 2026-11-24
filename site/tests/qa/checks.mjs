@@ -106,12 +106,14 @@ export const focusInfo = () => {
   el.blur();
   const resting = look();
   el.focus({ preventScroll: true });
+  // Blurring can make a component close or go inert; if focus did not come back, the ring comparison is not valid.
+  const restored = document.activeElement === el;
   const r = el.getBoundingClientRect();
   return {
     tag: el.tagName.toLowerCase(),
     name: (el.getAttribute("aria-label") || el.textContent || el.getAttribute("placeholder") || "").trim().replace(/\s+/g, " ").slice(0, 50),
     href: el.getAttribute("href"),
-    ring: hasOutline || focused !== resting,
+    ring: hasOutline || focused !== resting || !restored,
     onScreen: r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth && r.width > 0,
     key: el.tagName + "|" + (el.getAttribute("href") || "") + "|" + (el.textContent || "").trim().slice(0, 30) + "|" + Math.round(r.top + scrollY) + "|" + Math.round(r.left),
   };

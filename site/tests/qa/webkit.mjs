@@ -5,6 +5,7 @@
 // Covers layout, side scroll, h1, axe, light and dark, reduced motion, copy payloads and screenshots
 // in the WebKit engine. Not covered here: touch, iOS Safari chrome and safe areas, the Mac font stack,
 // and keyboard Tab order (Safari skips links on Tab by default, which WebKitGTK does not model).
+import { fileURLToPath } from "node:url";
 import { driver } from "./webkit/driver.mjs";
 import { createRequire } from "node:module";
 import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
@@ -17,7 +18,7 @@ import { INSTALL_MESSAGE } from "../../lib/site.ts";
 const require = createRequire(import.meta.url);
 const { values: args } = parseArgs({ options: {
   target: { type: "string" }, ref: { type: "string" }, baseline: { type: "string" }, label: { type: "string", default: "target" },
-  out: { type: "string", default: new URL("../../../.artifacts/qa", import.meta.url).pathname },
+  out: { type: "string", default: fileURLToPath(new URL("../../../.artifacts/qa", import.meta.url)) },
   routes: { type: "string" }, quick: { type: "boolean", default: false },
 } });
 if (!args.target) { console.error("need --target"); process.exit(2); }
@@ -61,7 +62,9 @@ async function pass(base, label, shots) {
   const d = driver();
   const findings = [], copies = {};
   const add = (route, where, severity, check, detail, keyExtra = "") =>
-    findings.push({ owner: route.owner, family: route.family, path: route.path, where: `webkit/${where}`, severity, check, detail, key: `${route.path}|${where}|${check}|${keyExtra || detail}` });
+    findings.push({ owner: route.owner, family: route.family, path: route.path, where: `webkit/${where}`, severity, check, detail, key: `${route.path}|${where}|${check}|${stable(keyExtra || detail)}` });
+  // Same normalisation as run.mjs, so build hashes and query strings do not make a finding look new.
+  function stable(s) { return String(s).replace(/\/_next\/static\/[^\s"')]+/g, "/_next/static/…").replace(/\?[^\s"')]*/g, "").replace(/\b[0-9a-f]{8,}\b/g, "…"); }
   const shotDir = `${args.out}/${label}/shots-webkit`;
   if (shots) mkdirSync(shotDir, { recursive: true });
   let version = "?";

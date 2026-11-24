@@ -12,6 +12,7 @@ import { parseArgs } from "node:util";
 
 const { values: args } = parseArgs({ options: { target: { type: "string" }, ref: { type: "string" }, out: { type: "string" }, concurrency: { type: "string", default: "8" } } });
 if (!args.target || !args.ref) { console.error("need --target and --ref"); process.exit(2); }
+if (!/^[1-9]\d*$/.test(args.concurrency)) { console.error("--concurrency must be a positive whole number"); process.exit(2); }
 const T = args.target.replace(/\/$/, ""), R = args.ref.replace(/\/$/, "");
 
 async function pool(items, n, fn) {

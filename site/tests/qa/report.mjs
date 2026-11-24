@@ -1,10 +1,11 @@
 // Turns one label's JSON results into a Markdown report grouped by lane owner and severity.
 //   node tests/qa/report.mjs --label w4-browse [--out dir]
 // Reads parity.json, browser.json, webkit.json and lane-*.json from <out>/<label>/ when present.
+import { fileURLToPath } from "node:url";
 import { readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
 import { parseArgs } from "node:util";
 
-const { values: args } = parseArgs({ options: { label: { type: "string" }, out: { type: "string", default: new URL("../../../.artifacts/qa", import.meta.url).pathname }, title: { type: "string" }, baseline: { type: "string" } } });
+const { values: args } = parseArgs({ options: { label: { type: "string" }, out: { type: "string", default: fileURLToPath(new URL("../../../.artifacts/qa", import.meta.url)) }, title: { type: "string" }, baseline: { type: "string" } } });
 const dir = `${args.out}/${args.label}`;
 const read = (f) => (existsSync(`${dir}/${f}`) ? JSON.parse(readFileSync(`${dir}/${f}`, "utf8")) : null);
 const parity = read("parity.json"), browser = read("browser.json"), webkit = read("webkit.json");
@@ -74,7 +75,7 @@ if (pre.length) {
 }
 for (const l of lanes) {
   L.push(`## Lane checks: ${l.lane}`, "", "| Check | Where | Result |", "|---|---|---|");
-  for (const x of l.results) L.push(`| ${x.check} | ${x.where} | ${x.ok ? "pass" + (x.note ? `: ${x.note}` : "") : `**${x.severity}**: ${cell(x.detail)}`} |`);
+  for (const x of l.results) L.push(`| ${cell(x.check)} | ${cell(x.where)} | ${x.ok ? "pass" + (x.note ? `: ${cell(x.note)}` : "") : `**${x.severity}**: ${cell(x.detail)}`} |`);
   L.push("");
 }
 writeFileSync(`${dir}/report.md`, L.join("\n"));

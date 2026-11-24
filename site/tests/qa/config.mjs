@@ -20,7 +20,7 @@ export const SCHEMES = ["light", "dark"];
 export const TOUCH_MIN = 44;
 
 // One or two pages per route family, picked from the built content so the sample follows the data.
-// `data` is the target's content/generated.json when the harness can read it, else this checkout's.
+// `data` is this checkout's content/generated.json, so run the harness from a checkout whose content matches the target.
 export function routeSample(data) {
   const pick = (arr, fn) => arr.find(fn) || arr[0];
   const area = data.areas?.[0];

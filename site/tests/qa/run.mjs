@@ -6,6 +6,7 @@
 // What this is: Chromium with iPhone, iPad and MacBook viewports, pixel ratios, user agents and touch.
 // What this is not: Safari, WebKit or a physical device. webkit.mjs covers the WebKit engine
 // (WebKitGTK); physical iPhone, iPad and Mac Safari runs are separate and done by a person.
+import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 import { createRequire } from "node:module";
 import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
@@ -18,7 +19,7 @@ import { AGENTS, INSTALL_MESSAGE } from "../../lib/site.ts";
 const require = createRequire(import.meta.url);
 const { values: args } = parseArgs({ options: {
   target: { type: "string" }, ref: { type: "string" }, baseline: { type: "string" }, label: { type: "string", default: "target" },
-  out: { type: "string", default: new URL("../../../.artifacts/qa", import.meta.url).pathname },
+  out: { type: "string", default: fileURLToPath(new URL("../../../.artifacts/qa", import.meta.url)) },
   quick: { type: "boolean", default: false }, routes: { type: "string" }, paths: { type: "string" }, owner: { type: "string", default: "?" }, shots: { type: "boolean", default: true },
 } });
 if (!args.target) { console.error("need --target"); process.exit(2); }
