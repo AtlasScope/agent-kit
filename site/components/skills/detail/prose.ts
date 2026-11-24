@@ -4,8 +4,13 @@
 export const demote = (html: string) =>
   html.replace(/<(\/?)h([1-5])(?=[\s>])/g, (_, slash: string, n: string) => `<${slash}h${Number(n) + 1}`);
 
-const decode = (s: string) =>
-  s.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
+// Plain text of a heading, for the section list (rendered as React text, so escaped again there) and its anchor.
+// Tags are removed until none remain, then entities decoded with &amp; last so nothing is unescaped twice.
+const decode = (html: string) => {
+  let s = html;
+  for (let prev = ""; prev !== s; ) { prev = s; s = s.replace(/<[^<>]*>/g, ""); }
+  return s.replace(/[<>]/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&").trim();
+};
 
 // Ids the page itself uses; a heading never takes one of these.
 const RESERVED = new Set(["install", "main", "contents", "source", "prompts", "skill-doc", "toc", "site-menu", "search-results"]);
