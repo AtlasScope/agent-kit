@@ -12,7 +12,8 @@ import { HERO, INSTALL_MESSAGE, SITE } from "@/lib/site";
 //
 // The words rise once on a full page load (the inline script marks it; React does not run the script on an in-site
 // navigation, where the stage's own arrival plays instead).
-const LOADED = `try{if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.currentScript.parentElement.setAttribute("data-load","")}catch(e){}`;
+// ?face=display sets the headline in Montserrat instead of Geist, for comparing the two; nothing links to it.
+const LOADED = `try{var e=document.currentScript.parentElement;if(/[?&]face=display\\b/.test(location.search))e.setAttribute("data-face","display");if(!matchMedia("(prefers-reduced-motion: reduce)").matches)e.setAttribute("data-load","")}catch(e){}`;
 export const HANDOFF_EVENT = "agent-kit:handoff";
 // Arriving at the guide from Start here, a new visitor is offered a free account there (StartWelcome.tsx).
 const markStartHere = () => { try { sessionStorage.setItem("agent-kit:start-here", String(Date.now())); } catch {} };
@@ -32,10 +33,12 @@ export function HomeHero() {
         <h1 id="hero-h">{lines.map((w, i) => <span key={i} className="hero__w" style={{ "--i": i } as React.CSSProperties}>{w}{i < lines.length - 1 ? " " : ""}</span>)}</h1>
         <p className="hero__lede">Skills and prompts for Claude Code, Codex and Cursor.</p>
         <div className="hero__cta">
-          <Link className="btn btn--lg btn--primary launch__go" href="/install" onClick={install} aria-describedby="hero-note">Install Agent Kit</Link>
-          <Link className="hero__new" href="/start" onClick={markStartHere}>New to coding agents?</Link>
+          <Link className="launch__go" href="/install" onClick={install} aria-describedby="hero-note">
+            <span className="launch__label">Install Agent Kit</span>
+          </Link>
+          <p className="hero__note" id="hero-note">Copies one message to paste into your agent.</p>
         </div>
-        <p className="sr" id="hero-note">Copies a message to paste into your agent.</p>
+        <Link className="hero__new" href="/start" onClick={markStartHere}>New to coding agents?<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></Link>
       </div>
       <ul className="hero__foot" aria-label="About this site">
         <li><Link href="/about">About</Link></li>

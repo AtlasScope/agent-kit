@@ -115,7 +115,7 @@ try {
     // 2. Back in the middle of the move returns to the homepage, with its words showing.
     await page.goBack(); await page.waitForTimeout(1500);
     await page.locator(".launch__go").click({ noWaitAfter: true }); await page.waitForTimeout(300);
-    say(await page.locator(".stage__ghost .stage__copy").count() === 1 && await page.locator(".stage__ghost .stage__morph").count() === 1, "mid-move: the page that was left is still leaving, and the button is growing into the panel");
+    say(await page.locator(".stage__ghost .stage__copy").count() === 1 && await page.locator(".stage__ghost .stage__beam").count() === 1, "mid-move: the page that was left is still leaving, and the button's light is travelling to the panel");
     await page.goBack(); await page.waitForTimeout(1800);
     say(new URL(page.url()).pathname === "/" && await page.locator("main.home h1").isVisible(), "Back mid-move lands on the homepage with its headline visible");
     say(await page.locator("main[data-left]").count() === 0, "no page is left hidden");

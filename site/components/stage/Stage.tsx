@@ -12,20 +12,22 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 //      at their own pace although the router has already replaced them.
 //   2. The camera moves between the two poses on a spring. A spring has no fixed length, so Back in the middle of it
 //      turns it round from where it is, at the speed it has.
-//   3. The new page's words arrive (their CSS reads data-shift on the stage). Going to Install, the button that was
-//      pressed grows into the message panel.
+//   3. The new page's words arrive (their CSS reads data-shift on the stage). Going to Install, the pressed button
+//      flashes and closes to a single line of its own light, which travels to the message panel's lower edge (nearly
+//      level with the button, beside the panel's Copy key) and spreads into the panel's rim, while a perspective floor resolves under the panel (install.css).
 // Nothing waits for anything: the navigation and the clipboard write both happen inside the click.
 //
 // Without the live scene (reduced motion, no WebGL 2, a failure) two stills stand in for the two poses and cross-fade.
-const VIEW = "afternoon";
+// The day view: the brightest of the measured scenes, rich blue sea under a lit low-pressure system.
+const VIEW = "day";
 type Mode = "home" | "install";
 const modeOf = (path: string): Mode | null => (path === "/install" ? "install" : path === "/" ? "home" : null);
 // How long a copy of the page that was left may stay, and the camera's spring (critically damped: it never overshoots).
-const SHIFT_MS = 1300, STIFF = 30, DAMP = 2 * Math.sqrt(STIFF);
+const SHIFT_MS = 1100, STIFF = 46, DAMP = 2 * Math.sqrt(STIFF);
 // The scene moves slowly: thirty frames a second carry it, except while the camera is travelling.
 const REST_GAP = 27;
-// The homepage exposes the late-afternoon view a little more than its lab page does, so the planet carries the screen.
-const METER = -0.9;
+// Exposure as the lab page and the stills have it, so the first paint and the live scene match.
+const METER = 0;
 const still = (pose: string, shape: string) => `/horizon/stills/${VIEW}${pose}-${shape}.avif`;
 const TALL = "(max-width: 759.98px), (max-aspect-ratio: 4/5)";
 
@@ -83,24 +85,29 @@ export function Stage({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // The new page is in the document. Going to Install, the pressed button grows into the message panel.
+  // The new page is in the document. Going to Install, the pressed button's light travels to the panel's bottom edge.
   useLayoutEffect(() => {
     const s = shift.current, layer = ghost.current, el = root.current;
     // A route change nothing announced (router.push from elsewhere): no copy to move, the camera just goes.
     if (shown.current !== mode) { shown.current = mode; cam.current.to = mode === "install" ? 1 : 0; kick.current(); }
     if (!s || !layer || !el || mode !== "install" || !s.from) return;
-    const panel = el.querySelector(":scope > main .inst__msg"), button = layer.querySelector<HTMLElement>(".launch__go");
-    if (!panel || !button) return;
-    const a = s.from, b = panel.getBoundingClientRect(), morph = document.createElement("div");
-    morph.className = "stage__morph";
-    layer.append(morph);
-    button.style.visibility = "hidden";
-    const px = (n: number) => `${n.toFixed(1)}px`;
-    morph.animate([
-      { left: px(a.left), top: px(a.top), width: px(a.width), height: px(a.height), borderRadius: px(a.height / 2), backgroundColor: "rgb(244 245 247)", borderColor: "rgb(244 245 247 / 0)", opacity: 1 },
-      { backgroundColor: "rgb(18 19 22)", borderColor: "rgb(255 255 255 / .16)", opacity: 1, offset: 0.55 },
-      { left: px(b.left), top: px(b.top), width: px(b.width), height: px(b.height), borderRadius: "14px", backgroundColor: "rgb(18 19 22 / .72)", borderColor: "rgb(255 255 255 / .16)", opacity: 0 },
-    ], { duration: 640, delay: 40, easing: "cubic-bezier(0.3, 0.85, 0.25, 1)", fill: "both" });
+    const panel = el.querySelector<HTMLElement>(":scope > main .inst__msg");
+    if (!panel) return;
+    // The panel is mid-entrance (scaled and lowered); measure where it will rest, then let the entrance run.
+    panel.style.animation = "none";
+    const a = s.from, b = panel.getBoundingClientRect();
+    panel.style.animation = "";
+    const beam = document.createElement("div"), px = (n: number) => `${n.toFixed(1)}px`;
+    beam.className = "stage__beam";
+    layer.append(beam);
+    const at = (x: number, y: number, w: number) => ({ left: px(x), top: px(y), width: px(w) });
+    const r = Math.min(24, b.width * 0.06);
+    beam.animate([
+      { ...at(a.left + a.width * 0.08, a.top + a.height / 2, a.width * 0.84), opacity: 0 },
+      { ...at(a.left + a.width * 0.04, a.top + a.height / 2, a.width * 0.92), opacity: 1, offset: 0.16 },
+      { ...at(b.left + r, b.bottom, b.width - 2 * r), opacity: 0.9, offset: 0.82 },
+      { ...at(b.left + r, b.bottom, b.width - 2 * r), opacity: 0 },
+    ], { duration: 600, delay: 90, easing: "cubic-bezier(0.45, 0, 0.15, 1)", fill: "both" });
   }, [mode]);
 
   // Any plain click on a link between the two pages, and Back or Forward between them, starts the movement.

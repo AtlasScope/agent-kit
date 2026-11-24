@@ -123,17 +123,24 @@
   --shadow-inset: inset 0 1px 0 oklch(100% 0 0 / .05);
 }
 /* The stage: the homepage and /install are dark in both themes, over the view from orbit (components/stage). It is the
-   dark set above on a black canvas, so the picture is the only colour: the main action is white, green is only a
-   state that is true now, and focus is the same blue as everywhere else. Decided by the homepage track, 24 Nov 2026. */
+   dark set above on a black canvas, plus the brand green: the main action is a lit green object, the header carries a
+   small green light, and /install has a green pool of light under its message. Brand green (--c-brand*) is light and
+   material; the confirmed state (--c-signal, the LED, a tick and words) stays separate and appears only once
+   something has actually happened. Focus is the system blue. Decided by the homepage track, 24 Nov 2026 (revised the
+   same day: minimalism means fewer words and elements, not less identity). */
 :root:has(.home, .quiet) {
   color-scheme: dark;
   --c-canvas: #000; --c-surface: oklch(15.5% .005 260); --c-raised: oklch(20% .006 260); --c-sunken: oklch(8% .004 260);
   --c-overlay: oklch(4% .003 260 / .55);
   --c-fg: oklch(97% .003 260); --c-fg-2: oklch(84% .006 260); --c-fg-3: oklch(72% .01 260); --c-fg-4: oklch(56% .008 260);
   --c-line: oklch(100% 0 0 / .09); --c-line-2: oklch(100% 0 0 / .16); --c-edge: oklch(48% .006 260);
-  --c-primary: oklch(97% .003 260); --c-on-primary: oklch(14% .005 260); --c-primary-hover: oklch(88% .004 260);
+  /* Brand green, from the original palette (dark accent oklch(72% .17 155)). Light-to-deep for a lit surface, an edge
+     a step darker, the light it casts, and the ink that sits on it. */
+  --c-brand: oklch(76% .175 154); --c-brand-hi: oklch(87% .16 151); --c-brand-lo: oklch(64% .165 157);
+  --c-brand-edge: oklch(48% .12 158); --c-brand-glow: oklch(80% .19 151); --c-on-brand: oklch(17% .045 160);
+  --c-primary: var(--c-brand); --c-on-primary: var(--c-on-brand); --c-primary-hover: var(--c-brand-hi);
   --c-fill: oklch(100% 0 0 / .06); --c-fill-2: oklch(100% 0 0 / .1);
-  --c-signal: oklch(80% .17 155); --c-focus: oklch(72% .15 252);
+  --c-signal: oklch(84% .2 152); --c-focus: oklch(72% .15 252);
   --c-warm: #F5A524; --c-warm-soft: #2A2113; --c-danger: #FF8A75; --c-on-danger: #0B0C12;
   --s-inv: #4BF0A8; --s-db: #C9E05A; --s-think: #BFA8FF; --s-ecmd: #3FE0F5; --s-dcmd: #8CB6FF; --s-recipe: #FF7FB2;
   --shadow-1: 0 1px 2px oklch(0% 0 0 / .5);
@@ -152,6 +159,7 @@
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --c-danger: oklch(75.7% .183 31.4); --c-warm: oklch(78.2% .189 72.3);
     --s-inv: oklch(85.3% .256 160.1); --s-db: oklch(86.4% .227 118.1); --s-think: oklch(78.4% .134 295.6);
     --s-ecmd: oklch(83.5% .169 208.1); --s-dcmd: oklch(77.5% .124 261.1); --s-recipe: oklch(75.6% .208 356.6); } }
+  :root:has(.home, .quiet) { --c-brand: oklch(77% .22 151); --c-brand-hi: oklch(88% .2 149); --c-brand-lo: oklch(65% .2 154); --c-brand-glow: oklch(82% .24 149); }
   :root[data-theme="dark"], :root:has(.home, .quiet) { --c-warm: oklch(78.2% .189 72.3);
     --s-inv: oklch(85.3% .256 160.1); --s-db: oklch(86.4% .227 118.1); --s-think: oklch(78.4% .134 295.6);
     --s-ecmd: oklch(83.5% .169 208.1); --s-dcmd: oklch(77.5% .124 261.1); --s-recipe: oklch(75.6% .208 356.6); }

@@ -110,8 +110,9 @@ function target(position: Vec3, forward: Vec3): Vec3 {
 // one-way move: the caller may run it forward, back, or reverse it half way.
 export interface Cue { now: number; opening: number; leave: number; px: number; py: number; recede?: number }
 // How far the camera climbs for the install pose (km), where the limb then sits below the middle of the frame
-// (degrees), and how much light is kept.
-const RECEDE = { climb: 2600, wide: 14.6, tall: 15.2, light: 0.85 };
+// (degrees), and how much light is kept. The limb lands low, near the foot of the window: the install page's
+// perspective floor stands above it, so the planet reads as lying beneath that floor.
+const RECEDE = { climb: 2600, wide: 18.5, tall: 19.5, light: 0.85 };
 export function createStage(canvas: HTMLCanvasElement, options: { direction: Direction; tall: () => boolean; base?: string; cloud?: string; startAt?: number; rate?: number; tune?: Partial<Look>; meter?: number; onError?: (e: Error) => void }) {
   const { direction } = options;
   const base = options.base ?? "/horizon";
