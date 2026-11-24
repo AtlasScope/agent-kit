@@ -41,7 +41,10 @@
 .inst__copy--main .i { stroke-width: 2; }
 
 /* The status line under the message: what Copy did, in words, in place. Before any copy it says where the message works. */
-.inst__how, .inst__note { margin: 14px 0 0; font-size: var(--type-sm); line-height: 1.55; color: var(--t2); text-wrap: pretty; }
+.inst__stat { display: grid; margin-top: 14px; }
+.inst__stat > * { grid-area: 1 / 1; min-width: 0; }
+.inst__stat .inst__how[aria-hidden] { visibility: hidden; }
+.inst__how, .inst__note { margin: 0; font-size: var(--type-sm); line-height: 1.55; color: var(--t2); text-wrap: pretty; }
 .inst__note { display: flex; align-items: baseline; gap: 10px; animation: inst-note var(--dur-base) var(--ease-out); }
 .inst__note .led { flex: none; transform: translateY(-1px); }
 .inst__note b { color: var(--t1); font-weight: 550; }
@@ -89,11 +92,11 @@ html:not([data-os="mac"], [data-os="linux"]) .inst__keys [data-os="other"], html
 .inst__term .inst__bar { min-height: 46px; padding-left: 16px; }
 .inst__term .inst__label { font-family: var(--font-mono); font-size: 0.75rem; color: var(--t3); }
 .inst__term.is-copied .inst__label { color: var(--t1); }
-.led.is-dim { opacity: .45; box-shadow: none; }
+.inst .led.is-dim { opacity: .45; box-shadow: none; }
 .inst pre { margin: 0; padding: 14px 18px 16px; overflow-x: auto; font: 400 0.8125rem/1.8 var(--font-mono); color: var(--t1); }
 .inst pre code { font: inherit; -webkit-user-select: all; user-select: all; }
 .inst__line { display: block; white-space: pre; } .inst__line::before { content: "$ "; color: var(--t3); }
-.inst__cmdnote .inst__note { margin-top: 0; }
+.inst__cmdnote .inst__note { margin: 0; }
 
 .inst__tested { font-size: 0.8125rem; line-height: 1.5; color: var(--t3); }
 .inst__tested p { margin: 0; }
@@ -137,11 +140,11 @@ html:not([data-os="mac"], [data-os="linux"]) .inst__keys [data-os="other"], html
 .inst :is(button, a, summary):focus-visible { outline: 2px solid var(--c-focus); outline-offset: 2px; }
 .inst__said { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
-/* Arriving from the homepage's Install button (data-arrived, set before paint): one short settle of the whole column.
-   A direct visit doesn't move. The homepage's transition owns everything before this frame. */
-.inst[data-arrived] .inst__in { animation: inst-arrive 360ms var(--ease-out) backwards; }
+/* Arriving from the homepage's Install button by in-site navigation (data-arrived, without data-load): one short settle of
+   the whole column, set before that route's first paint. A direct visit or a reload doesn't move. The homepage's transition owns everything before this frame. */
+.inst[data-arrived]:not([data-load]) .inst__in { animation: inst-arrive 360ms var(--ease-out) backwards; }
 @keyframes inst-arrive { from { opacity: 0; transform: translateY(calc(8px * var(--travel))); } }
-@media (prefers-reduced-motion: reduce) { .inst[data-arrived] .inst__in { animation-duration: 1ms; } }
+@media (prefers-reduced-motion: reduce) { .inst[data-arrived]:not([data-load]) .inst__in { animation-duration: 1ms; } }
 
 /* Touch screens: 44px for the things people tap. */
 @media (pointer: coarse) {

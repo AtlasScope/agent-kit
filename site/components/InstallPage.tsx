@@ -16,7 +16,9 @@ import { AGENT_KEY, FALLBACK, OS_SCRIPT, SHOWN, commandFor, lastAgent, markOS, r
 //
 // Nothing jumps after load: an inline script marks the saved agent (data-agent) and the computer (html[data-os])
 // before paint, every agent's command, test note and next step are in the page, and CSS shows the marked one.
-const AGENT_SCRIPT = `try{var a=(localStorage.getItem("${AGENT_KEY}")||"").replace(/^t-/,"");if(/^(${SHOWN.map((a) => a.id).join("|")})$/.test(a))document.currentScript.parentElement.setAttribute("data-agent",a)}catch(e){}`;
+// It also marks a full page load (data-load): only then does it run, since React doesn't run inline scripts it inserts on
+// an in-site navigation. The homepage arrival's settle plays only without it, so a reload never blanks the column.
+const AGENT_SCRIPT = `document.currentScript.parentElement.setAttribute("data-load","");try{var a=(localStorage.getItem("${AGENT_KEY}")||"").replace(/^t-/,"");if(/^(${SHOWN.map((a) => a.id).join("|")})$/.test(a))document.currentScript.parentElement.setAttribute("data-agent",a)}catch(e){}`;
 // How long a "copied" state lasts. After that the page stops claiming anything about the clipboard.
 const NOTE_MS = 6000;
 type Note = { kind: "message" | "copied" | "blocked" | "failed"; n: number };
@@ -80,7 +82,8 @@ export function InstallPage({ kits, skills, kitLines, children }: { kits: number
     const h = readHandoff();
     if (!h) return;
     setArrived(true);
-    // As before this redesign: anything but a copied message reads as blocked. The homepage saves only those two.
+    // The homepage saves a copied message or a blocked copy. Any other shape claims nothing.
+    if (!("message" in h) && !("blocked" in h)) return;
     const kind: Note["kind"] = "message" in h ? "message" : "blocked";
     if (kind === "message") setSaid1(true); else selectText(msg.current);
     h1.current?.focus({ preventScroll: true });
@@ -88,10 +91,12 @@ export function InstallPage({ kits, skills, kitLines, children }: { kits: number
     const t = setTimeout(() => setNote({ kind, n: 1 }), 600);
     return () => clearTimeout(t);
   }, []);
-  // A link to #manual from this same page opens the commands too.
+  // A link to #manual from this same page opens the commands too, even when the address already ends in #manual.
   useEffect(() => {
     const on = () => { if (location.hash === "#manual") setOpen(true); };
-    addEventListener("hashchange", on); return () => removeEventListener("hashchange", on);
+    const click = (e: MouseEvent) => { const a = (e.target as Element | null)?.closest?.("a[href]"); if (a && new URL((a as HTMLAnchorElement).href).hash === "#manual" && (a as HTMLAnchorElement).pathname === location.pathname) setOpen(true); };
+    addEventListener("hashchange", on); document.addEventListener("click", click);
+    return () => { removeEventListener("hashchange", on); document.removeEventListener("click", click); };
   }, []);
   useEffect(() => { if (!copied) return; const t = setTimeout(() => setCopied(false), NOTE_MS); return () => clearTimeout(t); }, [copied]);
   useEffect(() => { if (!said1) return; const t = setTimeout(() => setSaid1(false), NOTE_MS); return () => clearTimeout(t); }, [said1]);
@@ -138,7 +143,9 @@ export function InstallPage({ kits, skills, kitLines, children }: { kits: number
             <pre className="inst__say" ref={msg}>{INSTALL_MESSAGE}</pre>
           </section>
 
-          {/* Only the note is live, so its clearing back to the idle line isn't announced. */}
+          {/* The note and the idle line share one grid cell, so the page below never moves when a note comes or goes.
+              Only the note is live, so its clearing back to the idle line isn't announced. */}
+          <div className="inst__stat">
           <div className="inst__status" role="status">
             {msgNote && (
               <p className={`inst__note${msgNote.kind === "blocked" ? " is-warn" : ""}`} key={msgNote.n}>
@@ -148,12 +155,13 @@ export function InstallPage({ kits, skills, kitLines, children }: { kits: number
               </p>
             )}
           </div>
-          {!msgNote && <p className="inst__how">Works in Claude Code, Codex, Cursor and other coding agents. Your agent reads the steps for itself, runs them, and tells you what it installed.</p>}
+          <p className="inst__how" aria-hidden={msgNote ? true : undefined}>Works in Claude Code, Codex, Cursor and other coding agents. Your agent reads the steps for itself, runs them, and tells you what it installed.</p>
+          </div>
           <p className="inst__phone">Agent Kit installs on a computer. Copy the message here and paste it into your agent there, or send this page to yourself.</p>
 
           <details className="inst__manual" id="manual" open={open} onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}>
             <summary>
-              <span className="inst__or">Or run it yourself</span>
+              <h2 className="inst__or">Or run it yourself</h2>
               <span className="inst__sum">Terminal commands for Claude Code, Codex, Cursor or any agent</span>
               <Chevron />
             </summary>

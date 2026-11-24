@@ -50,9 +50,12 @@ for (const size of SIZES) {
     assert.equal((await page.locator(".inst__say").textContent()).trim(), INSTALL_MESSAGE);
     // Nothing claims a copy before one happens.
     assert.equal(await page.locator(".inst__note").count(), 0);
+    const below = () => page.locator(".inst__manual").evaluate((e) => e.getBoundingClientRect().top + scrollY);
+    const before = await below();
     await page.getByRole("button", { name: "Copy the message" }).click();
     assert.equal(await clip(page), INSTALL_MESSAGE);
     await page.locator(".inst__note", { hasText: "Message copied" }).waitFor();
+    assert.equal(await below(), before, "the copy note doesn't move the page below it");
 
     // The by-hand commands start closed and open on the summary.
     assert.equal(await page.getByRole("tab", { name: "Codex" }).isVisible(), false);
@@ -81,6 +84,8 @@ for (const size of SIZES) {
     await page.goto(base + "/install", { waitUntil: "networkidle" });
     await page.locator(".inst__note", { hasText: "Message copied" }).waitFor();
     assert.equal(await page.locator(".inst[data-arrived]").count(), 1);
+    // A full load (here, or a reload) never blanks the column: the settle plays only on an in-site navigation.
+    assert.equal(await page.locator(".inst__in").evaluate((e) => e.getAnimations().length), 0);
     assert.equal(await page.evaluate(() => document.activeElement?.tagName), "H1");
     // The heading takes focus without a ring or glow.
     assert.equal(await page.locator("h1").evaluate((h) => getComputedStyle(h).boxShadow), "none");
@@ -95,6 +100,11 @@ for (const size of SIZES) {
     // A same-page link to #manual opens it too.
     await page.locator(".inst__manual > summary").click();
     await page.evaluate(() => { location.hash = ""; location.hash = "manual"; });
+    await page.getByRole("tab", { name: "Claude Code" }).waitFor();
+    // And a same-page link while the address already ends in #manual.
+    await page.locator(".inst__manual > summary").click();
+    await page.evaluate(() => { const l = document.createElement("a"); l.href = "#manual"; l.id = "to-manual"; l.textContent = "commands"; document.querySelector(".inst__more")?.append(l); });
+    await page.locator("#to-manual").click();
     await page.getByRole("tab", { name: "Claude Code" }).waitFor();
     assert.deepEqual(errors, []);
     await ctx.close();
