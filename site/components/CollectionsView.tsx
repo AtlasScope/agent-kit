@@ -21,9 +21,13 @@ const PLUS = <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="non
 const X = <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>;
 const BACK = <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 6l-6 6 6 6" /></svg>;
 
+// Without JavaScript nothing picks a collection, so every one shows, stacked, and the rail (whose links only
+// change the hash) steps aside. Server-action forms and the Pop panels still work.
+const NOSCRIPT = ":root .ws .ws__panel{display:grid !important;padding-bottom:var(--space-10)}:root .ws .ws__rail,.ws__back{display:none !important}.ws{grid-template-columns:minmax(0,1fr)}.ws__main{padding-left:0;border-left:0}";
+
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 const split = (items: Resolved[]) => ({ prompts: items.filter((i) => i.kind === "prompt"), skills: items.filter((i) => i.kind === "skill") });
-export const summaryOf = (items: Resolved[]) => {
+const summaryOf = (items: Resolved[]) => {
   const { prompts, skills } = split(items);
   return [prompts.length && plural(prompts.length, "prompt", "prompts"), skills.length && plural(skills.length, "skill", "skills")].filter(Boolean).join(" · ") || "Empty";
 };
@@ -39,7 +43,7 @@ export function CollectionsView({ cols, actions, sharedHref = (id) => `/collecti
   return (
     <Workspace
       rail={rail}
-      boot={<><style>{selectionCss(rail.map((r) => r.id))}</style><script dangerouslySetInnerHTML={{ __html: BOOT }} /></>}
+      boot={<><style>{selectionCss(rail.map((r) => r.id))}</style><script dangerouslySetInnerHTML={{ __html: BOOT }} /><noscript><style>{NOSCRIPT}</style></noscript></>}
       newCollection={
         <Pop summary={<>{PLUS}New collection</>} summaryClass="btn btn--sm ws__new">
           <ActionForm action={actions.create} className="col__popform" reset>
@@ -130,11 +134,13 @@ function CollectionPanel({ c, items, actions, sharedHref }: { c: CollectionData;
 // the library. In the workspace each row gets a Remove control beside it; on the shared page the rows stand alone.
 function ItemGroup({ title, items, c, actions }: { title: string; items: Resolved[]; c: CollectionData; actions?: Actions }) {
   const hid = `${c.id}-${title.toLowerCase()}`;
+  // In the workspace the panel's name is the h2; on the shared page the group itself is the next level under h1.
+  const H = actions ? "h3" : "h2";
   const prompts = items.filter((i) => i.kind === "prompt");
   const skills = items.filter((i) => i.kind === "skill");
   return (
     <section className="cgroup" aria-labelledby={hid}>
-      <h3 id={hid}>{title} <span className="cgroup__n">{items.length}</span></h3>
+      <H id={hid}>{title} <span className="cgroup__n">{items.length}</span></H>
       {!actions ? (
         prompts.length > 0
           ? <PromptRows slugs={prompts.map((i) => getPromptById(i.ref)?.slug).filter((x): x is string => Boolean(x))} />

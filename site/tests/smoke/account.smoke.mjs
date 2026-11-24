@@ -1,7 +1,8 @@
 // Collections, shared collection and reading-page journeys against a production build, at desktop and phone sizes.
 //   npm run build && npm run smoke
 // The signed-in pages are exercised through the sample-data routes (/account/fixture), which serve here because
-// this file starts `next start` with ACCOUNT_FIXTURES=1. Set SMOKE_URL to test a running site that has them on.
+// this file starts `next start` with ACCOUNT_FIXTURES=1. Set SMOKE_URL to test another single long-lived server with
+// them on (not a serverless preview: the sample store is per process).
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
@@ -146,6 +147,10 @@ test("shared collection: install command, prompt copy, and the owner's way back"
     assert.deepEqual(errors, []);
     await ctx.close();
   }
+  const visitor = await open(PHONE, `/account/fixture/shared?id=${DESIGN}&as=visitor`);
+  assert.equal(await visitor.page.getByRole("link", { name: "Manage in Collections" }).count(), 0, "visitors get no manage link");
+  await visitor.ctx.close();
+  assert.equal((await fetch(`${base}/account/fixture/shared?id=00000000-0000-4000-8000-000000000003&as=visitor`)).status, 404, "a private collection is a 404 to visitors");
   const missing = await fetch(`${base}/account/fixture/shared?id=00000000-0000-4000-8000-00000000dead`);
   assert.equal(missing.status, 404, "an unknown id is a 404, as on /collections/[id]");
 });

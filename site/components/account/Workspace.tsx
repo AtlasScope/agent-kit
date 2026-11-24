@@ -27,6 +27,9 @@ export function Workspace({ rail, newCollection, boot, children }: { rail: RailE
   const ids = rail.map((r) => r.id);
   const idKey = ids.join(" ");
   const prev = useRef<string[] | null>(null);
+  // A collection just created here, waiting for its hashchange. A ref, so it survives the effect re-running
+  // (another revalidation) before the event fires.
+  const landing = useRef<string | null>(null);
 
   useEffect(() => {
     const w = root.current;
@@ -43,7 +46,8 @@ export function Workspace({ rail, newCollection, boot, children }: { rail: RailE
       w.querySelectorAll<HTMLAnchorElement>("[data-for]").forEach((a) => {
         if (a.dataset.for === sel) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current");
       });
-      if (fromHash) { try { localStorage.setItem(KEY, sel); } catch {} }
+      // Remember what the hash opened; after a delete, remember where it landed so storage never keeps a dead id.
+      if (fromHash || focus === "landed") { try { localStorage.setItem(KEY, sel); } catch {} }
       if (!focus) return;
       const narrow = window.matchMedia(NARROW).matches;
       if (focus === "panel") { document.getElementById(`col-${sel}`)?.focus({ preventScroll: true }); return; }
@@ -59,8 +63,12 @@ export function Workspace({ rail, newCollection, boot, children }: { rail: RailE
       if (narrow) window.scrollTo({ top: 0 });
     };
 
-    let landing = false; // the next hashchange opens a just-created collection: focus its heading on any screen
-    const onHash = () => { apply(landing ? "panel" : true); landing = false; };
+    // The hashchange that opens a just-created collection focuses its heading on any screen.
+    const onHash = () => {
+      const created = landing.current !== null && hashId() === landing.current;
+      landing.current = null;
+      apply(created ? "panel" : true);
+    };
     window.addEventListener("hashchange", onHash);
 
     // A collection that just appeared was just created here: open it (through the hash, so Back works).
@@ -71,7 +79,7 @@ export function Workspace({ rail, newCollection, boot, children }: { rail: RailE
     // The open collection was deleted (whether it came from the hash or was remembered): drop a stale hash so the
     // first one opens, and move focus there instead of leaving it on the removed Delete button.
     const removed = Boolean(before && openBefore && !list.includes(openBefore));
-    if (added.length === 1) { landing = true; location.hash = added[0]; }
+    if (added.length === 1) { landing.current = added[0]; location.hash = added[0]; }
     else if (removed && h && h !== "all" && !list.includes(h)) history.replaceState(null, "", location.pathname + location.search);
     apply(removed ? "landed" : false);
     return () => window.removeEventListener("hashchange", onHash);
