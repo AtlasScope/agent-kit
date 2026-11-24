@@ -215,7 +215,8 @@ const link = id => BY[id] ? h("a", { href: "#" + id }, nameOf(BY[id])) : null;
 
 // Find a library entry for a command named inside a recipe step.
 const CMDIDX = {};
-const norm = s => s.toLowerCase().replace(/\s*<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+// Placeholders such as "<path>" always come last, so keep only the text before the first "<".
+const norm = s => s.toLowerCase().split("<")[0].replace(/\s+/g, " ").trim();
 E.forEach(e => { if (e.cmd) { const k = norm(e.cmd); if (!CMDIDX[k]) CMDIDX[k] = e.id; } });
 const findCmd = s => { const k = norm(s); return CMDIDX[k] || CMDIDX[k.split(" ").slice(0, 2).join(" ")] || CMDIDX[k.split(" ")[0]] || null; };
 
