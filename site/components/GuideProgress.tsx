@@ -41,7 +41,7 @@ export function GuideList({ items, base, store }: { items: Item[]; base: string;
   const done = useDone(store);
   return (
     <>
-      <ol className={`guide-list${items.length > 5 ? " guide-list--two" : ""}`}>
+      <ol className={`guide-list${items.length > 5 ? " guide-list--two" : ""}`} style={{ "--rows": Math.ceil(items.length / 2) } as React.CSSProperties}>
         {items.map((s, i) => {
           const d = done.includes(s.slug);
           return (

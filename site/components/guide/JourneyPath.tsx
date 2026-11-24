@@ -5,9 +5,10 @@ import { fixes } from "@/lib/content";
 
 // The three guided routes in the order a newcomer takes them: build a first app, learn the five ideas behind it,
 // then fix real problems. Shown at the top of each hub so every route says where it sits and what comes next.
+const WORDS = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"];
 const STAGES = [
   { href: "/start", title: "Build your first app", n: `${STEPS.length} steps` },
-  { href: "/learn", title: "Five short lessons", n: `${LESSONS.length} lessons` },
+  { href: "/learn", title: `${WORDS[LESSONS.length] ?? LESSONS.length} short lessons`, n: `${LESSONS.length} lessons` },
   { href: "/fix", title: "Fix a problem", n: `${fixes.length} symptoms` },
 ] as const;
 

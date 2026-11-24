@@ -25,7 +25,6 @@
 @media (max-width: 60rem) { .symptoms { grid-template-columns: minmax(0, 1fr); } }
 
 /* Symptom page: the route beside related help */
-.fix-page .page-head .kicker { order: 0; }
 .fix-page__body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 20rem); gap: var(--space-16); align-items: start; }
 .fix-page__aside { display: grid; gap: var(--space-10); }
 .fix-page__aside .pgrid { grid-template-columns: minmax(0, 1fr); }

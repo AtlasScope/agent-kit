@@ -24,10 +24,12 @@ before(async () => {
   if (!base) {
     server = spawn("npx", ["next", "start", "-p", String(PORT)], { cwd: new URL("../..", import.meta.url), stdio: "ignore", detached: true });
     base = `http://localhost:${PORT}`;
-    for (let i = 0; i < 60; i++) {
-      try { if ((await fetch(base)).ok) break; } catch {}
-      await new Promise((r) => setTimeout(r, 500));
+    let up = false;
+    for (let i = 0; i < 60 && !up; i++) {
+      try { up = (await fetch(base)).ok; } catch {}
+      if (!up) await new Promise((r) => setTimeout(r, 500));
     }
+    if (!up) throw new Error(`next start did not answer on ${base} within 30s; run next build first`);
   }
   browser = await chromium.launch();
 });
@@ -66,7 +68,10 @@ for (const size of SIZES) {
     await page.waitForURL(new RegExp(`/start/${STEPS[2].slug}$`));
     await page.getByText(`2 of ${STEPS.length} done`).first().waitFor();
     assert.equal(await page.locator(".meter .is-done").count(), 2);
-    assert.ok(await page.getByRole("navigation", { name: "All guide steps" }).getByRole("link", { name: /Pick your agent/ }).isVisible() || size.name === "phone");
+    const rail = page.getByRole("navigation", { name: "All guide steps" });
+    await rail.scrollIntoViewIfNeeded();
+    assert.ok(await rail.getByRole("link", { name: /Pick your agent/ }).isVisible(), "the rail lists every step");
+    assert.equal(await rail.locator(".is-done").count(), 2);
     // The hub offers to continue from the first unfinished step.
     await page.goto(`${base}/start`, { waitUntil: "networkidle" });
     await noSideScroll(page, "/start");

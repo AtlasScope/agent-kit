@@ -52,10 +52,10 @@ export default async function FixPage({ params }: { params: Promise<{ problem: s
         </section>
         <aside className="fix-page__aside">
           {skillNames.length > 0 && <section className="section"><h2>Skills that help</h2><SkillCards names={skillNames} /></section>}
-          <nav className="section others" aria-labelledby="others-h">
+          {others.length > 0 && <nav className="section others" aria-labelledby="others-h">
             <h2 id="others-h">{f.scope === "database" ? "Other database symptoms" : "Other symptoms in your app"}</h2>
             <ul>{others.map((x) => <li key={x.slug}><Link href={`/fix/${x.slug}`}>{x.title}</Link></li>)}</ul>
-          </nav>
+          </nav>}
         </aside>
       </div>
       <p className="note">Not quite your problem? <Link className="lic" href="/fix">See every symptom</Link>.</p>
