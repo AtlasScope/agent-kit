@@ -7,18 +7,19 @@ import { NavMenu } from "./NavMenu";
 import { Search } from "./Search";
 
 const GitHubLink = () => (
-  <a className="btn btn--sm btn--ghost" href={SITE.repo} aria-label="Agent Kit on GitHub">
+  <a className="btn btn--sm btn--ghost nav__gh" href={SITE.repo} aria-label="Agent Kit on GitHub">
     <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.4-1.1.6-1.3-2.2-.3-4.6-1.1-4.6-5a3.9 3.9 0 0 1 1-2.7c-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.8 1a9.6 9.6 0 0 1 5 0c1.9-1.3 2.8-1 2.8-1 .5 1.4.2 2.4.1 2.7a3.9 3.9 0 0 1 1 2.7c0 3.9-2.3 4.7-4.6 5 .4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5A10 10 0 0 0 12 2z" /></svg>
     <span>GitHub</span>
   </a>
 );
 
-// One bar everywhere, always with Sign in (or the account) and GitHub. Wider than 1248px (78rem) it also holds the
-// links and search; up to 1248px the links move into the menu and GitHub shrinks to its mark, and up to 640px search
-// collapses to a button and Collections to its star. globals.css holds the switch points.
+// One bar everywhere, always with Sign in (or the account) and Install. Wider than 1248px (78rem) it also holds the
+// links and search; up to 1248px the links move into the menu and GitHub shrinks to its mark; up to 640px search
+// collapses to a button, Collections to its star, and GitHub moves into the menu. app/styles/shell.css holds the
+// switch points. Install is hidden on Home and /install, which carry their own.
 export function Nav() {
-    return (
-    <header className="top ink">
+  return (
+    <header className="top">
       <div className="container nav">
         <Link className="wordmark" href="/" aria-label={`${SITE.name} ${SITE.byline}, home`}>
           <AtlasScopeLogo sticky />
@@ -27,7 +28,7 @@ export function Nav() {
         </Link>
         <NavLinks />
         <Search />
-        <div className="nav__end">{authEnabled() && <AuthNav />}<GitHubLink /></div>
+        <div className="nav__end">{authEnabled() && <AuthNav />}<GitHubLink /><Link className="btn btn--sm btn--primary nav__install" href="/install">Install</Link></div>
         <NavMenu />
       </div>
     </header>

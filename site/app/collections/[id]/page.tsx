@@ -12,9 +12,9 @@ async function load(id: string) {
   if (!authEnabled() || !dbEnabled()) return null;
   const c = await getCollection(id);
   if (!c) return null;
-  if (c.is_public) return c;
   const { userId } = await auth();
-  return userId === c.user_id ? c : null;
+  const own = Boolean(userId) && userId === c.user_id;
+  return c.is_public || own ? { ...c, own } : null;
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -26,5 +26,5 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function CollectionPage({ params }: { params: Promise<{ id: string }> }) {
   const c = await load((await params).id);
   if (!c) notFound();
-  return <SharedCollection c={c} />;
+  return <SharedCollection c={c} own={c.own} />;
 }

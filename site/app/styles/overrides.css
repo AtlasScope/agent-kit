@@ -1,0 +1,7 @@
+/* Grouped rules that span several lanes' files. Loads last so it keeps winning ties as it did in the single file.
+   Owner: coordinator (DESIGN-CONTRACT.md). */
+.prose p, .prose li, .doc__sec p, .start-body, .note, .sec-head p, .adds__head p { max-width: var(--read); }
+.prose a, .scard__pick a, .scard__alts a, .start-list a, .doc__sec a, .lic { text-underline-offset: 0.2em; }
+@media (hover: hover) and (pointer: fine) { .prose a:hover, .scard__pick a:hover, .scard__alts a:hover, .doc__sec a:hover, .lic:hover { text-decoration-color: currentColor; color: var(--color-ink); } }
+.prose a, .scard__pick a, .scard__alts a, .doc__sec a, .lic, .lead a { color: var(--color-link); text-decoration-color: color-mix(in oklab, var(--color-link) 40%, transparent); }
+@media (hover: hover) and (pointer: fine) { .prose a:hover, .scard__pick a:hover, .scard__alts a:hover, .doc__sec a:hover, .lic:hover, .lead a:hover { color: var(--color-link); text-decoration-color: currentColor; } }
