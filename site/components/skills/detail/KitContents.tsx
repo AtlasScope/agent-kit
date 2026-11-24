@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Star } from "@/components/Star";
 import { getSkill, type Skill } from "@/lib/content";
 import { describe } from "./prose";
+import { commandFor } from "@/lib/skill-command";
 
 const lead = (d: string, kit: string) => { const x = describe(d); return x.lead || x.fallback || `One of the ${kit} skills.`; };
 
@@ -11,7 +12,7 @@ function Row({ s }: { s: Skill }) {
       <h4 className="kd-row__name"><Link href={`/skills/${s.name}`} translate="no">{s.name}</Link></h4>
       <p className="kd-row__d">{lead(s.description, s.kit)}</p>
       <p className="kd-row__m">
-        {s.typedOnly ? <span>Type <code translate="no">/{s.name}</code> to run</span> : <span>Starts automatically, or type <code translate="no">/{s.name}</code></span>}
+        {s.typedOnly ? <span>Type <code translate="no">{commandFor(s.kit, s.name)}</code> to run</span> : <span>Starts automatically, or type <code translate="no">{commandFor(s.kit, s.name)}</code></span>}
         <span>{s.credit ? `By ${s.credit.author}` : "By Agent Kit"}</span>
       </p>
       <div className="kd-row__star"><Star kind="skill" refId={s.name} title={s.name} /></div>
