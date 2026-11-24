@@ -47,14 +47,14 @@ export function PromptPage({ p }: { p: Prompt }) {
   const about = present([["Also called", p.aka], ["Notes", p.note]]);
 
   return (
-    <main className="page pd" data-sec={p.sec}>
+    <main className="page pd">
       <header className="page-head pd-head">
         <Crumbs items={[["Prompts", "/prompts"], [a.title, `/prompts/${a.slug}`], [p.t, `/prompts/${p.slug}`]]} />
-        <p className="kicker pd-kicker">
+        <p className="kicker pd-kicker" data-sec={p.sec}>
           <i className="dot" /><span>{kindLabel(p)}</span>
           <span aria-hidden="true">·</span><span>{p.sec === "plan" ? a.title : p.group}</span>
           {p.badge && <><span aria-hidden="true">·</span><span>{p.badge}</span></>}
-          {p.fresh && <><span aria-hidden="true">·</span><span className="pd-fresh">New, not yet run on a real project</span></>}
+          {p.fresh && <><span aria-hidden="true">·</span><span>New, not yet run on a real project</span></>}
         </p>
         <h1>{p.t}</h1>
         {what && <p className="lead">{what}</p>}
@@ -90,7 +90,7 @@ export function PromptPage({ p }: { p: Prompt }) {
           )}
 
           {p.steps && (
-            <section className="section pd-outline">
+            <section className="section">
               <h2>Steps</h2>
               <ol className="pd-steps" role="list">
                 {p.steps.map(([c, d], i) => (
@@ -101,7 +101,7 @@ export function PromptPage({ p }: { p: Prompt }) {
           )}
 
           {p.planSteps && !p.split && (
-            <section className="section pd-outline">
+            <section className="section">
               <h2>Steps</h2>
               <ol className="pd-steps" role="list">
                 {p.planSteps.map((st, i) => (

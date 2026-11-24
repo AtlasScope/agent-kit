@@ -40,16 +40,17 @@
 .pd-text::selection { background: var(--c-fill-2); }
 
 /* Copy. The colours come from .btn--primary. This page adds a width that holds when the label changes, and
-   "Copied" swaps the copy icon for a state dot the size of the .led primitive. */
+   "Copied" swaps the copy icon for a state dot the size of the .led primitive. On the primary button the dot takes
+   the label colour (as .copy--main does in primitives.css), since no one green reads on both ink and white. */
 .pd-copy { min-width: 9.5rem; justify-content: center; }
 .pd-copy[data-copied] .i, .pd-stepcopy[data-copied] .i { display: none; }
 .pd-copy[data-copied]::before, .pd-stepcopy[data-copied]::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--c-signal); } /* 7px: the .led primitive's size */
-/* On the ink primary of the light theme the standard green is too dark to read, so that one dot uses the bright LED green. */
-@media (prefers-color-scheme: light) { .pd-copy[data-copied]::before { background: var(--c-signal-bright); } }
+.pd-copy[data-copied]::before { background: currentColor; }
 .pd-stepcopy { min-width: 5.5rem; justify-content: center; }
 
 .pd-key { display: none; min-width: 22px; padding: 0 var(--space-2); border: 1px solid var(--c-edge); border-radius: var(--radius-sm); font: var(--weight-regular) var(--type-micro)/20px var(--font-mono); text-align: center; color: var(--c-fg-3); } /* 22px / 20px: same box as the header search key */
-@media (hover: hover) and (pointer: fine) and (min-width: 40.0625rem) { .pd-key { display: inline-block; } }
+/* The C shortcut works while focus is in the panel, so its hint shows only then. */
+@media (hover: hover) and (pointer: fine) and (min-width: 40.0625rem) { .pd-payload:focus-within .pd-key { display: inline-block; } }
 
 /* Steps: numbered rows on hairlines. Inside the panel (split recipes) each row has its own Copy. */
 .pd-steps__note { margin: 0; padding: var(--space-4) var(--space-6) 0; font-size: var(--type-sm); line-height: var(--lh-sm); color: var(--c-fg-3); max-width: 64ch; }
@@ -65,6 +66,8 @@
 .pd-steps__t .lic { font-weight: var(--weight-medium); }
 .pd-steps__d { font-size: var(--type-sm); line-height: var(--lh-sm); color: var(--c-fg-3); text-wrap: pretty; }
 .pd-gnote { margin: 0; }
+/* A blocked clipboard on a split recipe shows the exact text above the steps, selected. */
+.pd-fallback { border-bottom: 1px solid var(--c-line); }
 
 /* Facts: grouped by the question they answer. Hairlines between groups, no box. */
 .pd-aside { display: grid; gap: 0; min-width: 0; }
