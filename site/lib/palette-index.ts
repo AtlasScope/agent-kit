@@ -13,7 +13,7 @@ const lc = (...xs: unknown[]) => xs.flat(2).filter(Boolean).join(" ").toLowerCas
 const PAGES: { ref: string; title: string; href: string; summary: string; aka: string }[] = [
   { ref: "install", title: "Install Agent Kit", href: "/install", summary: "One message to paste into any agent, or the commands for each agent by hand.", aka: "setup add plugin marketplace npx get started download" },
   { ref: "start", title: "Start", href: "/start", summary: "A step-by-step first project with a coding agent, from nothing to a working app.", aka: "beginner tutorial guide new first time onboarding" },
-  { ref: "learn", title: "Learn", href: "/learn", summary: `${LESSONS.length} short lessons on asking a coding agent for good work.`, aka: "lessons tutorial guide course" },
+  { ref: "learn", title: "Learn", href: "/learn", summary: "Short lessons on asking a coding agent for good work.", aka: "lessons tutorial guide course" },
   { ref: "prompts", title: "Prompts", href: "/prompts", summary: "The prompt library: commands, investigations, recipes and ways of working.", aka: "library browse all" },
   { ref: "skills", title: "Skills", href: "/skills", summary: "Every skill, grouped by kit, with its source and license.", aka: "library browse all" },
   { ref: "kits", title: "Kits", href: "/kits", summary: "The plugins that bundle the skills, each installable on its own.", aka: "plugins bundles packages" },
@@ -80,6 +80,10 @@ export function paletteIndex(): Entry[] {
   return entries().map((e) => (e.copy?.text !== undefined
     ? { ...e, copy: { label: e.copy.label, done: e.copy.done, v: createHash("sha1").update(e.copy.text).digest("hex").slice(0, 8) } } : e));
 }
+
+// The index with its texts, as builds before v2 fetched it from /search-index.json. Kept for tabs still running
+// such a build; remove once a week has passed since v2 shipped (the index's stale-while-revalidate window).
+export const paletteIndexWithTexts = (): Entry[] => entries();
 
 export const paletteCopies = (): { kind: string; ref: string }[] => entries().filter((e) => e.copy).map((e) => ({ kind: e.kind, ref: e.ref }));
 export function paletteCopy(kind: string, ref: string): string | undefined {

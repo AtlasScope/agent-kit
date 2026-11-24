@@ -24,54 +24,25 @@ type Group = { label: string; items: Entry[] };
 
 let indexPromise: Promise<Entry[]> | null = null;
 let loaded: Entry[] | null = null;
-// The browser may keep the index for an hour, and use it for up to a week while it revalidates (the route's
-// stale-while-revalidate). If a deploy in that time removed a result, its Copy text is gone
-// (404). The palette then says so, takes the result off the list and drops the index, and the next open fetches the index
-// past the browser cache, which also replaces the cached copy for later pages. `gen` stops an index load from before
-// the drop taking effect. `epoch` moves only when a fresh index replaces a stale one: a text asked for under the
-// older index can't refill the text cache, and its 404 can't count against the new index.
-// (Vercel purges its CDN on each deploy, so skipping the browser cache is enough to reach the new index.)
-let stale = false, gen = 0, epoch = 0;
-// Results whose text came back gone, left out of the list until a fresh index replaces it.
-const goneKeys = new Set<string>();
-function dropIndex() {
-  if (stale) return;   // a fresh index is already on its way, or will be fetched on the next open
-  loaded = null; indexPromise = null; stale = true; gen++;
-}
 function loadIndex() {
-  const g = gen;
-  indexPromise ??= fetch("/search-index.v2.json", stale ? { cache: "reload" } : undefined).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-    .then((e: Entry[]) => {
-      if (g !== gen) return e;
-      // A fresh index after a drop: texts requested under the old one no longer count, 404s included.
-      if (stale) { texts.clear(); known.clear(); epoch++; goneKeys.clear(); }
-      stale = false; loaded = e;
-      return e;
-    });
+  indexPromise ??= fetch("/search-index.v2.json").then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+    .then((e: Entry[]) => (loaded = e));
   const mine = indexPromise;
   indexPromise.catch(() => { if (indexPromise === mine) indexPromise = null; });
   return indexPromise;
 }
-const GONE = "That result was removed in an update, so it’s off the list now.";
 
 // Copy texts by URL (which carries the text's version): `texts` holds the requests, `known` the answers, so a
-// cached text can go to the clipboard inside the click or key event without waiting.
+// cached text can go to the clipboard inside the click or key event without waiting. A text that fails to load
+// (offline, or a result a deploy removed while this browser still had the old index) is reported, not retried.
 const texts = new Map<string, Promise<string>>();
 const known = new Map<string, string>();
-// A 404 counts only if it was asked under the index in use, so a late one can't drop a fresh index.
-const gone = (err: unknown) => err instanceof Error && err.message === "gone" && (err as Error & { epoch?: number }).epoch === epoch;
-function claimGone(err: unknown, e: Entry) {
-  if (!gone(err)) return false;
-  goneKeys.add(keyOf(e)); texts.delete(copyUrl(e)); dropIndex();
-  return true;
-}
 function copyText(e: Entry): Promise<string> {
   if (e.copy?.text !== undefined) return Promise.resolve(e.copy.text);
   const k = copyUrl(e);
   let p = texts.get(k);
   if (!p) {
-    const ep = epoch;
-    p = fetch(k).then((r) => (r.ok ? r.text() : Promise.reject(Object.assign(new Error(r.status === 404 ? "gone" : String(r.status)), { epoch: ep })))).then((t) => { if (ep === epoch) known.set(k, t); return t; });
+    p = fetch(k).then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status))))).then((t) => { known.set(k, t); return t; });
     const mine = p;
     p.catch(() => { if (texts.get(k) === mine) texts.delete(k); });
     texts.set(k, p);
@@ -102,7 +73,6 @@ export function Search() {
   const [scope, setScope] = useState<Scope>("all");
   const [cur, setCur] = useState(0);
   const [entries, setEntries] = useState<Entry[] | null>(null);
-  useEffect(() => { hasEntries.current = !!entries; }, [entries]);
   const [status, setStatus] = useState<Status>("idle");
   const [fallback, setFallback] = useState<Entry[]>([]);
   const [fallbackFor, setFallbackFor] = useState("");
@@ -121,17 +91,12 @@ export function Search() {
   // A failed load is retried at most every 15 seconds, however often the button is hovered or the palette opened.
   const failed = useRef(false);
   const lastTry = useRef(0);
-  // After a removed result (`stale`) the old list stays up without the results found gone, until the fresh index
-  // arrives; if that fetch fails the palette keeps the old list. A load made obsolete by a drop is ignored.
-  const hasEntries = useRef(false);
   const warm = useCallback(() => {
     if (loaded) { setEntries(loaded); setStatus("ready"); return; }
-    if (stale) setEntries((prev) => prev && prev.filter((x) => !goneKeys.has(keyOf(x))));
     if (failed.current && Date.now() - lastTry.current < 15000) return;
     lastTry.current = Date.now();
-    if (!stale && !failed.current) setStatus("loading");
-    loadIndex().then((e) => { if (loaded !== e) return; failed.current = false; setEntries(e); setStatus("ready"); },
-      () => { failed.current = true; setStatus(hasEntries.current ? "ready" : "error"); });
+    if (!failed.current) setStatus("loading");
+    loadIndex().then((e) => { failed.current = false; setEntries(e); setStatus("ready"); }, () => { failed.current = true; setStatus("error"); });
   }, []);
 
   // Opens synchronously inside the click or key event, so iOS Safari raises the keyboard for the field.
@@ -253,7 +218,7 @@ export function Search() {
     let live = true;
     const e = active;
     const t = setTimeout(() => copyText(e).then((text) => { if (live) setPayload({ key: k, text }); },
-      (err) => { if (!live) return; if (claimGone(err, e)) forget(e); else setPayload({ key: k, text: null }); }), 120);
+      () => { if (live) setPayload({ key: k, text: null }); }), 120);
     const w = setTimeout(() => setWaiting(true), 400);
     return () => { live = false; clearTimeout(t); clearTimeout(w); };
   }, [open, wide, active]);
@@ -263,8 +228,6 @@ export function Search() {
     document.getElementById(`cmdk-${keyOf(active)}`)?.scrollIntoView({ block: "nearest" });
   }, [active]);
 
-  // A removed result leaves the open list at once; the fresh index comes with the next open.
-  const forget = (e: Entry) => { setEntries((prev) => prev && prev.filter((x) => keyOf(x) !== keyOf(e))); say(GONE); };
   const remember = (e: Entry) => { const next = pushRecent(readRecent(), e); writeRecent(next); setRecent(next); };
   const go = (e: Entry, newTab = false) => {
     remember(e);
@@ -287,12 +250,14 @@ export function Search() {
         text = copyText(e);
         text.then((t) => setPayload((p) => (p?.key === k ? { key: k, text: t } : p)), () => {});
         try {
-          if (typeof ClipboardItem === "undefined" || !navigator.clipboard.write) { late = true; throw new Error("unsupported"); }
+          if (typeof ClipboardItem === "undefined" || !navigator.clipboard.write) throw new Error("unsupported");
           const blob = text.then((t) => new Blob([t], { type: "text/plain" }));
           blob.catch(() => {});
           await navigator.clipboard.write([new ClipboardItem({ "text/plain": blob })]);
         } catch {
-          // Writes the text once it arrives; a failed fetch rejects here and is reported below.
+          // Writes the text once it arrives; a failed fetch rejects here and is reported below. This write comes
+          // after the key or click, so a browser may refuse it; the text is cached by then.
+          late = true;
           await navigator.clipboard.writeText(await text);
         }
       }
@@ -300,10 +265,8 @@ export function Search() {
     } catch {
       // Settle the text first: the clipboard can fail before the fetch does, and the fetch is the real cause.
       const loadFailed = text ? await text.then(() => null, (err: unknown) => err ?? true) : null;
-      if (claimGone(loadFailed, e)) forget(e);
-      // The text arrived but the browser refused the late write (no ClipboardItem); it is cached now, so a second
-      // press writes it at once.
-      else if (late && !loadFailed) say("The text is ready now. Press Copy again.");
+      // The text arrived but the browser refused the late write; it is cached now, so a second press writes it at once.
+      if (late && !loadFailed) say("The text is ready now. Press Copy again.");
       else say(loadFailed ? "Couldn’t load the text to copy. Open the page and copy from there." : "Copy was blocked. Open the page and copy from there.");
     }
   };

@@ -169,27 +169,19 @@ for (const size of SIZES) {
     await ctx.close();
   });
 
-  test(`${size.name}: a result removed since the index loaded says so, and reopening fetches a fresh index`, async () => {
+  test(`${size.name}: a Copy text that fails to load says so`, async () => {
     const { page, ctx, errors } = await open(size, "/skills");
     const mod = process.platform === "darwin" ? "Meta" : "Control";
     await page.getByRole("banner").locator(".kbd", { hasText: "K" }).waitFor({ state: "attached" });
     await page.keyboard.press(`${mod}+k`);
     const box = page.getByRole("combobox", { name: "Search the library" });
-    // As if a deploy had removed it: its Copy text is gone. On a wide screen the preview finds that out; on a
-    // phone, Copy does. Either way the result leaves the list and a toast says why.
     await page.route("**/search-copy/skill/tdd*", (r) => r.fulfill({ status: 404, body: "" }));
     await box.fill("tdd");
     const opt = page.locator('#search-results a[role="option"][href="/skills/tdd"]').first();
     await opt.waitFor();
-    if (size.name === "phone") { await opt.hover(); await box.press(`${mod}+Enter`); }
-    await page.getByRole("status").filter({ hasText: "removed in an update" }).waitFor();
-    await opt.waitFor({ state: "detached" });
-    // The palette keeps a loaded index for the page's life, so a second request means it dropped the stale one.
-    const fresh = page.waitForRequest((r) => r.url().endsWith("/search-index.v2.json"));
-    await box.press("Escape"); await box.press("Escape");
-    await box.waitFor({ state: "hidden" });
-    await page.keyboard.press(`${mod}+k`);
-    await fresh;
+    await opt.hover();
+    await box.press(`${mod}+Enter`);
+    await page.getByRole("status").filter({ hasText: "Couldn’t load the text" }).waitFor();
     assert.deepEqual(errors, []);
     await ctx.close();
   });
