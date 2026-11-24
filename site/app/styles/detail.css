@@ -41,11 +41,11 @@ details.lic-text pre { white-space: pre-wrap; font-size: 0.75rem; color: var(--c
 /* What the install adds: one row per kit, name and size, what it does, the commands that start it. Flat, hairlines only. */
 .adds { display: grid; gap: var(--space-lg); margin-bottom: var(--space-lg); }
 .adds__head { display: grid; gap: var(--space-xs); }
-.adds__head h2 { margin: 0; font: 650 clamp(1.25rem, 0.6vw + 1rem, 1.5rem)/1.2 var(--font-body); letter-spacing: -0.025em; }
+.adds__head h2 { margin: 0; font: 600 clamp(1.25rem, 0.6vw + 1rem, 1.5rem)/1.2 var(--font-body); letter-spacing: -0.025em; }
 .adds__head p { max-width: 60ch; font-size: 0.9375rem; line-height: 1.5; color: var(--color-muted); text-wrap: pretty; }
 .adds__list { margin: 0; padding: 0; list-style: none; border-bottom: 1px solid var(--color-rule); }
 .adds__list > li { position: relative; display: grid; grid-template-columns: 15rem minmax(0, 1fr) minmax(0, 21rem); grid-template-areas: "name line type" "n line type"; column-gap: var(--space-xl); row-gap: 2px; padding-block: 18px; border-top: 1px solid var(--color-rule); }
-.adds__name { grid-area: name; margin: 0; font: 650 1.0625rem/1.3 var(--font-body); letter-spacing: -0.015em; }
+.adds__name { grid-area: name; margin: 0; font: 600 1.0625rem/1.3 var(--font-body); letter-spacing: -0.015em; }
 .adds__name a { text-decoration: none; text-underline-offset: 0.2em; }
 .adds__name a::after { content: ""; position: absolute; inset: 0; }
 .adds__name a:focus-visible { outline: none; }
@@ -65,7 +65,7 @@ details.lic-text pre { white-space: pre-wrap; font-size: 0.75rem; color: var(--c
 .page-act { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm) var(--space-md); margin-top: var(--space-md); font-size: 0.9375rem; }
 @media (pointer: coarse) { .page-act .btn { min-height: 44px; } }
 .kitin { display: grid; gap: var(--space-md); }
-.kitin__h { margin: 0; font: 650 1.0625rem/1.3 var(--font-body); letter-spacing: -0.015em; }
+.kitin__h { margin: 0; font: 600 1.0625rem/1.3 var(--font-body); letter-spacing: -0.015em; }
 .kitin__or { margin: var(--space-sm) 0 0; font: 550 0.9375rem/1.3 var(--font-body); color: var(--color-muted); }
 @media (hover: hover) and (pointer: fine) { .adds__name a:hover, .adds__list > li:has(.adds__name a:hover) .adds__name a { text-decoration: underline; text-decoration-color: var(--color-rule-2); } }
 @media (max-width: 60rem) { .adds { margin-bottom: 0; } }
