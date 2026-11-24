@@ -69,6 +69,11 @@ for (const size of SIZES) {
     await page.getByRole("button", { name: "clear the filter" }).click();
     assert.equal(await rows.count(), data.skills.length, "the empty state clears back to every skill");
 
+    // On a phone the switches sit behind Filters, collapsed so the list starts on the first screen.
+    if (size.isMobile) {
+      assert.equal(await page.getByRole("button", { name: /^Borrowed/ }).count(), 0, "switches start folded on a phone");
+      await page.getByRole("button", { name: /^Filters/ }).click();
+    }
     await page.getByRole("button", { name: /^Borrowed/ }).click();
     assert.equal(await rows.count(), data.skills.filter((s) => s.credit).length, "Borrowed shows only credited skills");
     await page.getByRole("button", { name: "By author" }).click();
@@ -83,6 +88,7 @@ for (const size of SIZES) {
   test(`${size.name}: a shared skills view opens as it was shared`, async () => {
     const { page, ctx } = await open(size, "/skills?q=bug&from=borrowed&by=author");
     await page.waitForFunction(() => document.querySelector("input[type=search][aria-label^='Filter']")?.value === "bug");
+    if (size.isMobile) await page.getByRole("button", { name: /^Filters/ }).click();
     assert.equal(await page.getByRole("button", { name: /^Borrowed/ }).getAttribute("aria-pressed"), "true");
     assert.equal(await page.getByRole("button", { name: "By author" }).getAttribute("aria-pressed"), "true");
     await ctx.close();
@@ -92,7 +98,7 @@ for (const size of SIZES) {
     const { page, ctx, errors } = await open(size, "/kits");
     for (const k of KITS) assert.equal(await page.getByRole("link", { name: k, exact: true }).first().getAttribute("href"), `/kits/${k}`);
     const cmd = KIT_GUIDE["engineering-kit"].type[0];
-    await page.getByRole("button", { name: `Copy ${cmd}` }).click();
+    await page.getByRole("button", { name: `${cmd} (copy)` }).click();
     assert.equal(await page.evaluate(() => navigator.clipboard.readText()), cmd);
     assert.equal(await page.getByRole("link", { name: `Install all ${KITS.length} kits` }).getAttribute("href"), "/install");
     assert.ok((await sideScroll(page)) <= 1, "/kits scrolls sideways");

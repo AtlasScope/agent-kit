@@ -9,7 +9,7 @@
 
 /* Agent support: which agents have an install path; a lit LED where an install was tested. */
 .agents { display: grid; gap: var(--space-2); padding-top: var(--space-3); border-top: 1px solid var(--c-line); font-size: var(--type-sm); }
-.agents__h, .kit__label { margin: 0; font-size: var(--type-micro); line-height: var(--lh-micro); font-weight: var(--weight-semibold); letter-spacing: 0.04em; text-transform: uppercase; color: var(--c-fg-3); }
+.agents__h, .kit__label { margin: 0; font-size: var(--type-xs); line-height: var(--lh-xs); font-weight: var(--weight-medium); color: var(--c-fg-3); }
 .agents__list { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); margin: 0; padding: 0; list-style: none; color: var(--c-fg); }
 .agents__list li { display: inline-flex; align-items: center; gap: 7px; font-weight: var(--weight-medium); }
 .agents__key { margin: 0; display: flex; align-items: center; gap: 6px; font-size: var(--type-xs); color: var(--c-fg-3); }
@@ -39,6 +39,13 @@
   transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
 }
 .sb__seg button[aria-pressed="true"] { background: var(--c-fill); color: var(--c-fg); }
+.sb__opts { display: contents; }
+/* The Filters button exists for phones only. */
+.sb__more { display: none; align-items: center; gap: 6px; min-height: var(--control-h); padding: 0 12px; border: 1px solid var(--c-edge); border-radius: var(--radius-md); background: var(--c-surface); box-shadow: var(--shadow-1); color: var(--c-fg); font: var(--weight-medium) var(--type-sm)/1 var(--font-body); cursor: pointer; }
+.sb__more svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
+.sb__more[aria-expanded="true"] { background: var(--c-fill); }
+.sb__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--c-fg); }
+.sb__more:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 2px; }
 .sb__n { color: var(--c-fg-3); font: var(--weight-regular) var(--type-micro)/1 var(--font-mono); font-variant-numeric: tabular-nums; }
 
 .sb__count { display: flex; align-items: center; gap: var(--space-3); min-height: 28px; margin: 0; font-size: var(--type-xs); color: var(--c-fg-3); font-variant-numeric: tabular-nums; }
@@ -100,7 +107,10 @@
   .sk { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name star" "d d" "m m"; row-gap: var(--space-1); padding: var(--space-4) 0; margin-inline: 0; border-radius: 0; }
   .sk::after { left: 0; right: 0; }
   .sb__bar { gap: var(--space-2); }
-  .sb__find { flex-basis: 100%; }
+  .sb__find { flex: 1 1 0; }
+  .sb__more { display: inline-flex; }
+  .sb__opts { display: none; }
+  .sb__opts[data-open] { display: flex; flex-wrap: wrap; gap: var(--space-2); flex-basis: 100%; }
   .sb__seg { flex: 1 1 auto; }
   .sb__seg button { flex: 1 1 auto; justify-content: center; padding: 0 8px; }
   .sb__groups { gap: var(--space-10); }
@@ -190,7 +200,6 @@
    Each agent still says whether its install was tested, in text for screen readers and the LED for sight. */
 @media (max-width: 40rem) {
   .agents { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-3); padding-top: var(--space-2); font-size: var(--type-xs); }
-  .agents__h { font-size: var(--type-xs); letter-spacing: 0; text-transform: none; font-weight: var(--weight-regular); }
   .agents__key { display: none; }
   .agents__list { gap: var(--space-1) var(--space-3); color: var(--c-fg-2); }
   .agents__list li { font-weight: var(--weight-regular); }

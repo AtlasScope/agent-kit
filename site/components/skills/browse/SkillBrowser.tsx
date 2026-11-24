@@ -20,6 +20,8 @@ export function SkillBrowser({ skills, kits }: { skills: BrowseSkill[]; kits: Br
   const [who, setWho] = useState<Who>("all");
   const [by, setBy] = useState<By>("kit");
   const [current, setCurrent] = useState<string | null>(null);
+  // Phones only: the two switches fold behind one Filters button so the list starts on the first screen.
+  const [more, setMore] = useState(false);
   const ready = useRef(false);
   const field = useRef<HTMLInputElement>(null);
 
@@ -107,6 +109,11 @@ export function SkillBrowser({ skills, kits }: { skills: BrowseSkill[]; kits: Br
             enterKeyHint="search"
           />
         </div>
+        <button type="button" className="sb__more" aria-expanded={more} aria-controls="sb-opts" onClick={() => setMore((m) => !m)}>
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4.5h11M4.5 8h7M6.5 11.5h3" /></svg>
+          Filters{(who !== "all" || by !== "kit") && <><span className="sb__dot" aria-hidden="true" /><span className="sr"> (some set)</span></>}
+        </button>
+        <div className="sb__opts" id="sb-opts" data-open={more || undefined}>
         <div className="sb__seg" role="group" aria-label="Who wrote it">
           {([["all", "All", total], ["original", "Agent Kit", total - borrowed], ["borrowed", "Borrowed", borrowed]] as const).map(([v, label, n]) => (
             <button key={v} type="button" aria-pressed={who === v} onClick={() => setWho(v)}>{label}<span className="sb__n">{n}</span></button>
@@ -116,6 +123,7 @@ export function SkillBrowser({ skills, kits }: { skills: BrowseSkill[]; kits: Br
           {([["kit", "By kit"], ["author", "By author"]] as const).map(([v, label]) => (
             <button key={v} type="button" aria-pressed={by === v} onClick={() => setBy(v)}>{label}</button>
           ))}
+        </div>
         </div>
       </div>
 

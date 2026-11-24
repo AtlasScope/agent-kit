@@ -41,7 +41,7 @@ export function KitRows({ level = 3 }: { level?: 2 | 3 }) {
             <div className="kit__start">
               <p className="kit__label" id={`start-${name}`}>Start it</p>
               <ul className="kit__type" translate="no" aria-labelledby={`start-${name}`}>
-                {g.type.map((t) => <li key={t}><CopyButton text={t} label={t} className="kit__cmd" name={`Copy ${t}`} /></li>)}
+                {g.type.map((t) => <li key={t}><CopyButton text={t} label={t} className="kit__cmd" name={`${t} (copy)`} /></li>)}
               </ul>
             </div>
           </li>
