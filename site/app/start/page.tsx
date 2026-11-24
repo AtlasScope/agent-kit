@@ -30,10 +30,12 @@ const NEED: [string, string][] = [
 export default function Start() {
   return (
     <main className="page start-hub">
-      <JourneyPath current="/start" />
+      <div className="hub-top">
+        <Crumbs items={[["Get started", "/start"]]} />
+        <JourneyPath current="/start" />
+      </div>
       <div className="start-hub__top">
         <header className="page-head start-hub__head">
-          <Crumbs items={[["Get started", "/start"]]} />
           <h1>Build and publish your first app</h1>
           <p className="lead">Eight steps from nothing installed to a small reading-list app at a public address you can open on your phone. One file, no database, no API keys and no terminal.</p>
           <p className="tested"><i className={`led${TESTED ? " is-on" : ""}`} aria-hidden="true" /> {TESTED ? `Tested with ${TESTED}.` : "Written against the official sign-up and download pages on 9 Nov 2026. Not yet tested with a first-time user, so tell us where it goes wrong."}</p>

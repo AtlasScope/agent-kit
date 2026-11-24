@@ -15,9 +15,11 @@ export const metadata: Metadata = {
 export default function Learn() {
   return (
     <main className="page learn-hub">
-      <JourneyPath current="/learn" />
-      <div className="page-head">
+      <div className="hub-top">
         <Crumbs items={[["Lessons", "/learn"]]} />
+        <JourneyPath current="/learn" />
+      </div>
+      <div className="page-head">
         <h1>Five short lessons</h1>
         <p className="lead">Each one explains one idea and gives you one thing to try on the reading-list app from the <Link href="/start">first-app guide</Link>. Do them in order; each takes a few minutes.</p>
       </div>

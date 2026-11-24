@@ -19,9 +19,11 @@ const SCOPES = [["code", "In your app"], ["database", "In your PostgreSQL databa
 export default function Fix() {
   return (
     <main className="page fix-hub">
-      <JourneyPath current="/fix" />
-      <div className="page-head">
+      <div className="hub-top">
         <Crumbs items={[["Fix a problem", "/fix"]]} />
+        <JourneyPath current="/fix" />
+      </div>
+      <div className="page-head">
         <h1>Fix a problem</h1>
         <p className="lead ink2">Pick what you see. Each page lists the prompts to try first, in order.</p>
       </div>

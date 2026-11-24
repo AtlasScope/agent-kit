@@ -144,3 +144,6 @@
 .starter__list code { color: var(--c-fg); font: 600 0.9375rem/1.2 var(--font-mono); }
 @media (hover: hover) and (pointer: fine) { .starter__list a:hover { border-color: var(--c-edge); } }
 @media (max-width: 48rem) { .starter__list { grid-template-columns: minmax(0, 1fr); } }
+
+/* Hub top: breadcrumbs first, as on every other page, then the route bar */
+.hub-top { display: grid; gap: var(--space-4); }
