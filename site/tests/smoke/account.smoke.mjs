@@ -146,6 +146,8 @@ test("shared collection: install command, prompt copy, and the owner's way back"
     assert.deepEqual(errors, []);
     await ctx.close();
   }
+  const missing = await fetch(`${base}/account/fixture/shared?id=00000000-0000-4000-8000-00000000dead`);
+  assert.equal(missing.status, 404, "an unknown id is a 404, as on /collections/[id]");
 });
 
 test("reading pages keep one h1, their sections, and a working contents list", async () => {
