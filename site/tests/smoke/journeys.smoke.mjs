@@ -107,6 +107,8 @@ for (const size of SIZES) {
     const p = data.prompts.find((x) => x.id === "PG02" && !x.replacedBy);
     const { page, ctx, errors } = await open(size, "/skills");
     const mod = process.platform === "darwin" ? "Meta" : "Control";
+    // The shortcut hint reads "⌘K" or "Ctrl K" once the page has hydrated and the shortcut listener is attached.
+    await page.getByRole("banner").locator(".kbd", { hasText: "K" }).waitFor({ state: "attached" });
     await page.keyboard.press(`${mod}+k`);
     const box = page.getByRole("combobox", { name: "Search prompts and skills" });
     await box.waitFor();
