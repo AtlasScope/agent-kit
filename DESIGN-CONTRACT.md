@@ -15,11 +15,11 @@ Taken for the redesign, from the founder's brief, the dossier (v0.9) and the ben
 | Green | One job: a state that is true now (copied, tested, finished, current). Links, focus and buttons no longer use it. |
 | Links | Text colour with a hairline underline that darkens on hover. |
 | Focus | One 2px blue ring (`--c-focus`), offset 2px, no glow. |
-| Header | Follows the page theme, translucent with blur over scrolled content, hairline below. No status LED, no green underglow. Install is in the bar on every page except Home and `/install`. Current section is a neutral pill. |
+| Header | Follows the page theme, translucent with blur over scrolled content, hairline below. No status LED, no green underglow (the stage is the exception: see Home and the stage). Install is in the bar on every page except Home and `/install`. Current section is a neutral pill. |
 | Phone menu | Fills the screen: section links large, then Kits, Learn, Connect your agent, GitHub, About, then a full-width Install. GitHub leaves the bar under 40rem. |
 | Type | Montserrat 600 for page titles only. Geist for everything else; section headings 600 (was 650). Geist Mono for payloads, commands and ids. |
 | Section hues | Kept, as small flat dots (no gloss). |
-| Home and the quiet stage | The dark stage covers Home and `/install` only. It keeps main's palette and button look, including the green main action, until Fable's track decides. Over Home only, the header also keeps main's look (the light after the product name, the lit bottom line, the outlined field, GitHub in the bar on phones); the Header row below applies everywhere else. `/start` follows the system light or dark like every other interior page. |
+| Home and the stage | Home and `/install` share one dark stage: a view from orbit held by the layout both routes sit under (`app/(stage)/layout.tsx`, `components/stage/`). Revised by the homepage track on 24 Nov 2026: the stage's direction is expressive minimalism, high visual energy and low information density. Minimal means fewer words, fewer competing elements and more precision; it does not mean removing green, depth or atmosphere. On the stage the main action is the lit green Install object (`--c-brand*` tokens: gradient, inner highlight, darker edge, cast light, a sheen on arrival and hover only), the header carries a small green light and a short lit stretch of its lower edge, and `/install` stands on a perspective floor with a pool of green light under a glass message composer. Brand green is light and material; the confirmed state (`--c-signal`, the LED, a tick and words, the composer's rim light) appears only after a copy has truly succeeded. Focus stays system blue. The planet is the day view at full exposure: never darken it behind text, compose the words over black sky instead. The stage block in `tokens.css` holds the palette. `/start` follows the system light or dark like every other interior page, and interior pages keep the neutral rules below. |
 | First frame | Interior pages show real content in the first viewport: title, one line, then the thing itself. No hero blocks on interior pages. |
 
 ## Tokens
@@ -63,7 +63,7 @@ The older `--color-*`, `--space-xs…2xl`, `--text-*`, `--lift*`, `--led*` and `
 
 A rule in `overrides.css` belongs to the coordinator. To change one, ask; the coordinator may move it into your file once the screenshot gate shows no change.
 
-Route-only CSS stays beside its route: `app/launch.css` (Home, Fable), `app/install/install.css` (W9), `app/start/start.css` and `app/fix/fix.css` (W8). A lane that needs new page CSS for one route adds a colocated file for it instead of growing a shared file.
+Route-only CSS stays beside its route: `app/(stage)/stage.css` (Home and the move to Install, homepage track), `app/(stage)/install/install.css` (W9), `app/start/start.css` and `app/fix/fix.css` (W8). A lane that needs new page CSS for one route adds a colocated file for it instead of growing a shared file.
 
 Both splits from the old single `globals.css` were mechanical. Rules moved only where the cascade order of every overlapping rule stayed the same, and production-build captures (16 routes; desktop light and dark, phone light, plus phone dark for two routes; 50 images) were pixel-identical before and after.
 
@@ -79,7 +79,7 @@ Both splits from the old single `globals.css` were mechanical. Rules moved only 
 | W6 skills and kits browsing | `app/skills/page.tsx`, `app/kits/page.tsx`, `KitRows.tsx`, `components/skills/browse/**`, `skills.css` |
 | W7 skill and kit detail | `app/skills/[name]/page.tsx`, `app/kits/[kit]/page.tsx`, `components/skills/detail/**`, `detail-skill.css` |
 | W8 Start, Learn and Fix | `app/start/**` (with `start.css`), `app/learn/**`, `app/fix/**`, `GuideProgress.tsx`, `StartWelcome.tsx`, `components/guide/**`, `guide.css` |
-| W9 install | `InstallPage.tsx`, `components/install/**`, `app/install/**`, `quiet.css`. Never `install-choice.ts` or the handoff timing |
+| W9 install | `InstallPage.tsx`, `components/install/**`, `app/(stage)/install/**`, `quiet.css`. Never `install-choice.ts` or the handoff timing |
 | W10 accounts and utility | `app/account/**`, `app/collections/**`, `app/sign-in/**`, `CollectionsView.tsx`, `ActionForm.tsx`, `components/auth/**`, `components/account/**`, `lib/clerk-appearance.ts`, `app/{about,privacy,terms,mcp-setup}/**`, `DocPage.tsx`, `reading.css`, `account.css` |
 | Coordinator | `overrides.css`, `globals.css` (the import order), `lib/site.ts`, `lib/content.ts`, `lib/copy.ts`, `install-choice.ts`, `app/mcp/route.ts`, `next.config.ts`, `proxy.ts`, `package.json` |
 
@@ -113,41 +113,42 @@ These are used across page families and by the homepage handoff. Their exported 
 
 ## Off limits
 
-The homepage artwork, renderer and composition (`components/orbit/`, `components/LaunchHero.tsx`, `app/launch.css`, `app/page.tsx`) and the Home to Install transition belong to Fable's track. The `:root:has(.home, .quiet)` blocks in `tokens.css` and `primitives.css` keep the stage palette and button look as they were on `main`, so the homepage does not change underneath that work.
+The homepage artwork, renderer and composition (`components/horizon/`, `components/orbit/`, `components/stage/`, `components/LaunchHero.tsx`, `app/launch.css`, `app/(stage)/layout.tsx`, `app/(stage)/stage.css`, `app/(stage)/page.tsx`) and the Home to Install transition belong to the homepage track. The transition reads these hooks from the install page, so they must stay: `main.inst`, `.inst__main` and its direct children, `.inst__msg` (the panel the pressed button's light travels to; it holds `.inst__rim` and, after a real copy, `.inst__trace`), and the homepage button's `.launch__go`. The install page listens for `agent-kit:handoff` (`HANDOFF_EVENT`), which the homepage fires when the clipboard answers. `components/LaunchHero.tsx` and `app/launch.css` now serve only the experimental `/horizon` pages.
 
-## Install and shared shell: the boundary with Fable
+## Install and shared shell: the boundary with the homepage track
 
-Home, its renderer and the Home to Install transition are Fable's. The interior pages, the Install body and the shared shell are ours. Where they meet:
+Home, its renderer, the shared stage and the Home to Install transition belong to the homepage track. The interior pages, the shared shell and the Install body's content are the redesign lanes'. Where they meet:
 
 | Area | Owner | Files and selectors |
 |---|---|---|
-| Homepage scene, words and Install button | Fable | `app/page.tsx`, `components/LaunchHero.tsx`, `components/orbit/**`, `app/launch.css` (`.launch*`, `.launch[data-leave]`), `lib/hero-blur.ts`, `HERO` in `lib/site.ts` |
-| Home's header look | Fable decides; held as on main | The `:root:has(.home)` block in `shell.css` (solid bar, grey separator, lit bottom line, green light after the name, outlined field, Sign in ring). Kept here only so Home doesn't change while Fable works. Fable may change or take over that block. |
-| Stage palette and button look | Fable decides; held as on main | The `:root:has(.home, .quiet)` blocks in `tokens.css` and `primitives.css`. They also cover /install. |
-| Shared shell and branding | Ours | `components/Nav.tsx`, `components/Footer.tsx`, `shell.css` outside the Home block, the #150 logo (`AtlasScopeLogo.tsx` is generated by `design/atlasscope/source/export_site.py`; `LogoPixelGrid.tsx`, `.aslogo*`, `.wordmark*`, `.foot__logo`). |
-| Install body | Ours (W9) | `app/install/page.tsx`, `app/install/install.css` (`.inst*`), `components/InstallPage.tsx`, `quiet.css` (`.quiet`, /install only). |
-| The hand-off between them | Shared contract; change only together | `components/install-choice.ts` |
+| Homepage scene, words, Install button and the move to Install | Homepage track | `app/(stage)/layout.tsx`, `app/(stage)/page.tsx`, `app/(stage)/stage.css`, `components/stage/**`, `components/horizon/**`, `HERO` in `lib/site.ts` |
+| Header look on the stage | Homepage track | The `:root:has(.stage)` rules in `app/(stage)/stage.css` (the green light after the name, the lit lower edge, no fill over the picture). `shell.css` holds no Home-only block. |
+| Stage palette and button look | Homepage track | The `:root:has(.home, .quiet)` block in `tokens.css` (`--c-brand*`) and the satin button in `stage.css`. They also cover /install. |
+| Shared shell and branding | W2 | `components/Nav.tsx`, `components/Footer.tsx`, `shell.css`, the #150 logo (`AtlasScopeLogo.tsx` is generated by `design/atlasscope/source/export_site.py`; `LogoPixelGrid.tsx`, `.aslogo*`, `.wordmark*`, `.foot__logo`). |
+| Install body | W9, with the homepage track | `app/(stage)/install/page.tsx`, `app/(stage)/install/install.css` (`.inst*`), `components/InstallPage.tsx`, `quiet.css`. The hooks below must stay. |
+| The hand-off between them | Shared contract; change only together | `components/install-choice.ts`, `HANDOFF_EVENT` in `components/stage/HomeHero.tsx` |
 
 The hand-off, in order:
 
-1. Home's Install button copies `INSTALL_MESSAGE` (`lib/site.ts`) inside the click. While `.launch[data-leave]` plays, `saveHandoff()` writes `{ message: true }` or `{ blocked: true }` with a timestamp to `sessionStorage["agent-kit:copied"]`. Then it calls `router.push("/install")`. Leaving the hand-off early calls `clearHandoff()`.
-2. /install reads it with `readHandoff()` in a layout effect. The note is trusted for 10 seconds and read without being removed, so a remount still finds it. A `{ message }` note shows Copied at once. A `{ blocked }` note selects the message for a manual copy. Either one moves focus to the h1 and announces the result 600ms later. A note with any other shape claims nothing.
-3. The arrival hooks on `main.quiet.inst` are:
+1. Home's Install button (`.launch__go` in `HomeHero.tsx`) copies `INSTALL_MESSAGE` (`lib/site.ts`) inside the click, and the link navigates at once. When the clipboard answers, `saveHandoff()` writes `{ message: true }` or `{ blocked: true }` with a timestamp to `sessionStorage["agent-kit:copied"]`, and `HANDOFF_EVENT` (`agent-kit:handoff`) fires in case /install is already showing.
+2. /install reads it with `readHandoff()` in a layout effect and again on that event. The note is trusted for 10 seconds and read without being removed, so a remount still finds it. A `{ message }` note shows Copied at once and runs the composer's rim light. A `{ blocked }` note selects the message for a manual copy. Either one moves focus to the h1 and announces the result 600ms later. A note with any other shape claims nothing.
+3. The hooks on `main.quiet.inst` are:
    - `data-arrived`: set when a fresh note was read.
    - `data-load`: set by an inline script on a full page load only.
    - `data-agent`: the saved agent tab, set before paint.
    - `data-picked`: set once the visitor picks a tab.
    - `html[data-os]`: the paste keys, set before paint by `OS_SCRIPT`.
-4. `.inst[data-arrived]:not([data-load]) .inst__in` plays the one settle (`inst-arrive`, 360ms, 1ms with reduced motion). Fable can restyle the landing through these hooks. Nothing else on /install should depend on how the visitor got there.
-5. Both pages are dark in both themes, and `themeColor` is `#020302` on /install. `/#install` redirects to /install before paint (Home's inline script).
+   The transition also reads `.inst__main` and its direct children, and measures `.inst__msg` to send the button's light to its lower edge.
+4. The arrival choreography lives in `stage.css` under `.stage[data-shift="install"]`. Nothing else on /install should depend on how the visitor got there.
+5. Both pages are dark in both themes. `themeColor` is `#000000` on Home and `#020302` on /install.
 
-To change the note's shape, its key, its 10-second window or the arrival attributes, change `install-choice.ts`, `LaunchHero.tsx` and `InstallPage.tsx` in the same pull request, with Fable and W9 both reviewing.
+To change the note's shape, its key, its 10-second window or the arrival hooks, change `install-choice.ts`, `HomeHero.tsx` and `InstallPage.tsx` in the same pull request.
 
 ## Rules for page families
 
 1. Use tokens, never raw values. Colours come from `--c-*` (or, in older CSS, the `--color-*` aliases). Sizes from `--type-*`, spacing from `--space-N`, radii from `--radius-*`, durations from `--dur-*`. A raw hex or pixel value in a page file needs a comment saying why.
 2. Use primitives before writing new controls: `.btn` (`--primary`, default, `--ghost`, `--danger`, `--sm`, `--lg`), `.iconbtn`, `.input`, `.chip`, `.tag`, `.kbd`, `.block` (code with a head and Copy), `.cmdline`, `.menu__pop`, `.led`, and `FloatingCopy` (`components/ui/FloatingCopy.tsx`: `FloatingCopy({ anchor, end?, target?, text, title, detail?, name?, label? })`, a fixed Copy bar that shows at the first pixel `anchor` slides under the header and hides again once `end` does; under the header on a computer, along the bottom on a phone; inert while hidden; a blocked press of the bar scrolls `target` (or `anchor`) back into view, selects `target`'s text and focuses it (without a target, the anchor's first control or the anchor), and the bar stays up while its "Copied" or "Copy blocked" message shows and while keyboard focus is in it; styled by `.fcopy`. Render the refs with the bar, since their refs are read on mount). If a primitive is missing, ask for it.
-3. Colour means something. Green (`--c-signal`) only for a state that is true now: copied, tested, finished, current. Never a fill, a wash, a border glow or a large text colour. Amber (`--c-warm`) for what the visitor kept or chose. Red only for destructive actions and errors. The main action is neutral (ink on light, white on dark).
+3. Colour means something. On interior pages green (`--c-signal`) only for a state that is true now (the stage is the exception; see Home and the stage): copied, tested, finished, current. Never a fill, a wash, a border glow or a large text colour. Amber (`--c-warm`) for what the visitor kept or chose. Red only for destructive actions and errors. The main action is neutral (ink on light, white on dark).
 4. Hairlines before shadows, flat before glass. No gradients, glows, neon edges or decorative blur on interior pages.
 5. One `h1` per page in the display face; `h2`/`h3` in the body face at the token sizes.
 6. Hover only on `(hover: hover) and (pointer: fine)`. Touch targets at least 44px on `(pointer: coarse)`. Every interactive element keeps the global focus ring.

@@ -21,34 +21,42 @@ export const DEFAULTS = {
   tallAltitude: 420, tallFocal: 1500, tallPitch: -9.5, tallRoll: -8, tallYaw: 3.2,
 
   // The sun: its bearing from straight ahead, and how high above the limb it stands once the opening has played.
-  sunBearing: 20, sunHeight: 7,
+  sunBearing: 20, sunHeight: 0.5,
   // The moon: its bearing from straight ahead, its height above the camera's own horizon, its light as a fraction
   // of the sun's (far more than a real moon's: the eye, not a camera, is the model), and how much the air shows it.
-  moonBearing: -70, moonHeight: 20, moonLight: 0.085, moonAir: 1,
+  moonBearing: -70, moonHeight: 20, moonLight: 0.12, moonAir: 1,
   // The aurora: where its magnetic pole is (bearing and arc from the point under the camera), how far from the pole
   // the oval runs, the curtain's width in km, how fine its rays are, and its brightness. Then the airglow's.
-  auroraBearing: -30, auroraArc: 38, auroraOval: 21, auroraWidth: 5, auroraRays: 500, aurora: 0.0012, airglow: 0.00002,
+  auroraBearing: -18, auroraArc: 31, auroraOval: 18, auroraWidth: 5, auroraRays: 420, aurora: 0.0022, airglow: 0.00002,
+  // Where along the oval the aurora is brightest (its bearing, degrees), how wide that stretch is, and how bright the
+  // rest of the oval is beside it.
+  surgeBearing: -4, surgeWidth: 14, surgeRest: 0.25,
 
   // Air. Multipliers on Earth's values, then the haze's forward throw and the twice-scattered fill.
   rayleigh: 0.6, mie: 2, ozone: 0.5, mieG: 0.84, multi: 0.25, skyFill: 0.35, twilight: 0.03,
 
   // Ground. The island and the cold pole are placed by eye: the island by where it sits in the wide frame.
-  landScale: 1.7, seaLevel: 0.08, relief: 5, coast: 1.1, coldBearing: -48, coldArc: 20, coldCap: 13,
-  isleX: 700, isleY: 960, isleRadius: 500, isleRise: 0.35, seaGlow: 0.02,
+  landScale: 1.7, seaLevel: 0.08, relief: 5, coast: 1.1, coldBearing: -48, coldArc: 40, coldCap: 6,
+  isleX: 700, isleY: 960, isleRadius: 500, isleRise: 0.35, seaGlow: 0.06,
 
   // Weather.
-  weatherScale: 3.2, cover: -0.25, towers: 1.6, cirrus: 0, cellSize: 26, quilt: 0.35, cumulus: 0.5, fronts: 1,
-  stormX: 1480, stormY: 860, stormRadius: 900, stormTight: 1.5, stormArms: 2, stormStrength: 1,
+  weatherScale: 3.2, cover: -0.25, towers: 1.6, cirrus: 0.7, cellSize: 26, quilt: 0.35, cumulus: 0.5, fronts: 1,
+  stormX: 1350, stormY: 760, stormRadius: 1300, stormTight: 1.5, stormArms: 3, stormStrength: 1,
   // How the weather moves once baked, in degrees a minute: the whole layer round the point under the camera, and
   // the storm about its own centre.
   drift: 0.6, stormSpin: 3,
-  cloudSigma: 5, cloudRelief: 2.4, cloudHollows: 0.6, cloudRim: 0.25, shadowSigma: 1.4,
+  cloudSigma: 5, cloudRelief: 1.3, cloudHollows: 0.6, cloudRim: 0.25, shadowSigma: 1.4,
 
   // Stars.
   stars: 1, starDensity: 0.6, twinkle: 0.06,
 
   // The print.
-  exposure: 3, contrast: 0.5, saturation: 1.05, grain: 0.35, glare: 1, warmth: 0.5,
+  exposure: 4.5, contrast: 0.45, saturation: 1.15, grain: 0.35, glare: 1, warmth: 0.5,
+  // Bloom: how much of the light spreads into a glow, and how wide (toward the largest blur).
+  bloom: 0.05, bloomSpread: 0.5, split: 0.6,
+  // The dawn on the limb: how bright the seam of light along the horizon is, how far it spreads from the sun, and
+  // the soft aureole round the disc (post.ts).
+  dawn: 0.3, dawnSpread: 0.5, aureole: 0.6,
 };
 export type Params = typeof DEFAULTS;
 

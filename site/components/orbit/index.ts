@@ -5,3 +5,5 @@ export { DEFAULTS } from "./params";
 export type { Params } from "./params";
 export { OPENING_SECONDS, play, settled } from "./score";
 export type { Cue } from "./score";
+export { CLIMATE_KEYS, climate, envelope, freshSeed, visit, weatherClock } from "./climate";
+export type { Mood, Passage, Visit, Weather } from "./climate";

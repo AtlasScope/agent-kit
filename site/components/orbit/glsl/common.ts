@@ -28,6 +28,12 @@ const float RA = RP + 100.0;      // top of the air that scatters light
 const float CLOUD_TOP = 16.0;     // tallest cloud, above the sea
 const float RC = RP + CLOUD_TOP;
 
+// Always zero. Loops count to their bound plus this, which the compiler cannot know in advance, so it keeps them
+// as loops instead of unrolling them. Unrolled, the nested loops of the generators make the shader many times
+// longer, and on Windows (where the browser hands the driver HLSL) that took seconds to compile before the first
+// frame. An unset uniform is zero, so nothing has to set it.
+uniform int uZ;
+
 float sat(float x){ return clamp(x, 0., 1.); }
 vec3 sat(vec3 x){ return clamp(x, 0., 1.); }
 float sq(float x){ return x*x; }
@@ -80,7 +86,7 @@ vec3 unmap(vec2 uv, out float a, out float phi){
   float rho = uMap.z + uv.y/uMap.w;
   phi = 2.*atan(.5*(uMap.x + uv.x/uMap.y));
   float lo = 0., hi = 1.3;
-  for (int i = 0; i < 22; i++) { float m = .5*(lo + hi); if (rhoOf(m) < rho) lo = m; else hi = m; }
+  for (int i = 0; i < 22 + uZ; i++) { float m = .5*(lo + hi); if (rhoOf(m) < rho) lo = m; else hi = m; }
   a = .5*(lo + hi);
   float s = sin(a);
   return vec3(s*sin(phi), cos(a), -s*cos(phi));

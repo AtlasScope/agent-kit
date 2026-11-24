@@ -1,0 +1,196 @@
+/* The stage (components/stage/Stage.tsx): one view from orbit behind the homepage and the install page, and the
+   move between them. Owner: the homepage track (DESIGN-CONTRACT.md).
+   [data-mode] is the page showing: home or install. [data-shift] is set for under a second while one page is left
+   for the other, and names where the visitor is going; the arriving page's entrance reads it.
+   Direction: expressive minimalism. Few words and one action, carried by the planet, a lit green button, a small
+   green light in the header and, on /install, a perspective floor with a pool of green light under the message. */
+.stage { --stage-ease: cubic-bezier(0.16, 1, 0.3, 1); --stage-away: cubic-bezier(0.4, 0, 0.9, 0.6); --stage-h: calc(100svh - var(--header-h, 65px));
+  position: relative; isolation: isolate; margin-inline: calc(50% - 50vw); }
+
+/* The picture fills the window and stays put while the install page scrolls over it. A still of each pose is the
+   first paint and the fallback; the live canvas fades in over it. Stills are fitted by height from the centre,
+   exactly as the canvas frames the scene, so one lies on the other. */
+.stage__scene { position: fixed; top: 0; left: 0; width: 100vw; height: 100lvh; z-index: -1; overflow: hidden; pointer-events: none; background: #000; }
+.stage__still, .stage__gl, .stage__veil { position: absolute; inset: 0; width: 100%; height: 100%; }
+.stage__still img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; }
+.stage__still { opacity: 0; transition: opacity 500ms ease; }
+.stage[data-mode="home"] .stage__still--home, .stage[data-mode="install"] .stage__still--install { opacity: 1; }
+.stage__gl { display: block; opacity: 0; transition: opacity 1.4s ease; }
+.stage.is-live .stage__gl { opacity: 1; }
+.stage.is-live .stage__still { visibility: hidden; transition: visibility 0s 1.6s; }
+/* The words sit on black sky above the limb, so the planet is left at full strength: only a band at the very top for
+   the header and one at the foot for the small links. The install page is read at length, so its sky steps back a
+   little more, still without touching the planet's lit face. */
+.stage__veil::before, .stage__veil::after { content: ""; position: absolute; inset: 0; transition: opacity 700ms ease; }
+.stage__veil::before { background: linear-gradient(to bottom, rgba(0,0,0,.35), rgba(0,0,0,0) 120px), linear-gradient(to top, rgba(0,0,0,.42), rgba(0,0,0,0) 64px); }
+.stage__veil::after { background: linear-gradient(to bottom, rgba(0,0,0,.3), rgba(0,0,0,.1) 55%, rgba(0,0,0,0) 80%); opacity: 0; }
+.stage[data-mode="install"] .stage__veil::before { opacity: 0; }
+.stage[data-mode="install"] .stage__veil::after { opacity: 1; }
+
+/* The header rides on the picture: no fill until the install page scrolls under it. Its green: a steady light after
+   the product name and a short lit stretch of its bottom edge, as the original header had. */
+:root:has(.stage) .top { background: transparent; border-bottom-color: transparent; }
+:root:has(.stage[data-mode="install"]) .top { background: var(--c-overlay); }
+:root:has(.stage) .top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; pointer-events: none;
+  background: linear-gradient(90deg, transparent 4%, color-mix(in oklab, var(--c-brand-glow) 80%, transparent) 14%, color-mix(in oklab, var(--c-brand-glow) 22%, transparent) 26%, transparent 38%);
+  box-shadow: 0 0 12px color-mix(in oklab, var(--c-brand-glow) 35%, transparent); }
+:root:has(.stage) .wordmark__name { display: inline-flex; align-items: center; gap: 9px; }
+:root:has(.stage) .wordmark__name::after { content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff 0 12%, var(--c-brand-glow) 46%, var(--c-brand-lo));
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--c-brand-glow) 45%, transparent), 0 0 6px var(--c-brand-glow), 0 0 14px color-mix(in oklab, var(--c-brand-glow) 45%, transparent); }
+.stage .quiet { background: transparent; }
+
+/* ---- The homepage's words: one centred column over the black sky, the planet's limb under it. ---- */
+.hero { min-height: var(--stage-h); display: grid; grid-template-rows: minmax(0, 1fr) auto; justify-items: center;
+  padding-inline: max(var(--gutter), env(safe-area-inset-left)) max(var(--gutter), env(safe-area-inset-right)); color: var(--c-fg); text-align: center; }
+/* The column sits in the upper part of the screen, so the planet's lit face below it stays clear. */
+.hero__msg { align-self: start; display: grid; justify-items: center; width: 100%; max-width: 46rem; padding-block: clamp(32px, 9.5svh, 130px) 6svh; }
+/* The headline: Geist, crisp and tight, two lines. ?face=display swaps in Montserrat for comparison. */
+.hero h1 { margin: 0; max-width: 13em; font: 600 clamp(2.375rem, min(3.6vw + 1rem, 8.6svh), 4.25rem)/1.04 var(--font-body); letter-spacing: -0.042em; text-wrap: balance;
+  font-kerning: normal; font-feature-settings: "ss01", "liga"; -webkit-font-smoothing: antialiased; color: #fff; }
+.hero[data-face="display"] h1 { font-family: var(--font-display); letter-spacing: -0.045em; line-height: 1.02; }
+.hero__w { display: inline-block; white-space: pre; }
+.hero__lede { margin: clamp(16px, 2.4svh, 22px) 0 0; max-width: 30em; font: 400 clamp(1.0625rem, .35vw + 1rem, 1.25rem)/1.45 var(--font-body); letter-spacing: -0.012em; color: oklch(100% 0 0 / .7); text-wrap: balance; }
+.hero__cta { display: grid; justify-items: center; gap: 14px; margin-top: clamp(28px, 4.4svh, 42px); }
+/* Small words over the picture carry a soft dark halo of their own, so they read wherever cloud passes behind them
+   without darkening the planet. */
+.hero { --halo: 0 0 1px oklch(0% 0 0 / .5), 0 1px 10px oklch(0% 0 0 / .85), 0 0 22px oklch(0% 0 0 / .6); }
+.hero__note { margin: 0; font-size: .8125rem; line-height: 1.4; letter-spacing: -0.003em; color: oklch(100% 0 0 / .66); text-shadow: var(--halo); }
+.hero__new { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: 4px; min-height: var(--tap); margin-top: clamp(6px, 1.4svh, 14px); color: #fff; text-shadow: var(--halo);
+  font-size: .9375rem; letter-spacing: -0.006em; text-decoration: none; transition: color var(--dur-fast) var(--ease-out); }
+/* On a short phone the planet's edge can pass behind the link: a small pool of shade of its own keeps it readable. */
+.hero__new::before { content: ""; position: absolute; z-index: -1; inset: -4px -28px; pointer-events: none;
+  background: radial-gradient(50% 50% at 50% 50%, oklch(0% 0 0 / .6), oklch(0% 0 0 / 0)); }
+.hero__new svg { width: 15px; height: 15px; transition: transform var(--dur-slow) var(--ease-out); }
+.hero__foot { position: relative; isolation: isolate; display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 20px; margin: 0; padding: 0 0 14px; list-style: none; font-size: .8125rem; letter-spacing: 0; }
+/* A soft pool of shade only behind the row of links, not a band across the picture. */
+.hero__foot::before { content: ""; position: absolute; z-index: -1; inset: -18px -48px 0; pointer-events: none;
+  background: radial-gradient(50% 60% at 50% 60%, oklch(0% 0 0 / .68), oklch(0% 0 0 / 0) 100%); }
+.hero__foot a { display: inline-flex; align-items: center; min-height: 32px; color: oklch(100% 0 0 / .9); text-shadow: var(--halo); text-decoration: none; transition: color var(--dur-fast) var(--ease-out); }
+@media (hover: hover) and (pointer: fine) { .hero__foot a:hover { color: #fff; } .hero__new:hover { text-decoration: underline; text-decoration-color: oklch(100% 0 0 / .4); text-underline-offset: .25em; } .hero__new:hover svg { transform: translateX(3px); } }
+@media (pointer: coarse) { .hero__foot { gap: 0 8px; } .hero__foot a { min-height: var(--tap); padding-inline: 6px; } }
+
+/* ---- Install Agent Kit: the signature object. ----
+   A green pill with a lit satin finish: a narrow tonal range from top to foot, a soft bloom of light from above,
+   one fine bright line under the top edge, a precise darker edge a pixel outside it, and the light it throws on the
+   sky. Hover lifts the light; a press sinks it a pixel and squeezes it, at once. A sheen crosses it once when the
+   page arrives and again each time the pointer comes onto it, never on a loop. */
+.stage { --satin-1: color-mix(in oklab, var(--c-brand), var(--c-brand-hi) 34%); --satin-2: color-mix(in oklab, var(--c-brand), var(--c-brand-lo) 30%); }
+.launch__go { --lift: 0; --press: 0; position: relative; isolation: isolate; display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 30px;
+  border-radius: var(--radius-pill); overflow: hidden; color: var(--c-on-brand); font: 600 1rem/1 var(--font-body); letter-spacing: -0.012em; text-decoration: none; white-space: nowrap;
+  background: radial-gradient(130% 110% at 50% -40%, oklch(100% 0 0 / calc(.16 + .06 * var(--lift))), transparent 64%), linear-gradient(180deg, var(--satin-1), var(--satin-2));
+  box-shadow:
+    inset 0 1px 0 oklch(100% 0 0 / .34), inset 0 0 0 1px oklch(100% 0 0 / .07), inset 0 -1px 0 oklch(28% .07 158 / .22),
+    0 0 0 1px var(--c-brand-edge), 0 1px 2px oklch(0% 0 0 / .55),
+    0 10px 28px -12px color-mix(in oklab, var(--c-brand-glow) calc(46% + 18% * var(--lift)), transparent),
+    0 0 56px -10px color-mix(in oklab, var(--c-brand-glow) calc(22% + 14% * var(--lift)), transparent);
+  transform: translateY(calc(1px * var(--press))) scale(calc(1 - .03 * var(--press)));
+  transition: transform 260ms var(--ease-out), box-shadow 260ms var(--ease-out), filter 260ms var(--ease-out);
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+/* The sheen: a soft diagonal of light, parked off the left edge. */
+.launch__go::after { content: ""; position: absolute; top: 0; bottom: 0; left: -40%; width: 40%; z-index: -1; pointer-events: none;
+  background: linear-gradient(100deg, transparent 0%, oklch(100% 0 0 / 0) 22%, oklch(100% 0 0 / .32) 50%, oklch(100% 0 0 / 0) 78%, transparent 100%);
+  transform: translateX(0) skewX(-18deg); opacity: 0; }
+.launch__label { position: relative; }
+.launch__go:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 4px; }
+@media (hover: hover) and (pointer: fine) {
+  .launch__go:hover { --lift: 1; filter: brightness(1.03); }
+  .launch__go:hover::after { animation: go-sheen 900ms var(--ease-out) 1 both; }
+}
+/* The press answers on the frame it happens, with no easing in. */
+.launch__go:active { --press: 1; --lift: .4; transition-duration: 70ms; filter: brightness(.97); }
+.hero[data-load] .launch__go::after { animation: go-sheen 1100ms var(--ease-out) 1250ms 1 both; }
+@keyframes go-sheen { 0% { opacity: 0; transform: translateX(0) skewX(-18deg); } 12% { opacity: 1; } 100% { opacity: 0; transform: translateX(370%) skewX(-18deg); } }
+
+/* Phones: the planet takes the lower third and the column the top of the screen; the button spans the column. */
+@media (max-width: 759.98px), (max-aspect-ratio: 4/5) {
+  .stage__veil::before { background: linear-gradient(to bottom, rgba(0,0,0,.4), rgba(0,0,0,0) 90px), linear-gradient(to top, rgba(0,0,0,.45), rgba(0,0,0,0) 72px); }
+  .hero__msg { padding-block: clamp(28px, 8svh, 72px) 24px; }
+  .hero h1 { font-size: clamp(2.125rem, 9.6vw, 3rem); line-height: 1.06; max-width: 10.5em; }
+  .hero__lede { font-size: 1.0625rem; max-width: 20em; }
+  .hero__cta { width: 100%; max-width: 21rem; }
+  .launch__go { width: 100%; min-height: 54px; font-size: 1.0625rem; }
+}
+@media (max-height: 560px) { .hero__msg { padding-block: 2svh 8px; } .hero h1 { font-size: clamp(1.75rem, 8.4svh, 2.75rem); } .hero__lede { margin-top: 10px; } .hero__cta { margin-top: 16px; gap: 8px; } .hero__new { margin-top: 0; } .hero__foot { padding-bottom: max(2px, env(safe-area-inset-bottom)); } }
+@media (min-width: 1800px) and (min-height: 1000px) { .hero__msg { max-width: 56rem; } .hero h1 { font-size: 5rem; } .hero__lede { font-size: 1.375rem; } .launch__go { min-height: 58px; padding-inline: 34px; font-size: 1.0625rem; } .hero__note, .hero__foot { font-size: .875rem; } .hero__new { font-size: 1rem; } }
+
+/* The words rise once on a full page load. */
+.hero[data-load] .hero__w { animation: stage-rise 900ms var(--stage-ease) calc(80ms + var(--i) * 45ms) backwards; }
+.hero[data-load] .hero__lede { animation: stage-rise 900ms var(--stage-ease) 380ms backwards; }
+.hero[data-load] .hero__cta { animation: stage-rise 900ms var(--stage-ease) 470ms backwards; }
+.hero[data-load] .hero__new { animation: stage-fade 900ms ease 650ms backwards; }
+.hero[data-load] .hero__foot { animation: stage-fade 900ms ease 760ms backwards; }
+@keyframes stage-rise { from { opacity: 0; transform: translateY(18px); } }
+@keyframes stage-fade { from { opacity: 0; } }
+
+/* ---- The move between the two pages. ---- */
+/* The page that was left: a copy in a layer over the scene, placed where the page was. */
+.stage__ghost { position: fixed; inset: 0; z-index: 3; overflow: hidden; pointer-events: none; }
+.stage__copy { position: absolute; margin: 0; background: none; }
+.stage > main[data-left] { visibility: hidden; }
+
+/* Leaving the homepage. The headline lifts away word by word and the small words go with it. The button answers
+   the press with a flash of its own light, then gives that light up: its body dims and closes to a single lit line,
+   which Stage.tsx carries to the message panel's lower edge (.stage__beam). */
+.stage__copy .hero__w { animation: stage-lift 200ms var(--stage-away) calc(var(--i) * 8ms) forwards; }
+.stage__copy :is(.hero__lede, .hero__note, .hero__new) { animation: stage-lift 180ms var(--stage-away) forwards; }
+.stage__copy .hero__foot { animation: stage-out 180ms ease forwards; }
+.stage__copy .launch__go { animation: go-give 300ms cubic-bezier(0.5, 0, 0.2, 1) forwards; transition: none; }
+.stage__copy .launch__go::after { animation: none; }
+.stage__copy .launch__label { animation: stage-out 140ms ease 40ms forwards; }
+@keyframes go-give {
+  0% { transform: translateY(1px) scale(.97); filter: brightness(1.2); }
+  22% { transform: scale(1.015); filter: brightness(1.45) saturate(1.1); }
+  100% { transform: scale(1, .04); filter: brightness(1.6); opacity: 0; }
+}
+@keyframes stage-lift { to { opacity: 0; transform: translateY(-28px); } }
+@keyframes stage-out { to { opacity: 0; } }
+/* The lit line: the button's light, travelling to the panel's lower edge, where it spreads to the panel's width and
+   fades into the panel's own rim. Positions come from Stage.tsx; only the light is styled here. */
+.stage__beam { position: fixed; height: 2px; margin-top: -1px; border-radius: 2px; pointer-events: none; will-change: transform, opacity;
+  background: linear-gradient(90deg, transparent, var(--c-brand-hi) 18%, #fff 50%, var(--c-brand-hi) 82%, transparent);
+  box-shadow: 0 0 10px 1px color-mix(in oklab, var(--c-brand-glow) 75%, transparent), 0 0 34px 4px color-mix(in oklab, var(--c-brand-glow) 35%, transparent); }
+
+/* Arriving at Install from the homepage, as one movement (times from the press):
+     0-250 ms   the headline lifts away; the button flashes and closes to its line of light
+     50-310     the light travels down to the composer's lower edge
+     300-680    the composer grows upward out of that edge while the light spreads along it and becomes its rim
+     200-760    the heading settles into the place the headline left; the floor and its pool of light resolve
+     380-900    the rest of the column follows
+   The planet sinks and fades to black on the camera's spring over the same time. */
+.stage[data-shift="install"] .quiet.inst::before { animation: floor-in 700ms var(--stage-ease) 40ms backwards; }
+.stage[data-shift="install"] .quiet.inst::after { animation: stage-fade 640ms ease 200ms backwards; }
+.stage[data-shift="install"] .inst__main > * { animation: stage-rise 520ms var(--stage-ease) 380ms backwards; }
+.stage[data-shift="install"] .inst__main > :is(h1, .inst__lede) { animation: stage-drop 560ms var(--stage-ease) 200ms backwards; }
+.stage[data-shift="install"] .inst__main > .inst__lede { animation-delay: 240ms; }
+.stage[data-shift="install"] .inst__main > .inst__msg { animation: msg-grow 380ms cubic-bezier(0.2, 0.7, 0.2, 1) 300ms backwards; }
+.stage[data-shift="install"] .inst__msg .inst__rim { animation: rim-take 700ms ease 340ms backwards; }
+@keyframes stage-drop { from { opacity: 0; transform: translateY(22px); } }
+@keyframes floor-in { from { opacity: 0; transform: perspective(var(--floor-p)) rotateX(84deg) translateY(-6%); } }
+/* The composer opens upward from the line of light on its lower edge. The clip reaches past the panel so its
+   shadow and glow are already whole when the clip comes off. */
+@keyframes msg-grow {
+  from { opacity: 0; clip-path: inset(calc(100% - 2px) -80px -100px -80px round 22px); }
+  16% { opacity: 1; }
+  to { clip-path: inset(-80px -80px -100px -80px round 22px); }
+}
+@keyframes rim-take { 0% { opacity: 0; } 25% { opacity: 1; filter: brightness(2); } 100% { filter: none; } }
+
+/* Leaving Install for the homepage: the column and its floor sink back and the words come down as the planet rises. */
+.stage__copy.inst { animation: stage-sink 340ms var(--stage-away) forwards; }
+@keyframes stage-sink { to { opacity: 0; transform: translateY(18px); } }
+.stage[data-shift="home"] .hero__w { animation: stage-fall 860ms var(--stage-ease) calc(180ms + var(--i) * 36ms) backwards; }
+.stage[data-shift="home"] :is(.hero__lede, .hero__cta) { animation: stage-fall 860ms var(--stage-ease) 380ms backwards; }
+.stage[data-shift="home"] .hero__cta { animation-delay: 450ms; }
+.stage[data-shift="home"] :is(.hero__new, .hero__foot) { animation: stage-fade 700ms ease 620ms backwards; }
+@keyframes stage-fall { from { opacity: 0; transform: translateY(-22px); } }
+
+/* Reduced motion: no copy is made and nothing travels; the two stills cross-fade and the words simply appear. The
+   button keeps its light and its press, without the sheen. */
+@media (prefers-reduced-motion: reduce) {
+  .stage__still { transition-duration: 200ms; }
+  .stage__veil::before, .stage__veil::after { transition-duration: 200ms; }
+  .launch__go, .launch__go:active { transform: none; }
+  .launch__go::after, .hero[data-load] .launch__go::after { animation: none !important; }
+  .stage[data-shift] :is(.hero__w, .hero__lede, .hero__cta, .hero__new, .hero__foot, .inst__main > *, .inst__msg .inst__rim, .quiet.inst::before, .quiet.inst::after) { animation: stage-fade 200ms ease backwards; }
+}

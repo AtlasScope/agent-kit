@@ -62,6 +62,8 @@
 .launch[data-hold] .launch__earth img { opacity: 0; }
 .launch[data-intro] .launch__gl { transition: none; }
 .launch[data-intro].is-live .launch__earth { visibility: hidden; transition: none; }
+.launch[data-intro][data-late] .launch__gl { transition: opacity .9s var(--ease-launch); }
+.launch[data-intro][data-late].is-live .launch__earth { transition: visibility 0s 1s; }
 /* The words arrive with the planet's rise, not after it: readable about a second after the scene is ready. */
 .launch[data-intro]:not([data-hold]) .launch__shade { animation: launch-fade 1s ease .1s backwards; }
 .launch[data-intro]:not([data-hold]) .launch__w > span { animation: launch-word 1s var(--ease-launch) calc(.3s + var(--i) * 60ms) backwards; }
@@ -135,3 +137,20 @@
   .launch__new { font-size: 1rem; }
   .launch__legal { font-size: 0.875rem; }
 }
+
+/* The experimental horizon scenes (/horizon/...): on a phone the planet fills the lower third. The words end above
+   it, so the shade is only what the words need and a thin band behind the links at the foot. */
+@media (max-width: 760px) {
+  .launch--art .launch__shade { background: linear-gradient(to bottom, rgba(2,3,2,.6) 0%, rgba(2,3,2,.4) 44%, rgba(2,3,2,.1) 56%, rgba(2,3,2,0) 62%), linear-gradient(to top, rgba(2,3,2,.55), rgba(2,3,2,0) 72px); }
+  /* The planet is left clear: the extra requests give way to one link to the library. */
+  .launch--art .launch__more { display: none; }
+  .launch--art .launch__examples { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin-top: -6px; color: rgba(255,255,255,.86); font-size: var(--text-sm); text-decoration: none; text-shadow: 0 1px 14px rgba(2,3,2,.9); }
+  .launch--art .launch__examples .i { width: 15px; height: 15px; }
+}
+.launch__examples { display: none; }
+/* Their stills are cut wide (2.4:1) and tall (4:5) and fitted by height from the centre, exactly as the live canvas
+   frames the scene, so one lies on the other. The live scene fades in over the still. */
+.launch--art .launch__earth { background: #000; }
+.launch--art .launch__earth img { object-position: 50% 50%; }
+.launch--art.is-live .launch__earth { transition: visibility 0s 1.6s; }
+.launch--art .launch__gl { transition: opacity 1.4s ease; }

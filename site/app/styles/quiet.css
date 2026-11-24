@@ -2,7 +2,7 @@
    from. Owner: W9 install (DESIGN-CONTRACT.md).
    Depth: the grid is a floor that recedes to a horizon in the first screen, with a faint green and blue glow where it
    meets the dark. */
-.quiet { --bg: oklch(9% .003 160); --card: oklch(13% .005 160); --line: rgba(255,255,255,.09); --line-2: rgba(255,255,255,.16); --t1: #EDEDED; --t2: #A1A1A1; --t3: #8B8B8F; --ok: var(--led);
+.quiet { --bg: var(--c-canvas); --card: var(--c-surface); --line: var(--c-line); --line-2: var(--c-line-2); --t1: var(--c-fg); --t2: var(--c-fg-2); --t3: var(--c-fg-3); --ok: var(--c-signal);
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   position: relative; isolation: isolate; margin-inline: calc(50% - 50vw); background: var(--bg); color: var(--t1); overflow-x: clip; }
 .quiet::before { content: ""; position: absolute; left: 0; right: 0; top: 34svh; height: 72svh; z-index: -1; pointer-events: none; opacity: .9;

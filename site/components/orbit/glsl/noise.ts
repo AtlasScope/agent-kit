@@ -55,7 +55,7 @@ vec3 worley(vec3 p){
   vec3 i = floor(p), f = p - i;
   ivec3 I = ivec3(i);
   float d1 = 9., d2 = 9., id = 0.;
-  for (int z = -1; z <= 1; z++) for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
+  for (int z = -1; z <= 1 + uZ; z++) for (int y = -1; y <= 1 + uZ; y++) for (int x = -1; x <= 1 + uZ; x++) {
     ivec3 o = ivec3(x, y, z);
     vec3 h = hash3(I + o);
     vec3 r = vec3(o) + h - f;
@@ -71,7 +71,7 @@ float octave(float fp){ return 1. - smoothstep(.22, .55, fp); }
 // Fractal sum of gradient noise, about [-1, 1]. fp is the texel's footprint in the units of p.
 float fbm(vec3 p, float fp, int octaves){
   float a = .5, s = 0.;
-  for (int i = 0; i < octaves; i++) {
+  for (int i = 0; i < octaves + uZ; i++) {
     float w = octave(fp);
     if (w <= 0.) break;
     s += a*w*gnoise(p).w;
@@ -82,7 +82,7 @@ float fbm(vec3 p, float fp, int octaves){
 // The same with each octave folded into ridges, 0..1: mountain chains, cloud streets, cracks.
 float ridged(vec3 p, float fp, int octaves){
   float a = .5, s = 0., prev = 1.;
-  for (int i = 0; i < octaves; i++) {
+  for (int i = 0; i < octaves + uZ; i++) {
     float w = octave(fp);
     if (w <= 0.) break;
     float r = 1. - abs(gnoise(p).w);
@@ -98,7 +98,7 @@ float ridged(vec3 p, float fp, int octaves){
 float eroded(vec3 p, float fp, int octaves){
   float a = .5, s = 0.;
   vec3 g = vec3(0.);
-  for (int i = 0; i < octaves; i++) {
+  for (int i = 0; i < octaves + uZ; i++) {
     float w = octave(fp);
     if (w <= 0.) break;
     vec4 nz = gnoise(p);

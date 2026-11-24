@@ -4,8 +4,9 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AgentMark } from "./AgentMark";
 import { clearHandoff, saveHandoff } from "./install-choice";
-import type { Orbit } from "./orbit";
+import type { Orbit, Visit } from "./orbit";
 import { TALL_SCREEN } from "./orbit/params";
+import { STILLS } from "./horizon/stage";
 import { HERO, INSTALL_MESSAGE, SITE } from "@/lib/site";
 
 // The homepage: one screen and nothing below it. The headline, one sentence and Install over a live view from orbit.
@@ -60,7 +61,8 @@ function tierFor() {
 // Arriving at the guide from Start here, a new visitor is offered a free account there (StartWelcome.tsx).
 const markStartHere = () => { try { sessionStorage.setItem("agent-kit:start-here", String(Date.now())); } catch {} };
 
-export function LaunchHero({ headline, blur }: { headline: string; blur: string }) {
+// `art` swaps the scene for one of the experimental directions in components/horizon (the /horizon pages only).
+export function LaunchHero({ headline, blur, art }: { headline: string; blur: string; art?: string }) {
   const ref = useRef<HTMLElement>(null);
   const leaveAt = useRef(0);
   // The hand-off in progress, if any; `stop` cancels it and brings the homepage back.
@@ -96,10 +98,25 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
     const wait = intro ? setTimeout(go, WAIT_MS) : 0;
 
     // The scene's code arrives on its own, after the words: the page never waits on it.
-    let orbit: Orbit | null = null, score: typeof import("./orbit") | null = null, gone = false;
-    import("./orbit").then((module) => {
+    let orbit: Orbit | null = null, score: typeof import("./orbit") | null = null, sky: Visit, gone = false;
+    let stage: ReturnType<typeof import("./horizon").createStage> | null = null;
+    // The maps are megabytes; they are not asked for until the page itself has finished loading, so they never
+    // compete with the words, the fonts or the still.
+    const settled = new Promise<void>((done) => { if (document.readyState === "complete") done(); else addEventListener("load", () => done(), { once: true }); });
+    if (art) settled.then(() => import("./horizon")).then((module) => {
+      if (gone) return;
+      const asked = new URLSearchParams(location.search);
+      try {
+        stage = module.createStage(cv, { direction: module.DIRECTIONS[art] ?? module.DIRECTIONS.day, tall: () => matchMedia(TALL_SCREEN).matches, cloud: asked.get("cloud") || undefined, rate: asked.has("rate") ? Number(asked.get("rate")) : undefined, onError: () => {} });
+      } catch { stage = null; go(); }
+      kick();
+    }, go);
+    else import("./orbit").then((module) => {
       if (gone) return;
       score = module;
+      // Each visit gets its own sky: a seed for the climate, or the one in the address (?sky=12) to see one again.
+      const asked = Number(new URLSearchParams(location.search).get("sky"));
+      sky = module.visit(Number.isFinite(asked) && asked > 0 ? asked : module.freshSeed());
       // If the scene fails later (a shader the driver rejects, a machine far too slow), it is put away for good
       // and the still stays.
       const giveUp = () => { orbit?.dispose(); orbit = null; showing(false); go(); };
@@ -114,6 +131,9 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
     const showing = (on: boolean) => {
       if (on === shown) return;
       shown = on;
+      // A scene that is ready only after the opening has begun over the still (a slow machine, or a browser that
+      // compiles shaders slowly) fades in over it instead of replacing it mid-movement.
+      if (on && intro && mark >= 0 && performance.now() - mark > 100) el.setAttribute("data-late", "");
       el.classList.toggle("is-live", on);
       setLive(on);
       if (on) go();
@@ -122,11 +142,15 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
     const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
     const onMove = (e: PointerEvent) => { mouse.tx = e.clientX / innerWidth - .5; mouse.ty = e.clientY / innerHeight - .5; };
 
-    let raf = 0, onScreen = true, drawn = 0;
+    // `paced`: the last frame was drawn at the active pace and the loop has run without a break since. Only then is
+    // the gap before the next one a fair measure of how fast this machine draws, however long that gap is: the
+    // renderer's governor needs the slow frames of a slow machine most of all. A gap that follows the idle pace, a
+    // pause off screen or in a background tab, or the end of the hand-off says nothing about speed and is not counted.
+    let raf = 0, onScreen = true, drawn = 0, paced = false;
     const t0 = performance.now();
     function frame(now: number) {
       raf = 0;
-      if (!onScreen || document.hidden) return;
+      if (!onScreen || document.hidden) { paced = false; return; }
       // Before the hold lifts the scene stays dark; after, the opening runs on its own clock.
       const opening = openingAt(now);
       if (intro && opening * 1000 >= INTRO_MS) { intro = false; finish(); }
@@ -138,11 +162,22 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
       // loop keeps turning so the scene is there again if the homepage comes back.
       const out = lv >= 1;
       if (!out && orbit && score && now - drawn >= (moving ? ACTIVE_GAP : IDLE_GAP)) {
-        const steady = moving && now - drawn < 40;
+        const steady = moving && paced;
         drawn = now;
-        const shot = score.play({ opening, leave: lv, time: (now - t0) / 1000, px: mouse.x, py: mouse.y }, score.DEFAULTS);
+        // The climate (orbit/climate.ts) moves the light, the cloud tops and the aurora slowly while the page stays.
+        const time = (now - t0) / 1000, weather = score.climate(sky, time);
+        orbit.set(weather.look);
+        const shot = score.play({ opening, leave: lv, time, px: mouse.x, py: mouse.y, clock: score.weatherClock(sky, time) }, { ...score.DEFAULTS, ...weather.look });
         showing(orbit.render({ ...shot, steady }));
-      }
+        paced = moving;
+      } else if (!out && stage && now - drawn >= IDLE_GAP - 4) {
+        // The horizon scene never rests, but it moves slowly: thirty frames a second carry it.
+        drawn = now;
+        // A scene that breaks (a map that will not load, a graphics context the browser takes back) is put away and
+        // the still it began from is the picture again.
+        if (stage.broken()) { stage.dispose(); stage = null; showing(false); }
+        else showing(stage.frame({ now, opening, leave: lv, px: mouse.x, py: mouse.y }));
+      } else if (out) paced = false;
       // Without the live scene the opening plays over the still: it rises and comes up out of the dark.
       if (!out && !shown) {
         const rise = 1 - Math.exp(-opening / 1.1), light = 1 - .8 * Math.exp(-opening / .6);
@@ -174,9 +209,9 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
       removeEventListener("pointermove", onMove);
       document.removeEventListener("visibilitychange", kick);
       // Leaving the page gives the graphics memory back at once.
-      orbit?.dispose();
+      orbit?.dispose(); stage?.dispose();
     };
-  }, [finish, router]);
+  }, [finish, router, art]);
   // Leaving the homepage cancels a hand-off still in progress. It keeps the note it may have saved: when the install
   // page is what replaced the homepage, this runs just before that page reads it.
   useEffect(() => () => leaving.current?.stop(false), []);
@@ -218,9 +253,17 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
 
   const words = headline.split(" ");
   return (
-    <section ref={ref} className={`launch${live ? " is-live" : ""}`} aria-labelledby="hero-h" suppressHydrationWarning>
+    <section ref={ref} className={`launch${art ? " launch--art" : ""}${live ? " is-live" : ""}`} aria-labelledby="hero-h" suppressHydrationWarning>
       <script dangerouslySetInnerHTML={{ __html: ARM }} />
       <div data-r="scene" className="launch__scene" aria-hidden="true">
+        {art ? (
+          // An experimental direction: its own still, the first frame the live scene will draw, so the scene can take
+          // over from it unseen. With reduced motion, or without WebGL 2, the still is the picture.
+          <picture data-r="earth" className="launch__earth">
+            {STILLS.includes(art) && <source media={TALL_SCREEN} type="image/avif" srcSet={`/horizon/stills/${art}-tall.avif`} />}
+            {STILLS.includes(art) && <img src={`/horizon/stills/${art}-wide.avif`} alt="" width={3840} height={1600} fetchPriority="high" decoding="async" />}
+          </picture>
+        ) : (
         <picture data-r="earth" className="launch__earth" style={{ backgroundImage: `url(${blur})` }}>
           <source media={TALL_SCREEN} type="image/avif" srcSet={set("orbit-tall", TALL, "avif")} sizes="100vw" />
           <source media={TALL_SCREEN} type="image/webp" srcSet={set("orbit-tall", TALL, "webp")} sizes="100vw" />
@@ -228,6 +271,7 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
           <source type="image/webp" srcSet={set("orbit", WIDE, "webp")} sizes="100vw" />
           <img src="/hero/orbit-1920.webp" alt="" width={3840} height={2160} fetchPriority="high" decoding="async" />
         </picture>
+        )}
         <canvas data-r="gl" className="launch__gl" />
         <div className="launch__shade" />
       </div>
@@ -248,6 +292,8 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
             <Link className="launch__new" href="/start" onClick={markStartHere}>New to coding agents? Start here{ARROW}</Link>
           </div>
           <p className="launch__note" id="launch-note">Copies a message to paste into your agent.</p>
+          {/* On the horizon pages a phone keeps one example and a way to the rest, and leaves the planet clear. */}
+          {art && <Link className="launch__examples" href="/prompts">More examples{ARROW}</Link>}
           <ul className="launch__more" translate="no" aria-label="More requests it takes">
             {HERO.more.map((m) => (
               <li key={m.case}>
@@ -261,6 +307,7 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
           <li><Link href="/privacy">Privacy</Link></li>
           <li><Link href="/terms">Terms</Link></li>
           <li><a href={`${SITE.repo}/blob/main/CREDITS.md`}>Credits</a></li>
+          {art && <li><Link href="/horizon/about">About this view</Link></li>}
         </ul>
       </div>
     </section>
