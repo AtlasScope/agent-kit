@@ -151,6 +151,41 @@ for (const size of SIZES) {
     await ctx.close();
   });
 
+  test(`${size.name}: search downloads nothing until someone starts to search`, async () => {
+    const ctx = await browser.newContext({ ...size });
+    const page = await ctx.newPage();
+    const fetched = [];
+    page.on("request", (r) => { if (/\/search-(index(\.v2)?\.json|copy\/)/.test(r.url())) fetched.push(new URL(r.url()).pathname); });
+    await page.goto(base + "/start", { waitUntil: "networkidle" });
+    // Time for any idle or deferred fetch to start.
+    await page.waitForTimeout(3000);
+    assert.deepEqual(fetched, [], "the index loads before any sign of search");
+    const banner = page.getByRole("banner");
+    const index = page.waitForResponse((r) => r.url().endsWith("/search-index.v2.json"));
+    await (size.name === "phone" ? banner.getByRole("button", { name: "Search", exact: true }).tap() : banner.getByRole("button", { name: /^Search/ }).hover());
+    assert.equal((await index).status(), 200);
+    const entries = await (await index).json();
+    assert.ok(entries.some((e) => e.copy) && entries.every((e) => !e.copy || e.copy.text === undefined), "the index carries Copy labels without the texts");
+    await ctx.close();
+  });
+
+  test(`${size.name}: a Copy text that is gone says the result changed`, async () => {
+    const { page, ctx, errors } = await open(size, "/skills");
+    const mod = process.platform === "darwin" ? "Meta" : "Control";
+    await page.getByRole("banner").locator(".kbd", { hasText: "K" }).waitFor({ state: "attached" });
+    await page.keyboard.press(`${mod}+k`);
+    const box = page.getByRole("combobox", { name: "Search the library" });
+    await page.route("**/search-copy/skill/tdd*", (r) => r.fulfill({ status: 404, body: "" }));
+    await box.fill("tdd");
+    const opt = page.locator('#search-results a[role="option"][href="/skills/tdd"]').first();
+    await opt.waitFor();
+    await opt.hover();
+    await box.press(`${mod}+Enter`);
+    await page.getByRole("status").filter({ hasText: "changed in an update" }).waitFor();
+    assert.deepEqual(errors, []);
+    await ctx.close();
+  });
+
   test(`${size.name}: a prompt page copies the whole prompt with its rules`, async () => {
     const p = data.prompts.find((x) => x.id === "PG01");
     const path = `/prompts/${p.slug}`;

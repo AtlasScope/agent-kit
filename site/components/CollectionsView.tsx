@@ -138,8 +138,14 @@ function ItemGroup({ title, items, c, actions }: { title: string; items: Resolve
   const H = actions ? "h3" : "h2";
   const rowH = actions ? "h4" : "h3";
   const skills = items.filter((i) => i.kind === "skill");
-  // `resolve` already shows each library entry once, under its own ref; Remove takes every stored spelling with it.
-  const slugs = items.filter((i) => i.kind === "prompt").map((i) => getPromptById(i.ref)?.slug).filter((x): x is string => Boolean(x));
+  // Prompt refs are matched without regard to case, so a stored "a01" shows as A01. Remove must send the ref as
+  // stored (the delete is exact), and two stored spellings of one prompt show once.
+  const storedRef = new Map<string, string>();
+  for (const i of items) {
+    const p = i.kind === "prompt" ? getPromptById(i.ref) : undefined;
+    if (p && !storedRef.has(p.id)) storedRef.set(p.id, i.ref);
+  }
+  const slugs = [...storedRef.keys()].map((id) => getPromptById(id)!.slug);
   const remove = actions && ((kind: "prompt" | "skill", ref: string, name: string) => (
     <Pop summary={X} summaryClass="col__rm" label={`Remove ${name} from ${c.name}`}>
       <ActionForm action={actions.removeItem} className="col__popform">
@@ -153,7 +159,7 @@ function ItemGroup({ title, items, c, actions }: { title: string; items: Resolve
     <section className="cgroup" aria-labelledby={hid}>
       <H id={hid}>{title} <span className="cgroup__n">{slugs.length || skills.length}</span></H>
       {slugs.length > 0
-        ? <PromptRows as={rowH} slugs={slugs} action={remove && ((p) => remove("prompt", p.id, p.t))} />
+        ? <PromptRows as={rowH} slugs={slugs} action={remove && ((p) => remove("prompt", storedRef.get(p.id) ?? p.id, p.t))} />
         : <SkillCards as={rowH} names={skills.map((i) => i.ref)} action={remove && ((sk) => remove("skill", sk.name, sk.name))} />}
     </section>
   );

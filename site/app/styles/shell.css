@@ -16,8 +16,8 @@
 }
 .top > .container { max-width: max(var(--container), 80rem); }
 .nav { display: flex; align-items: center; gap: var(--space-3) var(--space-6); min-height: 64px; }
-/* Lockup. LogoPixelGrid aligns the SVG's origin to the device pixel grid without moving the link or changing the
-   artwork's size. */
+/* Lockup. The svg is drawn on the pixel grid by export_site.py: 32px tall, capitals from 4px to a baseline at 20px.
+   Never scale it. The only transform is LogoPixelGrid's sub-pixel translate, which puts its origin on a device pixel. */
 .wordmark { display: inline-flex; align-items: center; gap: 0; color: var(--c-fg); text-decoration: none; white-space: nowrap; }
 .aslogo-grid { display: inline-flex; flex: none; }
 .aslogo { display: block; flex: none; transform: translate(var(--logo-x, 0px), var(--logo-y, 0px)); }

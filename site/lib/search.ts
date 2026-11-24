@@ -96,8 +96,11 @@ export type Entry = Doc & {
   href: string;
   meta: string;                 // one short line under the title: kind, id, kit, version
   sec?: string;                 // prompt section, for its color
-  copy?: { label: string; text: string; done: string };
+  // What Copy sends. `text` is left out of the downloaded index and fetched per entry (copyUrl); `v` versions it.
+  copy?: { label: string; text?: string; done: string; v?: string };
 };
+export const copyUrl = (e: { kind: Kind; ref: string; copy?: { v?: string } }) =>
+  `/search-copy/${e.kind}/${encodeURIComponent(e.ref)}${e.copy?.v ? `?v=${e.copy.v}` : ""}`;
 export type Scope = "all" | "prompt" | "skill" | "kit" | "fix";
 export const SCOPES: [Scope, string][] = [["all", "All"], ["prompt", "Prompts"], ["skill", "Skills"], ["kit", "Kits"], ["fix", "Fix"]];
 const IN_SCOPE: Record<Scope, Kind[] | null> = { all: null, prompt: ["prompt", "area"], skill: ["skill"], kit: ["kit"], fix: ["fix"] };

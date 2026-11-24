@@ -89,7 +89,7 @@ export function StepMeter({ items, base, store, current, noun }: { items: Item[]
   const n = items.filter((s) => done.includes(s.slug)).length;
   return (
     <nav className="meter" aria-label={`${noun} ${here + 1} of ${items.length}`}>
-      <ol>
+      <ol style={{ "--tight": items.length > 6 ? Math.ceil(items.length / 2) : items.length } as React.CSSProperties}>
         {items.map((s, i) => {
           const d = done.includes(s.slug), now = s.slug === current;
           return (

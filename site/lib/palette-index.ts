@@ -1,7 +1,8 @@
 import "server-only";
+import { createHash } from "node:crypto";
 import { listed, skills, kits, fixes, areas, copyText, copyLabel, kindLabel, whatOf, skillInstall } from "./content";
 import { promptDoc, skillDoc } from "./search";
-import { INSTALL_MESSAGE, kitInstallMessage } from "./site";
+import { INSTALL_MESSAGE, kitInstallMessage, authEnabled } from "./site";
 import { STEPS } from "./start";
 import { LESSONS } from "./lessons";
 import type { Entry } from "./search";
@@ -12,21 +13,27 @@ const lc = (...xs: unknown[]) => xs.flat(2).filter(Boolean).join(" ").toLowerCas
 const PAGES: { ref: string; title: string; href: string; summary: string; aka: string }[] = [
   { ref: "install", title: "Install Agent Kit", href: "/install", summary: "One message to paste into any agent, or the commands for each agent by hand.", aka: "setup add plugin marketplace npx get started download" },
   { ref: "start", title: "Start", href: "/start", summary: "A step-by-step first project with a coding agent, from nothing to a working app.", aka: "beginner tutorial guide new first time onboarding" },
-  { ref: "learn", title: "Learn", href: "/learn", summary: "Five short lessons on asking a coding agent for good work.", aka: "lessons tutorial guide course" },
+  { ref: "learn", title: "Learn", href: "/learn", summary: "Short lessons on asking a coding agent for good work.", aka: "lessons tutorial guide course" },
   { ref: "prompts", title: "Prompts", href: "/prompts", summary: "The prompt library: commands, investigations, recipes and ways of working.", aka: "library browse all" },
   { ref: "skills", title: "Skills", href: "/skills", summary: "Every skill, grouped by kit, with its source and license.", aka: "library browse all" },
   { ref: "kits", title: "Kits", href: "/kits", summary: "The plugins that bundle the skills, each installable on its own.", aka: "plugins bundles packages" },
   { ref: "fix", title: "Fix a problem", href: "/fix", summary: "Pick the symptom you see and get the prompts to try first, in order.", aka: "symptom broken debug troubleshoot" },
-  { ref: "collections", title: "Collections", href: "/collections", summary: "Prompts and skills you saved, in your own lists.", aka: "saved starred favorites bookmarks account" },
+  // Saved lists live on the account page, which exists only when sign-in is configured (see the filter below).
+  { ref: "collections", title: "Collections", href: "/account", summary: "Prompts and skills you saved, in your own lists.", aka: "saved starred favorites bookmarks account" },
   { ref: "mcp-setup", title: "Use the library from your agent", href: "/mcp-setup", summary: "Connect the MCP server so your agent can search and fetch prompts itself.", aka: "mcp server connect" },
   { ref: "about", title: "About", href: "/about", summary: "Who makes Agent Kit, where the skills come from, and the credits.", aka: "credits authors license atlasscope" },
 ];
 
 // Pages, then kits and fixes, then prompts and skills: on a tie the earlier entry wins, so a query that is
-// exactly a page's name ("install", "kits") lands on the page.
-export function paletteIndex(): Entry[] {
+// exactly a page's name ("install", "kits") lands on the page. Each entry carries its full Copy text here; the
+// index the browser downloads leaves the text out (paletteIndex), and each text is served on its own at
+// /search-copy/<kind>/<ref> (paletteCopy), so a phone pays for one prompt's text only when it previews or copies it.
+let built: Entry[] | null = null;
+let texts: Map<string, string> | null = null;
+function entries(): Entry[] {
+  if (built) return built;
   const out: Entry[] = [];
-  for (const p of PAGES) out.push({
+  for (const p of PAGES.filter((x) => x.ref !== "collections" || authEnabled())) out.push({
     kind: "page", ref: p.ref, title: p.title, summary: p.summary, href: p.href, meta: "Page",
     fields: [[lc(p.ref), 60], [lc(p.title), 40], [lc(p.aka), 25], [lc(p.summary), 10]],
     ...(p.ref === "install" ? { copy: { label: "Copy install message", text: INSTALL_MESSAGE, done: "Install message copied" } } : {}),
@@ -64,5 +71,22 @@ export function paletteIndex(): Entry[] {
     ...skillDoc(s), href: `/skills/${s.name}`, meta: `Skill · ${s.kit}${s.credit ? ` · by ${s.credit.author}` : ""}`,
     copy: { label: "Copy install command", text: skillInstall(s).any, done: "Install command copied" },
   });
-  return out;
+  return (built = out);
+}
+
+export function paletteIndex(): Entry[] {
+  // `v` is a short hash of the text. It is only a cache key (the route ignores it): a changed text gets a new URL,
+  // so a browser never serves a text it cached before the change.
+  return entries().map((e) => (e.copy?.text !== undefined
+    ? { ...e, copy: { label: e.copy.label, done: e.copy.done, v: createHash("sha1").update(e.copy.text).digest("hex").slice(0, 8) } } : e));
+}
+
+// The index with its texts, as builds before v2 fetched it from /search-index.json. Kept for tabs still running
+// such a build; remove once a week has passed since v2 shipped (the index's stale-while-revalidate window).
+export const paletteIndexWithTexts = (): Entry[] => entries();
+
+export const paletteCopies = (): { kind: string; ref: string }[] => entries().filter((e) => e.copy).map((e) => ({ kind: e.kind, ref: e.ref }));
+export function paletteCopy(kind: string, ref: string): string | undefined {
+  texts ??= new Map(entries().flatMap((e) => (e.copy?.text !== undefined ? [[`${e.kind}:${e.ref}`, e.copy.text] as const] : [])));
+  return texts.get(`${kind}:${ref}`);
 }
