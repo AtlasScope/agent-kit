@@ -73,7 +73,8 @@ test("the page has every page of the book, a job picker, Keen's own header and n
   assert.match(html, /<select data-step="0">/);
   assert.match(html, /Add all, in this order/);
   assert.match(html, /Details for someone technical/);
-  assert.match(html, /<span class="brand"><i aria-hidden="true"><\/i>Keen<\/span>/);
+  assert.match(html, />AtlasScope<\/span><span class="tool">Keen<\/span>/);
+  assert.match(render([{ title: "x", area: "Engineer <x>" }]), /<span class="tool">Engineer &lt;x&gt;<\/span>/);
   assert.match(html, /id="start">Start<\/button>/);
   assert.ok(!/(src|href)="https?:/.test(html), "nothing is fetched from elsewhere, so it looks the same everywhere");
 });
