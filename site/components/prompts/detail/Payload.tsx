@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { CopyButton } from "@/components/CopyButton";
 import { FloatingCopy } from "@/components/ui/FloatingCopy";
@@ -92,14 +92,16 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
         }
       }
     });
-    // A press while the label already says "blocked" changes nothing in the DOM if it is blocked again, so check
-    // once the clipboard call has had time to settle. A success turns the label to "Copied" first and is skipped.
-    const timers = new Set<ReturnType<typeof setTimeout>>();
+    // A press while the button already says "blocked" changes nothing in the DOM if it is blocked again, so for that
+    // press ask the clipboard directly, with the same text the button writes, and wait for its answer. This listener
+    // runs in the capture phase, before the button's own handler, under the same press.
+    let live = true;
     const onClick = (e: MouseEvent) => {
       const btn = isCopy(e.target as Element);
       if (!btn?.hasAttribute("data-blocked")) return;
-      const t = setTimeout(() => { timers.delete(t); if (btn.hasAttribute("data-blocked")) onBlocked(btn); }, 400);
-      timers.add(t);
+      const f = textFor(btn);
+      if (!f) return;
+      navigator.clipboard.writeText(f.text).catch(() => { if (live) setFallback({ ...f, n: Date.now() }); });
     };
     for (const el of [panel, dock]) {
       if (!el) continue;
@@ -107,7 +109,7 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
       el.addEventListener("click", onClick, true);
     }
     return () => {
-      watch.disconnect(); timers.forEach(clearTimeout);
+      watch.disconnect(); live = false;
       for (const el of [panel, dock]) el?.removeEventListener("click", onClick, true);
     };
   }, [text, label, copyLabel, steps, inline]);
@@ -129,11 +131,19 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
     window.getSelection()?.selectAllChildren(pre.current);
   }, [fallback]);
 
-  // Keep the anchor one Copy bar's height above the panel's end.
-  useEffect(() => {
+  // Keep the anchor one Copy bar's height above the panel's end. A layout effect, so the offset is in place before
+  // FloatingCopy's first measurement (its effect runs after this commit's layout effects). When the bar's height
+  // changes later (it wraps on rotate), a scroll event asks FloatingCopy to measure again.
+  useLayoutEffect(() => {
     const bar = head.current, mark = anchor.current;
     if (!bar || !mark) return;
-    const size = () => { mark.style.bottom = `${bar.offsetHeight}px`; };
+    const size = () => {
+      const next = `${bar.offsetHeight}px`;
+      if (mark.style.bottom === next) return;
+      const first = !mark.style.bottom;
+      mark.style.bottom = next;
+      if (!first) dispatchEvent(new Event("scroll"));
+    };
     size();
     const ro = new ResizeObserver(size);
     ro.observe(bar);
@@ -145,8 +155,6 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
     if (e.metaKey || e.ctrlKey || e.altKey || e.repeat || e.nativeEvent.isComposing) return;
     if (e.target !== pre.current && e.target !== main.current && editable(e.target)) return;
     if (fallback?.slot && e.target === pre.current) return; // a step's text is showing: C would copy step 1 instead
-    const sel = window.getSelection();
-    if (sel && String(sel).length && root.current?.contains(sel.anchorNode)) return; // a selection in the panel: Cmd/Ctrl+C is the user's
     e.preventDefault();
     main.current?.click();
   };

@@ -169,6 +169,7 @@ for (const size of SIZES) {
 
   test(`${size.name}: a step-by-step recipe copies step 1 and each step on its own`, async () => {
     const p = data.prompts.find((x) => x.split && x.planSteps?.filter((st) => st.copy).length >= 2);
+    assert.ok(p, "needs a step-by-step recipe with two or more copyable steps");
     const path = `/prompts/${p.slug}`;
     const { page, ctx, errors } = await open(size, path);
     await noSideScroll(page, path);
@@ -179,6 +180,13 @@ for (const size of SIZES) {
     const i = p.planSteps.findIndex((st, k) => k > 0 && st.copy);
     await page.locator(`[data-step="${i}"] button.pd-stepcopy`).click();
     assert.equal(await clipboard(page), p.planSteps[i].copy);
+    // With the clipboard blocked, that step's exact text shows beside the step, selected for Cmd/Ctrl+C.
+    await page.evaluate(() => { navigator.clipboard.writeText = () => Promise.reject(new Error("blocked")); });
+    await page.locator(`[data-step="${i}"] button.pd-stepcopy`).click();
+    const shown = page.locator(`[data-step-slot="${i}"] .pd-text`);
+    await shown.waitFor();
+    assert.equal(await shown.textContent(), p.planSteps[i].copy);
+    assert.equal(await page.evaluate(() => String(getSelection())), p.planSteps[i].copy);
     assert.deepEqual(errors, []);
     await ctx.close();
   });
