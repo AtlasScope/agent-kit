@@ -17,7 +17,9 @@ export function SectionRail({ items, label }: { items: RailItem[]; label: string
     let frame = 0;
     const update = () => {
       frame = 0;
-      const line = window.innerHeight / 3;
+      // Never above the rail's bottom edge, so a short screen still marks the section a rail link jumped to.
+      const railBottom = rail.current?.getBoundingClientRect().bottom ?? 0;
+      const line = Math.max(window.innerHeight / 3, railBottom + 24);
       const atEnd = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
       let at: HTMLElement | null = null;
       for (const t of targets) if (t.getBoundingClientRect().top <= line) at = t;

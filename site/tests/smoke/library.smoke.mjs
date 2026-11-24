@@ -118,3 +118,24 @@ for (const size of SIZES) {
     await ctx.close();
   });
 }
+
+// A phone on its side: a short screen still marks the section a rail link jumped to.
+test("phone landscape: a rail jump marks its section", async () => {
+  const size = { name: "landscape", viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true };
+  const { page, ctx, errors } = await open(size, "/prompts");
+  await page.locator('.rail a[href="#plan"]').click();
+  await page.locator('.rail a[href="#plan"][aria-current="location"]').waitFor();
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+// Fix pages use the ordered variant of the shared row: numbered, the first marked Best first.
+test("desktop: a Fix page numbers its prompts in order", async () => {
+  const f = data.fixes[0];
+  const { page, ctx, errors } = await open(SIZES[0], `/fix/${f.slug}`);
+  const n = await page.locator("ol.prows > li .prow__n").allTextContents();
+  assert.deepEqual(n, f.prompts.filter((s) => data.prompts.some((p) => p.slug === s)).map((_, i) => String(i + 1)));
+  assert.equal(await page.locator("ol.prows > li").first().locator(".best").first().textContent(), "Best first");
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});

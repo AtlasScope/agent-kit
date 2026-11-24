@@ -27,7 +27,8 @@ export function AreaFilter({ listId, options, total }: { listId: string; options
     const q = new URLSearchParams(params.toString());
     if (next) q.set("does", next); else q.delete("does");
     const s = q.toString();
-    history.replaceState(history.state, "", s ? `${pathname}?${s}` : pathname);
+    // A null state lets Next sync useSearchParams with the new address.
+    window.history.replaceState(null, "", s ? `${pathname}?${s}` : pathname);
   };
 
   const shown = pick ? options.find((o) => o.label === pick)?.n ?? total : total;

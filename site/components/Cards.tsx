@@ -13,12 +13,15 @@ const withKitLinks = (text: string) =>
   text.split(KIT_NAME).map((part, i) => (i % 2 ? <Link key={i} href={`/kits/${part}`}>{part}</Link> : part));
 
 
-// One row per prompt: id, title and what it finds, when to use it, what it changes, then Star and Copy.
-// The whole row opens the prompt (the title link stretches over it); Star and Copy sit above that link.
-export function PromptCard({ p, best }: { p: Prompt; best?: boolean }) {
+// The one prompt row, used wherever the site lists prompts: area pages, Fix, prompt and skill detail, collections.
+// Id, title and what it finds, when to use it, what it changes, then Star and Copy. The title link stretches over the
+// row; Star and Copy sit above it. `n` numbers the row (ordered lists such as Fix); `best` marks it Best first.
+// Put rows in PromptRows, or in a <ul className="prows"> / <ol className="prows prows--ranked"> of <li>s.
+export function PromptRow({ p, n, best }: { p: Prompt; n?: number; best?: boolean }) {
   const mode = modeOf(p);
   return (
-    <article className={`prow${best ? " prow--best" : ""}`} data-sec={p.sec} data-mode={mode || undefined}>
+    <article className={`prow${n != null ? " prow--n" : ""}${best ? " prow--best" : ""}`} data-sec={p.sec} data-mode={mode || undefined}>
+      {n != null && <span className="prow__n" aria-hidden="true">{n}</span>}
       <code className="pid prow__id" translate="no">{p.id}</code>
       <div className="prow__main">
         <h3 className="prow__t"><Link className="stretch" href={`/prompts/${p.slug}`} translate={p.t.startsWith("/") ? "no" : undefined}>{p.t}</Link></h3>
@@ -39,12 +42,23 @@ export function PromptCard({ p, best }: { p: Prompt; best?: boolean }) {
   );
 }
 
-// A list of prompt rows. With rank, the list is ordered (the Fix pages: "Prompts to try, in order") and the first
-// is marked Best first. Each item carries its mode so the area filter can show or hide it.
-export function PromptCards({ slugs, rank }: { slugs: string[]; rank?: boolean }) {
+// A list of prompt rows. `ordered` makes it an <ol> with numbered rows and the first marked Best first (Fix pages:
+// "Prompts to try, in order"). Each item carries its mode so the area filter can show or hide it.
+export function PromptRows({ slugs, ordered }: { slugs: string[]; ordered?: boolean }) {
   const list = slugs.map(getPrompt).filter((p): p is Prompt => Boolean(p));
-  const items = list.map((p, i) => <li key={p.slug} data-mode={modeOf(p) || undefined}><PromptCard p={p} best={rank && i === 0} /></li>);
-  return rank ? <ol className="prows prows--ranked">{items}</ol> : <ul className="prows">{items}</ul>;
+  const items = list.map((p, i) => (
+    <li key={p.slug} data-mode={modeOf(p) || undefined}><PromptRow p={p} n={ordered ? i + 1 : undefined} best={ordered && i === 0} /></li>
+  ));
+  return ordered ? <ol className="prows prows--ranked">{items}</ol> : <ul className="prows">{items}</ul>;
+}
+
+// Older names, kept so existing pages keep working. PromptCard is PromptRow; PromptCards is PromptRows with `rank`
+// for `ordered`.
+export function PromptCard({ p, best }: { p: Prompt; best?: boolean }) {
+  return <PromptRow p={p} best={best} />;
+}
+export function PromptCards({ slugs, rank }: { slugs: string[]; rank?: boolean }) {
+  return <PromptRows slugs={slugs} ordered={rank} />;
 }
 
 // The first whole sentence of a skill's description, so a card never stops mid-thought.

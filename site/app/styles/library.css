@@ -31,7 +31,9 @@
 @media (hover: hover) and (pointer: fine) { .rail__a:hover { color: var(--c-fg); } }
 @media (pointer: coarse) { .rail__a { min-height: 44px; } }
 /* Jump targets clear the header and the rail. */
-.lib [id] { scroll-margin-top: calc(var(--header-h) + 64px); }
+/* html's scroll-padding already clears the header; this adds the rail's height (34px links, 44px on touch, plus padding). */
+.lib [id] { scroll-margin-top: 52px; }
+@media (pointer: coarse) { .lib [id] { scroll-margin-top: 62px; } }
 
 /* Best starting points: a ledger of jobs. Three columns on a laptop, each job under a hairline. */
 .starts { display: grid; border-bottom: 1px solid var(--c-line); }
@@ -114,7 +116,7 @@
 .afilter__n { font: var(--weight-regular) var(--type-micro)/1 var(--font-mono); color: var(--c-fg-3); }
 .afilter__b[aria-pressed="true"] { background: var(--c-surface); color: var(--c-fg); box-shadow: var(--shadow-1); }
 @media (hover: hover) and (pointer: fine) { .afilter__b:hover { color: var(--c-fg); } }
-@media (pointer: coarse) { .afilter__b { min-height: 40px; } }
+@media (pointer: coarse) { .afilter__b { min-height: 44px; } }
 @media (max-width: 40rem) { .lib__bar { display: grid; } .afilter { justify-self: start; } }
 
 /* Next page in this section, at the end of an area. */
@@ -125,8 +127,8 @@
 @media (hover: hover) and (pointer: fine) { .nextarea:hover .nextarea__t { text-decoration: underline; text-decoration-color: var(--c-line-2); text-underline-offset: 0.2em; } .nextarea:hover .nextarea__go { color: var(--c-fg); transform: translateX(calc(3px * var(--travel))); } }
 
 /* ---------- Prompt rows (PromptCards): area pages, Fix, prompt and skill detail ---------- */
-.prows { display: grid; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--c-line); counter-reset: prow; }
-.prows > li { border-bottom: 1px solid var(--c-line); counter-increment: prow; }
+.prows { display: grid; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--c-line); }
+.prows > li { border-bottom: 1px solid var(--c-line); }
 .prows > li[hidden] { display: none; }
 .prow { position: relative; display: grid; grid-template-columns: 3.75rem minmax(0, 1fr) 10rem auto; grid-template-areas: "id main meta act"; align-items: start; gap: 0 var(--space-4); padding: var(--space-4) var(--space-3); margin-inline: calc(var(--space-3) * -1); border-radius: var(--radius-md); transition: background-color var(--dur-fast) var(--ease-out); content-visibility: auto; contain-intrinsic-size: auto 120px; }
 .prow__id { grid-area: id; justify-self: start; margin-top: 2px; }
@@ -146,23 +148,23 @@
 .prow__m .warn, .pcard__m .warn { color: var(--c-fg-2); }
 .prow__m .warn::before, .pcard__m .warn::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background: currentColor; vertical-align: 1px; }
 /* Ranked lists (Fix): the order is the advice, so the number leads. */
-.prows--ranked .prow { grid-template-columns: 1.5rem 3.75rem minmax(0, 1fr) 10rem auto; grid-template-areas: "n id main meta act"; }
-.prows--ranked .prow::before { content: counter(prow); grid-area: n; font: var(--weight-medium) var(--type-sm)/1.5 var(--font-mono); color: var(--c-fg-3); }
+.prow--n { grid-template-columns: 1.5rem 3.75rem minmax(0, 1fr) 10rem auto; grid-template-areas: "n id main meta act"; }
+.prow__n { grid-area: n; font: var(--weight-medium) var(--type-sm)/1.5 var(--font-mono); color: var(--c-fg-3); }
 @media (hover: hover) and (pointer: fine) {
   .prow:has(.stretch:hover) { background: var(--c-surface); }
   .prow:has(.stretch:hover) .prow__t a { text-decoration: underline; text-decoration-color: var(--c-line-2); text-underline-offset: 0.2em; } }
 .prow:has(.stretch:focus-visible) { background: var(--c-surface); }
-@media (pointer: coarse) { .prow__a .btn, .pcard__a .btn { min-height: 44px; } }
+@media (pointer: coarse) { .prow__a .btn, .pcard__a .btn, .menu > .btn { min-height: 44px; } }
 /* Narrower: meta moves under the text, actions stay on the right. */
 @media (max-width: 64rem) {
   .prow { grid-template-columns: 4rem minmax(0, 1fr) auto; grid-template-areas: "id main act" "id meta act"; }
-  .prows--ranked .prow { grid-template-columns: 1.5rem 4rem minmax(0, 1fr) auto; grid-template-areas: "n id main act" "n id meta act"; }
+  .prow--n { grid-template-columns: 1.5rem 4rem minmax(0, 1fr) auto; grid-template-areas: "n id main act" "n id meta act"; }
   .prow__m { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; } }
 /* Phone: one column. Title, text, then id, meta and the actions on one line. */
 @media (max-width: 40rem) {
-  .prow, .prows--ranked .prow { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "main main main" "id meta act"; align-items: center; gap: var(--space-3) var(--space-3); padding: var(--space-4) 0; margin-inline: 0; border-radius: 0; }
-  .prows--ranked .prow::before { display: none; }
-  .prows--ranked .prow__t::before { content: counter(prow) ". "; color: var(--c-fg-3); font-family: var(--font-mono); font-weight: 500; }
+  .prow, .prow--n { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "main main main" "id meta act"; align-items: center; gap: var(--space-3) var(--space-3); padding: var(--space-4) 0; margin-inline: 0; border-radius: 0; }
+  .prow--n { grid-template-areas: "n main main" "id meta act"; }
+  .prow__n { align-self: start; padding-top: 1px; }
   .prow__id { margin: 0; }
   .prow__m { margin: 0; } }
 
