@@ -108,9 +108,13 @@ for (const size of SIZES) {
     const path = `/prompts/${p.slug}`;
     const { page, ctx, errors } = await open(size, path);
     await noSideScroll(page, path);
-    // The page's main button (related prompts further down have their own).
-    await page.locator("button.btn--solid", { hasText: "Copy prompt" }).first().click();
+    // The page's one main Copy, in the payload panel's bar (related prompts further down have their own).
+    const main = page.locator(".pd-payload button.pd-copy", { hasText: "Copy prompt" });
+    assert.equal(await main.count(), 1);
+    await main.click();
     assert.equal(await clipboard(page), composeCopy(p));
+    // The text on screen is the text that was copied.
+    assert.equal(await page.locator(".pd-text").textContent(), composeCopy(p));
     assert.deepEqual(errors, []);
     await ctx.close();
   });
