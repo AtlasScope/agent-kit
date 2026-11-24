@@ -118,10 +118,13 @@ body:has(main.home) .foot { display: none; }
 @media (pointer: coarse) { .footer a { min-width: 44px; min-height: 44px; } }
 
 /* Home keeps main's header until Fable's track decides (DESIGN-CONTRACT.md, Off limits): the steady green light after
-   the product name, the short lit stretch of the bottom line, the outlined field, and Sign in outlined in green.
+   the product name, the solid bar and grey separator, the short lit stretch of the bottom line, the outlined field,
+   and Sign in outlined in green.
    Colours resolve through the frozen stage palette in tokens.css. */
 :root:has(.home) .top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; pointer-events: none;
   background: linear-gradient(90deg, transparent 6%, color-mix(in oklab, var(--led) 90%, transparent) 16%, color-mix(in oklab, var(--led) 35%, transparent) 28%, transparent 40%); box-shadow: 0 0 10px color-mix(in oklab, var(--led) 50%, transparent); }
+:root:has(.home) .top { background: var(--color-paper); -webkit-backdrop-filter: none; backdrop-filter: none; border-bottom-color: var(--color-rule); }
+:root:has(.home) .wordmark .wordmark__sep { height: 20px; background: var(--c-edge); } /* main's --color-rule-2 on the stage */
 :root:has(.home) .wordmark .wordmark__name { display: inline-flex; align-items: center; gap: 8px; color: var(--color-ink); }
 :root:has(.home) .wordmark .wordmark__name::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--led); box-shadow: var(--led-shine); }
 :root:has(.home) .links a { min-height: 36px; padding: 0 12px; border-radius: 8px; color: var(--color-ink-2); font-size: .9375rem; }
