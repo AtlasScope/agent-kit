@@ -102,12 +102,15 @@ export function Stage({ children }: { children: React.ReactNode }) {
     layer.append(beam);
     const at = (x: number, y: number, w: number) => ({ left: px(x), top: px(y), width: px(w) });
     const r = Math.min(24, b.width * 0.06);
+    // Down to the panel's lower edge at its centre, then outward along that edge as the panel grows up out of it.
+    const mid = b.left + b.width / 2, w0 = Math.min(a.width * 0.9, b.width - 2 * r);
     beam.animate([
       { ...at(a.left + a.width * 0.08, a.top + a.height / 2, a.width * 0.84), opacity: 0 },
-      { ...at(a.left + a.width * 0.04, a.top + a.height / 2, a.width * 0.92), opacity: 1, offset: 0.16 },
-      { ...at(b.left + r, b.bottom, b.width - 2 * r), opacity: 0.9, offset: 0.82 },
+      { ...at(a.left + a.width * 0.04, a.top + a.height / 2, a.width * 0.92), opacity: 1, offset: 0.12 },
+      { ...at(mid - w0 / 2, b.bottom, w0), opacity: 1, offset: 0.6 },
+      { ...at(b.left + r, b.bottom, b.width - 2 * r), opacity: 0.85, offset: 0.86 },
       { ...at(b.left + r, b.bottom, b.width - 2 * r), opacity: 0 },
-    ], { duration: 600, delay: 90, easing: "cubic-bezier(0.45, 0, 0.15, 1)", fill: "both" });
+    ], { duration: 440, delay: 50, easing: "cubic-bezier(0.4, 0, 0.2, 1)", fill: "both" });
   }, [mode]);
 
   // Any plain click on a link between the two pages, and Back or Forward between them, starts the movement.
@@ -145,7 +148,11 @@ export function Stage({ children }: { children: React.ReactNode }) {
       if (moving || now - drawn >= REST_GAP) {
         drawn = now;
         if (stage.broken()) { stage.dispose(); stage = null; show(false); return; }
-        show(stage.frame({ now, opening: 1e6, leave: 0, px: 0, py: 0, recede: c.at }));
+        const drew = stage.frame({ now, opening: 1e6, leave: 0, px: 0, py: 0, recede: c.at });
+        show(drew);
+        // At rest in the install pose the planet has faded out: once that (black) frame is drawn it stays, and
+        // drawing stops until the camera is asked to move again (kick).
+        if (drew && !moving && c.at === 1) { raf = 0; return; }
       }
       raf = requestAnimationFrame(frame);
     };

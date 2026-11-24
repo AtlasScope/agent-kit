@@ -1,21 +1,22 @@
 /* The install page (components/InstallPage.tsx). Always dark, over the homepage's view from orbit seen from further
    away (components/stage, app/(stage)/stage.css, which also holds this page's arrival from the homepage).
-   One centred column standing on a perspective floor: the floor recedes to a vanishing point behind the message,
-   a pool of brand-green light gathers on it under the message, and the planet's limb lies low beyond its far edge.
+   One centred column standing on a perspective floor: the floor recedes to a vanishing point behind the message and
+   a pool of brand-green light gathers on it under the message. The planet has sunk and faded out by the time the
+   page settles, so the floor is the one environment; its lines thin out under the secondary content.
    The message is the centrepiece, finished like an AI chat composer. Brand green is light and material here; the
    confirmed state (the LED, the tick, the words, the rim light) appears only after a copy has really succeeded. */
 .inst { --floor-p: 380px; position: relative; min-height: calc(100svh - var(--header-h, 65px)); }
 .inst { --panel: oklch(14% .006 250 / .72); --panel-2: oklch(100% 0 0 / .08); }
 
 /* The floor: hairlines on a plane tipped away from the eye, fading into the distance and toward the viewer. */
-.stage .quiet.inst::before { content: ""; position: absolute; z-index: -1; left: -60%; right: -60%; top: clamp(170px, 31svh, 340px); height: 64svh; pointer-events: none;
+.stage .quiet.inst::before { content: ""; position: absolute; z-index: -1; left: -60%; right: -60%; top: clamp(170px, 31svh, 340px); height: 72svh; pointer-events: none;
   background-image:
-    linear-gradient(oklch(100% 0 0 / .16) 1px, transparent 1px),
-    linear-gradient(90deg, oklch(100% 0 0 / .16) 1px, transparent 1px);
+    linear-gradient(oklch(100% 0 0 / .15) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(100% 0 0 / .15) 1px, transparent 1px);
   background-size: 42px 42px; background-position: center top;
   transform: perspective(var(--floor-p)) rotateX(74deg); transform-origin: 50% 0%;
-  -webkit-mask-image: radial-gradient(46% 120% at 50% 0%, #000 20%, transparent 70%), linear-gradient(to bottom, transparent 0%, #000 18%, #000 50%, transparent 96%);
-  -webkit-mask-composite: source-in; mask-image: radial-gradient(46% 120% at 50% 0%, #000 20%, transparent 70%), linear-gradient(to bottom, transparent 0%, #000 18%, #000 50%, transparent 96%); mask-composite: intersect; }
+  -webkit-mask-image: radial-gradient(46% 120% at 50% 0%, #000 20%, transparent 70%), linear-gradient(to bottom, transparent 0%, #000 16%, rgb(0 0 0 / .62) 34%, rgb(0 0 0 / .3) 58%, transparent 92%);
+  -webkit-mask-composite: source-in; mask-image: radial-gradient(46% 120% at 50% 0%, #000 20%, transparent 70%), linear-gradient(to bottom, transparent 0%, #000 16%, rgb(0 0 0 / .62) 34%, rgb(0 0 0 / .3) 58%, transparent 92%); mask-composite: intersect; }
 /* The light: a wide, soft green pool on the floor under the message, with a faint blue from the planet beyond. */
 .stage .quiet.inst::after { content: ""; position: absolute; z-index: -1; left: 50%; top: clamp(90px, 19svh, 230px); width: min(1100px, 140vw); height: 520px; translate: -50% 0; pointer-events: none;
   background:
@@ -54,7 +55,7 @@
 @property --trace { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
 .inst__trace { padding: 1.5px; background: conic-gradient(from var(--trace), transparent 0deg, transparent 200deg, color-mix(in oklab, var(--c-signal) 35%, transparent) 260deg, var(--c-signal) 330deg, #fff 354deg, transparent 360deg);
   animation: rim-trace 950ms cubic-bezier(0.45, 0.05, 0.25, 1) both; }
-.stage[data-shift="install"] .inst__trace { animation-delay: 640ms; }
+.stage[data-shift="install"] .inst__trace { animation-delay: 620ms; }
 @keyframes rim-trace { 0% { --trace: -90deg; opacity: 0; } 10% { opacity: 1; } 85% { opacity: 1; } 100% { --trace: 270deg; opacity: 0; } }
 .inst__msg.is-copied { box-shadow: inset 0 1px 0 oklch(100% 0 0 / .1), inset 0 0 0 1px color-mix(in oklab, var(--c-signal) 30%, transparent),
     0 1px 2px oklch(0% 0 0 / .5), 0 24px 48px -18px oklch(0% 0 0 / .9), 0 60px 90px -40px oklch(0% 0 0 / .85),
@@ -65,8 +66,21 @@
   -webkit-user-select: all; user-select: all; }
 .inst pre.inst__say::selection, .inst pre code ::selection { background: color-mix(in oklab, var(--c-brand) 32%, transparent); }
 .inst__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; padding: 8px 10px 10px 26px; }
-.inst__msg .inst__label { transition: color var(--dur-base) var(--ease-out); }
+.inst__msg .inst__label { min-width: 0; transition: color var(--dur-base) var(--ease-out); }
 .inst__msg.is-copied .inst__label { color: var(--t1); }
+/* After a copy the bar's line is the one next step, arriving with the tick. */
+.inst__next-step { display: inline-block; animation: step-in 420ms var(--ease-out) both; }
+.inst__next-step .led { margin-right: 9px; vertical-align: .05em; }
+.inst__next-step .inst__keys { color: var(--t2); }
+.inst__msg kbd { height: 1.7em; min-width: 1.7em; font-size: .75rem; }
+.stage[data-shift="install"] .inst__next-step { animation-delay: 560ms; }
+@keyframes step-in { from { opacity: 0; transform: translateX(calc(-6px * var(--travel))); } }
+/* The bloom: green light swelling under the composer as the rim light runs, then gone. */
+.inst__bloom { position: absolute; z-index: -1; left: 6%; right: 6%; bottom: -34px; height: 70px; pointer-events: none; border-radius: 50%;
+  background: radial-gradient(50% 50% at 50% 50%, color-mix(in oklab, var(--c-brand-glow) 55%, transparent), transparent 72%); filter: blur(10px);
+  animation: bloom 1200ms cubic-bezier(0.2, 0.6, 0.2, 1) both; }
+.stage[data-shift="install"] .inst__bloom { animation-delay: 620ms; }
+@keyframes bloom { 0% { opacity: 0; transform: scaleX(.6); } 30% { opacity: 1; } 100% { opacity: 0; transform: scaleX(1.08); } }
 
 /* Copy buttons. The composer's is a small lit green key, the same object as the homepage's Install; the terminal's is
    a quiet outline. */
@@ -75,8 +89,8 @@
   transition: background-color var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out), transform 220ms var(--ease-out); }
 .inst__copy .i { width: 15px; height: 15px; }
 .inst__copy--main { min-width: 104px; min-height: 40px; padding: 0 16px; border: 0; border-radius: 12px; color: var(--c-on-brand); font-weight: 600;
-  background: linear-gradient(180deg, var(--c-brand-hi), var(--c-brand) 55%, var(--c-brand-lo));
-  box-shadow: inset 0 1px 0 oklch(100% 0 0 / .55), inset 0 -1px 0 oklch(30% .08 158 / .4), 0 0 0 1px var(--c-brand-edge), 0 6px 18px -8px color-mix(in oklab, var(--c-brand-glow) 60%, transparent); }
+  background: radial-gradient(120% 100% at 50% -30%, oklch(100% 0 0 / .16), transparent 62%), linear-gradient(180deg, var(--satin-1), var(--satin-2));
+  box-shadow: inset 0 1px 0 oklch(100% 0 0 / .32), inset 0 0 0 1px oklch(100% 0 0 / .06), 0 0 0 1px var(--c-brand-edge), 0 6px 18px -8px color-mix(in oklab, var(--c-brand-glow) 55%, transparent); }
 .inst__copy:active { transform: translateY(calc(1px * var(--travel))) scale(.97); transition-duration: 70ms; }
 .inst__copy--main .i { stroke-width: 2; }
 /* Copied: the key steps back to glass and its tick is green, for as long as the claim is made. */
@@ -176,7 +190,7 @@ html:not([data-os="mac"], [data-os="linux"]) .inst__keys [data-os="other"], html
 
 @media (hover: hover) and (pointer: fine) {
   .inst__copy:hover { background: rgba(255,255,255,.1); }
-  .inst__copy--main:hover { filter: brightness(1.06); box-shadow: inset 0 1px 0 oklch(100% 0 0 / .6), inset 0 -1px 0 oklch(30% .08 158 / .4), 0 0 0 1px var(--c-brand-edge), 0 8px 24px -8px color-mix(in oklab, var(--c-brand-glow) 80%, transparent); }
+  .inst__copy--main:hover { filter: brightness(1.05); box-shadow: inset 0 1px 0 oklch(100% 0 0 / .38), inset 0 0 0 1px oklch(100% 0 0 / .08), 0 0 0 1px var(--c-brand-edge), 0 8px 24px -8px color-mix(in oklab, var(--c-brand-glow) 75%, transparent); }
   .inst__msg.is-copied .inst__copy--main:hover { background: rgba(255,255,255,.14); }
   .inst__tabs button:hover, :is(.inst__manual, .inst__fold) > summary:hover .inst__or { color: #fff; }
   :is(.inst__manual, .inst__fold) > summary:hover .inst__chev { color: var(--t1); }
@@ -222,6 +236,7 @@ html:not([data-os="mac"], [data-os="linux"]) .inst__keys [data-os="other"], html
 /* Reduced motion: the floor and the light are there from the start and nothing travels. A copy that succeeded shows
    as the green rim, the tick and the words, without the light running round. */
 @media (prefers-reduced-motion: reduce) {
-  .inst__trace { animation: none; opacity: 0; }
+  .inst__trace, .inst__bloom { animation: none; opacity: 0; }
+  .inst__next-step { animation: none; }
   .inst__msg.is-copied .inst__copy--main .i { animation: none; }
 }

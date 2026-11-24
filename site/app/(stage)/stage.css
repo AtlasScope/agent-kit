@@ -52,42 +52,46 @@
 .hero__w { display: inline-block; white-space: pre; }
 .hero__lede { margin: clamp(16px, 2.4svh, 22px) 0 0; max-width: 30em; font: 400 clamp(1.0625rem, .35vw + 1rem, 1.25rem)/1.45 var(--font-body); letter-spacing: -0.012em; color: oklch(100% 0 0 / .7); text-wrap: balance; }
 .hero__cta { display: grid; justify-items: center; gap: 14px; margin-top: clamp(28px, 4.4svh, 42px); }
-.hero__note { margin: 0; font-size: .8125rem; line-height: 1.4; letter-spacing: -0.003em; color: oklch(100% 0 0 / .52); }
-.hero__new { display: inline-flex; align-items: center; gap: 4px; min-height: var(--tap); margin-top: clamp(6px, 1.4svh, 14px); color: oklch(100% 0 0 / .7);
+/* Small words over the picture carry a soft dark halo of their own, so they read wherever cloud passes behind them
+   without darkening the planet. */
+.hero { --halo: 0 0 1px oklch(0% 0 0 / .5), 0 1px 10px oklch(0% 0 0 / .85), 0 0 22px oklch(0% 0 0 / .6); }
+.hero__note { margin: 0; font-size: .8125rem; line-height: 1.4; letter-spacing: -0.003em; color: oklch(100% 0 0 / .66); text-shadow: var(--halo); }
+.hero__new { display: inline-flex; align-items: center; gap: 4px; min-height: var(--tap); margin-top: clamp(6px, 1.4svh, 14px); color: oklch(100% 0 0 / .8); text-shadow: var(--halo);
   font-size: .9375rem; letter-spacing: -0.006em; text-decoration: none; transition: color var(--dur-fast) var(--ease-out); }
 .hero__new svg { width: 15px; height: 15px; transition: transform var(--dur-slow) var(--ease-out); }
-.hero__foot { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 20px; margin: 0; padding: 0 0 14px; list-style: none; font-size: .78125rem; letter-spacing: 0; }
-.hero__foot a { display: inline-flex; align-items: center; min-height: 32px; color: oklch(100% 0 0 / .56); text-decoration: none; transition: color var(--dur-fast) var(--ease-out); }
+.hero__foot { position: relative; isolation: isolate; display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 20px; margin: 0; padding: 0 0 14px; list-style: none; font-size: .8125rem; letter-spacing: 0; }
+/* A soft pool of shade only behind the row of links, not a band across the picture. */
+.hero__foot::before { content: ""; position: absolute; z-index: -1; inset: -18px -48px -6px; pointer-events: none;
+  background: radial-gradient(50% 60% at 50% 60%, oklch(0% 0 0 / .55), oklch(0% 0 0 / 0) 100%); }
+.hero__foot a { display: inline-flex; align-items: center; min-height: 32px; color: oklch(100% 0 0 / .78); text-shadow: var(--halo); text-decoration: none; transition: color var(--dur-fast) var(--ease-out); }
 @media (hover: hover) and (pointer: fine) { .hero__new:hover, .hero__foot a:hover { color: #fff; } .hero__new:hover svg { transform: translateX(3px); } }
 @media (pointer: coarse) { .hero__foot { gap: 0 8px; } .hero__foot a { min-height: var(--tap); padding-inline: 6px; } }
 
 /* ---- Install Agent Kit: the signature object. ----
-   A green pill lit from above: a gradient from a light top to a deeper foot, a bright inner lip, a darker edge a
-   pixel outside it, and the light it throws on the sky around it. Hover lifts the light; a press sinks it a pixel
-   and squeezes it, at once. A sheen crosses it once when the page arrives and again each time the pointer comes
-   onto it, never on a loop. */
+   A green pill with a lit satin finish: a narrow tonal range from top to foot, a soft bloom of light from above,
+   one fine bright line under the top edge, a precise darker edge a pixel outside it, and the light it throws on the
+   sky. Hover lifts the light; a press sinks it a pixel and squeezes it, at once. A sheen crosses it once when the
+   page arrives and again each time the pointer comes onto it, never on a loop. */
+.stage { --satin-1: color-mix(in oklab, var(--c-brand), var(--c-brand-hi) 34%); --satin-2: color-mix(in oklab, var(--c-brand), var(--c-brand-lo) 30%); }
 .launch__go { --lift: 0; --press: 0; position: relative; isolation: isolate; display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 30px;
   border-radius: var(--radius-pill); overflow: hidden; color: var(--c-on-brand); font: 600 1rem/1 var(--font-body); letter-spacing: -0.012em; text-decoration: none; white-space: nowrap;
-  background: linear-gradient(180deg, var(--c-brand-hi) 0%, var(--c-brand) 52%, var(--c-brand-lo) 100%);
+  background: radial-gradient(130% 110% at 50% -40%, oklch(100% 0 0 / calc(.16 + .06 * var(--lift))), transparent 64%), linear-gradient(180deg, var(--satin-1), var(--satin-2));
   box-shadow:
-    inset 0 1px 0 oklch(100% 0 0 / .62), inset 0 -1px 0 oklch(30% .08 158 / .45), inset 0 0 0 1px oklch(100% 0 0 / .1),
-    0 0 0 1px var(--c-brand-edge), 0 1px 2px oklch(0% 0 0 / .6),
-    0 10px 28px -10px color-mix(in oklab, var(--c-brand-glow) calc(50% + 20% * var(--lift)), transparent),
-    0 0 60px -6px color-mix(in oklab, var(--c-brand-glow) calc(26% + 16% * var(--lift)), transparent);
+    inset 0 1px 0 oklch(100% 0 0 / .34), inset 0 0 0 1px oklch(100% 0 0 / .07), inset 0 -1px 0 oklch(28% .07 158 / .22),
+    0 0 0 1px var(--c-brand-edge), 0 1px 2px oklch(0% 0 0 / .55),
+    0 10px 28px -12px color-mix(in oklab, var(--c-brand-glow) calc(46% + 18% * var(--lift)), transparent),
+    0 0 56px -10px color-mix(in oklab, var(--c-brand-glow) calc(22% + 14% * var(--lift)), transparent);
   transform: translateY(calc(1px * var(--press))) scale(calc(1 - .03 * var(--press)));
   transition: transform 260ms var(--ease-out), box-shadow 260ms var(--ease-out), filter 260ms var(--ease-out);
   -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-/* The upper half catches more light: a soft specular band under the lip. */
-.launch__go::before { content: ""; position: absolute; inset: 1px 1px 50% 1px; z-index: -1; border-radius: inherit; pointer-events: none;
-  background: linear-gradient(180deg, oklch(100% 0 0 / .34), oklch(100% 0 0 / 0)); opacity: calc(.75 + .25 * var(--lift)); transition: opacity 260ms var(--ease-out); }
-/* The sheen: a narrow diagonal of light, parked off the left edge. */
+/* The sheen: a soft diagonal of light, parked off the left edge. */
 .launch__go::after { content: ""; position: absolute; top: 0; bottom: 0; left: -40%; width: 40%; z-index: -1; pointer-events: none;
-  background: linear-gradient(100deg, transparent 0%, oklch(100% 0 0 / .0) 20%, oklch(100% 0 0 / .55) 50%, oklch(100% 0 0 / 0) 80%, transparent 100%);
+  background: linear-gradient(100deg, transparent 0%, oklch(100% 0 0 / 0) 22%, oklch(100% 0 0 / .32) 50%, oklch(100% 0 0 / 0) 78%, transparent 100%);
   transform: translateX(0) skewX(-18deg); opacity: 0; }
-.launch__label { position: relative; text-shadow: 0 1px 0 oklch(100% 0 0 / .28); }
+.launch__label { position: relative; }
 .launch__go:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 4px; }
 @media (hover: hover) and (pointer: fine) {
-  .launch__go:hover { --lift: 1; filter: brightness(1.04) saturate(1.05); }
+  .launch__go:hover { --lift: 1; filter: brightness(1.03); }
   .launch__go:hover::after { animation: go-sheen 900ms var(--ease-out) 1 both; }
 }
 /* The press answers on the frame it happens, with no easing in. */
@@ -125,10 +129,10 @@
 /* Leaving the homepage. The headline lifts away word by word and the small words go with it. The button answers
    the press with a flash of its own light, then gives that light up: its body dims and closes to a single lit line,
    which Stage.tsx carries to the message panel's lower edge (.stage__beam). */
-.stage__copy .hero__w { animation: stage-lift 240ms var(--stage-away) calc(var(--i) * 10ms) forwards; }
-.stage__copy :is(.hero__lede, .hero__note, .hero__new) { animation: stage-lift 220ms var(--stage-away) forwards; }
+.stage__copy .hero__w { animation: stage-lift 200ms var(--stage-away) calc(var(--i) * 8ms) forwards; }
+.stage__copy :is(.hero__lede, .hero__note, .hero__new) { animation: stage-lift 180ms var(--stage-away) forwards; }
 .stage__copy .hero__foot { animation: stage-out 180ms ease forwards; }
-.stage__copy .launch__go { animation: go-give 380ms cubic-bezier(0.5, 0, 0.2, 1) forwards; transition: none; }
+.stage__copy .launch__go { animation: go-give 300ms cubic-bezier(0.5, 0, 0.2, 1) forwards; transition: none; }
 .stage__copy .launch__go::after { animation: none; }
 .stage__copy .launch__label { animation: stage-out 140ms ease 40ms forwards; }
 @keyframes go-give {
@@ -144,19 +148,30 @@
   background: linear-gradient(90deg, transparent, var(--c-brand-hi) 18%, #fff 50%, var(--c-brand-hi) 82%, transparent);
   box-shadow: 0 0 10px 1px color-mix(in oklab, var(--c-brand-glow) 75%, transparent), 0 0 34px 4px color-mix(in oklab, var(--c-brand-glow) 35%, transparent); }
 
-/* Arriving at Install from the homepage: the floor resolves out of the dark as the planet sinks, the pool of light
-   gathers, the heading comes down into the place the headline left, and the panel takes the light. */
-.stage[data-shift="install"] .quiet.inst::before { animation: floor-in 760ms var(--stage-ease) 60ms backwards; }
-.stage[data-shift="install"] .quiet.inst::after { animation: stage-fade 700ms ease 220ms backwards; }
-.stage[data-shift="install"] .inst__main > * { animation: stage-rise 640ms var(--stage-ease) 380ms backwards; }
-.stage[data-shift="install"] .inst__main > :is(h1, .inst__lede) { animation: stage-drop 640ms var(--stage-ease) 270ms backwards; }
-.stage[data-shift="install"] .inst__main > .inst__lede { animation-delay: 320ms; }
-.stage[data-shift="install"] .inst__main > .inst__msg { animation: msg-in 620ms var(--stage-ease) 180ms backwards; }
-.stage[data-shift="install"] .inst__msg .inst__rim { animation: rim-take 900ms ease 380ms backwards; }
-@keyframes stage-drop { from { opacity: 0; transform: translateY(26px); } }
+/* Arriving at Install from the homepage, as one movement (times from the press):
+     0-250 ms   the headline lifts away; the button flashes and closes to its line of light
+     50-310     the light travels down to the composer's lower edge
+     300-680    the composer grows upward out of that edge while the light spreads along it and becomes its rim
+     200-760    the heading settles into the place the headline left; the floor and its pool of light resolve
+     380-900    the rest of the column follows
+   The planet sinks and fades to black on the camera's spring over the same time. */
+.stage[data-shift="install"] .quiet.inst::before { animation: floor-in 700ms var(--stage-ease) 40ms backwards; }
+.stage[data-shift="install"] .quiet.inst::after { animation: stage-fade 640ms ease 200ms backwards; }
+.stage[data-shift="install"] .inst__main > * { animation: stage-rise 520ms var(--stage-ease) 380ms backwards; }
+.stage[data-shift="install"] .inst__main > :is(h1, .inst__lede) { animation: stage-drop 560ms var(--stage-ease) 200ms backwards; }
+.stage[data-shift="install"] .inst__main > .inst__lede { animation-delay: 240ms; }
+.stage[data-shift="install"] .inst__main > .inst__msg { animation: msg-grow 380ms cubic-bezier(0.2, 0.7, 0.2, 1) 300ms backwards; }
+.stage[data-shift="install"] .inst__msg .inst__rim { animation: rim-take 700ms ease 340ms backwards; }
+@keyframes stage-drop { from { opacity: 0; transform: translateY(22px); } }
 @keyframes floor-in { from { opacity: 0; transform: perspective(var(--floor-p)) rotateX(84deg) translateY(-6%); } }
-@keyframes msg-in { from { opacity: 0; transform: translateY(14px) scale(.975); } }
-@keyframes rim-take { 0% { opacity: 0; } 30% { opacity: 1; filter: brightness(1.8); } 100% { filter: none; } }
+/* The composer opens upward from the line of light on its lower edge. The clip reaches past the panel so its
+   shadow and glow are already whole when the clip comes off. */
+@keyframes msg-grow {
+  from { opacity: 0; clip-path: inset(calc(100% - 2px) -80px -100px -80px round 22px); }
+  16% { opacity: 1; }
+  to { clip-path: inset(-80px -80px -100px -80px round 22px); }
+}
+@keyframes rim-take { 0% { opacity: 0; } 25% { opacity: 1; filter: brightness(2); } 100% { filter: none; } }
 
 /* Leaving Install for the homepage: the column and its floor sink back and the words come down as the planet rises. */
 .stage__copy.inst { animation: stage-sink 340ms var(--stage-away) forwards; }

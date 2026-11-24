@@ -147,34 +147,37 @@ export function InstallPage({ kits, skills, kitLines, children }: { kits: number
           <p className="inst__lede">Paste one message into your agent. It installs {kits} kits and {skills} skills.</p>
 
           {/* The message as a chat composer: the words, then a bar with where it goes and Copy. A copy that
-              truly succeeded sends one light around the rim (inst__trace, remounted per copy) and the tick stays
-              while the claim holds. */}
+              truly succeeded sends one light around the rim and a bloom of light under it (both remounted per
+              copy), the key shows a tick, and the bar's line becomes the one next step. Screen readers hear the
+              same through the status below. */}
           <section className={`inst__msg${said1 ? " is-copied" : ""}`} aria-labelledby="inst-msg-h">
             <span className="inst__rim" aria-hidden="true" />
-            {trace > 0 && <span className="inst__trace" key={trace} aria-hidden="true" />}
+            {trace > 0 && <><span className="inst__trace" key={`t${trace}`} aria-hidden="true" /><span className="inst__bloom" key={`b${trace}`} aria-hidden="true" /></>}
             <h2 id="inst-msg-h" className="sr">Paste into your agent</h2>
             <pre className="inst__say" ref={msg}>{INSTALL_MESSAGE}</pre>
             <div className="inst__bar">
-              <span className="inst__label" aria-hidden="true"><i className={`led${said1 ? " is-on" : ""}`} />{said1 ? "On your clipboard" : "Paste into your agent"}</span>
+              <span className="inst__label" aria-hidden="true">{said1
+                ? <span className="inst__next-step" key={trace}><i className="led is-on" />Now paste it into your agent<Keys /></span>
+                : <><i className="led" />Paste into your agent</>}</span>
               <button type="button" className="inst__copy inst__copy--main" onClick={copyMessage} aria-label={said1 ? "Copied. Copy the message again" : "Copy the message"}>
                 {said1 ? <><Check />Copied</> : <><CopyIcon />Copy</>}
               </button>
             </div>
           </section>
 
-          {/* The note and the idle line share one grid cell, so the page below never moves when a note comes or goes.
-              Only the note is live, so its clearing back to the idle line isn't announced. */}
+          {/* The status: a success is said inside the composer, so here it is only announced; a blocked copy needs
+              the visitor to act, so it shows in place of the idle line (one grid cell, so nothing below moves). */}
           <div className="inst__stat">
           <div className="inst__status" role="status">
             {msgNote && (
-              <p className={`inst__note${msgNote.kind === "blocked" ? " is-warn" : ""}`} key={msgNote.n}>
+              <p className={`inst__note${msgNote.kind === "blocked" ? " is-warn" : " sr"}`} key={msgNote.n}>
                 {msgNote.kind === "message"
-                  ? <><i className="led is-on" aria-hidden="true" /><span><b>Message copied.</b> Paste it into your agent<Keys />.</span></>
+                  ? <>Message copied. Paste it into your agent.</>
                   : <><span className="inst__warn" aria-hidden="true">!</span><span><b>Your browser blocked copying.</b> The message is selected.<CopyHint /></span></>}
               </p>
             )}
           </div>
-          <p className="inst__how" aria-hidden={msgNote ? true : undefined}>Works in Claude Code, Codex, Cursor and other coding agents.</p>
+          <p className="inst__how" aria-hidden={msgNote?.kind === "blocked" ? true : undefined}>Works in Claude Code, Codex, Cursor and other coding agents.</p>
           </div>
           <p className="inst__phone">Agent Kit installs on a computer. Send yourself this page, or paste the message into your agent there.</p>
 

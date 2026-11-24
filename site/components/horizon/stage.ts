@@ -110,9 +110,9 @@ function target(position: Vec3, forward: Vec3): Vec3 {
 // one-way move: the caller may run it forward, back, or reverse it half way.
 export interface Cue { now: number; opening: number; leave: number; px: number; py: number; recede?: number }
 // How far the camera climbs for the install pose (km), where the limb then sits below the middle of the frame
-// (degrees), and how much light is kept. The limb lands low, near the foot of the window: the install page's
-// perspective floor stands above it, so the planet reads as lying beneath that floor.
-const RECEDE = { climb: 2600, wide: 18.5, tall: 19.5, light: 0.85 };
+// (degrees), and how much light is kept. The planet sinks toward the foot of the window and fades out completely
+// as it goes, so the install page's perspective floor is the only environment once it settles.
+const RECEDE = { climb: 2600, wide: 18.5, tall: 19.5, light: 0 };
 export function createStage(canvas: HTMLCanvasElement, options: { direction: Direction; tall: () => boolean; base?: string; cloud?: string; startAt?: number; rate?: number; tune?: Partial<Look>; meter?: number; onError?: (e: Error) => void }) {
   const { direction } = options;
   const base = options.base ?? "/horizon";
@@ -184,7 +184,7 @@ export function createStage(canvas: HTMLCanvasElement, options: { direction: Dir
       // After a gap of more than a second (a hidden tab, or a capture that jumps to a held moment) the meter starts
       // from what it reads now and does not crawl there from an exposure minutes stale.
       stops = stops === null || gap > 1 ? wanted : stops + (wanted - stops) * (1 - Math.exp(-dt / 2.5));
-      const fade = (1 - 0.75 * Math.exp(-Math.max(cue.opening, 0) / 0.6)) * (1 - leave) * (1 - (1 - RECEDE.light) * recede);
+      const fade = (1 - 0.75 * Math.exp(-Math.max(cue.opening, 0) / 0.6)) * (1 - leave) * (1 - (1 - RECEDE.light) * (1 - Math.pow(1 - recede, 1.6)));
       const look: Look = { ...LOOK, ...direction.look, ...options.tune, focal: view.focal * (1 + 0.1 * arrive) };
       look.exposure = Math.pow(2, stops) * fade;
       look.moonlight *= 0.15 + 0.85 * moon.phase;
