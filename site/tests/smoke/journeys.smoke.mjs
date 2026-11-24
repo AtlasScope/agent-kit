@@ -151,6 +151,24 @@ for (const size of SIZES) {
     await ctx.close();
   });
 
+  test(`${size.name}: search downloads nothing until someone starts to search`, async () => {
+    const ctx = await browser.newContext({ ...size });
+    const page = await ctx.newPage();
+    const fetched = [];
+    page.on("request", (r) => { if (/\/search-(index\.json|copy\/)/.test(r.url())) fetched.push(new URL(r.url()).pathname); });
+    await page.goto(base + "/start", { waitUntil: "networkidle" });
+    // Longer than the idle preload this replaced waited (5 s at most).
+    await page.waitForTimeout(6000);
+    assert.deepEqual(fetched, [], "the index loads before any sign of search");
+    const banner = page.getByRole("banner");
+    const index = page.waitForResponse((r) => r.url().endsWith("/search-index.json"));
+    await (size.name === "phone" ? banner.getByRole("button", { name: "Search", exact: true }).tap() : banner.getByRole("button", { name: /^Search/ }).hover());
+    assert.equal((await index).status(), 200);
+    const entries = await (await index).json();
+    assert.ok(entries.some((e) => e.copy) && entries.every((e) => !e.copy || e.copy.text === undefined), "the index carries Copy labels without the texts");
+    await ctx.close();
+  });
+
   test(`${size.name}: a prompt page copies the whole prompt with its rules`, async () => {
     const p = data.prompts.find((x) => x.id === "PG01");
     const path = `/prompts/${p.slug}`;

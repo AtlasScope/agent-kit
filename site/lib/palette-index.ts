@@ -23,8 +23,12 @@ const PAGES: { ref: string; title: string; href: string; summary: string; aka: s
 ];
 
 // Pages, then kits and fixes, then prompts and skills: on a tie the earlier entry wins, so a query that is
-// exactly a page's name ("install", "kits") lands on the page.
-export function paletteIndex(): Entry[] {
+// exactly a page's name ("install", "kits") lands on the page. Each entry carries its full Copy text here; the
+// index the browser downloads leaves the text out (paletteIndex), and each text is served on its own at
+// /search-copy/<kind>/<ref> (paletteCopy), so a phone pays for one prompt's text only when it previews or copies it.
+let built: Entry[] | null = null;
+function entries(): Entry[] {
+  if (built) return built;
   const out: Entry[] = [];
   for (const p of PAGES) out.push({
     kind: "page", ref: p.ref, title: p.title, summary: p.summary, href: p.href, meta: "Page",
@@ -64,5 +68,12 @@ export function paletteIndex(): Entry[] {
     ...skillDoc(s), href: `/skills/${s.name}`, meta: `Skill · ${s.kit}${s.credit ? ` · by ${s.credit.author}` : ""}`,
     copy: { label: "Copy install command", text: skillInstall(s).any, done: "Install command copied" },
   });
-  return out;
+  return (built = out);
 }
+
+export function paletteIndex(): Entry[] {
+  return entries().map((e) => (e.copy ? { ...e, copy: { label: e.copy.label, done: e.copy.done } } : e));
+}
+
+export const paletteCopies = (): { kind: string; ref: string }[] => entries().filter((e) => e.copy).map((e) => ({ kind: e.kind, ref: e.ref }));
+export const paletteCopy = (kind: string, ref: string): string | undefined => entries().find((e) => e.kind === kind && e.ref === ref)?.copy?.text;

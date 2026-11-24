@@ -2,15 +2,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
-import { find, marks, keyOf, pushRecent, readRecent, writeRecent, SCOPES, KIND_LABEL, type Entry, type Recent, type Scope } from "@/lib/search";
+import { find, marks, keyOf, copyUrl, pushRecent, readRecent, writeRecent, SCOPES, KIND_LABEL, type Entry, type Recent, type Scope } from "@/lib/search";
 import "./search/palette.css";
 
 // Site search as a command palette. The header holds a button; ⌘K or Ctrl+K anywhere, "/" outside a text field,
 // or the phone header's Search button (the "agent-kit:search" event) opens it. It is a native modal dialog, so the
 // browser traps focus and gives it back on close; it is portalled to <body> so it takes the page's theme rather
-// than the always-dark header's. The index (/search-index.json) loads the first time the pointer or focus reaches
-// the button, or, on touch screens where there is no hover, once the page is idle. Ranking runs in the browser
-// with the same code as /api/search. If the index can't load, typed queries fall back to /api/search.
+// than the always-dark header's. The index (/search-index.json) loads on the first sign of intent: the pointer or
+// focus reaching the button, a tap on it or on the phone header's Search button, ⌘K or "/". Nothing loads before
+// that, so pages that never search never pay for it. Ranking runs in the browser with the same code as /api/search.
+// If the index can't load, typed queries fall back to /api/search. The index leaves out what Copy sends; each
+// result's text is fetched from /search-copy when it is previewed or copied.
 //
 // Keys: ↑ ↓ (or Ctrl+N / Ctrl+P) move, Enter opens, ⌘Enter or Ctrl+Enter copies the result's prompt or install
 // command, Shift+Enter opens in a new tab, Escape clears the query and then closes. Every result is a real link,
@@ -28,6 +30,23 @@ function loadIndex() {
   indexPromise.catch(() => { indexPromise = null; });
   return indexPromise;
 }
+
+// Copy texts by entry key: `texts` holds the requests, `known` the answers, so a cached text can go to the
+// clipboard inside the click or key event without waiting.
+const texts = new Map<string, Promise<string>>();
+const known = new Map<string, string>();
+function copyText(e: Entry): Promise<string> {
+  if (e.copy?.text !== undefined) return Promise.resolve(e.copy.text);
+  const k = keyOf(e);
+  let p = texts.get(k);
+  if (!p) {
+    p = fetch(copyUrl(e)).then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status))))).then((t) => { known.set(k, t); return t; });
+    p.catch(() => texts.delete(k));
+    texts.set(k, p);
+  }
+  return p;
+}
+const knownText = (e: Entry) => e.copy?.text ?? known.get(keyOf(e));
 
 const SearchIcon = () => (
   <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
@@ -64,7 +83,7 @@ export function Search() {
   const router = useRouter();
   const path = usePathname();
 
-  // Stable, and reads module state rather than render state, so the idle preload and every open see the truth.
+  // Stable, and reads module state rather than render state, so every warm-up and every open see the truth.
   // After a failure it retries quietly: the palette stays on server results until a retry succeeds.
   // A failed load is retried at most every 15 seconds, however often the button is hovered or the palette opened.
   const failed = useRef(false);
@@ -101,16 +120,12 @@ export function Search() {
   };
 
   useEffect(() => { setMounted(true); setMod(isMac() ? "⌘" : "Ctrl"); }, []);
-  // Fetch the index once the page is idle, so a phone's first tap on Search doesn't wait for it. Skipped when the
-  // visitor asked to save data; it then loads on first use instead.
-  // Touch screens only: a mouse warms it on hover, a finger gives no warning before the tap.
+  // The phone header's Search button lives in NavMenu; its press starts the fetch about 100 ms before its click
+  // opens the palette. (The header field warms itself: pointerenter fires on touch as well as hover.)
   useEffect(() => {
-    const conn = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
-    if (conn?.saveData || !matchMedia("(hover: none)").matches) return;
-    const ric = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 2500));
-    const cancel = window.cancelIdleCallback ?? window.clearTimeout;
-    const id = ric(() => warm(), { timeout: 5000 });
-    return () => cancel(id);
+    const down = (e: PointerEvent) => { if ((e.target as Element | null)?.closest?.(".nav__find")) warm(); };
+    document.addEventListener("pointerdown", down, true);
+    return () => document.removeEventListener("pointerdown", down, true);
   }, [warm]);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
@@ -176,6 +191,18 @@ export function Search() {
   const active = items[Math.min(cur, items.length - 1)];
 
   useEffect(() => { setCur(0); list.current?.scrollTo({ top: 0 }); }, [q, scope]);
+  // The preview (wide screens only) shows what Copy sends. It is fetched once the selection rests for a moment,
+  // so holding an arrow key doesn't request every result it passes.
+  const [payload, setPayload] = useState<{ key: string; text: string } | null>(null);
+  useEffect(() => {
+    if (!open || !active?.copy || !matchMedia("(min-width: 900px)").matches) return;
+    const k = keyOf(active), have = knownText(active);
+    if (have !== undefined) { setPayload({ key: k, text: have }); return; }
+    let live = true;
+    const t = setTimeout(() => copyText(active).then((text) => { if (live) setPayload({ key: k, text }); }, () => {}), 120);
+    return () => { live = false; clearTimeout(t); };
+  }, [open, active]);
+  const shown = active && payload?.key === keyOf(active) ? payload.text : undefined;
   useEffect(() => {
     if (!active) return;
     document.getElementById(`cmdk-${keyOf(active)}`)?.scrollIntoView({ block: "nearest" });
@@ -190,10 +217,28 @@ export function Search() {
     if (e.href !== path) router.push(e.href);
   };
   const say = (msg: string) => { clearTimeout(toastTimer.current); setToast(msg); toastTimer.current = setTimeout(() => setToast(""), 2400); };
+  // A text already fetched is written at once. Otherwise the clipboard is handed a promise of it (ClipboardItem),
+  // which keeps the user's gesture valid in Safari while the text loads; browsers without that wait, then write.
   const copy = async (e: Entry) => {
-    if (!e.copy) { say("Nothing to copy here. Press Enter to open it."); return; }
-    try { await navigator.clipboard.writeText(e.copy.text); say(e.copy.done); remember(e); }
-    catch { say("Copy was blocked. Open the page and copy from there."); }
+    const c = e.copy;
+    if (!c) { say("Nothing to copy here. Press Enter to open it."); return; }
+    const have = knownText(e);
+    try {
+      if (have !== undefined) await navigator.clipboard.writeText(have);
+      else {
+        const text = copyText(e);
+        try {
+          if (typeof ClipboardItem === "undefined" || !navigator.clipboard.write) throw new Error("unsupported");
+          await navigator.clipboard.write([new ClipboardItem({ "text/plain": text.then((t) => new Blob([t], { type: "text/plain" })) })]);
+        } catch {
+          // Writes the text once it arrives; a failed fetch rejects here and is reported below.
+          await navigator.clipboard.writeText(await text);
+        }
+      }
+      say(c.done); remember(e);
+    } catch {
+      say(texts.has(keyOf(e)) || have !== undefined ? "Copy was blocked. Open the page and copy from there." : "Couldn’t load the text to copy. Open the page and copy from there.");
+    }
   };
 
   const onKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -273,7 +318,7 @@ export function Search() {
               <p className="cmdk__meta"><span className="cmdk__dot" aria-hidden="true" data-kind={active.kind} />{active.meta}</p>
               <h2 className="cmdk__ph" translate={active.kind === "skill" || active.kind === "kit" ? "no" : undefined}>{active.title}</h2>
               {active.summary && <p className="cmdk__ps">{active.summary}</p>}
-              {active.copy && <pre className="cmdk__payload" data-long={active.copy.text.length > 360 || undefined} aria-label={`${active.copy.label.replace(/^Copy /, "")} text`}>{active.copy.text}</pre>}
+              {active.copy && shown !== undefined && <pre className="cmdk__payload" data-long={shown.length > 360 || undefined} aria-label={`${active.copy.label.replace(/^Copy /, "")} text`}>{shown}</pre>}
               <div className="cmdk__actions">
                 <button type="button" className="cmdk__btn cmdk__btn--main" onClick={() => go(active)}>Open<kbd aria-hidden="true">↵</kbd></button>
                 {active.copy && <button type="button" className="cmdk__btn" onClick={() => copy(active)}>{active.copy.label}<kbd aria-hidden="true">{mod}↵</kbd></button>}
