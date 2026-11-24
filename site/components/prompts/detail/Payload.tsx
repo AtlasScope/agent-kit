@@ -74,7 +74,10 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
         if (BLOCKED.test(btn.textContent || "")) onBlocked(btn);
         else if (btn.hasAttribute("data-copied") && !inline) {
           // A later copy worked: hide the fallback, handing focus back to the button if it was in the text.
-          if (pre.current?.contains(document.activeElement)) (btn as HTMLElement).focus({ preventScroll: true });
+          if (pre.current?.contains(document.activeElement)) {
+            const to = dock.current?.contains(btn) && dock.current.inert ? main.current : (btn as HTMLElement);
+            to?.focus({ preventScroll: true });
+          }
           setFallback(null);
         }
       }
@@ -104,8 +107,12 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
   useEffect(() => {
     if (!fallback || !pre.current) return;
     const r = pre.current.getBoundingClientRect();
-    const barBottom = head.current?.getBoundingClientRect().bottom ?? 0;
-    if (r.top < barBottom || r.top > innerHeight) {
+    // The first lines must be clear of the sticky bar, the header and, while it shows, the dock.
+    const header = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-h")) || 0;
+    let top = Math.max(head.current?.getBoundingClientRect().bottom ?? 0, header), bottom = innerHeight;
+    const d = dock.current;
+    if (d?.hasAttribute("data-on")) { const dr = d.getBoundingClientRect(); if (dr.top < innerHeight / 2) top = Math.max(top, dr.bottom); else bottom = dr.top; }
+    if (r.top < top || r.top + 24 > bottom) { // 24px: at least the first line
       if (fallback.slot) pre.current.scrollIntoView({ block: "center" });
       else root.current?.scrollIntoView({ block: "start" });
     }
@@ -113,24 +120,27 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
     window.getSelection()?.selectAllChildren(pre.current);
   }, [fallback]);
 
-  // The dock shows while the panel's Copy bar is not wholly visible below the site header. The header's height
-  // changes with the breakpoint, so the observer is rebuilt on resize with the header's current bottom edge.
+  // The dock shows once the panel's Copy bar has started to scroll away under the site header (the panel's end pushes
+  // the sticky bar up), and stays for the rest of the page. Before the reader reaches the panel it stays hidden. Same
+  // rule as the skill and kit install panel. Measured on scroll, once per frame.
   useEffect(() => {
-    const bar = head.current;
-    if (!bar) return;
-    let seen: IntersectionObserver | undefined;
-    const build = () => {
-      seen?.disconnect();
-      // The bar sticks at --header-h, so measure against that same number, with 2px of tolerance for zoom rounding.
-      const top = Math.floor(parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-h")) || 0);
-      const steps = Array.from({ length: 51 }, (_, i) => i / 50);
-      // Several crossings can queue between frames on a fast scroll; the last entry is the current state.
-      seen = new IntersectionObserver((es) => { const e = es[es.length - 1]; setDocked(e.boundingClientRect.height - e.intersectionRect.height > 2); }, { rootMargin: `-${top}px 0px 0px 0px`, threshold: steps });
-      seen.observe(bar);
+    const panel = root.current, bar = head.current;
+    if (!panel || !bar) return;
+    let raf = 0;
+    const check = () => {
+      raf = 0;
+      const stick = parseFloat(getComputedStyle(bar).top) || 0;
+      const away = panel.getBoundingClientRect().bottom < stick + bar.offsetHeight - 2; // 2px: zoom rounding
+      setDocked((was) => {
+        if (was && !away && dock.current?.contains(document.activeElement)) main.current?.focus({ preventScroll: true });
+        return away;
+      });
     };
-    build();
-    addEventListener("resize", build);
-    return () => { seen?.disconnect(); removeEventListener("resize", build); };
+    const queue = () => { if (!raf) raf = requestAnimationFrame(check); };
+    check();
+    addEventListener("scroll", queue, { passive: true });
+    addEventListener("resize", queue);
+    return () => { cancelAnimationFrame(raf); removeEventListener("scroll", queue); removeEventListener("resize", queue); };
   }, []);
 
   const onKey = (e: ReactKeyboardEvent) => {
@@ -138,7 +148,8 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
     if (e.metaKey || e.ctrlKey || e.altKey || e.repeat || e.nativeEvent.isComposing) return;
     if (e.target !== pre.current && e.target !== main.current && editable(e.target)) return;
     if (fallback?.slot && e.target === pre.current) return; // a step's text is showing: C would copy step 1 instead
-    if (String(window.getSelection() || "").length) return;
+    const sel = window.getSelection();
+    if (sel && String(sel).length && root.current?.contains(sel.anchorNode)) return; // a selection in the panel: Cmd/Ctrl+C is the user's
     e.preventDefault();
     main.current?.click();
   };
