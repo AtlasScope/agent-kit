@@ -41,7 +41,7 @@ The older `--color-*`, `--space-xs…2xl`, `--text-*`, `--lift*`, `--led*` and `
 
 ## Stylesheets and owners
 
-`site/app/globals.css` is only an index. It imports `site/app/styles/*.css` in this order, and the order is part of the cascade (later files win ties). Every lane has its own file; edit only yours.
+`site/app/globals.css` is only an index. It imports these `site/app/styles/*.css` files in this order, and the order is part of the cascade (later files win ties). Every lane has its own file; edit only yours.
 
 | File | Holds | Owner |
 |---|---|---|
@@ -53,7 +53,6 @@ The older `--color-*`, `--space-xs…2xl`, `--text-*`, `--lift*`, `--led*` and `
 | `layout.css` | Page scaffolding: `.page`, `.page-head`, `.section`, `.list`, `.grid` | W1 |
 | `library.css` | Cards, tiles, prompt and skill cards, starting points, browse index | W4 prompt browsing |
 | `skills.css` | Selectors only skills and kits pages use (`.sec-head`, kit rows) | W6 skills and kits browsing |
-| `fix.css` | Symptom rows | W8 Start, Learn and Fix |
 | `detail-prompt.css` | Prompt-only detail blocks | W5 prompt detail |
 | `detail-skill.css` | Facts, credit, prose, two-column detail, kit contents, kit install | W7 skill and kit detail |
 | `guide.css` | Start and Learn guides, welcome offer | W8 |
@@ -64,7 +63,7 @@ The older `--color-*`, `--space-xs…2xl`, `--text-*`, `--lift*`, `--led*` and `
 
 A rule in `overrides.css` belongs to the coordinator. To change one, ask; the coordinator may move it into your file once the screenshot gate shows no change.
 
-Route-only CSS stays beside its route: `app/launch.css` (Home, Fable), `app/install/install.css` (W9), `app/start/start.css` (W8). A lane that needs new page CSS for one route adds a colocated file for it instead of growing a shared file.
+Route-only CSS stays beside its route: `app/launch.css` (Home, Fable), `app/install/install.css` (W9), `app/start/start.css` and `app/fix/fix.css` (W8). A lane that needs new page CSS for one route adds a colocated file for it instead of growing a shared file.
 
 Both splits from the old single `globals.css` were mechanical. Rules moved only where the cascade order of every overlapping rule stayed the same, and production-build captures (16 routes; desktop light and dark, phone light, plus phone dark for two routes; 50 images) were pixel-identical before and after.
 
@@ -79,7 +78,7 @@ Both splits from the old single `globals.css` were mechanical. Rules moved only 
 | W5 prompt detail | `components/prompts/PromptPage.tsx`, `components/prompts/detail/**`, `SaveMenu.tsx`, `Star.tsx`, `StarIcon.tsx`, `detail-prompt.css` |
 | W6 skills and kits browsing | `app/skills/page.tsx`, `app/kits/page.tsx`, `KitRows.tsx`, `components/skills/browse/**`, `skills.css` |
 | W7 skill and kit detail | `app/skills/[name]/page.tsx`, `app/kits/[kit]/page.tsx`, `components/skills/detail/**`, `detail-skill.css` |
-| W8 Start, Learn and Fix | `app/start/**` (with `start.css`), `app/learn/**`, `app/fix/**`, `GuideProgress.tsx`, `StartWelcome.tsx`, `components/guide/**`, `guide.css`, `fix.css` |
+| W8 Start, Learn and Fix | `app/start/**` (with `start.css`), `app/learn/**`, `app/fix/**`, `GuideProgress.tsx`, `StartWelcome.tsx`, `components/guide/**`, `guide.css` |
 | W9 install | `InstallPage.tsx`, `components/install/**`, `app/install/**`, `quiet.css`. Never `install-choice.ts` or the handoff timing |
 | W10 accounts and utility | `app/account/**`, `app/collections/**`, `app/sign-in/**`, `CollectionsView.tsx`, `ActionForm.tsx`, `components/auth/**`, `components/account/**`, `lib/clerk-appearance.ts`, `app/{about,privacy,terms,mcp-setup}/**`, `DocPage.tsx`, `reading.css`, `account.css` |
 | Coordinator | `overrides.css`, `globals.css` (the import order), `lib/site.ts`, `lib/content.ts`, `lib/copy.ts`, `install-choice.ts`, `app/mcp/route.ts`, `next.config.ts`, `proxy.ts`, `package.json` |
@@ -96,6 +95,7 @@ Smoke files in `site/tests/smoke/` run in parallel, and each starts its own `nex
 | 3998 | `install.smoke.mjs` |
 | 3997 | `library.smoke.mjs` |
 | 3996 | `browse.smoke.mjs` |
+| 3995 | `guides.smoke.mjs` |
 | 3994 | The smoke file added in #136 |
 
 ## Frozen APIs
