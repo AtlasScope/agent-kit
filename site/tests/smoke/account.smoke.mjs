@@ -11,7 +11,7 @@ import { composeCopy } from "../../lib/copy.ts";
 
 const require = createRequire(import.meta.url);
 const data = require("../../content/generated.json");
-const PORT = 3998; // journeys.smoke.mjs uses 3999 and may run at the same time.
+const PORT = 3994; // Smoke files run in parallel; each needs its own port (journeys 3999, install and library 3998).
 let base = process.env.SMOKE_URL?.replace(/\/$/, "");
 let server, browser;
 
