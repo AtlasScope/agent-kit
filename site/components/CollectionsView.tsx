@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { CopyButton } from "./CopyButton";
 import { Crumbs } from "./Crumbs";
-import { firstSentence } from "./Cards";
+import { PromptRow, PromptRows, SkillCards } from "./Cards";
 import { resolve, installFor } from "@/lib/items";
-import { getPromptById, copyText, copyLabel } from "@/lib/content";
+import { getPromptById } from "@/lib/content";
 import type { Item } from "@/lib/collections";
 import type { ActionState } from "@/app/account/actions";
 import { ActionForm, Submit } from "./ActionForm";
@@ -126,40 +126,39 @@ function CollectionPanel({ c, items, actions, sharedHref }: { c: CollectionData;
   );
 }
 
+// Items use the site's shared rows (PromptRow, SkillCards), so a saved prompt reads and copies exactly as it does in
+// the library. In the workspace each row gets a Remove control beside it; on the shared page the rows stand alone.
 function ItemGroup({ title, items, c, actions }: { title: string; items: Resolved[]; c: CollectionData; actions?: Actions }) {
   const hid = `${c.id}-${title.toLowerCase()}`;
+  const prompts = items.filter((i) => i.kind === "prompt");
+  const skills = items.filter((i) => i.kind === "skill");
   return (
     <section className="cgroup" aria-labelledby={hid}>
       <h3 id={hid}>{title} <span className="cgroup__n">{items.length}</span></h3>
-      <ul className="citems">
-        {items.map((i) => <ItemRow key={i.kind + i.ref} i={i} c={c} actions={actions} />)}
-      </ul>
+      {!actions ? (
+        prompts.length > 0
+          ? <PromptRows slugs={prompts.map((i) => getPromptById(i.ref)?.slug).filter((x): x is string => Boolean(x))} />
+          : <SkillCards names={skills.map((i) => i.ref)} />
+      ) : (
+        <ul className="citems">
+          {items.map((i) => {
+            const p = i.kind === "prompt" ? getPromptById(i.ref) : undefined;
+            return (
+              <li key={i.kind + i.ref} className="citem">
+                <div className="citem__row">{p ? <PromptRow p={p} /> : <SkillCards names={[i.ref]} />}</div>
+                <Pop summary={X} summaryClass="col__rm" label={`Remove ${i.title} from ${c.name}`}>
+                  <ActionForm action={actions.removeItem} className="col__popform">
+                    <input type="hidden" name="id" value={c.id} /><input type="hidden" name="kind" value={i.kind} /><input type="hidden" name="ref" value={i.ref} />
+                    <p>Remove {i.title} from {c.name}? It stays in the library.</p>
+                    <Submit busy="Removing…">Remove</Submit>
+                  </ActionForm>
+                </Pop>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </section>
-  );
-}
-
-function ItemRow({ i, c, actions }: { i: Resolved; c: { id: string; name: string }; actions?: Actions }) {
-  const p = i.kind === "prompt" ? getPromptById(i.ref) : undefined;
-  const skill = i.kind === "skill";
-  return (
-    <li className="citem">
-      <span className="citem__body">
-        <Link href={i.href} className={skill ? "citem__name citem__name--cmd" : "citem__name"} translate={skill ? "no" : undefined}>{i.title}</Link>
-        {i.summary && <span className="citem__sum">{skill ? firstSentence(i.summary) : i.summary}</span>}
-      </span>
-      <span className="citem__acts">
-        {p && <CopyButton className="btn btn--sm citem__copy" text={copyText(p)} label={copyLabel(p)} name={`${copyLabel(p)}: ${i.title}`} icon />}
-        {actions && (
-          <Pop summary={X} summaryClass="col__rm" label={`Remove ${i.title} from ${c.name}`}>
-            <ActionForm action={actions.removeItem} className="col__popform">
-              <input type="hidden" name="id" value={c.id} /><input type="hidden" name="kind" value={i.kind} /><input type="hidden" name="ref" value={i.ref} />
-              <p>Remove {i.title} from {c.name}? It stays in the library.</p>
-              <Submit busy="Removing…">Remove</Submit>
-            </ActionForm>
-          </Pop>
-        )}
-      </span>
-    </li>
   );
 }
 
