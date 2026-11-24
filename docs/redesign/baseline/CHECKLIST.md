@@ -9,7 +9,7 @@ cd site && npm ci && npx next build && (npx next start -p 3000 &)
 BASE=http://localhost:3000 node ../docs/redesign/baseline/scripts/verify.mjs
 ```
 
-`verify.mjs` waits up to a minute for the server to answer, then exits 1 and lists each regression. Against the baseline build itself it printed `OK: 430 pages, 1438 copy buttons, 8 install payloads, 6 files match the baseline.` (about 9 minutes in a cloud container).
+`verify.mjs` waits up to a minute for the server to answer, then exits 1 and lists each regression. Against the baseline build itself it printed `OK: 430 pages, 1438 copy buttons, 8 install payloads, 6 files match the baseline.` (about 9 minutes in a cloud container). It printed the same against `redesign/integration` at `9b4c0cc`.
 
 ## How this was captured
 
@@ -42,7 +42,7 @@ Existing gaps, recorded so nobody mistakes them for regressions (present in prod
 
 `data/copy-buttons.json` lists all 1,438 visible copy buttons in `<main>` on those 430 pages (`/install` is covered separately below): page, order, accessible label, and the SHA-256 and length of what the click put on the clipboard. `data/copy-payloads-by-sha256.json` holds the full text of each of the 389 distinct payloads.
 
-- [ ] Every payload a page could copy is still copyable from that page, byte for byte. Button order and labels may change; the text may not.
+- [ ] Every payload a page could copy is still copyable from that page, byte for byte. Button order, labels, tabs and disclosures may change; the text may not. The script records every clipboard write, opens closed `<details>`, and clicks each tab in `<main>` before reading what each Copy control produces, so text behind a tab or a closed "Or run it yourself" section still counts. Controls whose name contains "copy" but carry `aria-pressed` (filters such as "Tests on a copy") are not clicked.
 - [ ] A copy button still reports success in an accessible way (today the label changes to "Copied" in an `aria-live` region and a toast appears on `/install`).
 
 ## Install commands

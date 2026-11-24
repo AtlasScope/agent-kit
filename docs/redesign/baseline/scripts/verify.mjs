@@ -50,47 +50,109 @@ for (const was of pages) {
   if (now.h1 !== 1) fail.push(`${was.path}: ${now.h1} h1 elements (was 1)`);
 }
 
-// 2. Every payload a page could copy is still copyable from that page (order and labels may change).
+// Copy harvesting. Every string the page hands to the clipboard is recorded by an init script, so a
+// control that copies nothing, or copies through execCommand, is seen as it is. Closed <details>
+// (for example "Or run it yourself" on /install) are opened, and every tab in main is clicked, because
+// a tab often swaps the text behind the same Copy button.
+const recorder = () => {
+  window.__copies = [];
+  const clip = navigator.clipboard;
+  if (clip && clip.writeText) {
+    const original = clip.writeText.bind(clip);
+    clip.writeText = (text) => { window.__copies.push(String(text)); return original(text).catch(() => undefined); };
+  }
+  // clipboard.write([new ClipboardItem(...)]) carries text as a text/plain blob; record that too.
+  if (clip && clip.write) {
+    const original = clip.write.bind(clip);
+    clip.write = async (items) => {
+      for (const item of items || []) {
+        if (!item.types || !item.types.includes('text/plain')) continue;
+        try { window.__copies.push(await (await item.getType('text/plain')).text()); } catch { /* unreadable item */ }
+      }
+      return original(items).catch(() => undefined);
+    };
+  }
+  const exec = document.execCommand.bind(document);
+  document.execCommand = (cmd, ...rest) => {
+    if (String(cmd).toLowerCase() === 'copy') {
+      // The usual fallback selects a hidden <textarea>; read its selection directly, not only the document's.
+      const a = document.activeElement;
+      const field = a && (a.tagName === 'TEXTAREA' || a.tagName === 'INPUT') && typeof a.selectionStart === 'number';
+      window.__copies.push(field ? a.value.slice(a.selectionStart, a.selectionEnd) : String(getSelection()));
+    }
+    return exec(cmd, ...rest);
+  };
+};
+await ctx.addInitScript(recorder);
+// Visible, non-inert controls whose name has the word Copy ("Copy prompt", "/design (copy)"). Toggles
+// (aria-pressed) are skipped: the "Tests on a copy" filter on prompt areas is one, and clicking it would
+// hide the cards still to be checked. A floating Copy bar stays inert until its panel scrolls away.
+const markControls = () => {
+  const ids = [];
+  // Clear marks from an earlier pass: a control hidden since then would keep a stale id that now also
+  // names a different control, and the duplicate would make the click fail.
+  document.querySelectorAll('[data-verify-copy]').forEach((el) => el.removeAttribute('data-verify-copy'));
+  document.querySelectorAll('button, [role="button"]').forEach((el, i) => {
+    const name = (el.getAttribute('aria-label') || el.textContent || '').trim();
+    const r = el.getBoundingClientRect();
+    if (!/\bcopy\b/i.test(name) || el.hasAttribute('aria-pressed')) return;
+    if (r.width === 0 || r.height === 0 || el.closest('[inert]')) return;
+    if (el.checkVisibility && !el.checkVisibility({ visibilityProperty: true, opacityProperty: true })) return;
+    el.setAttribute('data-verify-copy', String(i));
+    ids.push(String(i));
+  });
+  return ids;
+};
+// Returns [{ tab, sha256 }]: tab is null for the page as loaded, else the name of the tab that was selected.
+async function harvest(page) {
+  const out = [];
+  const clickAll = async (tab) => {
+    // Reopen disclosures on every pass: a tab can mount a fresh panel whose <details> start closed.
+    await page.evaluate(() => document.querySelectorAll('details:not([open])').forEach((d) => { d.open = true; }));
+    await page.waitForTimeout(150);
+    for (const id of await page.evaluate(markControls)) {
+      const before = await page.evaluate(() => window.__copies.length);
+      const loc = page.locator(`[data-verify-copy="${id}"]`);
+      try { await loc.scrollIntoViewIfNeeded({ timeout: 2000 }); await loc.click({ timeout: 3000 }); } catch { continue; }
+      await page.waitForTimeout(120);
+      for (const t of await page.evaluate((n) => window.__copies.slice(n), before)) out.push({ tab, sha256: sha(t) });
+    }
+  };
+  await clickAll(null);
+  const tabs = page.locator('main [role=tab]');
+  for (let i = 0; i < (await tabs.count()); i++) {
+    const tab = ((await tabs.nth(i).textContent()) || '').replace(/\s+/g, ' ').trim();
+    try { await tabs.nth(i).scrollIntoViewIfNeeded({ timeout: 2000 }); await tabs.nth(i).click({ timeout: 2000 }); } catch { continue; }
+    await page.waitForTimeout(200);
+    await clickAll(tab);
+  }
+  return out;
+}
+
+// 2. Every payload a page could copy is still copyable from that page (order, labels and tabs may change).
 const byPath = new Map();
 for (const r of buttons) { if (!byPath.has(r.path)) byPath.set(r.path, []); byPath.get(r.path).push(r.sha256); }
 for (const [path, want] of byPath) {
-  try { await p.goto(BASE + path, { waitUntil: 'networkidle' }); }
-  catch (e) { fail.push(`${path}: failed to load for the copy check (${e.message.split('\n')[0]})`); continue; }
-  const got = [];
-  for (const bt of await p.locator('main button').all()) {
-    const label = ((await bt.getAttribute('aria-label')) || (await bt.textContent()) || '').trim();
-    if (!/copy/i.test(label) || !(await bt.isVisible())) continue;
-    await p.evaluate(() => navigator.clipboard.writeText('\u0000'));
-    await bt.click();
-    await p.waitForTimeout(120);
-    const t = await p.evaluate(() => navigator.clipboard.readText());
-    if (t !== '\u0000') got.push(sha(t));
-  }
-  const missing = [...new Set(want)].filter((h) => !got.includes(h));
+  let got;
+  try {
+    await p.goto(BASE + path, { waitUntil: 'networkidle' });
+    got = new Set((await harvest(p)).map((c) => c.sha256));
+  } catch (e) { fail.push(`${path}: copy check failed (${e.message.split('\n')[0]})`); continue; }
+  const missing = [...new Set(want)].filter((h) => !got.has(h));
   if (missing.length) fail.push(`${path}: ${missing.length} payload(s) no longer copyable (sha256 ${missing.map((h) => h.slice(0, 12)).join(', ')}; full text in data/copy-payloads-by-sha256.json)`);
 }
 
-// 3. Install page: each agent's message and commands.
-await p.goto(BASE + '/install', { waitUntil: 'networkidle' });
-// Track payloads per agent tab: the first box's message is shared by every tab.
-const got = new Map();
-const tabs = p.locator('main [role=tab]');
-for (let i = 0; i < (await tabs.count()); i++) {
-  const agent = ((await tabs.nth(i).textContent()) || '').trim();
-  const seen = new Set();
-  got.set(agent, seen);
-  await tabs.nth(i).click();
-  await p.waitForTimeout(250);
-  const bs = p.locator('main button.inst__copy:visible');
-  for (let j = 0; j < (await bs.count()); j++) {
-    await p.evaluate(() => navigator.clipboard.writeText('\u0000'));
-    await bs.nth(j).click();
-    await p.waitForTimeout(150);
-    const t = await p.evaluate(() => navigator.clipboard.readText());
-    if (t !== '\u0000') seen.add(sha(t));
+// 3. Install page: each agent's message and commands must be copyable while that agent's tab is selected.
+// The manual steps may sit in a closed disclosure; #manual opens it, and harvest() opens any <details> left closed.
+try {
+  await p.goto(BASE + '/install#manual', { waitUntil: 'networkidle' });
+  const got = await harvest(p);
+  for (const r of install.install) {
+    const mine = got.filter((c) => c.tab && c.tab.includes(r.agent));
+    if (!mine.length) fail.push(`/install: no tab named "${r.agent}", or its copy controls copied nothing`);
+    else if (!mine.some((c) => c.sha256 === r.sha256)) fail.push(`/install: ${r.agent} payload changed or missing:\n${r.text}`);
   }
-}
-for (const r of install.install) if (!got.get(r.agent)?.has(r.sha256)) fail.push(`/install: ${r.agent} payload changed or missing:\n${r.text}`);
+} catch (e) { fail.push(`/install: install check failed (${e.message.split('\n')[0]})`); }
 
 // 4. Machine-readable files. sitemap.xml carries build dates, so compare its URL list instead of its hash.
 for (const [f, was] of Object.entries(files)) {
