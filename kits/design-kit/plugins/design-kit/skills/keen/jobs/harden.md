@@ -8,10 +8,10 @@ Aggressive. Edits files. Tests each case, fixes what breaks, and shows the resul
 
 1. **Find what the screen depends on**: every piece of data it shows, every request it makes, every input it accepts.
 2. **Build the worst-case list** from the table below, keeping only the cases that can happen on this screen. Add any that PRODUCT.md lists under what must never happen.
-3. **Try each case** in a browser or simulator, using whatever the project offers: seed data, a mock, a throttled network, a blocked request, edited values. Capture what you see. Where you cannot produce a case, read the code path and mark it as read, not seen.
+3. **Try each case** in a browser or simulator, using whatever the project offers: seed data, a mock, a throttled network, a blocked request, edited values. A browser driven from code can hold back, slow down or fail a single request, which is the quickest way to see a loading or failed state. Before the first case, press something on the screen and confirm it reacts; if a case shows no reaction at all, the page may not be running its scripts, and nothing you see is a result. Capture what you see. Where you cannot produce a case, read the code path and mark it as read, not seen.
 4. **Fix what broke.** Use the project's existing components for empty, loading and error states before writing new ones.
 5. **Try each case again** and capture the result.
-6. **Report** with a page showing each failing case before and after.
+6. **Report** on the Keen page: the worst failing case before and after as the two shots, the cases you fixed in `changes` (what a person saw, and what they see now), the cases left in `also`, and the full table under `details`.
 
 ## Worst cases
 
@@ -38,4 +38,4 @@ Aggressive. Edits files. Tests each case, fixes what breaks, and shows the resul
 
 ## Report
 
-Follow the report shape in SKILL.md. "What happened" gives the count: cases tried, held already, fixed, left. Then a table with one row per case: the case in plain words, the result (held, fixed, left, or read not seen), and one line on what a user now sees. Anything left is explained under "What you need to do" or "Not checked".
+Follow the report shape in SKILL.md. "What happened" gives the count: cases tried, held already, fixed, left. Then, under Details, a table with one row per case: the case in plain words, the result (held, fixed, left, or read not seen), and one line on what a user now sees. Anything left is explained under "What you need to do" or "Not checked".

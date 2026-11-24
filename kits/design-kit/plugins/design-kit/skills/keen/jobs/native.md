@@ -12,6 +12,7 @@ This job is for apps installed on a device, built with the platform's own tools 
 
 ## Steps
 
+0. **Check it is an installed app.** If the target is a website or a web app in a browser, stop here and name `/keen adapt`.
 1. **Pick the platform**: iPhone and iPad, or Android. If the project ships both and the person did not say, ask which first. Do one, then offer the other as a next step.
 2. **Run the app** in a simulator or emulator. Capture the screen in question in light and dark, at the default text size and at the largest, and on the smallest and largest device the app supports.
 3. **Use it with one hand**, doing the screen's main job. Note every place you reached for something that was not where the platform puts it.

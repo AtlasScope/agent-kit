@@ -12,9 +12,9 @@ A loud screen is one where everything was made to stand out, so nothing does. Th
 
 1. **Name what should still be noticed** when you are done: the screen's main thing and its main action. Everything else is a candidate for turning down.
 2. **Capture before**, at 390 and 1440 wide.
-3. **Count the noise.** Run `node <skill-dir>/scripts/measure.mjs` and run what it prints inside the page, for the number of colours, text sizes and corner shapes. Then count by eye: filled buttons, bold runs of text, boxes with borders, shadows, badges, icons, anything that moves without being asked.
+3. **Count the noise.** Run `node <skill-dir>/scripts/measure.mjs` and run what it prints inside the page, for the number of colours, text sizes and corner shapes (`variety`) and of filled buttons, bordered boxes, shadows and endless movement (`noise`). Then count by eye what the script does not: filled buttons, bold runs of text, boxes with borders, shadows, badges, icons, anything that moves without being asked. If the counts are already low, the screen is already quiet: say so, fix only the one or two things that still shout, and report it as a small change.
 4. **Turn things down** in the order below. After each, look again; stop when the main thing is the first thing you see.
-5. **Capture after**, count again, and report on the Keen page with before and after side by side.
+5. **Capture after**, count again, and report on the Keen page with the before and after shots.
 
 ## What to turn down, in order
 
@@ -35,4 +35,4 @@ A loud screen is one where everything was made to stand out, so nothing does. Th
 
 ## Report
 
-Follow the report shape in SKILL.md. In "What happened", give the counts before and after (colours, filled buttons, bordered boxes) and say what a person now sees first. Offer `/keen bolder` as a next step in case the screen now feels flat. Under Details, the values changed. Under "Not checked", any state you did not capture, and movement if you could not watch the page run.
+Follow the report shape in SKILL.md. In "What happened", give the counts that moved, before and after (colours, filled buttons, bordered boxes, endless movement) and say what a person now sees first. Offer `/keen bolder` as a next step in case the screen now feels flat. Under Details, the values changed. Under "Not checked", any state you did not capture, and movement if you could not watch the page run.

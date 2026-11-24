@@ -8,6 +8,8 @@ Aggressive. Edits files. Does the whole screen in one go.
 
 Colour on a screen does three jobs: it shows what can be pressed, it shows what state something is in, and it sets the mood. It fails when one colour is asked to do two of those, so that the same blue means "link", "selected" and "information", or when there are so many colours that none of them means anything. The fix is fewer colours, each with one purpose, used the same way everywhere. Most of a good screen is not coloured at all.
 
+This job does not add colour to a palette that is small on purpose. If DESIGN.md or the code's notes set a limit ("four colours", "no accent but the dots"), the limit stands; the job is then to find what strays from it and what cannot be read. If the person asked for more colour, say what the rule is and ask whether it is changing before adding any.
+
 ## Steps
 
 1. **Capture before**, at 390 and 1440 wide, in light and dark if the product has both.
@@ -25,7 +27,7 @@ Colour on a screen does three jobs: it shows what can be pressed, it shows what 
 5. **Build the steps evenly.** When you create or fill in a scale, step the lightness evenly in a colour space made to match what the eye sees, such as OKLCH, which CSS supports. Even steps in ordinary hex values look uneven. Tint the greys slightly toward the accent so they sit together, and keep pure black and pure white for the rare case that needs them.
 6. **Fix every pair that fails**, using the table below. Change the lightness of the weaker colour and keep its hue, so the palette still looks like itself.
 7. **Do the same for dark mode** if the product has one. Dark mode is its own set of pairs, not the light one reversed: surfaces get lighter as they come forward, and strong colours are toned down so they do not glare.
-8. **Capture after**, run the measuring script again, and report on the Keen page with before and after side by side.
+8. **Capture after**, run the measuring script again, and report on the Keen page with the before and after shots.
 
 ## What must be readable
 
@@ -58,4 +60,4 @@ Contrast is how much one colour stands out from the colour behind it, as a ratio
 
 ## Report
 
-Follow the report shape in SKILL.md. In "What happened", give the two numbers a person can hold on to: pieces of text that were hard to read before and after, and colours in use before and after. Explain contrast once, the first time it appears. Under Details, each pair you changed with its ratio before and after, and the files. Under "Not checked", dark mode if you could not see it, text over pictures, and any state you did not open.
+Follow the report shape in SKILL.md. In "What happened", give the two numbers a person can hold on to: pieces of text that were hard to read before and after, and colours in use before and after. Leave out a number that did not move. Compare counts at the same width; a part hidden at one width takes its colours with it. Explain contrast once, the first time it appears. Under Details, each pair you changed with its ratio before and after, and the files. Under "Not checked", dark mode if you could not see it, text over pictures, and any state you did not open.

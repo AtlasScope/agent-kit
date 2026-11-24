@@ -10,13 +10,13 @@ The words on a screen are part of how it works. A button that says "Submit" make
 
 ## Steps
 
-1. **Capture before**, at 390 wide, including every message you can reach: an error on each field, the empty state, a confirmation, a success message.
+1. **Capture before**, at 390 wide, including every message you can reach: an error on each field, the empty state, a confirmation, a success message. Reach them by using the screen: submit it empty, press each button, search for something that is not there. A message you cannot bring up this way, read in the code and list under "Not checked".
 2. **Collect every piece of text** on the screen into a list: where it is, what it says, and what it is for. Include text a screen reader hears that is not shown, such as the name of an icon button.
 3. **Find the project's own words.** Read PRODUCT.md, any glossary, and the neighbouring screens. A thing has one name across the whole product. If this screen calls it a "workspace" and the next calls it a "project", pick the one the product uses most and list the other places under "What you need to do". Do not change other screens.
 4. **Rewrite**, using the table and rules below.
 5. **Read every line aloud.** Anything you would not say to a person standing next to you gets rewritten.
 6. **Check the fit.** Longer words can break a layout. Look at 390 wide and fix any text that now wraps badly or is cut off, by shortening the words, not by shrinking the text.
-7. **Capture after** and report on the Keen page with before and after side by side.
+7. **Capture after** and report on the Keen page with the before and after shots.
 
 ## What each kind of text must do
 
@@ -49,10 +49,11 @@ The words on a screen are part of how it works. A button that says "Submit" make
 ## Limits
 
 - Change text only. Do not move, resize, restyle or remove anything.
+- Find where each piece of text is used before changing it. Text shared with other screens changes only if the new wording is right in every place it appears; say which other places it now shows in.
 - Do not change a legal notice, a price, a name of a plan or anything a contract depends on. List what you would change and why.
 - Do not change the meaning. If you cannot tell what a message is for from the code, leave it and list it.
 - If the product is translated, change only the source language, keep every placeholder and plural form intact, and say that the other languages now need the same pass.
 
 ## Report
 
-Follow the report shape in SKILL.md. In "What happened", say how many pieces of text changed out of how many, and quote the three changes a person would notice most, before and after. Under "What you need to do", list anything you left for them: legal text, other screens using a different name for the same thing, messages you could not reach. Under Details, every change as before and after, with its file. Under "Not checked", messages you rewrote without seeing them on screen.
+Follow the report shape in SKILL.md. In "What happened", say how many pieces of text changed out of how many, and give the changes a person would notice most, before and after, in the page's `changes` (five at most). Under "What you need to do", list anything you left for them: legal text, other screens using a different name for the same thing, messages you could not reach. Under Details, every change as before and after, with its file. Under "Not checked", messages you rewrote without seeing them on screen.

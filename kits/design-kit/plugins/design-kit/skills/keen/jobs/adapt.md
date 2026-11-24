@@ -11,10 +11,12 @@ Adapting is deciding what matters most at each size and giving it the room. Shri
 ## Steps
 
 1. **Find out what the product supports.** PRODUCT.md, the project's breakpoints, and whether it is a website, an installed app or both. If they named a size ("fix it on mobile"), that size is the target and the others are checked for damage.
-2. **Capture before** at 360, 390, 768, 1024, 1440 and 1920 wide, and at 390 in landscape. On a phone size, also capture with the on-screen keyboard open if the screen has a form.
+2. **Measure before** at 360, 390, 768, 1024, 1440 and 1920 wide, and at 844 by 390 (a phone on its side). Measure the phone sizes, including the sideways one, as a touch device. Take screenshots only at the target size and at any size where a check fails; a size that passes needs no picture. On a phone size, also capture with the on-screen keyboard open if the screen has a form.
 3. **Walk each size** through the checks below and note every failure.
 4. **Fix**, starting from the smallest size. Use the project's breakpoints and layout tools. Add a breakpoint only where the content breaks, not at a device's width.
-5. **Capture after** at the same sizes and build the page with before and after side by side, grouped by size.
+5. **Measure after** at every size, capture the sizes you pictured before, and build the page with the before and after shots of the size that changed most. Name the other sizes you fixed in `changes`.
+
+The fingertip count (`controls.under44`) matters only where `touch` is true. On a desktop size with a mouse, ignore it. Small controls in the site's shared header and footer are outside this screen: list them, with a count, as a next step for whoever owns those parts.
 
 ## Checks at every size
 

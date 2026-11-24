@@ -15,7 +15,17 @@ Ask once, in one message, with your best guess as the default for each:
 - What is the first real result for a new person? One thing they can see or hold, such as "their first invoice sent" or "their own data on the chart".
 - What does the product truly need from them before that can happen?
 
-If PRODUCT.md already answers both, do not ask.
+If PRODUCT.md already answers both, do not ask. If it answers one, ask the other. If it names who the newcomer is but not their first result on this screen, propose one and say you did.
+
+## When there is nothing to sign up for
+
+A page anyone can open (a library, a catalogue, a docs page) has no account, no fields and no empty state, so counting screens and fields says nothing. The first result is the first useful thing a stranger does with the page, and what stands in the way is what they are assumed to know. Do this instead of steps 1 to 3:
+
+1. Open the page as someone who has never seen this kind of thing. List every word, control and step the page uses without explaining, up to the first useful action.
+2. For each, decide: say it in one line where it is needed, replace it with a plainer word, or leave it because the audience knows it.
+3. Count two things before and after: how many unexplained things stand before the first action, and how far down the screen that action sits at 390 wide.
+
+Then go on from step 4. An explanation must not push the first action down the screen; if it does, shorten it or put it beside the action.
 
 ## Steps
 
@@ -24,7 +34,7 @@ If PRODUCT.md already answers both, do not ask.
 3. **Shorten the path.** Remove what is never needed. Move what is needed later to the moment it is needed. Fill in what the product can work out or sensibly assume, and let the person change it afterwards.
 4. **Design each empty screen** on the path using the table below.
 5. **Mark the first result.** When it happens, say so plainly and offer the one next thing worth doing. No confetti.
-6. **Walk it again**, capture, count and time it, and report on the Keen page with the two walks side by side.
+6. **Walk it again**, capture, count and time it, and report on the Keen page with the first and last screen of each walk as the before and after shots.
 
 ## Each kind of first-time moment
 
@@ -43,9 +53,9 @@ If PRODUCT.md already answers both, do not ask.
 
 - Never remove something the law, a payment or security requires. If you are unsure whether a field is one of those, keep it and list it.
 - Removing a field from sign-up is removing a capability from the product's point of view. List every field you plan to remove and get one yes before you start editing.
-- Do not add a tour, a checklist panel or a welcome dialog unless the first walk showed people cannot find the first step without one.
+- Do not add a tour, a checklist panel or a welcome dialog unless the first walk showed people cannot find the first step without one. One or two lines of explanation on the screen itself, beside the thing they explain, are fine.
 - Everything postponed must still be reachable later. Say where.
 
 ## Report
 
-Follow the report shape in SKILL.md. In "What happened", give the three numbers before and after: screens, fields and time to the first result. Under "What you need to do", anything postponed that the person must now be asked for somewhere else. Under Details, the files and each field's fate. Under "Not checked", sign-up routes you could not walk, such as signing in with another service, and email steps you could not receive.
+Follow the report shape in SKILL.md. In "What happened", give the three numbers before and after: screens, fields and time to the first result (for a page with nothing to sign up for, the two counts from that section). Under "What you need to do", anything postponed that the person must now be asked for somewhere else. Under Details, the files and each field's fate. Under "Not checked", sign-up routes you could not walk, such as signing in with another service, and email steps you could not receive.
