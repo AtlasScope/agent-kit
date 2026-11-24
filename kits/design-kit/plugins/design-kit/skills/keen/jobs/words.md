@@ -10,7 +10,7 @@ The words on a screen are part of how it works. A button that says "Submit" make
 
 ## Steps
 
-1. **Capture before**, at 390 wide, including every message you can reach: an error on each field, the empty state, a confirmation, a success message. Reach them by using the screen: submit it empty, press each button, search for something that is not there. A message you cannot bring up this way, read in the code and list under "Not checked".
+1. **Capture before**, at 390 wide, including every message you can reach: an error on each field, the empty state, a confirmation, a success message. Reach them by using the screen: submit it empty, press each button, search for something that is not there. Never press a control that sends, buys, deletes, publishes or changes saved data to see its message; read those in the code. A message you cannot bring up this way, read in the code and list under "Not checked".
 2. **Collect every piece of text** on the screen into a list: where it is, what it says, and what it is for. Include text a screen reader hears that is not shown, such as the name of an icon button.
 3. **Find the project's own words.** Read PRODUCT.md, any glossary, and the neighbouring screens. A thing has one name across the whole product. If this screen calls it a "workspace" and the next calls it a "project", pick the one the product uses most and list the other places under "What you need to do". Do not change other screens.
 4. **Rewrite**, using the table and rules below.
