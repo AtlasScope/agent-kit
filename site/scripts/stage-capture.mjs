@@ -156,6 +156,16 @@ try {
     await page.locator(".launch__go").click({ noWaitAfter: true }); await page.waitForTimeout(1600);
     say(await page.locator(".inst__note.is-warn").count() === 1, "blocked clipboard: the page says copying was blocked");
     await context.close();
+    // 7. A copy that worked, Back, then a refused copy within the earlier result's 10 seconds: the page reports the
+    // second press, not the first.
+    ({ context, page } = await open("desktop", "/"));
+    await live(page);
+    await page.locator(".launch__go").click({ noWaitAfter: true }); await page.waitForTimeout(1400);
+    await page.goBack(); await page.waitForTimeout(1200);
+    await page.evaluate(() => { navigator.clipboard.writeText = () => new Promise((_, no) => setTimeout(() => no(new Error("no")), 300)); });
+    await page.locator(".launch__go").click({ noWaitAfter: true }); await page.waitForTimeout(1600);
+    say(await page.locator(".inst__note.is-warn").count() === 1 && await page.locator(".inst__msg.is-copied").count() === 0, "a refused copy right after a successful one is reported as refused");
+    await context.close();
     console.log(report.join("\n"));
   }
 } finally { await browser.close(); }

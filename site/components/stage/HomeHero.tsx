@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { saveHandoff } from "../install-choice";
+import { clearHandoff, saveHandoff } from "../install-choice";
 import { HERO, INSTALL_MESSAGE, SITE } from "@/lib/site";
 
 // The homepage's words: what Agent Kit is, in a headline and one line, and one action. The view from orbit behind
@@ -21,6 +21,9 @@ const markStartHere = () => { try { sessionStorage.setItem("agent-kit:start-here
 export function HomeHero() {
   const install = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;
+    // A result left by an earlier press (within its 10-second life) must not answer for this one: clear it before
+    // asking the clipboard, so the install page waits for this press's own answer.
+    clearHandoff();
     let copied: Promise<boolean>;
     try { copied = navigator.clipboard.writeText(INSTALL_MESSAGE).then(() => true, () => false); } catch { copied = Promise.resolve(false); }
     copied.then((ok) => { saveHandoff(ok ? { message: true } : { blocked: true }); dispatchEvent(new Event(HANDOFF_EVENT)); });
