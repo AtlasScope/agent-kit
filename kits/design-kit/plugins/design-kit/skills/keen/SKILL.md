@@ -56,7 +56,7 @@ List only the jobs that were not suggested. If there is no PRODUCT.md and the re
 
 ## Rules for every job
 
-1. **Look at the real screen.** Open it in a browser or simulator and take screenshots. If you cannot run it, say so in the first line and work from the code, and say at the end that nothing was seen.
+1. **Look at the real screen.** Open it in a browser or simulator and take screenshots. If the live product will not open or sits behind a sign-in, look for a way to run it on this computer with sample data (the README and the project's agent instructions usually say how) before giving up. If you cannot run it at all, say so in the first line, work from the code, and say at the end that nothing was seen.
 2. **Read the project's own rules.** AGENTS.md or CLAUDE.md, PRODUCT.md and DESIGN.md come before your taste. Where the project has a colour, size or spacing value, use it. Keen never authorizes a commit, merge or deploy.
 3. **Ask once, then go.** If something must be decided by the person, ask every such question together before you start, then finish without stopping. A job that only reports asks at most one question. A job that edits says what it will do in five lines or fewer and starts, unless the session-start note says ask before edits is on, in which case it waits for a yes.
 4. **Stay inside the target.** Change the screen or component they named. List anything you noticed elsewhere at the end. Do not fix it.
@@ -65,12 +65,12 @@ List only the jobs that were not suggested. If there is no PRODUCT.md and the re
 
 ## The report
 
-Every job ends with this, in this order. Plain words. No file names above the Details line.
+Every job ends with this, in this order.
 
 ```text
 What happened: <one or two sentences>
 What it means: <what is different for the people using the product>
-What you need to do: <the one thing, or "Nothing">
+What you need to do: <"Nothing", or "Pick a next step" followed by the next steps below>
 Proof: <what to look at: the page, the screenshots, the numbers>
 
 Details
@@ -81,14 +81,40 @@ Not checked: <what you could not see or test>
 
 Leave out nothing from "Not checked". A report that claims more than was tested is worse than a short one.
 
+### Writing the report
+
+The reader runs the product and may never have opened its code. Write for them, then check the draft against these before sending it. If the kit's `fix-writing` skill is installed, apply its rules to the report as well.
+
+- **No commands, file names, code or settings names above the Details line.** Say what you did in ordinary words: "I ran the product on this computer with its built-in sample data", not the command that did it. The command goes under Details.
+- **Use the words on the screen.** Call things what the product calls them ("the Needs you list"), not what the code calls them.
+- **A number comes with what it means.** "61 of 95 buttons are smaller than a fingertip can hit reliably" before "under 44 points".
+- **When a technical term has to appear, teach it once, in one sentence, the first time.** "Contrast is how much the text stands out from what is behind it; 4.5 to 1 is the level the accessibility standard asks for." After that, use it freely. Never stack two unexplained terms in one sentence.
+- **Details are for the person who wants them.** Keep them complete and exact, and put them where they can be skipped: collapsed if the page can collapse, last if it cannot.
+- **Short.** If a sentence would survive being cut, cut it.
+
+### Next steps
+
+When there is something to do next, do not hand over one command as a line of text. Offer up to three next steps, ranked for this screen from what you found, most valuable first.
+
+For each: the command, one plain line on what it will do, and one on why it ranks where it does. The first is marked as the suggestion.
+
+When two or more of them belong together, also offer them as one run in the order that makes sense, with a line on why that order. Removing things comes before resizing what is left; finishing touches come last. Running them in order still means one job at a time, with a report after each.
+
+Every next step is something the person can act on with one press:
+
+- **Send it.** Where the harness lets a page or panel put a message into the conversation, each next step is a button that sends its command, so pressing it starts the job.
+- **Copy it.** Everywhere, each next step also has a copy button.
+- **Plain text** only when the harness can show neither. Then put each command on its own line so it can be selected whole.
+
 ## Proof
 
-Reviews and before-and-after work end with something to look at. Show it the best way this harness has:
+Reviews and before-and-after work end with something to look at, and the report and next steps live on the same surface. Use the richest one this harness has, in this order:
 
-- If you can publish or render a page for the person (an artifact, a preview pane, a canvas), do that.
-- Otherwise write one self-contained HTML file to `.artifacts/keen/<job>-<target>.html` in the primary checkout and give the path. Create `.artifacts/` with a `.gitignore` holding `*` if the project has none.
+1. An interactive panel or page inside the conversation, where buttons can send a message back. Put the report, the screenshots and the next-step buttons there.
+2. A published page the person can open and share, with copy buttons.
+3. One self-contained HTML file at `.artifacts/keen/<job>-<target>.html` in the primary checkout, with the images inside the file and copy buttons, and the path given in the reply. Create `.artifacts/` with a `.gitignore` holding `*` if the project has none. Use this only when the first two are not available, and say that is why.
 
-The page holds the screenshots side by side with short captions, and the same report text. Before and after are captured at the same sizes: 390 wide for a phone and 1440 wide for a desktop, unless the job says otherwise. A job that changes nothing visible reports in text only.
+Whichever it is, it holds the screenshots side by side with short captions, each problem marked where it appears. Before and after are captured at the same sizes: 390 wide for a phone and 1440 wide for a desktop, unless the job says otherwise. A job that changes nothing visible reports in text only.
 
 ## Sources
 
