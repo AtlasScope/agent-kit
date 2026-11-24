@@ -10,7 +10,7 @@ import { SITE, kitInstallMessage } from "../../lib/site.ts";
 
 const require = createRequire(import.meta.url);
 const data = require("../../content/generated.json");
-const PORT = 3998;
+const PORT = 3992;
 let base = process.env.SMOKE_URL?.replace(/\/$/, "");
 let server, browser;
 

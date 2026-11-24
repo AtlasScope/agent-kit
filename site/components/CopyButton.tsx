@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 
 const CopyIcon = () => (
   <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -27,6 +28,8 @@ export function CopyButton({ text, label = "Copy", className = "copy", icon = fa
       data-blocked={state === BLOCKED || undefined}
       aria-label={name}
       onClick={async () => {
+        // Each press starts fresh, so a repeat result re-announces and a page watching the attributes sees it again.
+        if (state !== label) { clearTimeout(timer.current); flushSync(() => setState(label)); }
         try { await navigator.clipboard.writeText(text); show("Copied", 1600); }
         catch { show(BLOCKED, 5000); }
       }}

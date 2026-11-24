@@ -41,8 +41,9 @@ export default function DesignSystem() {
 
       <section className="section" aria-labelledby="ds-code">
         <h2 id="ds-code">Code</h2>
-        <CodeWithFloat />
-        <p className="ds-note">Scroll this block’s Copy behind the header to see FloatingCopy.</p>
+        <CodeWithFloat>
+          <p className="ds-note">Scroll this block’s Copy behind the header to see FloatingCopy. It hides again once this example has scrolled past.</p>
+        </CodeWithFloat>
       </section>
 
       <section className="section" aria-labelledby="ds-colour">

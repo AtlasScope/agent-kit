@@ -1,8 +1,116 @@
-/* Prompt detail: replaced notes, plan steps and the prompt-only detail blocks.
-   Owner: W5 prompt detail (DESIGN-CONTRACT.md). */
-.replaced { border: 1px solid var(--color-rule); border-radius: 10px; padding: 12px 14px; margin-top: 12px; }
-.plan-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-.plan-steps li { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 10px 0; border-bottom: 1px solid var(--color-rule-2); }
-.plan-steps .muted { display: block; }
-@media (max-width: 640px) { .plan-steps li { grid-template-columns: 28px minmax(0, 1fr); } }
-@media (max-width: 640px) { .plan-steps li > :last-child { grid-column: 2; justify-self: start; } }
+/* Prompt detail page (/prompts/<prompt>). Owned by the prompt-detail lane (W5); see DESIGN-CONTRACT.md.
+   Loaded site-wide from globals.css, so every selector starts with .pd- and nothing else on the site is touched.
+   Tokens only. Raw values carry a comment saying why. */
+
+/* Head: kicker above the title, then the lead, then the two lines people decide with. */
+.pd-head { gap: var(--space-3); max-width: 60rem; }
+.pd-kicker { margin: var(--space-2) 0 0; }
+.pd-head h1 { text-wrap: balance; }
+.pd-head .lead { max-width: 56ch; }
+.pd-replaced { margin: var(--space-2) 0 0; padding: var(--space-3) var(--space-4); border: 1px solid var(--c-line); border-radius: var(--radius-md); font-size: var(--type-sm); line-height: var(--lh-sm); color: var(--c-fg-2); max-width: 64ch; }
+
+.pd-fit { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: var(--space-4) var(--space-10); margin: var(--space-3) 0 0; padding-top: var(--space-4); border-top: 1px solid var(--c-line); }
+.pd-fit > div { display: grid; gap: var(--space-1); align-content: start; }
+.pd-fit dt { font: var(--weight-semibold) var(--type-sm)/var(--lh-sm) var(--font-body); color: var(--c-fg); }
+.pd-fit dd { margin: 0; font-size: var(--type-sm); line-height: var(--lh-body); color: var(--c-fg-2); max-width: 52ch; text-wrap: pretty; }
+
+/* Body: the text and its Copy on the left, the facts on the right. */
+.pd-grid { display: grid; grid-template-columns: minmax(0, 1fr) 20rem; gap: var(--space-10) var(--space-16); align-items: start; }
+.pd-main { display: grid; gap: var(--space-10); min-width: 0; }
+@media (max-width: 64rem) { .pd-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* The payload panel. Flat with a hairline. Its head sticks under the site header so Copy stays in reach through
+   a long prompt; that is why this is not the .block primitive, whose overflow: hidden would stop the head sticking. */
+.pd-payload { position: relative; border: 1px solid var(--c-line); border-radius: var(--radius-lg); background: var(--c-surface); min-width: 0; }
+.pd-payload__head {
+  position: sticky; top: var(--header-h); z-index: 2;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-4);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-6);
+  border-bottom: 1px solid var(--c-line); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: var(--c-surface);
+}
+.pd-payload__meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-3); margin: 0; font-size: var(--type-xs); line-height: var(--lh-xs); color: var(--c-fg-3); font-variant-numeric: tabular-nums; }
+.pd-payload__label { font-weight: var(--weight-semibold); color: var(--c-fg); }
+.pd-payload__meta code { font: var(--weight-regular) var(--type-xs)/1 var(--font-mono); color: var(--c-fg-2); }
+.pd-payload__acts { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-left: auto; }
+.pd-copywrap { display: inline-flex; align-items: center; gap: var(--space-2); }
+
+.pd-text { margin: 0; padding: var(--space-6); white-space: pre-wrap; overflow-wrap: anywhere; tab-size: 2; font: var(--weight-regular) var(--type-code)/var(--lh-code) var(--font-mono); color: var(--c-fg); border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
+.pd-text:focus-visible { outline-offset: -2px; }
+.pd-text::selection { background: var(--c-fill-2); }
+
+/* Copy. The colours come from .btn--primary. This page adds a width that holds when the label changes, and
+   "Copied" swaps the copy icon for a state dot the size of the .led primitive. On the primary button the dot takes
+   the label colour (as .copy--main does in primitives.css), since no one green reads on both ink and white. */
+.pd-copy { min-width: 9.5rem; justify-content: center; }
+.pd-copy[data-copied] .i, .pd-stepcopy[data-copied] .i { display: none; }
+.pd-copy[data-copied]::before, .pd-stepcopy[data-copied]::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--c-signal); } /* 7px: the .led primitive's size */
+.pd-copy[data-copied]::before { background: currentColor; }
+.pd-stepcopy { min-width: 5.5rem; justify-content: center; }
+
+.pd-key { display: none; min-width: 22px; padding: 0 var(--space-2); border: 1px solid var(--c-edge); border-radius: var(--radius-sm); font: var(--weight-regular) var(--type-micro)/20px var(--font-mono); text-align: center; color: var(--c-fg-3); } /* 22px / 20px: same box as the header search key */
+/* The C shortcut works while focus is on the panel's Copy or in the text it copies, so its hint shows only then. */
+@media (hover: hover) and (pointer: fine) and (min-width: 40.0625rem) {
+  .pd-payload:has(.pd-payload__head .pd-copy:focus, > .pd-text:focus, > .pd-fallback:not(.pd-fallback--step) .pd-text:focus) .pd-key { display: inline-block; }
+}
+
+/* Steps: numbered rows on hairlines. Inside the panel (split recipes) each row has its own Copy. */
+.pd-steps__note { margin: 0; padding: var(--space-4) var(--space-6) 0; font-size: var(--type-sm); line-height: var(--lh-sm); color: var(--c-fg-3); max-width: 64ch; }
+.pd-steps { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--c-line); }
+.pd-steps > li { display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: var(--space-3); align-items: baseline; padding: var(--space-3) 0; border-bottom: 1px solid var(--c-line); }
+.pd-steps--copy { border-top: 0; padding: var(--space-2) var(--space-6); }
+.pd-steps--copy > li { grid-template-columns: 2rem minmax(0, 1fr) auto; align-items: center; }
+.pd-steps--copy > li:last-child { border-bottom: 0; }
+.pd-steps__n { font: var(--weight-regular) var(--type-xs)/var(--lh-body) var(--font-mono); color: var(--c-fg-3); font-variant-numeric: tabular-nums; }
+.pd-steps__t { display: grid; gap: 2px; min-width: 0; } /* 2px: label and its note read as one item */
+.pd-steps__t code { font: var(--weight-medium) var(--type-code)/var(--lh-sm) var(--font-mono); color: var(--c-fg); overflow-wrap: anywhere; }
+.pd-steps__t b { font-weight: var(--weight-semibold); color: var(--c-fg); }
+.pd-steps__t .lic { font-weight: var(--weight-medium); }
+.pd-steps__d { font-size: var(--type-sm); line-height: var(--lh-sm); color: var(--c-fg-3); text-wrap: pretty; }
+.pd-gnote { margin: 0; }
+/* A blocked clipboard on a split recipe shows the exact text above the steps, selected. */
+.pd-fallback { border-bottom: 1px solid var(--c-line); }
+/* Beside a step, the slot takes no room until it holds the text, which then spans the row under that step. */
+.pd-stepslot { display: contents; }
+.pd-fallback--step { grid-column: 1 / -1; border: 1px solid var(--c-line); border-radius: var(--radius-md); background: var(--c-canvas); }
+.pd-fallback--step .pd-text { padding: var(--space-4); border-radius: var(--radius-md); }
+
+/* Facts: grouped by the question they answer. Hairlines between groups, no box. */
+.pd-aside { display: grid; gap: 0; min-width: 0; }
+.pd-facts { display: grid; gap: var(--space-3); padding: var(--space-6) 0; border-top: 1px solid var(--c-line); }
+.pd-facts:first-child { padding-top: 0; border-top: 0; }
+.pd-facts__h { margin: 0; font: var(--weight-semibold) var(--type-sm)/var(--lh-sm) var(--font-body); color: var(--c-fg); }
+.pd-facts dl { display: grid; gap: var(--space-3); margin: 0; }
+.pd-facts dl > div { display: grid; gap: 2px; } /* 2px: term and value read as one fact */
+.pd-facts dt { font-size: var(--type-xs); line-height: var(--lh-xs); color: var(--c-fg-3); }
+.pd-facts dd { margin: 0; font-size: var(--type-sm); line-height: var(--lh-sm); color: var(--c-fg-2); overflow-wrap: anywhere; text-wrap: pretty; }
+.pd-facts dd a { color: var(--c-fg); text-underline-offset: 0.2em; text-decoration-color: var(--c-line-2); }
+@media (hover: hover) and (pointer: fine) { .pd-facts dd a:hover { text-decoration-color: currentColor; } }
+@media (max-width: 64rem) {
+  .pd-aside { grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); column-gap: var(--space-10); border-top: 1px solid var(--c-line); }
+  .pd-facts, .pd-facts:first-child { padding: var(--space-6) 0 0; border-top: 0; }
+}
+
+/* Phones: Copy becomes the wide button in the sticky bar; the line count and id sit on their own row. */
+@media (max-width: 40rem) {
+  .pd-payload { margin-inline: calc(var(--gutter) * -1); border-radius: 0; border-inline: 0; }
+  .pd-payload__head { border-radius: 0; padding: var(--space-2) var(--gutter); }
+  .pd-payload__acts { width: 100%; margin-left: 0; }
+  .pd-copywrap { flex: 1; order: 2; }
+  .pd-payload .pd-copy { flex: 1; }
+  .pd-text { padding: var(--space-4) var(--gutter); border-radius: 0; font-size: var(--type-xs); }
+  .pd-steps__note, .pd-steps--copy { padding-inline: var(--gutter); }
+  .pd-steps--copy > li { grid-template-columns: 1.5rem minmax(0, 1fr); align-items: baseline; }
+  .pd-steps--copy > li > .pd-stepcopywrap { grid-column: 2; justify-self: start; }
+}
+@media (pointer: coarse) { .pd-copy, .pd-md, .pd-stepcopy { min-height: var(--tap); } }
+
+/* Floating Copy (shared .fcopy). Its anchor is a zero-height marker one Copy bar's height above the panel's end
+   (Payload.tsx keeps the offset). While the bar shows, focus and in-page jumps land clear of it (WCAG 2.4.11):
+   extends base.css's scroll-padding for this page only, by the bar's height. */
+.pd-anchor { position: absolute; left: 0; width: 0; height: 0; pointer-events: none; }
+.pd-dockwrap { display: contents; }
+html:has(.pd-payload):has(.fcopy[data-on]) { scroll-padding-top: calc(var(--header-h) + var(--space-2) + var(--control-h-sm) + var(--space-2) + var(--space-4)); }
+@media (max-width: 40rem) {
+  html:has(.pd-payload):has(.fcopy[data-on]) { scroll-padding-top: calc(var(--header-h) + var(--space-4)); scroll-padding-bottom: calc(var(--tap) + 2 * var(--space-2) + env(safe-area-inset-bottom) + var(--space-4)); }
+}
