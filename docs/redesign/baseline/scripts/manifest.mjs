@@ -3,7 +3,11 @@ import { createRequire } from 'node:module';
 const { chromium } = createRequire(process.cwd() + '/package.json')('playwright');
 import fs from 'node:fs'; import crypto from 'node:crypto';
 const BASE = process.env.BASE || 'http://localhost:3200', OUT = process.argv[2];
-const routes = fs.readFileSync(process.env.ROUTES || new URL('../data/routes.txt', import.meta.url), 'utf8').trim().split('\n');
+const read = (f) => fs.readFileSync(f, 'utf8').trim().split('\n');
+const routes = read(process.env.ROUTES || new URL('../data/routes.txt', import.meta.url));
+// Routes outside the sitemap, marked inSitemap: false so verify.mjs doesn't expect them in sitemap.xml.
+const extra = new Set(read(process.env.EXTRA_ROUTES || new URL('../data/extra-routes.txt', import.meta.url)));
+routes.push(...[...extra].filter((r) => !routes.includes(r)));
 const h = (s) => crypto.createHash('sha256').update(s).digest('hex');
 const b = await chromium.launch();
 const ctx = await b.newContext({ permissions: ['clipboard-read', 'clipboard-write'], viewport: { width: 1440, height: 900 } });
@@ -20,7 +24,7 @@ for (const r of routes) {
       alternateMd: q('link[rel=alternate][type="text/markdown"]', 'href'),
       copyButtons: [...document.querySelectorAll('main button')].filter(b => /copy/i.test(b.getAttribute('aria-label') || b.textContent)).length };
   });
-  pages.push({ path: r, status: res.status(), ...m });
+  pages.push({ path: r, status: res.status(), ...m, ...(extra.has(r) ? { inSitemap: false } : {}) });
   if (/^\/prompts\/[^/]+$/.test(r) || /^\/kits\/[^/]+$/.test(r) || /^\/skills\/[^/]+$/.test(r) || /^\/fix\/[^/]+$/.test(r)) {
     const btn = p.locator('main button.btn--solid:has-text("Copy prompt"), main button.copy--main').first();
     if (await btn.count()) {

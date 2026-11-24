@@ -17,13 +17,23 @@ const sha = (s) => crypto.createHash('sha256').update(s).digest('hex');
 const fail = [];
 const META = ['title', 'description', 'canonical', 'ogTitle', 'ogImage', 'twitterCard', 'robots', 'lang', 'alternateMd'];
 
+// Wait for the server: the CHECKLIST starts `next start` in the background right before this runs.
+for (let i = 0; ; i++) {
+  try { await fetch(BASE + '/'); break; } catch (e) {
+    if (i >= 60) { console.log(`No server answering at ${BASE}: ${e.message}`); process.exit(1); }
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+}
+
 const b = await chromium.launch();
 const ctx = await b.newContext({ permissions: ['clipboard-read', 'clipboard-write'], viewport: { width: 1440, height: 900 } });
 const p = await ctx.newPage();
 
 // 1. Every baseline URL still answers 200 with the same SEO metadata and one h1.
 for (const was of pages) {
-  const res = await p.goto(BASE + was.path, { waitUntil: 'domcontentloaded' });
+  let res;
+  try { res = await p.goto(BASE + was.path, { waitUntil: 'domcontentloaded' }); }
+  catch (e) { fail.push(`${was.path}: failed to load (${e.message.split('\n')[0]})`); continue; }
   if (res.status() !== was.status) { fail.push(`${was.path}: status ${res.status()} (was ${was.status})`); continue; }
   const now = await p.evaluate(() => {
     const q = (s, a = 'content') => document.querySelector(s)?.getAttribute(a) ?? null;
@@ -44,7 +54,8 @@ for (const was of pages) {
 const byPath = new Map();
 for (const r of buttons) { if (!byPath.has(r.path)) byPath.set(r.path, []); byPath.get(r.path).push(r.sha256); }
 for (const [path, want] of byPath) {
-  await p.goto(BASE + path, { waitUntil: 'networkidle' });
+  try { await p.goto(BASE + path, { waitUntil: 'networkidle' }); }
+  catch (e) { fail.push(`${path}: failed to load for the copy check (${e.message.split('\n')[0]})`); continue; }
   const got = [];
   for (const bt of await p.locator('main button').all()) {
     const label = ((await bt.getAttribute('aria-label')) || (await bt.textContent()) || '').trim();
@@ -61,19 +72,25 @@ for (const [path, want] of byPath) {
 
 // 3. Install page: each agent's message and commands.
 await p.goto(BASE + '/install', { waitUntil: 'networkidle' });
-const got = new Set();
+// Track payloads per agent tab: the first box's message is shared by every tab.
+const got = new Map();
 const tabs = p.locator('main [role=tab]');
 for (let i = 0; i < (await tabs.count()); i++) {
+  const agent = ((await tabs.nth(i).textContent()) || '').trim();
+  const seen = new Set();
+  got.set(agent, seen);
   await tabs.nth(i).click();
   await p.waitForTimeout(250);
   const bs = p.locator('main button.inst__copy:visible');
   for (let j = 0; j < (await bs.count()); j++) {
+    await p.evaluate(() => navigator.clipboard.writeText('\u0000'));
     await bs.nth(j).click();
     await p.waitForTimeout(150);
-    got.add(sha(await p.evaluate(() => navigator.clipboard.readText())));
+    const t = await p.evaluate(() => navigator.clipboard.readText());
+    if (t !== '\u0000') seen.add(sha(t));
   }
 }
-for (const r of install.install) if (!got.has(r.sha256)) fail.push(`/install: ${r.agent} payload changed or missing:\n${r.text}`);
+for (const r of install.install) if (!got.get(r.agent)?.has(r.sha256)) fail.push(`/install: ${r.agent} payload changed or missing:\n${r.text}`);
 
 // 4. Machine-readable files. sitemap.xml carries build dates, so compare its URL list instead of its hash.
 for (const [f, was] of Object.entries(files)) {

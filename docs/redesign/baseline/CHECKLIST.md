@@ -9,7 +9,7 @@ cd site && npm ci && npx next build && (npx next start -p 3000 &)
 BASE=http://localhost:3000 node ../docs/redesign/baseline/scripts/verify.mjs
 ```
 
-It exits 1 and lists each regression. Against the baseline build itself it printed `OK: 430 pages, 1438 copy buttons, 8 install payloads, 6 files match the baseline.` (about 9 minutes in a cloud container).
+`verify.mjs` waits up to a minute for the server to answer, then exits 1 and lists each regression. Against the baseline build itself it printed `OK: 430 pages, 1438 copy buttons, 8 install payloads, 6 files match the baseline.` (about 9 minutes in a cloud container).
 
 ## How this was captured
 
@@ -31,12 +31,12 @@ It exits 1 and lists each regression. Against the baseline build itself it print
 
 - [ ] Titles, descriptions and canonicals unchanged unless a change is intended and listed in the PR.
 - [ ] Exactly one `h1` per page (true on all 430 today).
-- [ ] JSON-LD kept: `Organization` on `/`, `BreadcrumbList` on 424 pages, `SoftwareSourceCode` on the 66 skill pages.
+- [ ] JSON-LD kept: `Organization` on `/`, `BreadcrumbList` on 428 pages, `SoftwareSourceCode` on the 66 skill pages.
 - [ ] `twitter:card` = `summary_large_image` and the shared OG image on every page.
 - [ ] Markdown alternates (`<link rel="alternate" type="text/markdown">`) kept on the 410 pages that have one.
 - [ ] `robots.txt`, `llms.txt`, `llms-full.txt` and `install.md` byte-identical (hashes in `data/files.json`) unless the PR intends a content change.
 
-Existing gaps, recorded so nobody mistakes them for regressions (present in production too): `/` has no canonical tag; no page sets `og:url`; 57 titles are over 65 characters and 5 descriptions over 160; one description is shared by two pages.
+Existing gaps, recorded so nobody mistakes them for regressions (present in production too): `/` has no canonical tag; no page sets `og:url`; 57 titles are over 65 characters and 5 descriptions over 160; one description is shared by four pages (`/prompts/engineering-kit`, `/prompts/trail-of-bits`, `/prompts/experience-architecture`, `/prompts/other-commands-that-help`).
 
 ## Copy payloads (exact text)
 
@@ -107,10 +107,10 @@ Recorded in `journeys/` of the Before set (desktop 1440 dark and iPhone 15 Pro l
 
 ## Re-capturing
 
-The scripts in `scripts/` produced this data. Run each from `site/` against a running build (`BASE` defaults to `http://localhost:3200`):
+The scripts in `scripts/` produced this data. Run each from `site/` against a running build (`BASE` defaults to `http://localhost:3200`, except `verify.mjs`, which defaults to `http://localhost:3000`):
 
-- `shots.mjs <out> <prompt-slug>`: above-the-fold and full-page screenshots of 24 templates at 1440 and 1728 (2x), iPad Pro 11 and iPhone 15 Pro, light and dark.
+- `shots.mjs <out> [prompt-slug]` (default `status-hidden-in-a-pile-of-flags`): above-the-fold and full-page screenshots of 24 templates at 1440 and 1728 (2x), iPad Pro 11 and iPhone 15 Pro, light and dark.
 - `journeys.mjs <out>`: the recorded journeys.
-- `manifest.mjs <out>`: `pages.json`, install commands and file hashes.
+- `manifest.mjs <out>`: `pages.json` (the `routes.txt` paths plus `extra-routes.txt`, marked `inSitemap: false`), install commands and file hashes.
 - `copies.mjs <out>`: `copy-buttons.json` and the payload texts (needs `pages.json` in `<out>`).
 - `verify.mjs`: the regression check above.

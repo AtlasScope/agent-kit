@@ -13,7 +13,7 @@ const VPS = {
   'ipad-pro-11': devices['iPad Pro 11'],
   'iphone-15-pro': devices['iPhone 15 Pro'],
 };
-const prompt = process.argv[3];
+const prompt = process.argv[3] || 'status-hidden-in-a-pile-of-flags';
 const b = await chromium.launch();
 const log = [];
 for (const [vp, dev] of Object.entries(VPS)) for (const scheme of ['light', 'dark']) {
@@ -34,5 +34,5 @@ for (const [vp, dev] of Object.entries(VPS)) for (const scheme of ['light', 'dar
   await ctx.close();
 }
 await b.close();
-fs.writeFileSync(`${OUT}/capture-log.tsv`, log.join('\n') + '\n');
+fs.writeFileSync(`${OUT}/screenshot-log.tsv`, log.join('\n') + '\n');
 console.log(log.filter(l => !/\t200$/.test(l)).join('\n'));
