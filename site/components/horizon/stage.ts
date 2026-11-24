@@ -105,7 +105,13 @@ function target(position: Vec3, forward: Vec3): Vec3 {
   return [p[0] / l, p[1] / l, p[2] / l];
 }
 
-export interface Cue { now: number; opening: number; leave: number; px: number; py: number }
+// `recede` (0 to 1) is the install page's pose: the camera climbs away from the planet and tips up, so the limb drops
+// to a low arc at the foot of the frame, and the picture dims to sit behind an interface. It is a pose, not a
+// one-way move: the caller may run it forward, back, or reverse it half way.
+export interface Cue { now: number; opening: number; leave: number; px: number; py: number; recede?: number }
+// How far the camera climbs for the install pose (km), where the limb then sits below the middle of the frame
+// (degrees), and how much light is kept.
+const RECEDE = { climb: 2600, wide: 14.6, tall: 15.2, light: 0.85 };
 export function createStage(canvas: HTMLCanvasElement, options: { direction: Direction; tall: () => boolean; base?: string; cloud?: string; startAt?: number; rate?: number; tune?: Partial<Look>; meter?: number; onError?: (e: Error) => void }) {
   const { direction } = options;
   const base = options.base ?? "/horizon";
@@ -140,21 +146,33 @@ export function createStage(canvas: HTMLCanvasElement, options: { direction: Dir
       // tenth of a degree, the kind a hand-held long lens has on a steady mount.
       const pan = 0.1 * Math.sin(seconds / 37) + 0.04 * Math.sin(seconds / 11.3 + 1), tilt = 0.07 * Math.sin(seconds / 53 + 2);
       const pitch = view.pitch - 7 * arrive - 9 * leave + tilt;
-      const shot = aim(at.position, view.heading + pan, pitch, view.roll, at.travel);
+      // The meter always reads from the homepage's pose, so receding changes the framing and never the exposure.
+      const home = aim(at.position, view.heading + pan, pitch, view.roll, at.travel);
+      const recede = clamp(cue.recede ?? 0);
+      let shot = home;
+      if (recede > 0) {
+        // Climb along the line from the planet's centre, and re-aim so the limb lands where the pose wants it: the
+        // limb lies acos(R / r) below the level, whatever the height.
+        const r0 = Math.hypot(...at.position), r1 = r0 + RECEDE.climb * recede, k = r1 / r0, deg = 180 / Math.PI;
+        const dip0 = Math.acos(6371 / r0) * deg, dip1 = Math.acos(6371 / r1) * deg;
+        const below0 = dip0 - view.pitch, below1 = options.tall() ? RECEDE.tall : RECEDE.wide;
+        const lifted = dip1 - (below0 + (below1 - below0) * recede) - 7 * arrive + tilt;
+        shot = aim([at.position[0] * k, at.position[1] * k, at.position[2] * k], view.heading + pan, lifted, view.roll * (1 - 0.35 * recede), at.travel);
+      }
       const sun = sunDirection(ms), moon = moonDirection(ms);
       // The meter adapts over a few seconds, as an eye or a camera would, so crossing the terminator is a slow
       // change of exposure and never a jump.
       // It reads the middle of the view and two places nearer the limb, and exposes for the brightest, so cloud
       // facing a low sun ahead keeps its detail and the dark foreground is left dark.
       const reads = [0, 0.45, 0.8].map((lift) => {
-        const ray: Vec3 = [0, 1, 2].map((i) => shot.forward[i] + (shot.up[i] * lift) / view.focal) as Vec3, l = Math.hypot(...ray);
-        return dot(target(shot.position, [ray[0] / l, ray[1] / l, ray[2] / l]), sun);
+        const ray: Vec3 = [0, 1, 2].map((i) => home.forward[i] + (home.up[i] * lift) / view.focal) as Vec3, l = Math.hypot(...ray);
+        return dot(target(home.position, [ray[0] / l, ray[1] / l, ray[2] / l]), sun);
       });
       let wanted = meter(Math.max(...reads));
       // With the sun itself in the picture a camera stops down for it, whatever the ground is doing: the night side
       // goes black and the lit air along the limb keeps its colour.
-      const high = Math.hypot(...shot.position), above = Math.asin(dot(shot.position, sun) / high) + Math.acos(6371 / high);
-      const facing = clamp((dot(shot.forward, sun) - 0.72) / 0.16), up = clamp((above + 0.07) / 0.08);
+      const high = Math.hypot(...home.position), above = Math.asin(dot(home.position, sun) / high) + Math.acos(6371 / high);
+      const facing = clamp((dot(home.forward, sun) - 0.72) / 0.16), up = clamp((above + 0.07) / 0.08);
       wanted += (Math.min(wanted, SUN_IN_FRAME) - wanted) * facing * facing * (3 - 2 * facing) * up;
       wanted += options.meter ?? direction.meter;
       // A machine that cannot hold the page's thirty frames a second gets fewer pixels to draw: when most of the last
@@ -165,7 +183,7 @@ export function createStage(canvas: HTMLCanvasElement, options: { direction: Dir
       // After a gap of more than a second (a hidden tab, or a capture that jumps to a held moment) the meter starts
       // from what it reads now and does not crawl there from an exposure minutes stale.
       stops = stops === null || gap > 1 ? wanted : stops + (wanted - stops) * (1 - Math.exp(-dt / 2.5));
-      const fade = (1 - 0.75 * Math.exp(-Math.max(cue.opening, 0) / 0.6)) * (1 - leave);
+      const fade = (1 - 0.75 * Math.exp(-Math.max(cue.opening, 0) / 0.6)) * (1 - leave) * (1 - (1 - RECEDE.light) * recede);
       const look: Look = { ...LOOK, ...direction.look, ...options.tune, focal: view.focal * (1 + 0.1 * arrive) };
       look.exposure = Math.pow(2, stops) * fade;
       look.moonlight *= 0.15 + 0.85 * moon.phase;

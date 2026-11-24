@@ -19,7 +19,7 @@ if (q.has("dir")) {
   const begin = performance.now();
   // The stage's clock starts at its first drawn frame, so a held moment is measured from one drawn at zero.
   let started = false;
-  const cue = (now: number) => ({ now, opening: q.has("opening") ? Number(q.get("opening")) : 1e6, leave: Number(q.get("leave") || 0), px: 0, py: 0 });
+  const cue = (now: number) => ({ now, opening: q.has("opening") ? Number(q.get("opening")) : 1e6, leave: Number(q.get("leave") || 0), recede: Number(q.get("recede") || 0), px: 0, py: 0 });
   const loop = (now: number) => {
     if (!started) started = stage.frame(cue(begin));
     else stage.frame(cue(fixed === null ? Math.max(now, begin) : begin + fixed * 1000));

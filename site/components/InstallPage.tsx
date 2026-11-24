@@ -3,16 +3,19 @@ import Link from "next/link";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { INSTALL_MESSAGE, type Agent } from "@/lib/site";
 import { AgentMark } from "./AgentMark";
+import { HANDOFF_EVENT } from "./stage/HomeHero";
 import { AGENT_KEY, FALLBACK, OS_SCRIPT, SHOWN, commandFor, lastAgent, markOS, readHandoff } from "./install-choice";
 
-// The install page. One message to paste into any agent's chat (INSTALL_MESSAGE) is the whole page's action: the
-// agent reads the steps for itself, so nobody picks a tool or opens a terminal. Under it one status line says what
-// actually happened (copied, or blocked with the message selected for a manual copy). The per-agent commands sit in a
-// closed "Or run it yourself" disclosure. Beside the column (below it on a phone) is what gets installed, kit by kit.
+// The install page. One message to paste into any agent's chat (INSTALL_MESSAGE) is the centrepiece: the agent reads
+// the steps for itself, so nobody picks a tool or opens a terminal. Under it one status line says what actually
+// happened (copied, or blocked with the message selected for a manual copy). Everything else waits behind two closed
+// rows: the per-agent commands ("Or run it yourself") and what gets installed, kit by kit.
 //
-// Arriving from the homepage's Install button (readHandoff, install-choice.ts), the message is already on the
-// clipboard: the Copy button shows Copied at once and the status line says so a moment later, after a screen reader
-// has read the new page's title. data-arrived marks that visit, so the homepage transition can style the landing.
+// It shares the homepage's view from orbit (components/stage/Stage.tsx), seen from further away, and that stage plays
+// the arrival from the homepage's Install button. By then the message is on the clipboard (readHandoff,
+// install-choice.ts): Copy shows Copied at once and the status line says so a moment later, after a screen reader
+// has read the new page's title. The clipboard's answer can land after this page is up, so the page also listens for
+// it (HANDOFF_EVENT). data-arrived marks such a visit.
 //
 // Nothing jumps after load: an inline script marks the saved agent (data-agent) and the computer (html[data-os])
 // before paint, every agent's command, test note and next step are in the page, and CSS shows the marked one.
@@ -79,17 +82,24 @@ export function InstallPage({ kits, skills, kitLines, children }: { kits: number
     if (!document.documentElement.hasAttribute("data-os")) markOS();
     setAgent(lastAgent());
     if (location.hash === "#manual") setOpen(true);
-    const h = readHandoff();
-    if (!h) return;
-    setArrived(true);
-    // The homepage saves a copied message or a blocked copy. Any other shape claims nothing.
-    if (!("message" in h) && !("blocked" in h)) return;
-    const kind: Note["kind"] = "message" in h ? "message" : "blocked";
-    if (kind === "message") setSaid1(true); else selectText(msg.current);
-    h1.current?.focus({ preventScroll: true });
-    // The status waits a moment, so a screen reader reads it after the new page's title, not over it.
-    const t = setTimeout(() => setNote({ kind, n: 1 }), 600);
-    return () => clearTimeout(t);
+    // What the homepage's Install button did. The answer may already be saved, or arrive in the next moments.
+    let t = 0, done = false;
+    const read = () => {
+      const h = readHandoff();
+      if (done || !h) return;
+      setArrived(true);
+      // The homepage saves a copied message or a blocked copy. Any other shape claims nothing.
+      if (!("message" in h) && !("blocked" in h)) return;
+      done = true;
+      const kind: Note["kind"] = "message" in h ? "message" : "blocked";
+      if (kind === "message") setSaid1(true); else selectText(msg.current);
+      h1.current?.focus({ preventScroll: true });
+      // The status waits a moment, so a screen reader reads it after the new page's title, not over it.
+      t = window.setTimeout(() => setNote({ kind, n: 1 }), 600);
+    };
+    read();
+    addEventListener(HANDOFF_EVENT, read);
+    return () => { clearTimeout(t); removeEventListener(HANDOFF_EVENT, read); };
   }, []);
   // A link to #manual from this same page opens the commands too, even when the address already ends in #manual.
   useEffect(() => {
@@ -131,7 +141,7 @@ export function InstallPage({ kits, skills, kitLines, children }: { kits: number
       <div className="inst__in">
         <div className="inst__main">
           <h1 ref={h1} tabIndex={-1}>Install Agent Kit</h1>
-          <p className="inst__lede">{kits} kits and {skills} skills. Paste one message into your agent and it installs them.</p>
+          <p className="inst__lede">Paste one message into your agent. It installs {kits} kits and {skills} skills.</p>
 
           <section className={`inst__msg${said1 ? " is-copied" : ""}`} aria-labelledby="inst-msg-h">
             <div className="inst__bar">
@@ -150,19 +160,19 @@ export function InstallPage({ kits, skills, kitLines, children }: { kits: number
             {msgNote && (
               <p className={`inst__note${msgNote.kind === "blocked" ? " is-warn" : ""}`} key={msgNote.n}>
                 {msgNote.kind === "message"
-                  ? <><i className="led is-on" aria-hidden="true" /><span><b>Message copied.</b> Paste it into your agent<Keys />. It reads the steps, runs them, and tells you what it installed.</span></>
+                  ? <><i className="led is-on" aria-hidden="true" /><span><b>Message copied.</b> Paste it into your agent<Keys />.</span></>
                   : <><span className="inst__warn" aria-hidden="true">!</span><span><b>Your browser blocked copying.</b> The message is selected.<CopyHint /></span></>}
               </p>
             )}
           </div>
-          <p className="inst__how" aria-hidden={msgNote ? true : undefined}>Works in Claude Code, Codex, Cursor and other coding agents. Your agent reads the steps for itself, runs them, and tells you what it installed.</p>
+          <p className="inst__how" aria-hidden={msgNote ? true : undefined}>Works in Claude Code, Codex, Cursor and other coding agents.</p>
           </div>
-          <p className="inst__phone">Agent Kit installs on a computer. Copy the message here and paste it into your agent there, or send this page to yourself.</p>
+          <p className="inst__phone">Agent Kit installs on a computer. Send yourself this page, or paste the message into your agent there.</p>
 
           <details className="inst__manual" id="manual" open={open} onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}>
             <summary>
               <h2 className="inst__or">Or run it yourself</h2>
-              <span className="inst__sum">Terminal commands for Claude Code, Codex, Cursor or any agent</span>
+              <span className="inst__sum">Terminal commands for each agent</span>
               <Chevron />
             </summary>
             <div className="inst__body">
@@ -219,30 +229,36 @@ export function InstallPage({ kits, skills, kitLines, children }: { kits: number
             </div>
           </details>
 
+          <details className="inst__fold inst__kits">
+            <summary>
+              <h2 className="inst__or">What it installs</h2>
+              <span className="inst__sum">{kits} kits, {skills} skills</span>
+              <Chevron />
+            </summary>
+            <div className="inst__body">
+              <p className="inst__kitnote">Each kit starts with the command shown, as typed in Claude Code.</p>
+              <ul>
+                {kitLines.map((k) => (
+                  <li key={k.name}>
+                    <Link href={`/kits/${k.name}`}>
+                      <span className="inst__kit"><span className="inst__kitname">{k.name}</span><span className="inst__kitn">{k.skills} {k.skills === 1 ? "skill" : "skills"}</span></span>
+                      <span className="inst__kitline">{k.line}</span>
+                      <span className="inst__kittype">{k.type.map((t) => <code key={t} translate="no">{t}</code>)}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <p className="inst__by">{children}</p>
+            </div>
+          </details>
+
           <nav className="inst__more" aria-label="After installing">
-            <Link href="/start">New to coding agents? Start here</Link>
-            <Link href="/kits">What each kit adds</Link>
+            <Link href="/start">New to coding agents?</Link>
+            <Link href="/kits">Kits</Link>
             <Link href="/prompts">Prompts</Link>
             <Link href="/skills">Skills</Link>
           </nav>
         </div>
-
-        <aside className="inst__kits" aria-labelledby="inst-kits-h">
-          <h2 id="inst-kits-h" className="inst__label">What it installs</h2>
-          <p className="inst__kitnote">Each kit starts with the command shown, as typed in Claude Code.</p>
-          <ul>
-            {kitLines.map((k) => (
-              <li key={k.name}>
-                <Link href={`/kits/${k.name}`}>
-                  <span className="inst__kit"><span className="inst__kitname">{k.name}</span><span className="inst__kitn">{k.skills} {k.skills === 1 ? "skill" : "skills"}</span></span>
-                  <span className="inst__kitline">{k.line}</span>
-                  <span className="inst__kittype">{k.type.map((t) => <code key={t} translate="no">{t}</code>)}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-          <p className="inst__by">{children}</p>
-        </aside>
       </div>
 
       <p className="inst__said" aria-live="polite">{said}</p>

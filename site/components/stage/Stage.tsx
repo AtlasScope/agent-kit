@@ -1,0 +1,173 @@
+"use client";
+import { usePathname } from "next/navigation";
+import { useEffect, useLayoutEffect, useRef } from "react";
+
+// The stage: one view from orbit that the homepage and the install page share. It lives in the layout both routes sit
+// under (app/(stage)/layout.tsx), so going from one to the other is a real navigation that never unloads the planet.
+// The homepage looks out at it; on the install page the camera has climbed away and the planet is a low arc at the
+// foot of the window.
+//
+// Going between the two is one movement with three parts that start on the same frame as the click:
+//   1. The page being left is copied into a layer above the scene and its words move away there, so they can leave
+//      at their own pace although the router has already replaced them.
+//   2. The camera moves between the two poses on a spring. A spring has no fixed length, so Back in the middle of it
+//      turns it round from where it is, at the speed it has.
+//   3. The new page's words arrive (their CSS reads data-shift on the stage). Going to Install, the button that was
+//      pressed grows into the message panel.
+// Nothing waits for anything: the navigation and the clipboard write both happen inside the click.
+//
+// Without the live scene (reduced motion, no WebGL 2, a failure) two stills stand in for the two poses and cross-fade.
+const VIEW = "afternoon";
+type Mode = "home" | "install";
+const modeOf = (path: string): Mode | null => (path === "/install" ? "install" : path === "/" ? "home" : null);
+// How long a copy of the page that was left may stay, and the camera's spring (critically damped: it never overshoots).
+const SHIFT_MS = 1300, STIFF = 30, DAMP = 2 * Math.sqrt(STIFF);
+// The scene moves slowly: thirty frames a second carry it, except while the camera is travelling.
+const REST_GAP = 27;
+// The homepage exposes the late-afternoon view a little more than its lab page does, so the planet carries the screen.
+const METER = -0.9;
+const still = (pose: string, shape: string) => `/horizon/stills/${VIEW}${pose}-${shape}.avif`;
+const TALL = "(max-width: 759.98px), (max-aspect-ratio: 4/5)";
+
+export function Stage({ children }: { children: React.ReactNode }) {
+  const path = usePathname();
+  const mode = modeOf(path) ?? "home";
+  const root = useRef<HTMLDivElement>(null), ghost = useRef<HTMLDivElement>(null), canvas = useRef<HTMLCanvasElement>(null);
+  // What the camera is heading for, where it is and how fast it is moving (0 is the homepage's pose, 1 is Install's).
+  const cam = useRef({ to: mode === "install" ? 1 : 0, at: mode === "install" ? 1 : 0, v: 0 });
+  const shown = useRef<Mode>(mode);
+  // The transition in flight: when it ends, and where the pressed button was, for the panel to grow from.
+  const shift = useRef<{ timer: number; from?: DOMRect; left: Element | null } | null>(null);
+  const kick = useRef(() => {});
+
+  // Leaving one of the two pages for the other. Called inside the click (or the Back press), before the router acts.
+  const depart = (to: Mode) => {
+    const el = root.current, layer = ghost.current, page = el?.querySelector(":scope > main");
+    if (!el || !layer || !page || shown.current === to) return;
+    shown.current = to;
+    cam.current.to = to === "install" ? 1 : 0;
+    kick.current();
+    if (shift.current) clearTimeout(shift.current.timer);
+    layer.replaceChildren();
+    const quick = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let from: DOMRect | undefined;
+    if (!quick) {
+      // The copy is not a <main> and has no ids, scripts or focusable parts: it is a picture of the page that left.
+      const box = page.getBoundingClientRect(), copy = document.createElement("div");
+      copy.className = `${page.className} stage__copy`;
+      for (const node of page.childNodes) copy.append(node.cloneNode(true));
+      copy.querySelectorAll("script").forEach((s) => s.remove());
+      copy.querySelectorAll("[id]").forEach((n) => n.removeAttribute("id"));
+      // The copy must not replay the page's own entrance: it is only ever leaving.
+      copy.querySelectorAll("[data-load]").forEach((n) => n.removeAttribute("data-load"));
+      Object.assign(copy.style, { left: `${box.left}px`, top: `${box.top}px`, width: `${box.width}px`, height: `${box.height}px` });
+      layer.append(copy);
+      from = to === "install" ? page.querySelector(".launch__go")?.getBoundingClientRect() : undefined;
+      // The page itself hides while its copy leaves. If the navigation never lands, the timer below brings it back.
+      page.setAttribute("data-left", "");
+    }
+    el.setAttribute("data-shift", to);
+    shift.current = { from, left: page, timer: window.setTimeout(() => settle(), SHIFT_MS) };
+  };
+  const settle = () => {
+    const el = root.current, s = shift.current;
+    if (s) clearTimeout(s.timer);
+    shift.current = null;
+    ghost.current?.replaceChildren();
+    el?.removeAttribute("data-shift");
+    // Still on the page that was being left: the navigation was cancelled or failed, so that page comes back.
+    if (s?.left?.isConnected) {
+      s.left.removeAttribute("data-left");
+      const here = modeOf(location.pathname);
+      if (here) { shown.current = here; cam.current.to = here === "install" ? 1 : 0; kick.current(); }
+    }
+  };
+
+  // The new page is in the document. Going to Install, the pressed button grows into the message panel.
+  useLayoutEffect(() => {
+    const s = shift.current, layer = ghost.current, el = root.current;
+    // A route change nothing announced (router.push from elsewhere): no copy to move, the camera just goes.
+    if (shown.current !== mode) { shown.current = mode; cam.current.to = mode === "install" ? 1 : 0; kick.current(); }
+    if (!s || !layer || !el || mode !== "install" || !s.from) return;
+    const panel = el.querySelector(":scope > main .inst__msg"), button = layer.querySelector<HTMLElement>(".launch__go");
+    if (!panel || !button) return;
+    const a = s.from, b = panel.getBoundingClientRect(), morph = document.createElement("div");
+    morph.className = "stage__morph";
+    layer.append(morph);
+    button.style.visibility = "hidden";
+    const px = (n: number) => `${n.toFixed(1)}px`;
+    morph.animate([
+      { left: px(a.left), top: px(a.top), width: px(a.width), height: px(a.height), borderRadius: px(a.height / 2), backgroundColor: "rgb(244 245 247)", borderColor: "rgb(244 245 247 / 0)", opacity: 1 },
+      { backgroundColor: "rgb(18 19 22)", borderColor: "rgb(255 255 255 / .16)", opacity: 1, offset: 0.55 },
+      { left: px(b.left), top: px(b.top), width: px(b.width), height: px(b.height), borderRadius: "14px", backgroundColor: "rgb(18 19 22 / .72)", borderColor: "rgb(255 255 255 / .16)", opacity: 0 },
+    ], { duration: 640, delay: 40, easing: "cubic-bezier(0.3, 0.85, 0.25, 1)", fill: "both" });
+  }, [mode]);
+
+  // Any plain click on a link between the two pages, and Back or Forward between them, starts the movement.
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      // Heard on the way down: the link itself prevents the default to navigate in place, which is no reason to stay out.
+      if (e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const a = (e.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!a || a.target === "_blank" || a.origin !== location.origin || a.hash) return;
+      const to = modeOf(a.pathname);
+      if (to) depart(to);
+    };
+    const onPop = () => { const to = modeOf(location.pathname); if (to) depart(to); };
+    // A page restored from the browser's cache comes back as it was left: clear a movement frozen half way.
+    const onShow = (e: PageTransitionEvent) => { if (e.persisted) settle(); };
+    document.addEventListener("click", onClick, true);
+    addEventListener("popstate", onPop); addEventListener("pageshow", onShow);
+    return () => { document.removeEventListener("click", onClick, true); removeEventListener("popstate", onPop); removeEventListener("pageshow", onShow); if (shift.current) clearTimeout(shift.current.timer); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // The live scene. Its code and maps are megabytes, so nothing is asked for until the page itself has loaded.
+  useEffect(() => {
+    const el = root.current, cv = canvas.current;
+    if (!el || !cv || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let stage: ReturnType<typeof import("../horizon").createStage> | null = null, gone = false, raf = 0, drawn = 0, last = 0, live = false;
+    const show = (on: boolean) => { if (on !== live) { live = on; el.classList.toggle("is-live", on); } };
+    const frame = (now: number) => {
+      raf = 0;
+      if (document.hidden || !stage) return;
+      const c = cam.current, dt = Math.min(0.05, last ? (now - last) / 1000 : 0.016);
+      last = now;
+      const moving = Math.abs(c.to - c.at) > 0.0005 || Math.abs(c.v) > 0.0005;
+      if (moving) { c.v += (STIFF * (c.to - c.at) - DAMP * c.v) * dt; c.at += c.v * dt; } else { c.at = c.to; c.v = 0; }
+      if (moving || now - drawn >= REST_GAP) {
+        drawn = now;
+        if (stage.broken()) { stage.dispose(); stage = null; show(false); return; }
+        show(stage.frame({ now, opening: 1e6, leave: 0, px: 0, py: 0, recede: c.at }));
+      }
+      raf = requestAnimationFrame(frame);
+    };
+    kick.current = () => { if (!raf && stage && !document.hidden) { last = 0; raf = requestAnimationFrame(frame); } };
+    const loaded = new Promise<void>((done) => { if (document.readyState === "complete") done(); else addEventListener("load", () => done(), { once: true }); });
+    loaded.then(() => import("../horizon")).then((m) => {
+      if (gone) return;
+      try { stage = m.createStage(cv, { direction: m.DIRECTIONS[VIEW], tall: () => matchMedia(TALL).matches, meter: METER, onError: () => {} }); } catch { stage = null; }
+      kick.current();
+    }, () => {});
+    const onVisible = () => kick.current();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { gone = true; cancelAnimationFrame(raf); document.removeEventListener("visibilitychange", onVisible); kick.current = () => {}; stage?.dispose(); };
+  }, []);
+
+  return (
+    <div ref={root} className="stage" data-mode={mode}>
+      <div className="stage__scene" aria-hidden="true">
+        {(["", "-install"] as const).map((pose) => (
+          <picture key={pose} className={`stage__still stage__still--${pose ? "install" : "home"}`}>
+            <source media={TALL} type="image/avif" srcSet={still(pose, "tall")} />
+            <img src={still(pose, "wide")} alt="" width={3840} height={1600} decoding="async" fetchPriority={(pose ? "install" : "home") === mode ? "high" : "low"} loading={(pose ? "install" : "home") === mode ? "eager" : "lazy"} />
+          </picture>
+        ))}
+        <canvas ref={canvas} className="stage__gl" />
+        <div className="stage__veil" />
+      </div>
+      {children}
+      <div ref={ghost} className="stage__ghost" aria-hidden="true" inert />
+    </div>
+  );
+}

@@ -122,24 +122,24 @@
   --shadow-3: 0 2px 4px oklch(0% 0 0 / .5), 0 16px 40px -8px oklch(0% 0 0 / .75);
   --shadow-inset: inset 0 1px 0 oklch(100% 0 0 / .05);
 }
-/* The stage: the homepage and the quiet pages (/install, /start) are dark in both themes. Their palette, including the
-   green main action, is frozen here as it was on main so the homepage track can change it on its own schedule. The
-   header on those pages reads the same tokens, so it sits on the stage without a seam. */
+/* The stage: the homepage and /install are dark in both themes, over the view from orbit (components/stage). It is the
+   dark set above on a black canvas, so the picture is the only colour: the main action is white, green is only a
+   state that is true now, and focus is the same blue as everywhere else. Decided by the homepage track, 24 Nov 2026. */
 :root:has(.home, .quiet) {
   color-scheme: dark;
-  --c-canvas: oklch(9% .003 160); --c-surface: oklch(15% .006 160); --c-raised: oklch(19% .008 160); --c-sunken: oklch(7% .003 160);
-  --c-overlay: oklch(9% .003 160 / .72);
-  --c-fg: oklch(97% .004 330); --c-fg-2: oklch(80% .008 160); --c-fg-3: oklch(71% .008 160); --c-fg-4: oklch(52% .008 160);
-  --c-line: oklch(100% 0 0 / .09); --c-line-2: oklch(100% 0 0 / .14); --c-edge: oklch(49% .008 160);
-  --c-primary: oklch(72% .17 155); --c-on-primary: oklch(16% .04 155); --c-primary-hover: color-mix(in oklab, oklch(72% .17 155), #fff 14%);
+  --c-canvas: #000; --c-surface: oklch(15.5% .005 260); --c-raised: oklch(20% .006 260); --c-sunken: oklch(8% .004 260);
+  --c-overlay: oklch(4% .003 260 / .55);
+  --c-fg: oklch(97% .003 260); --c-fg-2: oklch(84% .006 260); --c-fg-3: oklch(72% .01 260); --c-fg-4: oklch(56% .008 260);
+  --c-line: oklch(100% 0 0 / .09); --c-line-2: oklch(100% 0 0 / .16); --c-edge: oklch(48% .006 260);
+  --c-primary: oklch(97% .003 260); --c-on-primary: oklch(14% .005 260); --c-primary-hover: oklch(88% .004 260);
   --c-fill: oklch(100% 0 0 / .06); --c-fill-2: oklch(100% 0 0 / .1);
-  --c-signal: oklch(80% .17 155); --c-focus: oklch(72% .17 155);
+  --c-signal: oklch(80% .17 155); --c-focus: oklch(72% .15 252);
   --c-warm: #F5A524; --c-warm-soft: #2A2113; --c-danger: #FF8A75; --c-on-danger: #0B0C12;
   --s-inv: #4BF0A8; --s-db: #C9E05A; --s-think: #BFA8FF; --s-ecmd: #3FE0F5; --s-dcmd: #8CB6FF; --s-recipe: #FF7FB2;
-  --shadow-1: 0 1px 2px oklch(0% 0 0 / .6);
-  --shadow-2: inset 0 1px 0 rgba(255,255,255,.06), 0 1px 2px rgba(0,0,0,.6), 0 8px 20px -10px rgba(0,0,0,.7), 0 24px 40px -24px rgba(0,0,0,.9);
-  --shadow-3: inset 0 1px 0 rgba(255,255,255,.08), 0 2px 4px rgba(0,0,0,.6), 0 12px 26px -10px rgba(0,0,0,.8), 0 30px 50px -24px rgba(0,0,0,1);
-  --shadow-inset: inset 0 1px 0 oklch(100% 0 0 / .06);
+  --shadow-1: 0 1px 2px oklch(0% 0 0 / .5);
+  --shadow-2: 0 1px 2px oklch(0% 0 0 / .5), 0 6px 16px -6px oklch(0% 0 0 / .6);
+  --shadow-3: 0 2px 4px oklch(0% 0 0 / .5), 0 16px 40px -8px oklch(0% 0 0 / .75);
+  --shadow-inset: inset 0 1px 0 oklch(100% 0 0 / .05);
 }
 /* Wide colour: Display P3 screens get the same hues with more saturation. sRGB keeps the values above. */
 @media (color-gamut: p3) {
@@ -185,8 +185,3 @@
   --radius: 12px;
   --dur-micro: var(--dur-instant); --dur-short: var(--dur-base); --dur-long: 600ms;
 }
-/* The stage keeps green links and green current-section text, as on main. */
-:root:has(.home, .quiet) { --color-link: oklch(78% .16 156); --color-accent-text: oklch(86% .13 155); --accent-wash: color-mix(in oklab, oklch(72% .17 155) 16%, transparent); --accent-edge: color-mix(in oklab, oklch(72% .17 155) 30%, transparent); }
-/* The stage keeps main's timing and line height too. */
-:root:has(.home, .quiet) { --dur-micro: 120ms; --dur-short: 220ms; }
-:root:has(.home, .quiet) body { line-height: 1.55; }

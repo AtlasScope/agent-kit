@@ -19,7 +19,7 @@ Taken for the redesign, from the founder's brief, the dossier (v0.9) and the ben
 | Phone menu | Fills the screen: section links large, then Kits, Learn, Connect your agent, GitHub, About, then a full-width Install. GitHub leaves the bar under 40rem. |
 | Type | Montserrat 600 for page titles only. Geist for everything else; section headings 600 (was 650). Geist Mono for payloads, commands and ids. |
 | Section hues | Kept, as small flat dots (no gloss). |
-| Home and the quiet stage | The dark stage covers Home and `/install` only. It keeps main's palette and button look, including the green main action, until Fable's track decides. Over Home only, the header also keeps main's look (the light after the product name, the lit bottom line, the outlined field, GitHub in the bar on phones); the Header row below applies everywhere else. `/start` follows the system light or dark like every other interior page. |
+| Home and the stage | Home and `/install` share one dark stage: a view from orbit held by the layout both routes sit under (`app/(stage)/layout.tsx`, `components/stage/`). Decided by the homepage track on 24 Nov 2026: the stage uses the dark set on a black canvas, the main action is white, green is only a state that is true now, focus is the system blue, and the header is the system header with no fill over the picture. The stage block in `tokens.css` holds this. `/start` follows the system light or dark like every other interior page. |
 | First frame | Interior pages show real content in the first viewport: title, one line, then the thing itself. No hero blocks on interior pages. |
 
 ## Tokens
@@ -63,7 +63,7 @@ The older `--color-*`, `--space-xs…2xl`, `--text-*`, `--lift*`, `--led*` and `
 
 A rule in `overrides.css` belongs to the coordinator. To change one, ask; the coordinator may move it into your file once the screenshot gate shows no change.
 
-Route-only CSS stays beside its route: `app/launch.css` (Home, Fable), `app/install/install.css` (W9), `app/start/start.css` and `app/fix/fix.css` (W8). A lane that needs new page CSS for one route adds a colocated file for it instead of growing a shared file.
+Route-only CSS stays beside its route: `app/(stage)/stage.css` (Home and the move to Install, homepage track), `app/(stage)/install/install.css` (W9), `app/start/start.css` and `app/fix/fix.css` (W8). A lane that needs new page CSS for one route adds a colocated file for it instead of growing a shared file.
 
 Both splits from the old single `globals.css` were mechanical. Rules moved only where the cascade order of every overlapping rule stayed the same, and production-build captures (16 routes; desktop light and dark, phone light, plus phone dark for two routes; 50 images) were pixel-identical before and after.
 
@@ -79,7 +79,7 @@ Both splits from the old single `globals.css` were mechanical. Rules moved only 
 | W6 skills and kits browsing | `app/skills/page.tsx`, `app/kits/page.tsx`, `KitRows.tsx`, `components/skills/browse/**`, `skills.css` |
 | W7 skill and kit detail | `app/skills/[name]/page.tsx`, `app/kits/[kit]/page.tsx`, `components/skills/detail/**`, `detail-skill.css` |
 | W8 Start, Learn and Fix | `app/start/**` (with `start.css`), `app/learn/**`, `app/fix/**`, `GuideProgress.tsx`, `StartWelcome.tsx`, `components/guide/**`, `guide.css` |
-| W9 install | `InstallPage.tsx`, `components/install/**`, `app/install/**`, `quiet.css`. Never `install-choice.ts` or the handoff timing |
+| W9 install | `InstallPage.tsx`, `components/install/**`, `app/(stage)/install/**`, `quiet.css`. Never `install-choice.ts` or the handoff timing |
 | W10 accounts and utility | `app/account/**`, `app/collections/**`, `app/sign-in/**`, `CollectionsView.tsx`, `ActionForm.tsx`, `components/auth/**`, `components/account/**`, `lib/clerk-appearance.ts`, `app/{about,privacy,terms,mcp-setup}/**`, `DocPage.tsx`, `reading.css`, `account.css` |
 | Coordinator | `overrides.css`, `globals.css` (the import order), `lib/site.ts`, `lib/content.ts`, `lib/copy.ts`, `install-choice.ts`, `app/mcp/route.ts`, `next.config.ts`, `proxy.ts`, `package.json` |
 
@@ -113,7 +113,7 @@ These are used across page families and by the homepage handoff. Their exported 
 
 ## Off limits
 
-The homepage artwork, renderer and composition (`components/orbit/`, `components/LaunchHero.tsx`, `app/launch.css`, `app/page.tsx`) and the Home to Install transition belong to Fable's track. The `:root:has(.home, .quiet)` blocks in `tokens.css` and `primitives.css` keep the stage palette and button look as they were on `main`, so the homepage does not change underneath that work.
+The homepage artwork, renderer and composition (`components/horizon/`, `components/orbit/`, `components/stage/`, `components/LaunchHero.tsx`, `app/launch.css`, `app/(stage)/layout.tsx`, `app/(stage)/stage.css`, `app/(stage)/page.tsx`) and the Home to Install transition belong to the homepage track. The transition reads these hooks from the install page, so they must stay: `main.inst`, `.inst__main` and its direct children, `.inst__msg` (the panel the pressed button grows into), and the homepage button's `.launch__go`. The install page listens for `agent-kit:handoff` (`HANDOFF_EVENT`), which the homepage fires when the clipboard answers. `components/LaunchHero.tsx` and `app/launch.css` now serve only the experimental `/horizon` pages.
 
 ## Rules for page families
 
