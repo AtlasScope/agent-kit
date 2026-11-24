@@ -178,18 +178,33 @@ async function focusWalk(page, route, where, add) {
 async function copyAll(page, route, where, add) {
   await page.evaluate(() => { window.__qaCopies = []; document.querySelectorAll("details:not([open])").forEach((d) => { d.open = true; }); });
   await page.waitForTimeout(150);
-  const ctrls = await page.evaluate(copyControls);
   const got = [];
-  for (const c of ctrls.slice(0, 30)) {
+  // Copy controls on the page as loaded, then those each tab in main reveals (install panels show one agent at a time).
+  // A tab often swaps the text behind the same Copy button, so every visible control is clicked again per tab.
+  const ctrls = [];
+  const collect = async () => { ctrls.push(...(await page.evaluate(copyControls))); };
+  await collect();
+  await clickAll(ctrls.splice(0));
+  const tabs = page.locator("main [role=tab]");
+  for (let t = 0; t < Math.min(await tabs.count(), 8); t++) {
+    try { await tabs.nth(t).scrollIntoViewIfNeeded({ timeout: 2000 }); await tabs.nth(t).click({ timeout: 2000 }); await page.waitForTimeout(150); } catch { continue; }
+    await collect();
+    await clickAll(ctrls.splice(0));
+  }
+  async function clickAll(list) { for (const c of list.slice(0, 30)) {
     const before = await page.evaluate(() => window.__qaCopies.length);
     const loc = page.locator(`[data-qa-copy="${c.id}"]`);
     try { await loc.scrollIntoViewIfNeeded({ timeout: 2000 }); await loc.click({ timeout: 3000 }); }
-    catch { add(route, where, "moderate", "copy-click", `could not click "${c.name}"`, c.name); continue; }
+    catch {
+      // A floating bar goes inert again once its panel scrolls back into view; that is not a broken control.
+      if (await loc.evaluate((e) => !!e.closest("[inert]")).catch(() => true)) continue;
+      add(route, where, "moderate", "copy-click", `could not click "${c.name}"`, c.name); continue;
+    }
     await page.waitForTimeout(150);
     const text = await page.evaluate((n) => window.__qaCopies.slice(n).join("\n---\n"), before);
     if (!text) add(route, where, "serious", "copy-empty", `"${c.name}" put nothing on the clipboard`, c.name);
     got.push({ control: c.name, text });
-  }
+  } }
   const p = data.prompts.find((x) => route.path === `/prompts/${x.slug}`);
   if (p && !got.some((g) => g.text === composeCopy(p))) add(route, where, "blocker", "payload", `no copy control produced the exact payload of ${p.id} from lib/copy.ts`);
   const s = data.skills.find((x) => route.path === `/skills/${x.name}`);

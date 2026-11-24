@@ -123,7 +123,8 @@ export const copyControls = () => {
   document.querySelectorAll('button, [role="button"]').forEach((el, i) => {
     const name = (el.getAttribute("aria-label") || el.textContent || "").trim();
     const r = el.getBoundingClientRect();
-    if (!/\bcopy\b/i.test(name) || r.width === 0 || r.height === 0) return;
+    // Skip controls that are hidden or inert (a floating Copy bar stays inert until its panel scrolls away).
+    if (!/\bcopy\b/i.test(name) || r.width === 0 || r.height === 0 || el.closest("[inert]")) return;
     el.setAttribute("data-qa-copy", String(i));
     out.push({ id: String(i), name: name.replace(/\s+/g, " ").slice(0, 60) });
   });
