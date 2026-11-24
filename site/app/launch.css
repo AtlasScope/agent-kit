@@ -38,6 +38,8 @@
 .launch__note { margin: -14px 0 0; font-size: 0.8125rem; line-height: 1.45; color: rgba(255,255,255,.7); text-shadow: 0 1px 10px rgba(3,4,9,.9); }
 .launch__note-phone { display: none; }
 @media (hover: none) and (pointer: coarse) { .launch__note-desk { display: none; } .launch__note-phone { display: inline; } }
+/* More real requests (HERO.more). Hidden except on a tall phone, where the screen has room for them above the horizon. */
+.launch__more { display: none; }
 .launch__cta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; margin-top: 6px; }
 .launch__go { position: relative; overflow: hidden; border-radius: 999px; font-weight: 600; isolation: isolate; }
 .launch__go::after { content: ""; position: absolute; inset: -1px; z-index: -1; pointer-events: none;
@@ -59,7 +61,7 @@
 .launch[data-intro]:not([data-hold]) .launch__lede { animation: launch-up .9s var(--ease-launch) .75s backwards; }
 .launch[data-intro]:not([data-hold]) .launch__eg { animation: launch-up .9s var(--ease-launch) .85s backwards; }
 .launch[data-intro]:not([data-hold]) .launch__cta { animation: launch-up .9s var(--ease-launch) .95s backwards; }
-.launch[data-intro]:not([data-hold]) :is(.launch__note, .launch__legal) { animation: launch-fade .8s ease 1.15s backwards; }
+.launch[data-intro]:not([data-hold]) :is(.launch__note, .launch__more, .launch__legal) { animation: launch-fade .8s ease 1.15s backwards; }
 @keyframes launch-fade { from { opacity: 0; } }
 @keyframes launch-word { from { transform: translateY(108%) rotate(2deg); } }
 @keyframes launch-up { from { opacity: 0; transform: translateY(14px); } }
@@ -73,10 +75,21 @@
 
 @media (max-width: 760px) {
   .launch__earth img { object-position: 60% 100%; }
-  /* Phones: the message sits at the top, inside the shade, with the horizon below it. */
+  /* Phones: the message sits at the top, inside the shade, with the horizon below it. Where the screen is tall
+     enough, one more real request follows the note (two on the tallest), so a visitor sees the other routers
+     before installing. They stay short of the horizon, and go first when the screen gets shorter. */
   .launch__shade { background: linear-gradient(to bottom, rgba(3,4,9,.9) 0%, rgba(3,4,9,.6) 55%, rgba(3,4,9,.3) 76%, rgba(3,4,9,0) 90%), linear-gradient(to top, rgba(3,4,9,.7), rgba(3,4,9,0) 64px); }
   .launch__msg { align-self: start; padding-block: 5svh 24px; }
 }
+@media (max-width: 760px) and (min-height: 700px) {
+  .launch__more { display: grid; gap: 10px; margin: 4px 0 0; padding: 0; list-style: none; font: 400 0.8125rem/1.5 var(--font-mono); color: rgba(255,255,255,.84); text-shadow: 0 1px 10px rgba(3,4,9,.9); }
+  .launch__more li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+  .launch__more li + li { display: none; }
+  .launch__more code { font: inherit; }
+  .launch__more li > span[aria-hidden] { color: rgba(255,255,255,.5); }
+  .launch__more .launch__pick { color: #fff; }
+}
+@media (max-width: 760px) and (min-height: 780px) { .launch__more li + li { display: flex; } }
 /* Phones: the headline follows the width as well, so "Give your coding" stays on one line on a 390px iPhone
    instead of leaving "coding" alone on its own line. */
 @media (max-width: 30rem) { .launch h1 { font-size: clamp(1.875rem, 10.4vw, 2.75rem); } }

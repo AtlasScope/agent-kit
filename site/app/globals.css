@@ -499,12 +499,13 @@ body:has(main.home) .foot { display: none; }
   .adds__n { align-self: baseline; }
 }
 
-/* Small targets: 24px for a mouse, 40px for a finger (44px for the footer's short words, which sit close together). */
+/* Small targets: 24px for a mouse, 44px for a finger in the header and footer (Apple's guideline for a touch target). */
 .footer a { display: inline-flex; align-items: center; min-height: 24px; }
 @media (pointer: coarse) {
   .footer a { min-width: 44px; min-height: 44px; }
-  .wordmark { min-height: 40px; }
-  .nav__end .btn--sm { min-width: 40px; min-height: 40px; justify-content: center; }
+  .wordmark { min-height: 44px; }
+  .nav__end .btn--sm, .nav__end .btn--ghost { min-width: 44px; min-height: 44px; justify-content: center; }
+  .iconbtn { width: 44px; height: 44px; }
 }
 
 /* Footer: the AtlasScope lockup and the license line, then three groups of links. Hairline above, nothing else. */
