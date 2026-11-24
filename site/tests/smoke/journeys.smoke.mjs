@@ -155,7 +155,7 @@ for (const size of SIZES) {
     const ctx = await browser.newContext({ ...size });
     const page = await ctx.newPage();
     const fetched = [];
-    page.on("request", (r) => { if (/\/search-(index\.json|copy\/)/.test(r.url())) fetched.push(new URL(r.url()).pathname); });
+    page.on("request", (r) => { if (/\/search-(index(\.v2)?\.json|copy\/)/.test(r.url())) fetched.push(new URL(r.url()).pathname); });
     await page.goto(base + "/start", { waitUntil: "networkidle" });
     // Longer than the idle preload this replaced waited (5 s at most).
     await page.waitForTimeout(6000);
@@ -175,15 +175,15 @@ for (const size of SIZES) {
     await page.getByRole("banner").locator(".kbd", { hasText: "K" }).waitFor({ state: "attached" });
     await page.keyboard.press(`${mod}+k`);
     const box = page.getByRole("combobox", { name: "Search the library" });
-    // As if a deploy had removed it: its Copy text is gone.
+    // As if a deploy had removed it: its Copy text is gone. On a wide screen the preview finds that out; on a
+    // phone, Copy does. Either way the result leaves the list and a toast says why.
     await page.route("**/search-copy/skill/tdd*", (r) => r.fulfill({ status: 404, body: "" }));
     await box.fill("tdd");
     const opt = page.locator('#search-results a[role="option"][href="/skills/tdd"]').first();
     await opt.waitFor();
-    await opt.hover();
-    await box.press(`${mod}+Enter`);
-    // The preview says it on a wide screen, the toast on a phone.
-    await page.getByText(/removed in an update/).first().waitFor();
+    if (size.name === "phone") { await opt.hover(); await box.press(`${mod}+Enter`); }
+    await page.getByRole("status").filter({ hasText: "removed in an update" }).waitFor();
+    await opt.waitFor({ state: "detached" });
     // The palette keeps a loaded index for the page's life, so a second request means it dropped the stale one.
     const fresh = page.waitForRequest((r) => r.url().endsWith("/search-index.v2.json"));
     await box.press("Escape"); await box.press("Escape");
