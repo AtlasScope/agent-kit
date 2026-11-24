@@ -70,12 +70,19 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
         const btn = isCopy(r.target instanceof Element ? r.target : r.target.parentElement);
         if (!btn) continue;
         if (BLOCKED.test(btn.textContent || "")) onBlocked(btn);
-        else if (btn.hasAttribute("data-copied") && !inline) setFallback(null); // a later copy worked: hide the fallback
+        else if (btn.hasAttribute("data-copied") && !inline) {
+          // A later copy worked: hide the fallback, handing focus back to the button if it was in the text.
+          if (pre.current?.contains(document.activeElement)) (btn as HTMLElement).focus({ preventScroll: true });
+          setFallback(null);
+        }
       }
     });
+    // A press while the label already says "blocked" changes nothing in the DOM if it is blocked again, so check
+    // once the clipboard call has had time to settle. A success turns the label to "Copied" first and is skipped.
     const onClick = (e: MouseEvent) => {
       const btn = isCopy(e.target as Element);
-      if (btn && BLOCKED.test(btn.textContent || "")) onBlocked(btn);
+      if (!btn || !BLOCKED.test(btn.textContent || "")) return;
+      setTimeout(() => { if (BLOCKED.test(btn.textContent || "") && !btn.hasAttribute("data-copied")) onBlocked(btn); }, 400);
     };
     for (const el of [panel, dock.current]) {
       if (!el) continue;
@@ -104,8 +111,10 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
     let seen: IntersectionObserver | undefined;
     const build = () => {
       seen?.disconnect();
-      const top = Math.ceil(document.querySelector(".top")?.getBoundingClientRect().bottom ?? 0);
-      seen = new IntersectionObserver(([e]) => setDocked(e.intersectionRatio < 0.99), { rootMargin: `-${top}px 0px 0px 0px`, threshold: [0, 0.99, 1] });
+      // The bar sticks at --header-h, so measure against that same number, with 2px of tolerance for zoom rounding.
+      const top = Math.floor(parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-h")) || 0);
+      const steps = Array.from({ length: 51 }, (_, i) => i / 50);
+      seen = new IntersectionObserver(([e]) => setDocked(e.boundingClientRect.height - e.intersectionRect.height > 2), { rootMargin: `-${top}px 0px 0px 0px`, threshold: steps });
       seen.observe(bar);
     };
     build();

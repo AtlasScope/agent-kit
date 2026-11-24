@@ -91,7 +91,7 @@
   .pd-payload__head { border-radius: 0; padding: var(--space-2) var(--gutter); }
   .pd-payload__acts { width: 100%; margin-left: 0; }
   .pd-copywrap { flex: 1; order: 2; }
-  .pd-copy { flex: 1; }
+  .pd-payload .pd-copy { flex: 1; }
   .pd-text { padding: var(--space-4) var(--gutter); border-radius: 0; font-size: var(--type-xs); }
   .pd-steps__note, .pd-steps--copy { padding-inline: var(--gutter); }
   .pd-steps--copy > li { grid-template-columns: 1.5rem minmax(0, 1fr); align-items: baseline; }
@@ -121,6 +121,10 @@
 /* Desktop: a slim bar tucked under the header. */
 @media (min-width: 64.0625rem) {
   .pd-dock { inset: var(--header-h) 0 auto; padding-block: var(--space-2); border-top: 0; border-bottom: 1px solid var(--c-line); transform: translateY(calc(-100% * var(--travel))); z-index: 29; }
-  .pd-dock .pd-copy { min-height: var(--control-h-sm); }
 }
+@media (min-width: 64.0625rem) and (pointer: fine) { .pd-dock .pd-copy { min-height: var(--control-h-sm); } }
+/* While the dock shows, focus and in-page jumps land clear of it (WCAG 2.4.11). Extends base.css's scroll-padding
+   for this page only, by the dock's height. */
+@media (max-width: 64rem) { html:has(.pd-dock[data-on]) { scroll-padding-bottom: calc(var(--tap) + var(--space-3) * 2 + env(safe-area-inset-bottom) + var(--space-4)); } }
+@media (min-width: 64.0625rem) { html:has(.pd-dock[data-on]) { scroll-padding-top: calc(var(--header-h) + var(--control-h-lg) + var(--space-4)); } }
 @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) { .pd-dock { background: var(--c-canvas); } }
