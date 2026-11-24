@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AgentMark } from "./AgentMark";
 import { clearHandoff, saveHandoff } from "./install-choice";
-import type { Orbit } from "./orbit";
+import type { Orbit, Visit } from "./orbit";
 import { TALL_SCREEN } from "./orbit/params";
 import { HERO, INSTALL_MESSAGE, SITE } from "@/lib/site";
 
@@ -96,10 +96,13 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
     const wait = intro ? setTimeout(go, WAIT_MS) : 0;
 
     // The scene's code arrives on its own, after the words: the page never waits on it.
-    let orbit: Orbit | null = null, score: typeof import("./orbit") | null = null, gone = false;
+    let orbit: Orbit | null = null, score: typeof import("./orbit") | null = null, sky: Visit, gone = false;
     import("./orbit").then((module) => {
       if (gone) return;
       score = module;
+      // Each visit gets its own sky: a seed for the climate, or the one in the address (?sky=12) to see one again.
+      const asked = Number(new URLSearchParams(location.search).get("sky"));
+      sky = module.visit(Number.isFinite(asked) && asked > 0 ? asked : module.freshSeed());
       // If the scene fails later (a shader the driver rejects, a machine far too slow), it is put away for good
       // and the still stays.
       const giveUp = () => { orbit?.dispose(); orbit = null; showing(false); go(); };
@@ -147,7 +150,10 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
       if (!out && orbit && score && now - drawn >= (moving ? ACTIVE_GAP : IDLE_GAP)) {
         const steady = moving && paced;
         drawn = now;
-        const shot = score.play({ opening, leave: lv, time: (now - t0) / 1000, px: mouse.x, py: mouse.y }, score.DEFAULTS);
+        // The climate (orbit/climate.ts) moves the light, the cloud tops and the aurora slowly while the page stays.
+        const time = (now - t0) / 1000, weather = score.climate(sky, time);
+        orbit.set(weather.look);
+        const shot = score.play({ opening, leave: lv, time, px: mouse.x, py: mouse.y, clock: score.weatherClock(sky, time) }, { ...score.DEFAULTS, ...weather.look });
         showing(orbit.render({ ...shot, steady }));
         paced = moving;
       } else if (out) paced = false;

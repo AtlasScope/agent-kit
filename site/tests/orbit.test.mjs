@@ -156,3 +156,41 @@ test("the resolution governor counts slow frames, and tells slow pixels from a s
   const anyway = governor();
   assert.ok(run(anyway, 20, () => 90).includes("give up"));
 });
+
+// The climate (components/orbit/climate.ts): what changes while the page stays open.
+const sky = await import("../components/orbit/climate.ts");
+const { SURFACE_KEYS, CLOUD_KEYS } = await import("../components/orbit/params.ts");
+
+test("the climate never touches a number that would rebuild a map", () => {
+  for (const key of sky.CLIMATE_KEYS) assert.ok(!SURFACE_KEYS.includes(key) && !CLOUD_KEYS.includes(key), key);
+  const v = sky.visit(7);
+  for (let t = 0; t < 900; t += 7) for (const key of Object.keys(sky.climate(v, t).look)) assert.ok(sky.CLIMATE_KEYS.includes(key), key);
+});
+
+test("the same seed gives the same visit, and visits differ", () => {
+  assert.deepEqual(sky.visit(42), sky.visit(42));
+  const openings = new Set(Array.from({ length: 60 }, (_, i) => sky.visit(i + 1).opening));
+  assert.ok(openings.size >= 3, [...openings].join());
+});
+
+test("the sky changes continuously: nothing jumps between frames", () => {
+  for (const seed of [1, 2, 3, 5, 8, 13]) {
+    const v = sky.visit(seed);
+    let last = sky.climate(v, 0).look;
+    for (let t = 1 / 30; t < 900; t += 1 / 30) {
+      const now = sky.climate(v, t).look;
+      for (const key of sky.CLIMATE_KEYS) assert.ok(Math.abs(now[key] - last[key]) <= Math.max(1e-6, Math.abs(last[key]) * 0.01 + 0.05), `${seed} ${key} at ${t.toFixed(2)}s`);
+      last = now;
+    }
+  }
+});
+
+test("spectacle has room to breathe: passages never overlap and quiet always follows", () => {
+  for (let seed = 1; seed <= 200; seed++) {
+    const ps = sky.visit(seed).passages;
+    for (let i = 1; i < ps.length; i++) {
+      const end = ps[i - 1].start + ps[i - 1].rise + ps[i - 1].hold + ps[i - 1].fall;
+      assert.ok(ps[i].start - end >= 55, `seed ${seed}: only ${(ps[i].start - end).toFixed(0)} s of quiet`);
+    }
+  }
+});

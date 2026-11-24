@@ -18,6 +18,7 @@ export type Cue = {
   time: number;        // seconds since the scene began
   px: number;          // pointer, -0.5..0.5 across
   py: number;          //   and down the window, already smoothed
+  clock?: number;      // seconds of weather, when the climate keeps its own (climate.ts); otherwise from `time`
 };
 
 // How long the page treats the opening as running (its own text arrives inside this). The scene goes on settling
@@ -36,7 +37,7 @@ export function play(cue: Cue, params: Params): Shot {
   return {
     time: cue.time,
     // The weather drifts on, slower and slower: after some minutes it has gone as far as the baked map allows.
-    clock: 300 * (1 - Math.exp(-cue.time / 300)),
+    clock: cue.clock ?? 300 * (1 - Math.exp(-cue.time / 300)),
     sunHeight: params.sunHeight - SUN_RUN * left(t - 0.1, SUN_TAU) - 4 * leave,
     lift: 5.5 * left(t, 1.1) + 5 * leave,
     zoom: 1 + 0.12 * left(t, 1.3),

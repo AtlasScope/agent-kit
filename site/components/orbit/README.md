@@ -30,6 +30,8 @@ The generators are expensive (hundreds of noise evaluations a texel) and the fra
 
 **The map.** The baked textures cover the part of the globe the camera can see, laid out so that a texel is about a screen pixel: fine in the foreground, coarse toward the horizon, and continuing a little past it. `glsl/common.ts` explains the layout and `camera.ts` sizes it. The map belongs to the globe, so the camera can move and the weather can be carried round without baking again.
 
+**The climate.** While the page stays open the view moves between three conditions of the same sky: quiet (the resting state, and about half of any visit), luminous (the sun clears the limb by a degree or so and the cloud tops catch it) and magnetic (an aurora develops over half a minute, its brightest stretch travels along the oval and flares, then it fades). `climate.ts` plans each visit from a seed: which state it opens in, then passages that rise, hold and fall over one to three minutes with at least a minute of quiet between them. It only moves numbers the renderer reads each frame, so it never rebuilds a map. The lab plays it with `?climate=<seed>` (`&speed=10` to watch it condensed, `&t=95` to hold a moment), and the homepage takes `?sky=<seed>` to replay a visit.
+
 **Motion.** Nothing is re-generated over time. The weather drifts because the cloud lookups are turned through a slowly growing angle (the whole layer about the camera's nadir, the storm about its own centre). The aurora, the stars and the camera's float run off the clock. `score.ts` holds the opening and the hand-off.
 
 ## Files
@@ -41,6 +43,7 @@ The generators are expensive (hundreds of noise evaluations a texel) and the fra
 | `governor.ts` | how many pixels to draw, from how late frames arrive |
 | `params.ts` | every number that shapes the look, and the two reference frames |
 | `score.ts` | what the camera and the light do over time |
+| `climate.ts` | how the sky changes while the page stays open: quiet, luminous and magnetic passages, planned per visit |
 | `camera.ts` | the pose, the framing shared with the stills, the map's extent |
 | `atmosphere.ts` | the air's coefficients, the lookup table, the scattering GLSL |
 | `gl.ts` | small WebGL2 helpers |
