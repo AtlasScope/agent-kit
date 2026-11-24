@@ -28,7 +28,8 @@ let loaded: Entry[] | null = null;
 // (404). The palette then says so and drops the index and its cached texts, and the next open fetches the index
 // past the browser cache, which also replaces the cached copy for later pages. `gen` stops an index load from before
 // the drop taking effect, `textGen` a text fetch from before it refilling the text cache.
-let stale = false, gen = 0, textGen = 0;
+// (Vercel purges its CDN on each deploy, so skipping the browser cache is enough to reach the new index.)
+let stale = false, gen = 0, textGen = 0, hadIndex = false;
 function dropIndex() {
   texts.clear(); known.clear(); textGen++;
   if (stale) return;   // a fresh index is already on its way, or will be fetched on the next open
@@ -37,7 +38,7 @@ function dropIndex() {
 function loadIndex() {
   const g = gen;
   indexPromise ??= fetch("/search-index.json", stale ? { cache: "reload" } : undefined).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-    .then((e: Entry[]) => { if (g === gen) { stale = false; loaded = e; } return e; });
+    .then((e: Entry[]) => { if (g === gen) { stale = false; loaded = e; hadIndex = true; } return e; });
   const mine = indexPromise;
   indexPromise.catch(() => { if (indexPromise === mine) indexPromise = null; });
   return indexPromise;
@@ -48,14 +49,15 @@ const GONE = "This result was removed in an update. Close and reopen search for 
 // cached text can go to the clipboard inside the click or key event without waiting.
 const texts = new Map<string, Promise<string>>();
 const known = new Map<string, string>();
-const gone = (err: unknown) => err instanceof Error && err.message === "gone";
+// A 404 counts only if it answers a request made since the last drop; a late one from before can't drop a fresh index.
+const gone = (err: unknown) => err instanceof Error && err.message === "gone" && (err as Error & { gen?: number }).gen === textGen;
 function copyText(e: Entry): Promise<string> {
   if (e.copy?.text !== undefined) return Promise.resolve(e.copy.text);
   const k = copyUrl(e);
   let p = texts.get(k);
   if (!p) {
     const g = textGen;
-    p = fetch(k).then((r) => (r.ok ? r.text() : Promise.reject(new Error(r.status === 404 ? "gone" : String(r.status))))).then((t) => { if (g === textGen) known.set(k, t); return t; });
+    p = fetch(k).then((r) => (r.ok ? r.text() : Promise.reject(Object.assign(new Error(r.status === 404 ? "gone" : String(r.status)), { gen: g })))).then((t) => { if (g === textGen) known.set(k, t); return t; });
     const mine = p;
     p.catch(() => { if (texts.get(k) === mine) texts.delete(k); });
     texts.set(k, p);
@@ -109,7 +111,11 @@ export function Search() {
     if (failed.current && Date.now() - lastTry.current < 15000) return;
     lastTry.current = Date.now();
     if (!failed.current) setStatus("loading");
-    loadIndex().then((e) => { failed.current = false; setEntries(e); setStatus("ready"); }, () => { failed.current = true; setStatus("error"); });
+    loadIndex().then((e) => { failed.current = false; setEntries(e); setStatus("ready"); }, () => {
+      failed.current = true;
+      // A refetch after a removed result that fails leaves the palette on the index it already has.
+      setStatus(hadIndex ? "ready" : "error");
+    });
   }, []);
 
   // Opens synchronously inside the click or key event, so iOS Safari raises the keyboard for the field.
@@ -357,8 +363,9 @@ export function Search() {
               <h2 className="cmdk__ph" translate={active.kind === "skill" || active.kind === "kit" ? "no" : undefined}>{active.title}</h2>
               {active.summary && <p className="cmdk__ps">{active.summary}</p>}
               {active.copy && typeof shown?.text === "string" && <pre className="cmdk__payload" data-long={shown.text.length > 360 || undefined} aria-label={`${active.copy.label.replace(/^Copy /, "")} text`}>{shown.text}</pre>}
-              {active.copy && shown?.text === null && <p className="cmdk__ps">{shown.gone ? GONE : "The text didn’t load. Copy will try again."}</p>}
-              {active.copy && !shown && waiting && <p className="cmdk__ps">Loading the text…</p>}
+              {active.copy && <p className="cmdk__ps cmdk__pnote" aria-live="polite">
+                {shown?.text === null ? (shown.gone ? GONE : "The text didn’t load. Copy will try again.") : !shown && waiting ? "Loading the text…" : ""}
+              </p>}
               <div className="cmdk__actions">
                 <button type="button" className="cmdk__btn cmdk__btn--main" onClick={() => go(active)}>Open<kbd aria-hidden="true">↵</kbd></button>
                 {active.copy && <button type="button" className="cmdk__btn" onClick={() => copy(active)}>{active.copy.label}<kbd aria-hidden="true">{mod}↵</kbd></button>}
