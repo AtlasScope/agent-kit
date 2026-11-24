@@ -1,0 +1,144 @@
+{
+ "install": [
+  {
+   "agent": "Claude Code",
+   "button": "Copied. Copy the message again",
+   "sha256": "fb463d04f8d85609e15412f2c1597a5535ac09911f59f9a57c6ec551cf3986aa",
+   "text": "Install Agent Kit for me from https://github.com/AtlasScope/agent-kit. Follow the steps for the agent you are at https://www.atlasscope.dev/install.md, then tell me what you installed and how to start it."
+  },
+  {
+   "agent": "Claude Code",
+   "button": "Copied. Copy again",
+   "sha256": "e9413d056f96606ed543fa23a5d2574fbb2ea0c740a86198028f8c2dbc7c75c9",
+   "text": "claude plugin marketplace add AtlasScope/agent-kit\nclaude plugin install design-kit@agent-kit\nclaude plugin install motion-kit@agent-kit\nclaude plugin install engineering-kit@agent-kit\nclaude plugin install experience-architecture@agent-kit\nclaude plugin install working-style@agent-kit"
+  },
+  {
+   "agent": "Codex",
+   "button": "Copied. Copy the message again",
+   "sha256": "fb463d04f8d85609e15412f2c1597a5535ac09911f59f9a57c6ec551cf3986aa",
+   "text": "Install Agent Kit for me from https://github.com/AtlasScope/agent-kit. Follow the steps for the agent you are at https://www.atlasscope.dev/install.md, then tell me what you installed and how to start it."
+  },
+  {
+   "agent": "Codex",
+   "button": "Copied. Copy again",
+   "sha256": "47aa7b0b24c7c0b91c04a8c4327c528189a05da56b3a37e596a47d8f59ac44d3",
+   "text": "codex plugin marketplace add AtlasScope/agent-kit\ncodex plugin add design-kit@agent-kit\ncodex plugin add motion-kit@agent-kit\ncodex plugin add engineering-kit@agent-kit\ncodex plugin add experience-architecture@agent-kit\ncodex plugin add working-style@agent-kit"
+  },
+  {
+   "agent": "Cursor",
+   "button": "Copied. Copy the message again",
+   "sha256": "fb463d04f8d85609e15412f2c1597a5535ac09911f59f9a57c6ec551cf3986aa",
+   "text": "Install Agent Kit for me from https://github.com/AtlasScope/agent-kit. Follow the steps for the agent you are at https://www.atlasscope.dev/install.md, then tell me what you installed and how to start it."
+  },
+  {
+   "agent": "Cursor",
+   "button": "Copied. Copy again",
+   "sha256": "a1eaba35da33fea6f4386e9e59995b868493ce05ada1c0a92e8bde0764eddf3e",
+   "text": "npx skills add AtlasScope/agent-kit -a cursor"
+  },
+  {
+   "agent": "Any agent",
+   "button": "Copied. Copy the message again",
+   "sha256": "fb463d04f8d85609e15412f2c1597a5535ac09911f59f9a57c6ec551cf3986aa",
+   "text": "Install Agent Kit for me from https://github.com/AtlasScope/agent-kit. Follow the steps for the agent you are at https://www.atlasscope.dev/install.md, then tell me what you installed and how to start it."
+  },
+  {
+   "agent": "Any agent",
+   "button": "Copied. Copy again",
+   "sha256": "4477d47fff4f734fa49974a129ab6047b4c4ac7b69a2d71e37224e50c8a43a64",
+   "text": "npx skills add AtlasScope/agent-kit"
+  }
+ ],
+ "kitCmds": [
+  {
+   "kit": "design-kit",
+   "button": "Copy the message that installs design-kit",
+   "sha256": "19e798d7448e5ce3542b68d822e2cbcf0fbb1d6d84716ef7285a62a5788ddae0",
+   "text": "Install only the design-kit kit from Agent Kit for me (https://github.com/AtlasScope/agent-kit). Open https://www.atlasscope.dev/install.md and find the section for the agent you are. Run its first command, then only the command that names design-kit. If your section has one command that installs every kit, ask me before running it. Then tell me what you installed and how to start it."
+  },
+  {
+   "kit": "design-kit",
+   "button": "Copy the Claude Code commands",
+   "sha256": "c9eb02d9417fd806185153bfe8a49fd3ff666e6ee4a9522b875b10e2f71f2ab1",
+   "text": "claude plugin marketplace add AtlasScope/agent-kit\nclaude plugin install design-kit@agent-kit"
+  },
+  {
+   "kit": "design-kit",
+   "button": "Copy the Codex commands",
+   "sha256": "21457fc3762794f8fe582bb6e35f16dcd597dcdb701a41172b57366ab51f52cf",
+   "text": "codex plugin marketplace add AtlasScope/agent-kit\ncodex plugin add design-kit@agent-kit"
+  },
+  {
+   "kit": "engineering-kit",
+   "button": "Copy the message that installs engineering-kit",
+   "sha256": "81e79878573ec35ca31dc12936969ef5af2204e095d6a89419656eea749e4d09",
+   "text": "Install only the engineering-kit kit from Agent Kit for me (https://github.com/AtlasScope/agent-kit). Open https://www.atlasscope.dev/install.md and find the section for the agent you are. Run its first command, then only the command that names engineering-kit. If your section has one command that installs every kit, ask me before running it. Then tell me what you installed and how to start it."
+  },
+  {
+   "kit": "engineering-kit",
+   "button": "Copy the Claude Code commands",
+   "sha256": "60fb80a23b16d10c842adf2e36adaf9ae608add533366e37616024a480686dcc",
+   "text": "claude plugin marketplace add AtlasScope/agent-kit\nclaude plugin install engineering-kit@agent-kit"
+  },
+  {
+   "kit": "engineering-kit",
+   "button": "Copy the Codex commands",
+   "sha256": "7de57e89c031573aa3d0ab8677ae7de091df79b4a7b1cc7ddece2b56654388b6",
+   "text": "codex plugin marketplace add AtlasScope/agent-kit\ncodex plugin add engineering-kit@agent-kit"
+  },
+  {
+   "kit": "experience-architecture",
+   "button": "Copy the message that installs experience-architecture",
+   "sha256": "c975ddc3d1a674e3b53658e215284254df3cae782ea2f4f3394eda0e94cf85e3",
+   "text": "Install only the experience-architecture kit from Agent Kit for me (https://github.com/AtlasScope/agent-kit). Open https://www.atlasscope.dev/install.md and find the section for the agent you are. Run its first command, then only the command that names experience-architecture. If your section has one command that installs every kit, ask me before running it. Then tell me what you installed and how to start it."
+  },
+  {
+   "kit": "experience-architecture",
+   "button": "Copy the Claude Code commands",
+   "sha256": "fa744cd74dc01a762489b43014e9bfadfcfcf3ff6e970227e915ff39d55a61d7",
+   "text": "claude plugin marketplace add AtlasScope/agent-kit\nclaude plugin install experience-architecture@agent-kit"
+  },
+  {
+   "kit": "experience-architecture",
+   "button": "Copy the Codex commands",
+   "sha256": "6d50c81f3d5a18c49981434a99fab5d8fd542e436e8de04154b7a03fe917db2d",
+   "text": "codex plugin marketplace add AtlasScope/agent-kit\ncodex plugin add experience-architecture@agent-kit"
+  },
+  {
+   "kit": "motion-kit",
+   "button": "Copy the message that installs motion-kit",
+   "sha256": "8547aaf7e387be338bf15c9fae2ac35c8660e0bd93820c38f187d40cb1986ce8",
+   "text": "Install only the motion-kit kit from Agent Kit for me (https://github.com/AtlasScope/agent-kit). Open https://www.atlasscope.dev/install.md and find the section for the agent you are. Run its first command, then only the command that names motion-kit. If your section has one command that installs every kit, ask me before running it. Then tell me what you installed and how to start it."
+  },
+  {
+   "kit": "motion-kit",
+   "button": "Copy the Claude Code commands",
+   "sha256": "712c477465747dcf12e6ef81b3e7cacc49882b3417cd5267d43515d396573acc",
+   "text": "claude plugin marketplace add AtlasScope/agent-kit\nclaude plugin install motion-kit@agent-kit"
+  },
+  {
+   "kit": "motion-kit",
+   "button": "Copy the Codex commands",
+   "sha256": "c471ded1b6f0d847e4106e68c9556bf7e3ad42c25aa65bd68dbe039658e16b6c",
+   "text": "codex plugin marketplace add AtlasScope/agent-kit\ncodex plugin add motion-kit@agent-kit"
+  },
+  {
+   "kit": "working-style",
+   "button": "Copy the message that installs working-style",
+   "sha256": "d70cb9c5bb8b0a1ad0a2a13dfb70ae546f924c3fe8191c260a3e391043d7f7e5",
+   "text": "Install only the working-style kit from Agent Kit for me (https://github.com/AtlasScope/agent-kit). Open https://www.atlasscope.dev/install.md and find the section for the agent you are. Run its first command, then only the command that names working-style. If your section has one command that installs every kit, ask me before running it. Then tell me what you installed and how to start it."
+  },
+  {
+   "kit": "working-style",
+   "button": "Copy the Claude Code commands",
+   "sha256": "dd61d98b9cb398e22e76b662a26ae01051a7cae106e5e1e170ebd12ba842dbb9",
+   "text": "claude plugin marketplace add AtlasScope/agent-kit\nclaude plugin install working-style@agent-kit"
+  },
+  {
+   "kit": "working-style",
+   "button": "Copy the Codex commands",
+   "sha256": "9e4e3adeb47a20bb332f3f69a1b5d4e5cbca45add3f49f9d5ac3e5e1686a51e3",
+   "text": "codex plugin marketplace add AtlasScope/agent-kit\ncodex plugin add working-style@agent-kit"
+  }
+ ]
+}

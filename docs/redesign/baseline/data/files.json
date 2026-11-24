@@ -1,0 +1,38 @@
+{
+ "/robots.txt": {
+  "status": 200,
+  "sha256": "abd670f5bcfd9224750e841c1083d0e07695c994d7fe97a9a20d746fce75040f",
+  "length": 1628,
+  "contentType": "text/plain"
+ },
+ "/sitemap.xml": {
+  "status": 200,
+  "sha256": "07c8f9bd509ec82d24c23f056034054603b95db1c4b30906515dca0afc1d9962",
+  "length": 63627,
+  "contentType": "application/xml"
+ },
+ "/llms.txt": {
+  "status": 200,
+  "sha256": "36aa06f78f7e0f4058d28223a151ca908511c34323a24daee1f6c4afcd8a4e5c",
+  "length": 22015,
+  "contentType": "text/plain; charset=utf-8"
+ },
+ "/llms-full.txt": {
+  "status": 200,
+  "sha256": "949d3d27ab5a1c48609a8afa2047795972c4586e09631b60609ffccd2f21a5dd",
+  "length": 1312829,
+  "contentType": "text/plain; charset=utf-8"
+ },
+ "/install.md": {
+  "status": 200,
+  "sha256": "a02b0cfb7875d493d5542337d35a859b66a3e28d7d278d7b0708fb36dcecf65e",
+  "length": 2395,
+  "contentType": "text/markdown; charset=utf-8"
+ },
+ "/mcp-setup": {
+  "status": 200,
+  "sha256": "8c6517980d612a79581db1864ffb8250e26e8fb92d1328e862874104eb3615d9",
+  "length": 61080,
+  "contentType": "text/html; charset=utf-8"
+ }
+}
