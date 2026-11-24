@@ -55,7 +55,7 @@
   .guide__aside { position: static; padding-top: var(--space-6); border-top: 1px solid var(--c-line); }
 }
 
-/* The meter: one segment per step, finished ones green, this one ink. Each segment is a link. */
+/* The meter: one segment per step, finished ones green, this one ink. Each segment is a link. On touch screens every segment is at least 44px square. */
 .meter { display: flex; align-items: center; gap: var(--space-4); max-width: 34rem; }
 .meter__label { display: inline-flex; align-items: center; gap: var(--space-2); flex: none; margin: 0; color: var(--c-fg-3); font-size: var(--type-xs); font-variant-numeric: tabular-nums; }
 .meter ol { flex: 1; display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; }
@@ -66,6 +66,9 @@
 .meter .is-here a::before { background: var(--c-fg); }
 @media (hover: hover) and (pointer: fine) { .meter li:not(.is-here) a:hover::before { background: var(--c-edge); } .meter .is-done:not(.is-here) a:hover::before { background: var(--c-signal); } }
 @media (pointer: coarse) { .meter { flex-wrap: wrap; gap: 0; } .meter ol { flex-basis: 100%; gap: 2px; } .meter__label { order: -1; } .meter a { height: 44px; } }
+/* Below 26rem a guide of more than six steps no longer fits 44px segments in one row, so StepMeter's --tight
+   column count splits it into two even rows (8 steps: 4 + 4). Six or fewer fit in one row down to 320px. */
+@media (pointer: coarse) and (max-width: 26rem) { .meter ol { display: grid; grid-template-columns: repeat(var(--tight), minmax(0, 1fr)); } }
 
 /* The rail */
 .guide-rail ol { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
