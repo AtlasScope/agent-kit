@@ -112,11 +112,11 @@ Map external side effects and resource lifecycles across this application: conne
 Trace the full account lifecycle in this application: sign-up, email verification, password sign-in, magic links, OAuth/social login, password reset, email change, session refresh and expiry, sign-out, role or team revocation, and account deletion. Look for ways a real person gets stuck or locked out (expired links with no resend button, case-sensitive email mismatches, OAuth colliding with an existing password account, redirect loops after sign-in, sessions dropping on refresh) and ways revoked users keep access (cached tokens, active sessions that survive password change or removal). Check both code and auth provider configuration where visible in the repo.
 ```
 
-- Finds: undefined
+- Finds: Traces every way someone creates an account, signs in, resets a password, switches devices, or deletes an account, and finds where people can get locked out or keep access they shouldn't have.
 - Evidence to ask for: A walkthrough of each account flow with file:line, every lockout or leftover-access failure found, and any auth provider settings that live outside the repo and need my check in a named dashboard.
 - Skip when: A public tool or static site with no accounts or sign-in.
 - Watch for: Agents test only the happy sign-in path. Trace duplicate emails across sign-in methods, expired tokens, and what happens to open browser tabs after a user is removed or changes their password.
-- Mode: read, single pass, undefined scope. Needs: undefined
+- Mode: read, single pass, wide scope. Needs: Repository access.
 
 ## Architecture and hidden complexity
 
@@ -552,11 +552,11 @@ Inventory actual versions and dependencies of Playwright, Puppeteer, system Chro
 Audit the current branch (or the feature I name) for incomplete or faked implementation. Look for hardcoded or mock data left in real paths, stubbed or empty handlers, buttons or links wired to nothing, TODO/FIXME placeholders, swallowed errors (empty catch blocks), skipped or loosened tests, missing loading/empty/error states, and requirements from my request that were silently dropped. Check every changed file and trace each user action from the UI to storage and back.
 ```
 
-- Finds: undefined
+- Finds: Checks a completed feature or branch for classic coding-agent shortcuts: placeholder data, dead buttons, stubbed functions, skipped error states, and weakened tests.
 - Evidence to ask for: A list of every shortcut, stub, dead control, weakened test, or dropped requirement with file:line and what a user would see if it shipped today, or a clear confirmation of every path you verified end to end.
 - Skip when: A pure documentation change with no UI, logic, or test edits.
 - Watch for: Agents skim for TODO comments and miss handlers that quietly return fake success or render static sample items. Trace the actual data flow for every new screen and action.
-- Mode: read, single pass, undefined scope. Needs: undefined
+- Mode: read, single pass, narrow scope. Needs: Repository and its git history.
 
 ### AD06 How this whole product works
 
@@ -564,11 +564,11 @@ Audit the current branch (or the feature I name) for incomplete or faked impleme
 Read the repository and build a plain-English map of how this product actually works today, written for the owner who directs changes and does not read code. Cover: (1) the main user roles and what each can see or do, (2) the key screens and how users move between them, (3) the core data records stored and how they relate, (4) every background job or scheduled task, (5) every external service or API the app depends on, and (6) where the highest-risk logic lives (payments, auth, writes, AI calls). Base every statement on the code and config files present today, ignoring outdated README descriptions.
 ```
 
-- Finds: undefined
+- Finds: Draws a plain-English map of your app — its screens, user roles, stored data, scheduled jobs, and outside services — so you can see how the pieces connect without reading code.
 - Evidence to ask for: A one-page plain-English system map covering those six areas, with key entry-point file paths listed underneath so I can point future sessions to the right folder.
 - Skip when: A single-file script or a repo that already has an up-to-date plain-English architecture map verified against today's code.
 - Watch for: Agents copy stale descriptions from README.md. Verify every screen, service, and table directly from source and config files, and flag any place the docs disagree with the code.
-- Mode: read, single pass, undefined scope. Needs: undefined
+- Mode: read, single pass, wide scope. Needs: Repository access.
 
 ## Data integrity and analytics
 
@@ -690,11 +690,11 @@ Review the pending database migration or API schema change against the current l
 Inspect the current branch diff against the default branch (or the pull request I name) and explain it for a product owner who does not read code. Group the changes by what a user or operator will experience, call out any file touched outside the stated goal, flag risky areas (data writes, permissions, billing, migrations, config changes, deleted checks), and write a five-minute manual click-test checklist I can run myself to verify the change works and did not break nearby flows.
 ```
 
-- Finds: undefined
+- Finds: Explains an entire branch or pull request in plain English, flags edits outside your original request, and gives you a short manual test checklist you can click through yourself.
 - Evidence to ask for: A plain-English summary of user-visible and behind-the-scenes changes, a list of any out-of-scope edits with file paths, the top risks with file:line, and a numbered checklist of exact screens and actions for me to test.
 - Skip when: A single-line wording fix or a branch with no changes against the default branch.
 - Watch for: Agents summarize commit messages instead of reading the actual diff. Read the real diff line by line and flag anything the commits forgot to mention.
-- Mode: read, single pass, undefined scope. Needs: undefined
+- Mode: read, single pass, narrow scope. Needs: Repository and its git history.
 
 ### AD09 Links, previews, and what Google sees
 
@@ -702,11 +702,11 @@ Inspect the current branch diff against the default branch (or the pull request 
 Audit this web application's public-facing metadata, share previews, error pages, and crawl settings. Check: page titles and meta descriptions across public routes (flag missing, duplicate, or placeholder defaults like "Create Next App"); Open Graph and Twitter/X preview tags and whether their image URLs resolve with absolute production URLs; favicon and app icons; custom 404 and 500 error pages; broken internal links or redirects; canonical URLs, sitemap, and robots.txt (flag accidental noindex tags or blocked public pages, as well as private or admin routes accidentally exposed to crawlers).
 ```
 
-- Finds: undefined
+- Finds: Checks page titles, social share previews, favicons, 404/error pages, broken internal links, and search-engine settings before you share your site publicly.
 - Evidence to ask for: A table of public routes with title, description, share image status, and indexability, plus every missing icon, broken link, default error page, or robots/noindex problem with file:line.
 - Skip when: A private internal tool or native-only app with no public web pages.
 - Watch for: Relative share-image paths and staging noindex headers often pass local testing and break in production. Check how the base URL and environment flags resolve in production config.
-- Mode: read, single pass, undefined scope. Needs: undefined
+- Mode: read, single pass, wide scope. Needs: Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them.
 
 ## Agent harness and modern stack
 
@@ -861,11 +861,11 @@ Walk the product's main user flows and list up to ten moments where the interfac
 First read every user-facing promise in this repository: marketing and pricing copy, onboarding screens, button labels, confirmation and error messages, email templates, help text, and terms/privacy pages. A promise is anything a user could rely on (such as "cancel anytime", "we'll email you when ready", "saved automatically", "permanently deleted", "refunded within 5 days", or "private to your team"). Then trace the code and config responsible for keeping each promise on both normal paths and failure paths (failed payment, bounced email, crashed job, mobile browser). Classify each as Kept, Kept on happy path only, Not kept, or Unverifiable from repo (needs manual/dashboard check). Rank broken promises by trust or legal harm.
 ```
 
-- Finds: undefined
+- Finds: Reads every claim your product makes in web pages, pricing tables, buttons, emails, and legal text, then checks whether the code actually keeps each promise.
 - Evidence to ask for: A table of promises listing where each is stated (file:line), where code enforces it (file:line or "nowhere"), its verdict, and for the top three broken ones a concrete scenario showing how a user notices.
 - Skip when: An internal prototype with no public pages, user-facing emails, or billing.
 - Watch for: Read the actual user-facing copy, email templates, and error strings before inspecting backend code — skipping copy misses the broken promises.
-- Mode: read, single pass, undefined scope. Needs: undefined
+- Mode: read, single pass, wide scope. Needs: Repository access.
 
 ### X02 Your first support tickets
 
@@ -873,11 +873,11 @@ First read every user-facing promise in this repository: marketing and pricing c
 Walk this product's main user journeys in the code (sign-up, core workflow, billing, account settings, cancellation) and predict up to fifteen real support tickets users will send. Look only for issues grounded in existing code: dead-end error messages that give no next step, states with no escape hatch, buttons that silently do nothing, emails that contradict the screen, hidden limits, and intended behavior that looks broken. Write each ticket in a frustrated user's plain voice, cite the exact code behind it, and propose the smallest fix (often clearer wording, an empty state, or a confirmation). Stop once the real code-backed issues run out instead of padding to fifteen. Rank by how many users will hit each one.
 ```
 
-- Finds: undefined
+- Finds: Reads your main user flows and predicts the confusing screens, vague error messages, and dead ends most likely to generate support emails.
 - Evidence to ask for: Up to fifteen ranked tickets in user language, each tied to a specific screen, message, or state (file:line), expected frequency, and the smallest fix that prevents it.
 - Skip when: A personal tool used only by you.
 - Watch for: Never invent generic complaints like "the app feels slow." Every ticket must cite an actual message, missing state, or code path in this repository.
-- Mode: read, single pass, undefined scope. Needs: undefined
+- Mode: read, single pass, wide scope. Needs: Repository access.
 
 ### X03 How a clever user games you
 
@@ -885,11 +885,11 @@ Walk this product's main user journeys in the code (sign-up, core workflow, bill
 Think like a clever, opportunistic customer with a normal account and no hacking tools. Audit the code for ways they can get paid features for free or run up your bills: repeating free trials with fresh emails, reusing or stacking discount/referral codes, bypassing usage limits enforced only in browser code, timing upgrades/downgrades to dodge charges, keeping access after refunds or chargebacks, sharing accounts or abusing free invites, and triggering unbounded per-use costs (AI calls, SMS, emails, file storage, exports). For each loophole, give the exact user steps, whether the server enforces the rule today, a rough monthly cost if 100 users did it, and whether fixing it is a small code change or a pricing/product policy call.
 ```
 
-- Finds: undefined
+- Finds: Finds loopholes an ordinary signed-in customer could exploit without hacking — infinite trials, stacked coupons, browser-only limits, or running up your AI/SMS bill.
 - Evidence to ask for: Each abuse path with reproduction steps, current enforcement (file:line or "missing"), rough cost at 100 abusive users, and whether it needs code or a product decision.
 - Skip when: A completely free app with no usage caps and no metered per-action costs.
 - Watch for: Stay focused on business-logic and billing loopholes ordinary users can trigger — classic security vulnerabilities like SQL injection belong in the Security checks.
-- Mode: read, single pass, undefined scope. Needs: undefined
+- Mode: read, single pass, wide scope. Needs: Repository access.
 
 ### X04 Features you could delete
 
@@ -897,11 +897,11 @@ Think like a clever, opportunistic customer with a normal account and no hacking
 Identify features, screens, settings, feature flags, integrations, legacy plan tiers, export formats, or unfinished experiments that could be deleted with minimal user impact. Use whatever real evidence is accessible — routes with no navigation links, analytics events, database row counts, logs, flag config, and git history. For each candidate, assess its upkeep cost (code, tests, dependencies, support burden), the evidence it is unused, who could still reach it (including direct URLs, email links, bookmarks, or cron jobs), and what removal takes. Recommend the top three cuts with the best maintenance-saved-to-risk ratio.
 ```
 
-- Finds: undefined
+- Finds: Finds unlinked pages, untouched settings, stale feature flags, and dead integrations that cost maintenance while helping almost nobody.
 - Evidence to ask for: A ranked list of deletion candidates with usage evidence (query, count, or analytics check — marking anything that requires your live analytics dashboard), upkeep cost, potential impact, and the top three to remove first.
 - Skip when: A brand-new product under a few months old with no real user history yet.
 - Watch for: Code with zero internal callers can still be hit via bookmarked URLs, email links, webhooks, or scheduled jobs. Check every entry point before calling a feature dead.
-- Mode: read, single pass, undefined scope. Needs: undefined
+- Mode: read, single pass, wide scope. Needs: Repository access.
 
 ### X05 Follow one dollar
 
@@ -909,11 +909,11 @@ Identify features, screens, settings, feature flags, integrations, legacy plan t
 Trace a single dollar from the moment a customer pays through every system that records or reacts to it: checkout, payment provider, webhooks, database records, feature access grants, receipts/emails, and revenue reporting. Then trace the unhappy paths: declined card, payment retry, duplicate webhook, out-of-order webhook (arriving before the user or checkout row exists), partial refund, full refund, chargeback, mid-cycle plan change, cancellation, and non-default currency. At each step, identify the source of truth, what happens on failure or retry, and where your records or user access can fall out of sync with the payment provider.
 ```
 
-- Finds: undefined
+- Finds: Traces a single customer payment from checkout through webhooks, database rows, access grants, receipts, refunds, and chargebacks to spot where money or access goes wrong.
 - Evidence to ask for: A step-by-step trace of the happy path and each unhappy path with handler locations (file:line), source of truth per step, and every gap where money can be double-counted, lost, or mismatched against granted access.
 - Skip when: A product that takes no payments, or links out to a hosted payment page and stores zero payment state.
 - Watch for: Do not stop after tracing successful checkouts. Duplicate and out-of-order webhooks plus refunds and chargebacks are where real billing bugs hide.
-- Mode: read, single pass, undefined scope. Needs: undefined
+- Mode: read, single pass, wide scope. Needs: Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them.
 
 ### X06 What one more customer costs
 
@@ -921,11 +921,11 @@ Trace a single dollar from the moment a customer pays through every system that 
 Calculate the marginal monthly cost of adding one typical active customer. List every paid service this product uses (hosting, functions, database, file storage, bandwidth, AI models, email, SMS, search, error tracking, third-party APIs) and trace from code what user actions trigger charges. Estimate monthly usage per active customer using logs or database stats where available, stating assumptions clearly where not. Compare total per-user cost against each pricing tier, and highlight features whose cost scales faster than revenue (such as unthrottled AI calls, full-size image uploads, or unlimited free-tier exports). Fetch current published vendor prices if you have web access and cite the URL; if you cannot verify live pricing, mark every price clearly as an estimate for me to confirm on the vendor's pricing page.
 ```
 
-- Finds: undefined
+- Finds: Calculates what each additional active user costs you across hosting, AI models, email, storage, and APIs, and flags features whose cost outruns your subscription price.
 - Evidence to ask for: A cost-per-user breakdown by service and feature with triggering code (file:line), stated assumptions, verified vs. estimated prices, margin per plan, and the two or three features that hurt most at 10x users.
 - Skip when: A flat-fee static product with zero metered services and no paid plans.
 - Watch for: Never present memorized pricing as confirmed fact. Cite a live pricing source or mark the number as an unverified estimate.
-- Mode: read, single pass, undefined scope. Needs: undefined
+- Mode: read, single pass, wide scope. Needs: Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them.
 
 ### X07 If a vendor doubles its price or disappears
 
@@ -933,11 +933,11 @@ Calculate the marginal monthly cost of adding one typical active customer. List 
 Map this product's dependence on every external vendor, platform, or API (hosting, database, auth, payments, email, AI providers, app stores, analytics, and third-party SDKs). For each, measure how deeply it is embedded: how many files import or call it directly, whether one internal wrapper isolates it, whether your data can be cleanly exported, and which core features stop without it. Stress-test three scenarios for each vendor: price doubles, terms ban your use case, or it shuts down with 30 days' notice. Rank vendors by potential damage and suggest one cheap hedge for the top two without proposing a migration today.
 ```
 
-- Finds: undefined
+- Finds: Shows how tightly your app is wired to each outside vendor, how hard it would be to leave on 30 days' notice, and one cheap safeguard for the top two risks.
 - Evidence to ask for: A vendor table listing file touch count, single wrapper (yes/no), data exportability, features lost on outage, estimated switch effort, and one low-cost hedge for each of the top two risks.
 - Skip when: A small project using only one or two standard services already isolated behind clean wrappers.
 - Watch for: Do not recommend migrating off vendors immediately. Give a clear risk picture and small, practical hedges.
-- Mode: read, single pass, undefined scope. Needs: undefined
+- Mode: read, single pass, wide scope. Needs: Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them.
 
 ### AD08 Emails and messages people actually receive
 
@@ -945,11 +945,11 @@ Map this product's dependence on every external vendor, platform, or API (hostin
 Find every email, SMS, push notification, or in-app message this application sends. For each one, read the actual template and trigger code and check: what triggers it, whether retries or webhooks can send it twice, whether links inside it could point to localhost or a broken URL in production, what sender name and reply-to address it uses, whether marketing or digest messages include a working unsubscribe link, whether placeholder or embarrassing wording remains, and what happens when the email or SMS provider rejects or bounces it.
 ```
 
-- Finds: undefined
+- Finds: Audits every email, text, or notification your app sends for broken links, placeholder wording, wrong sender details, double sends, and silent delivery failures.
 - Evidence to ask for: A list of every outgoing message with its trigger (file:line), template path, link and wording issues, retry/duplicate risk, and a short checklist of DNS or provider dashboard checks (such as SPF, DKIM, DMARC, or verified sender domain) that cannot be verified from the repo.
 - Skip when: An app that sends no emails, texts, or notifications.
 - Watch for: Agents check that a send function exists and skip reading the actual subject line, body text, and link URL builder. Inspect the rendered text and URL construction for every template.
-- Mode: read, single pass, undefined scope. Needs: undefined
+- Mode: read, single pass, wide scope. Needs: Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them.
 
 ### AD11 Build it, buy it, or skip it?
 
@@ -957,11 +957,11 @@ Find every email, SMS, push notification, or in-app message this application sen
 Before we build the feature I am describing, evaluate three paths for a solo builder who wants low ongoing maintenance: (1) build it inside this codebase, (2) use an established service or library that already fits our stack, or (3) ship a much simpler or manual version first until usage proves it needs software. Inspect the repository first so your comparison reflects our actual stack, existing dependencies, and hosting limits. For each option, compare upfront work, ongoing maintenance and edge cases I will own forever (security, compliance, retries, deliverability, edge cases), vendor lock-in, and rough cost. Recommend one option and state what would change your mind.
 ```
 
-- Finds: undefined
+- Finds: Before you ask an agent to build a big feature from scratch, checks whether an existing tool, a simpler manual step, or skipping it makes more sense for a solo builder.
 - Evidence to ask for: A plain-English comparison of the three options grounded in this repo's stack (citing package.json or equivalent config), the hidden maintenance traps of building it ourselves, and one clear recommendation.
 - Skip when: A tiny feature unique to this product's core value where no off-the-shelf tool applies.
 - Watch for: Coding agents default to "we can build this easily" because writing the first version is fast while owning edge cases for two years is invisible. Price the two-year maintenance burden up front.
-- Mode: read, single pass, undefined scope. Needs: undefined
+- Mode: read, single pass, wide scope. Needs: Repository access.
 
 ### X08 The app's own AI calls
 
@@ -969,11 +969,11 @@ Before we build the feature I am describing, evaluate three paths for a solo bui
 Audit every place this application calls an AI model at runtime. For each call check: (1) model ID and whether it is deprecated or nearing retirement, (2) what untrusted input enters the prompt (user text, scraped pages, uploaded files, emails) and its prompt-injection exposure, (3) what the model's output can trigger (display text, tool calls, database writes, emails, charges), (4) timeouts, retries, and fallback behavior when the provider is slow or down, (5) schema/length/allowlist validation on outputs before use, (6) cost per call and calls triggered per user action, (7) whether personal user data is sent to the model provider, and (8) whether any eval or test detects answer quality dropping. Rank findings by severity: unauthorized actions first, cost blowups second, silent quality degradation third.
 ```
 
-- Finds: undefined
+- Finds: Audits every runtime AI model call inside your app for prompt-injection traps, runaway costs, retired models, missing output checks, and silent slowdowns.
 - Evidence to ask for: Every runtime model call (file:line) with model ID, untrusted inputs, downstream actions triggered by output, timeout/fallback, output validation, estimated calls per action, and ranked risks.
 - Skip when: An application that makes zero AI API calls at runtime.
 - Watch for: Do not stop at reading the prompt string. Trace where the model's response actually flows and what actions it can execute.
-- Mode: read, single pass, undefined scope. Needs: undefined
+- Mode: read, single pass, wide scope. Needs: Repository access.
 
 ### X09 Things that break on a date
 
@@ -981,11 +981,11 @@ Audit every place this application calls an AI model at runtime. For each call c
 Find everything in this project that will break on a future calendar date without any code change. Check: TLS certificates and signing keys, expiring API tokens and OAuth secrets, app store certificates and OAuth verification renewals, domain renewals, free-tier or startup credits expiring, retiring vendor APIs/SDKs/AI model IDs referenced in code, hardcoded years or date cutoffs, scheduled jobs with end dates, and growing counters or storage quotas nearing limits. Put everything on one timeline, soonest first, stating how you found each date and whether any automated alert warns ahead of time. Separate dates verified from code/config from dates you cannot see that I must check in a named dashboard.
 ```
 
-- Finds: undefined
+- Finds: Builds a timeline of everything set to expire or fail automatically — certificates, API keys, app store renewals, startup credits, retiring model versions, and hardcoded dates.
 - Evidence to ask for: One chronological risk timeline listing each item, verified date (or "check in [named dashboard]"), evidence (file:line or command), what breaks when it hits, and whether any advance warning exists.
 - Skip when: A brand-new local prototype with no deployed domain, external API keys, or scheduled jobs.
 - Watch for: Never guess expiry dates you cannot inspect. Mark every dashboard-only renewal clearly for manual verification.
-- Mode: read, single pass, undefined scope. Needs: undefined
+- Mode: read, single pass, wide scope. Needs: Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them.
 
 ### X10 How you'd find out it's broken
 
@@ -993,11 +993,11 @@ Find everything in this project that will break on a future calendar date withou
 List the five to ten critical jobs this product must keep working (sign-in, checkout, outgoing emails, core data reads/writes, nightly jobs, imports). For each one, answer directly: if it stopped working at 2am, how would I find out and how long would it take? Inspect only what actually exists in code and config — error trackers, alerting rules, uptime checks, health endpoints, failed-payment hooks, and swallowed exceptions — and flag external alerting dashboards you cannot inspect from the repo. Classify each flow as: alerts within minutes, noticed within a day, or only discovered when a user complains. For each blind spot, propose the single smallest signal that catches it (one alert, one heartbeat check, or one daily count check).
 ```
 
-- Finds: undefined
+- Finds: Checks your core user flows one by one to show which outages would alert you within minutes and which you'd only learn about from an angry user.
 - Evidence to ask for: A table of critical flows showing current detection (file:line, dashboard to verify, or "none"), expected delay before you notice, and one lightweight alert for each gap.
 - Skip when: A pre-launch prototype with no external users yet.
 - Watch for: Writing to a log file nobody alerts on does not count as monitoring. Check who actually gets notified and how.
-- Mode: read, single pass, undefined scope. Needs: undefined
+- Mode: read, single pass, wide scope. Needs: Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them.
 
 ### X11 Defaults nobody chose
 
@@ -1005,11 +1005,11 @@ List the five to ten critical jobs this product must keep working (sign-in, chec
 Audit settings left at their framework, library, or hosting defaults that materially affect users, security, or cost: session duration and idle logout, password and reset-token expiry, upload size caps, request timeouts, cache headers, rate limits, retry counts, default time zone/locale/currency, pagination sizes, email sender and reply-to, image storage settings, log retention, backup schedules, data region, and hard vs. soft deletes. Report only defaults that could plausibly hurt this product. Verify each default value against the installed version's source code in `node_modules` (or equivalent lockfile/package source) or official docs; mark anything you could not verify locally as unconfirmed.
 ```
 
-- Finds: undefined
+- Finds: Exposes invisible framework and hosting defaults your app runs on — session lifetimes, upload limits, timeouts, cache lengths, rate limits, and email headers — and flags the risky ones.
 - Evidence to ask for: A focused list of risky defaults showing the setting, current value and where you confirmed it (file:line, installed package source, or doc reference), plain-English user impact, and a suggested explicit value.
 - Skip when: Every major runtime, auth, upload, timeout, and retention setting is already explicitly configured in one documented config file.
 - Watch for: Framework defaults change between major versions. Verify against the exact version installed instead of quoting from memory.
-- Mode: read, single pass, undefined scope. Needs: undefined
+- Mode: read, single pass, wide scope. Needs: Repository access.
 
 ### X12 Where people's personal data ends up
 
@@ -1017,11 +1017,11 @@ Audit settings left at their framework, library, or hosting defaults that materi
 Trace all personal user data from collection (forms, sign-up, billing, uploads, analytics, IP/device metadata, support tools) to every destination it reaches: database tables, file buckets, server logs, error trackers, session recordings, analytics, email/CRM tools, AI API calls, exports, and backups. For each destination, note retention, access scope, and whether data leaves to a third party (flagging external tool settings that need manual dashboard checks). Then trace a real account-deletion request: list every place user data would need to be removed from and whether code handles it today. Highlight sensitive data logged in plain text, unused fields still being collected, and any mismatch with your privacy page.
 ```
 
-- Finds: undefined
+- Finds: Tracks every piece of personal information you collect across databases, logs, error trackers, analytics, emails, and AI calls, and checks what it takes to delete a user completely.
 - Evidence to ask for: A map from each collected personal field to every storage/external destination (file:line), a deletion checklist separating automated cleanup from manual steps, and any mismatch with the privacy page.
 - Skip when: A local or anonymous tool with zero accounts, forms, analytics, or personal data.
 - Watch for: Check server logs, error trackers, and analytics calls first — personal data leaks there far more often than in primary database tables.
-- Mode: read, single pass, undefined scope. Needs: undefined
+- Mode: read, single pass, wide scope. Needs: Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them.
 
 ### X13 Things you may not be allowed to ship
 
@@ -1029,11 +1029,11 @@ Trace all personal user data from collection (forms, sign-up, billing, uploads, 
 Audit everything shipped in this project for licensing or usage restrictions: package licenses in lockfiles (especially copyleft licenses like GPL/AGPL in closed-source products, or non-commercial/source-available licenses in paid apps), code snippets copied without attribution, web/app font files and their license terms, images/icons/illustrations/audio in asset folders, third-party logos or brand assets, AI-generated media whose source tool has commercial terms, and scraped or external datasets. For each flagged item, state the license or provenance found, whether this usage fits, and the next step (attribute, replace, purchase a license, or verify). Flag uncertain items for human or legal review without giving legal advice.
 ```
 
-- Finds: undefined
+- Finds: Checks fonts, icons, images, third-party packages, and copied snippets for licenses that restrict commercial use or require attribution.
 - Evidence to ask for: Every asset or package with a potential license issue (file path and where the license was found), whether current use fits, and the concrete action needed, separating clear fixes from items needing human confirmation.
 - Skip when: A private personal script nobody else will see, download, or pay for.
 - Watch for: Do not stop after scanning `package.json`. Fonts, icon packs, downloaded images, and pasted code snippets in asset/source folders are where real license problems usually hide.
-- Mode: read, single pass, undefined scope. Needs: undefined
+- Mode: read, single pass, wide scope. Needs: Repository access.
 
 ### X14 If you disappeared tomorrow
 
@@ -1041,11 +1041,11 @@ Audit everything shipped in this project for licensing or usage restrictions: pa
 Imagine I became unreachable tomorrow and a capable developer had to keep this product running using only this repository. Identify everything missing from the repo: external accounts and billing ownership (hosting, domain, database, payments, email, app stores), dashboard-only secrets and settings, manual recurring work (deploys, renewals, exports, support replies, data fixes), external cron jobs, undocumented code quirks, and anything tied to my personal machine. For each gap, note what breaks and how soon, plus the smallest fix (a repo doc, script, shared password vault entry, or backup owner). Format the actionable output as a clean one-page emergency runbook naming where each secret lives (names only, never values).
 ```
 
-- Finds: undefined
+- Finds: Finds every account, dashboard setting, manual habit, and secret that lives only in your head or on your computer, and drafts a one-page emergency runbook.
 - Evidence to ask for: Single points of failure ranked by how quickly each breaks, a draft one-page runbook covering accounts, deploys, manual tasks, and secret locations (names only, never secret values), and a short list of account-ownership questions only I can fill in.
 - Skip when: A disposable weekend experiment with no external accounts, users, or ongoing operations.
 - Watch for: Never read, print, or copy secret values into the runbook. Record only variable names and which dashboard or password manager holds them.
-- Mode: read, single pass, undefined scope. Needs: undefined
+- Mode: read, single pass, wide scope. Needs: Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them.
 
 ### X15 What agents keep getting wrong here
 
@@ -1053,11 +1053,11 @@ Imagine I became unreachable tomorrow and a capable developer had to keep this p
 Analyze this repository's git history to uncover mistakes coding agents keep repeating. Look for reverts, rapid follow-up fix commits, files that repeatedly change together yet live far apart, and edits to generated files or broken conventions. Group recurring mistakes by root cause (undocumented rule, generated file, required rebuild step, misleading name, synced pair of files, broken local test). For each recurring cause, cite two or three commit hashes as proof and draft one or two crisp lines for `AGENTS.md`/`CLAUDE.md` — or an automated check — that would have prevented it. Skip anything already clearly documented.
 ```
 
-- Finds: undefined
+- Finds: Mines your git history for reverts and fix-on-fix commits to spot mistakes coding agents keep repeating, and drafts exact lines for `AGENTS.md` or `CLAUDE.md` to prevent them.
 - Evidence to ask for: Recurring causes ranked by frequency, supporting commit hashes, and exact proposed additions or edits for your instruction file (marked New or Replaces).
 - Skip when: A new repository with fewer than roughly fifty commits of history.
 - Watch for: Reject vague platitudes like "write clean tests." Every proposed rule must trace directly to real commits in this repository.
-- Mode: read, single pass, undefined scope. Needs: undefined
+- Mode: read, single pass, wide scope. Needs: Repository and its git history.
 
 ### X16 The first bad day
 
@@ -1065,11 +1065,11 @@ Analyze this repository's git history to uncover mistakes coding agents keep rep
 From the actual code, config, deploy setup, data model, and third-party dependencies in this repository, identify the three likeliest ways this product suffers its first serious incident: data loss or corruption, prolonged outage, security/privacy leak, or a surprise usage bill. Take the #1 likeliest scenario and write a grounded pre-mortem incident report: exact trigger, hour-by-hour timeline, how you find out, what compounds the damage, what gets lost, recovery time, and impact. Every single step in the timeline must cite a real file, setting, or missing safeguard in this repo (or explicitly flag a dashboard setting to check). End with three preventive fixes ordered by effort, naming the single one worth doing this week.
 ```
 
-- Finds: undefined
+- Finds: Writes a grounded, hour-by-hour preview of the most likely serious outage, data loss, security leak, or surprise bill waiting in your current setup — and the one fix worth doing this week.
 - Evidence to ask for: Three ranked incident risks with triggers, one evidence-backed incident timeline citing real files/settings at every step, and three preventive fixes with effort estimates.
 - Skip when: A throwaway prototype with no users, no stored data worth keeping, and no metered billing.
 - Watch for: Do not write dramatic fiction. Every link in the incident chain must be possible under this repository's actual code and configuration.
-- Mode: read, single pass, undefined scope. Needs: undefined
+- Mode: read, single pass, wide scope. Needs: Repository access.
 
 ### AD10 Can you get your data back if something goes wrong?
 
@@ -1077,8 +1077,8 @@ From the actual code, config, deploy setup, data model, and third-party dependen
 Audit how this product protects against accidental data loss across every store it uses (SQLite, Postgres, Supabase, Firebase, Convex, cloud file storage, or external SaaS data). From the repository, infrastructure config, and scripts, trace: what destructive operations exist in code or admin tools (hard deletes, cascades, overwrites, migration drops), whether soft-delete or undo exists for user-triggered deletions, what backup or point-in-time recovery settings are declared in config, and what data lives in places with no backup configured. Clearly separate what you verified in the repository from backup settings that live only in a hosting dashboard and require my check.
 ```
 
-- Finds: undefined
+- Finds: Checks whether your database, uploaded files, and user content are actually backed up and restorable — whatever database or host you use.
 - Evidence to ask for: Every data store and file bucket found (file:line), the destructive paths that can wipe data permanently, what backup/restore mechanism is visible in config, and a short checklist of dashboard settings I must confirm and one safe restore drill to run.
 - Skip when: A stateless tool or static site that stores no user data or uploaded files.
 - Watch for: Agents assume a managed database host includes tested backups by default. Free tiers often have no point-in-time recovery or short retention, and file buckets (avatars, uploads) are frequently unbacked-up even when the database is. Flag every assumption that needs dashboard verification.
-- Mode: read, single pass, undefined scope. Needs: undefined
+- Mode: read, single pass, wide scope. Needs: Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them.

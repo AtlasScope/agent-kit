@@ -28,6 +28,9 @@ The full inventory is `library/dist/inventory.csv`, rebuilt by `node library/bui
   had steps that contradicted each other; they no longer do.
 - Search and the problem shortcuts no longer offer borrowed skills or the older recipes; Enter opens
   the best match instead of copying it.
+- The new investigations and the thinking prompts that only had `line` now also carry `why`, and the
+  new investigations a `scope` and `tools`, so the /engineer and /database references no longer print
+  "undefined".
 - G02 now asks for a migration replay on a separate copy, so it is marked `iso`. The /engineer and
   /database references that ship these prompts changed, so engineering-kit is 1.7.0.
 

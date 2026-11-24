@@ -199,7 +199,10 @@
    "ev": "A walkthrough of each account flow with file:line, every lockout or leftover-access failure found, and any auth provider settings that live outside the repo and need my check in a named dashboard.",
    "skip": "A public tool or static site with no accounts or sign-in.",
    "blind": "Agents test only the happy sign-in path. Trace duplicate emails across sign-in methods, expired tokens, and what happens to open browser tabs after a user is removed or changes their password.",
-   "fresh": true
+   "fresh": true,
+   "why": "Traces every way someone creates an account, signs in, resets a password, switches devices, or deletes an account, and finds where people can get locked out or keep access they shouldn't have.",
+   "scope": "wide",
+   "tools": "Repository access."
   },
   {
    "id": "A08",
@@ -995,7 +998,10 @@
    "ev": "A list of every shortcut, stub, dead control, weakened test, or dropped requirement with file:line and what a user would see if it shipped today, or a clear confirmation of every path you verified end to end.",
    "skip": "A pure documentation change with no UI, logic, or test edits.",
    "blind": "Agents skim for TODO comments and miss handlers that quietly return fake success or render static sample items. Trace the actual data flow for every new screen and action.",
-   "fresh": true
+   "fresh": true,
+   "why": "Checks a completed feature or branch for classic coding-agent shortcuts: placeholder data, dead buttons, stubbed functions, skipped error states, and weakened tests.",
+   "scope": "narrow",
+   "tools": "Repository and its git history."
   },
   {
    "id": "AD06",
@@ -1008,7 +1014,10 @@
    "ev": "A one-page plain-English system map covering those six areas, with key entry-point file paths listed underneath so I can point future sessions to the right folder.",
    "skip": "A single-file script or a repo that already has an up-to-date plain-English architecture map verified against today's code.",
    "blind": "Agents copy stale descriptions from README.md. Verify every screen, service, and table directly from source and config files, and flag any place the docs disagree with the code.",
-   "fresh": true
+   "fresh": true,
+   "why": "Draws a plain-English map of your app — its screens, user roles, stored data, scheduled jobs, and outside services — so you can see how the pieces connect without reading code.",
+   "scope": "wide",
+   "tools": "Repository access."
   },
   {
    "id": "D01",
@@ -1225,7 +1234,10 @@
    "ev": "A plain-English summary of user-visible and behind-the-scenes changes, a list of any out-of-scope edits with file paths, the top risks with file:line, and a numbered checklist of exact screens and actions for me to test.",
    "skip": "A single-line wording fix or a branch with no changes against the default branch.",
    "blind": "Agents summarize commit messages instead of reading the actual diff. Read the real diff line by line and flag anything the commits forgot to mention.",
-   "fresh": true
+   "fresh": true,
+   "why": "Explains an entire branch or pull request in plain English, flags edits outside your original request, and gives you a short manual test checklist you can click through yourself.",
+   "scope": "narrow",
+   "tools": "Repository and its git history."
   },
   {
    "id": "AD09",
@@ -1238,7 +1250,10 @@
    "ev": "A table of public routes with title, description, share image status, and indexability, plus every missing icon, broken link, default error page, or robots/noindex problem with file:line.",
    "skip": "A private internal tool or native-only app with no public web pages.",
    "blind": "Relative share-image paths and staging noindex headers often pass local testing and break in production. Check how the base URL and environment flags resolve in production config.",
-   "fresh": true
+   "fresh": true,
+   "why": "Checks page titles, social share previews, favicons, 404/error pages, broken internal links, and search-engine settings before you share your site publicly.",
+   "scope": "wide",
+   "tools": "Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them."
   },
   {
    "id": "G03",
@@ -2232,7 +2247,8 @@
    "use": "Use it before you hand an agent a task you only half know how to describe.",
    "aka": "Professional-grade, not larger",
    "dmode": "Depends on the task",
-   "line": "Has the agent point out what a experienced engineer would check or verify that you left out, then tighten the plan without growing the scope."
+   "line": "Has the agent point out what a experienced engineer would check or verify that you left out, then tighten the plan without growing the scope.",
+   "why": "Has the agent point out what a experienced engineer would check or verify that you left out, then tighten the plan without growing the scope."
   },
   {
    "id": "M02",
@@ -2243,7 +2259,8 @@
    "use": "Use it when an agent's plan sounds right and you can't see why it might be wrong.",
    "aka": "Falsification",
    "dmode": "Asks before changing",
-   "line": "Tells the agent to actively hunt for evidence that its own plan will fail before you approve it."
+   "line": "Tells the agent to actively hunt for evidence that its own plan will fail before you approve it.",
+   "why": "Tells the agent to actively hunt for evidence that its own plan will fail before you approve it."
   },
   {
    "id": "M03",
@@ -2254,7 +2271,8 @@
    "use": "Use it the second time the same kind of bug shows up.",
    "aka": "Root cause",
    "dmode": "Report only",
-   "line": "Stops the agent from patching symptoms; it must reproduce the bug, trace the exact cause, and find everywhere else that same cause lives."
+   "line": "Stops the agent from patching symptoms; it must reproduce the bug, trace the exact cause, and find everywhere else that same cause lives.",
+   "why": "Stops the agent from patching symptoms; it must reproduce the bug, trace the exact cause, and find everywhere else that same cause lives."
   },
   {
    "id": "M04",
@@ -2265,7 +2283,8 @@
    "use": "Use it when the proposed fix adds a new setting, table or service.",
    "aka": "Complexity reduction",
    "dmode": "Changes code",
-   "line": "Makes the agent try solving the problem by removing an existing layer, setting, or special case before adding anything new."
+   "line": "Makes the agent try solving the problem by removing an existing layer, setting, or special case before adding anything new.",
+   "why": "Makes the agent try solving the problem by removing an existing layer, setting, or special case before adding anything new."
   },
   {
    "id": "M05",
@@ -2279,7 +2298,8 @@
     "PG16"
    ],
    "dmode": "Depends on the task",
-   "line": "Tells the agent to make routine technical decisions on its own and escalate only product, cost, or risk calls to you."
+   "line": "Tells the agent to make routine technical decisions on its own and escalate only product, cost, or risk calls to you.",
+   "why": "Tells the agent to make routine technical decisions on its own and escalate only product, cost, or risk calls to you."
   },
   {
    "id": "M06",
@@ -2290,7 +2310,8 @@
    "use": "Use it before you accept 'tests pass' as proof that something works.",
    "aka": "Independent verification",
    "dmode": "Changes code",
-   "line": "Requires the agent to prove a fix works using a path that cannot pass just because its own tests agree with its own code."
+   "line": "Requires the agent to prove a fix works using a path that cannot pass just because its own tests agree with its own code.",
+   "why": "Requires the agent to prove a fix works using a path that cannot pass just because its own tests agree with its own code."
   },
   {
    "id": "M07",
@@ -2304,7 +2325,8 @@
     "PG16"
    ],
    "dmode": "Changes code",
-   "line": "Turns your request into a short, checkable plan with clear boundaries, answering technical questions from the codebase before asking you anything."
+   "line": "Turns your request into a short, checkable plan with clear boundaries, answering technical questions from the codebase before asking you anything.",
+   "why": "Turns your request into a short, checkable plan with clear boundaries, answering technical questions from the codebase before asking you anything."
   },
   {
    "id": "M08",
@@ -2314,7 +2336,8 @@
    "p": "Before editing anything to fix this bug or slowdown, create a reproducible failing case or a measured baseline. Trace the root cause, apply the narrowest fix that removes it, rerun an independent check, and report the exact before-and-after evidence. If you cannot reproduce or measure the problem, stop and tell me what evidence is missing instead of claiming it is fixed.",
    "use": "Use it in the second session, after a read-only investigation found a real problem.",
    "dmode": "Changes code",
-   "line": "Enforces a strict before-and-after loop: capture a failing case or baseline measurement first, apply the smallest fix, then rerun an independent check."
+   "line": "Enforces a strict before-and-after loop: capture a failing case or baseline measurement first, apply the smallest fix, then rerun an independent check.",
+   "why": "Enforces a strict before-and-after loop: capture a failing case or baseline measurement first, apply the smallest fix, then rerun an independent check."
   },
   {
    "id": "M09",
@@ -2325,7 +2348,8 @@
    "use": "Use it for decisions that will be expensive to undo.",
    "aka": "Three-way tradeoff",
    "dmode": "Asks before changing",
-   "line": "Forces the agent to propose three distinct approaches (a minimal patch, a clean long-term fix, and a version that removes complexity) and recommend one before coding."
+   "line": "Forces the agent to propose three distinct approaches (a minimal patch, a clean long-term fix, and a version that removes complexity) and recommend one before coding.",
+   "why": "Forces the agent to propose three distinct approaches (a minimal patch, a clean long-term fix, and a version that removes complexity) and recommend one before coding."
   },
   {
    "id": "M10",
@@ -2336,7 +2360,8 @@
    "use": "Use it before the agent compacts (shrinks its memory of the chat) or a long session ends. /pre-compact does the full version.",
    "aka": "Cold-start handoff checkpoint",
    "dmode": "Writes notes only",
-   "line": "Produces a compact, factual status note so a fresh agent session can resume right where this one stopped."
+   "line": "Produces a compact, factual status note so a fresh agent session can resume right where this one stopped.",
+   "why": "Produces a compact, factual status note so a fresh agent session can resume right where this one stopped."
   },
   {
    "id": "M11",
@@ -2346,7 +2371,8 @@
    "p": "Go past the first answer. For each claim you make, check the original evidence (the code, the data or the docs) and say which claims you verified and which you assumed. Then give one clear recommendation, the strongest argument against it, and the result that would change your mind.",
    "use": "Add it to any prompt when you want depth and a firm recommendation, with the checking shown.",
    "dmode": "Depends on the task",
-   "line": "Asks for a thorough answer that says what was checked and what was assumed, and ends with one firm recommendation."
+   "line": "Asks for a thorough answer that says what was checked and what was assumed, and ends with one firm recommendation.",
+   "why": "Asks for a thorough answer that says what was checked and what was assumed, and ends with one firm recommendation."
   },
   {
    "id": "M12",
@@ -2363,7 +2389,8 @@
     "M04"
    ],
    "dmode": "Changes code",
-   "line": "Runs a focused cleanup pass over recently changed code to merge duplicated logic and hide messy internals behind one clear entry point."
+   "line": "Runs a focused cleanup pass over recently changed code to merge duplicated logic and hide messy internals behind one clear entry point.",
+   "why": "Runs a focused cleanup pass over recently changed code to merge duplicated logic and hide messy internals behind one clear entry point."
   },
   {
    "id": "X01",
@@ -2376,7 +2403,10 @@
    "ev": "A table of promises listing where each is stated (file:line), where code enforces it (file:line or \"nowhere\"), its verdict, and for the top three broken ones a concrete scenario showing how a user notices.",
    "skip": "An internal prototype with no public pages, user-facing emails, or billing.",
    "blind": "Read the actual user-facing copy, email templates, and error strings before inspecting backend code — skipping copy misses the broken promises.",
-   "fresh": true
+   "fresh": true,
+   "why": "Reads every claim your product makes in web pages, pricing tables, buttons, emails, and legal text, then checks whether the code actually keeps each promise.",
+   "scope": "wide",
+   "tools": "Repository access."
   },
   {
    "id": "X02",
@@ -2389,7 +2419,10 @@
    "ev": "Up to fifteen ranked tickets in user language, each tied to a specific screen, message, or state (file:line), expected frequency, and the smallest fix that prevents it.",
    "skip": "A personal tool used only by you.",
    "blind": "Never invent generic complaints like \"the app feels slow.\" Every ticket must cite an actual message, missing state, or code path in this repository.",
-   "fresh": true
+   "fresh": true,
+   "why": "Reads your main user flows and predicts the confusing screens, vague error messages, and dead ends most likely to generate support emails.",
+   "scope": "wide",
+   "tools": "Repository access."
   },
   {
    "id": "X03",
@@ -2402,7 +2435,10 @@
    "ev": "Each abuse path with reproduction steps, current enforcement (file:line or \"missing\"), rough cost at 100 abusive users, and whether it needs code or a product decision.",
    "skip": "A completely free app with no usage caps and no metered per-action costs.",
    "blind": "Stay focused on business-logic and billing loopholes ordinary users can trigger — classic security vulnerabilities like SQL injection belong in the Security checks.",
-   "fresh": true
+   "fresh": true,
+   "why": "Finds loopholes an ordinary signed-in customer could exploit without hacking — infinite trials, stacked coupons, browser-only limits, or running up your AI/SMS bill.",
+   "scope": "wide",
+   "tools": "Repository access."
   },
   {
    "id": "X04",
@@ -2415,7 +2451,10 @@
    "ev": "A ranked list of deletion candidates with usage evidence (query, count, or analytics check — marking anything that requires your live analytics dashboard), upkeep cost, potential impact, and the top three to remove first.",
    "skip": "A brand-new product under a few months old with no real user history yet.",
    "blind": "Code with zero internal callers can still be hit via bookmarked URLs, email links, webhooks, or scheduled jobs. Check every entry point before calling a feature dead.",
-   "fresh": true
+   "fresh": true,
+   "why": "Finds unlinked pages, untouched settings, stale feature flags, and dead integrations that cost maintenance while helping almost nobody.",
+   "scope": "wide",
+   "tools": "Repository access."
   },
   {
    "id": "X05",
@@ -2428,7 +2467,10 @@
    "ev": "A step-by-step trace of the happy path and each unhappy path with handler locations (file:line), source of truth per step, and every gap where money can be double-counted, lost, or mismatched against granted access.",
    "skip": "A product that takes no payments, or links out to a hosted payment page and stores zero payment state.",
    "blind": "Do not stop after tracing successful checkouts. Duplicate and out-of-order webhooks plus refunds and chargebacks are where real billing bugs hide.",
-   "fresh": true
+   "fresh": true,
+   "why": "Traces a single customer payment from checkout through webhooks, database rows, access grants, receipts, refunds, and chargebacks to spot where money or access goes wrong.",
+   "scope": "wide",
+   "tools": "Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them."
   },
   {
    "id": "X06",
@@ -2441,7 +2483,10 @@
    "ev": "A cost-per-user breakdown by service and feature with triggering code (file:line), stated assumptions, verified vs. estimated prices, margin per plan, and the two or three features that hurt most at 10x users.",
    "skip": "A flat-fee static product with zero metered services and no paid plans.",
    "blind": "Never present memorized pricing as confirmed fact. Cite a live pricing source or mark the number as an unverified estimate.",
-   "fresh": true
+   "fresh": true,
+   "why": "Calculates what each additional active user costs you across hosting, AI models, email, storage, and APIs, and flags features whose cost outruns your subscription price.",
+   "scope": "wide",
+   "tools": "Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them."
   },
   {
    "id": "X07",
@@ -2454,7 +2499,10 @@
    "ev": "A vendor table listing file touch count, single wrapper (yes/no), data exportability, features lost on outage, estimated switch effort, and one low-cost hedge for each of the top two risks.",
    "skip": "A small project using only one or two standard services already isolated behind clean wrappers.",
    "blind": "Do not recommend migrating off vendors immediately. Give a clear risk picture and small, practical hedges.",
-   "fresh": true
+   "fresh": true,
+   "why": "Shows how tightly your app is wired to each outside vendor, how hard it would be to leave on 30 days' notice, and one cheap safeguard for the top two risks.",
+   "scope": "wide",
+   "tools": "Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them."
   },
   {
    "id": "AD08",
@@ -2467,7 +2515,10 @@
    "ev": "A list of every outgoing message with its trigger (file:line), template path, link and wording issues, retry/duplicate risk, and a short checklist of DNS or provider dashboard checks (such as SPF, DKIM, DMARC, or verified sender domain) that cannot be verified from the repo.",
    "skip": "An app that sends no emails, texts, or notifications.",
    "blind": "Agents check that a send function exists and skip reading the actual subject line, body text, and link URL builder. Inspect the rendered text and URL construction for every template.",
-   "fresh": true
+   "fresh": true,
+   "why": "Audits every email, text, or notification your app sends for broken links, placeholder wording, wrong sender details, double sends, and silent delivery failures.",
+   "scope": "wide",
+   "tools": "Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them."
   },
   {
    "id": "AD11",
@@ -2480,7 +2531,10 @@
    "ev": "A plain-English comparison of the three options grounded in this repo's stack (citing package.json or equivalent config), the hidden maintenance traps of building it ourselves, and one clear recommendation.",
    "skip": "A tiny feature unique to this product's core value where no off-the-shelf tool applies.",
    "blind": "Coding agents default to \"we can build this easily\" because writing the first version is fast while owning edge cases for two years is invisible. Price the two-year maintenance burden up front.",
-   "fresh": true
+   "fresh": true,
+   "why": "Before you ask an agent to build a big feature from scratch, checks whether an existing tool, a simpler manual step, or skipping it makes more sense for a solo builder.",
+   "scope": "wide",
+   "tools": "Repository access."
   },
   {
    "id": "X08",
@@ -2493,7 +2547,10 @@
    "ev": "Every runtime model call (file:line) with model ID, untrusted inputs, downstream actions triggered by output, timeout/fallback, output validation, estimated calls per action, and ranked risks.",
    "skip": "An application that makes zero AI API calls at runtime.",
    "blind": "Do not stop at reading the prompt string. Trace where the model's response actually flows and what actions it can execute.",
-   "fresh": true
+   "fresh": true,
+   "why": "Audits every runtime AI model call inside your app for prompt-injection traps, runaway costs, retired models, missing output checks, and silent slowdowns.",
+   "scope": "wide",
+   "tools": "Repository access."
   },
   {
    "id": "X09",
@@ -2506,7 +2563,10 @@
    "ev": "One chronological risk timeline listing each item, verified date (or \"check in [named dashboard]\"), evidence (file:line or command), what breaks when it hits, and whether any advance warning exists.",
    "skip": "A brand-new local prototype with no deployed domain, external API keys, or scheduled jobs.",
    "blind": "Never guess expiry dates you cannot inspect. Mark every dashboard-only renewal clearly for manual verification.",
-   "fresh": true
+   "fresh": true,
+   "why": "Builds a timeline of everything set to expire or fail automatically — certificates, API keys, app store renewals, startup credits, retiring model versions, and hardcoded dates.",
+   "scope": "wide",
+   "tools": "Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them."
   },
   {
    "id": "X10",
@@ -2519,7 +2579,10 @@
    "ev": "A table of critical flows showing current detection (file:line, dashboard to verify, or \"none\"), expected delay before you notice, and one lightweight alert for each gap.",
    "skip": "A pre-launch prototype with no external users yet.",
    "blind": "Writing to a log file nobody alerts on does not count as monitoring. Check who actually gets notified and how.",
-   "fresh": true
+   "fresh": true,
+   "why": "Checks your core user flows one by one to show which outages would alert you within minutes and which you'd only learn about from an angry user.",
+   "scope": "wide",
+   "tools": "Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them."
   },
   {
    "id": "X11",
@@ -2532,7 +2595,10 @@
    "ev": "A focused list of risky defaults showing the setting, current value and where you confirmed it (file:line, installed package source, or doc reference), plain-English user impact, and a suggested explicit value.",
    "skip": "Every major runtime, auth, upload, timeout, and retention setting is already explicitly configured in one documented config file.",
    "blind": "Framework defaults change between major versions. Verify against the exact version installed instead of quoting from memory.",
-   "fresh": true
+   "fresh": true,
+   "why": "Exposes invisible framework and hosting defaults your app runs on — session lifetimes, upload limits, timeouts, cache lengths, rate limits, and email headers — and flags the risky ones.",
+   "scope": "wide",
+   "tools": "Repository access."
   },
   {
    "id": "X12",
@@ -2545,7 +2611,10 @@
    "ev": "A map from each collected personal field to every storage/external destination (file:line), a deletion checklist separating automated cleanup from manual steps, and any mismatch with the privacy page.",
    "skip": "A local or anonymous tool with zero accounts, forms, analytics, or personal data.",
    "blind": "Check server logs, error trackers, and analytics calls first — personal data leaks there far more often than in primary database tables.",
-   "fresh": true
+   "fresh": true,
+   "why": "Tracks every piece of personal information you collect across databases, logs, error trackers, analytics, emails, and AI calls, and checks what it takes to delete a user completely.",
+   "scope": "wide",
+   "tools": "Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them."
   },
   {
    "id": "X13",
@@ -2558,7 +2627,10 @@
    "ev": "Every asset or package with a potential license issue (file path and where the license was found), whether current use fits, and the concrete action needed, separating clear fixes from items needing human confirmation.",
    "skip": "A private personal script nobody else will see, download, or pay for.",
    "blind": "Do not stop after scanning `package.json`. Fonts, icon packs, downloaded images, and pasted code snippets in asset/source folders are where real license problems usually hide.",
-   "fresh": true
+   "fresh": true,
+   "why": "Checks fonts, icons, images, third-party packages, and copied snippets for licenses that restrict commercial use or require attribution.",
+   "scope": "wide",
+   "tools": "Repository access."
   },
   {
    "id": "X14",
@@ -2571,7 +2643,10 @@
    "ev": "Single points of failure ranked by how quickly each breaks, a draft one-page runbook covering accounts, deploys, manual tasks, and secret locations (names only, never secret values), and a short list of account-ownership questions only I can fill in.",
    "skip": "A disposable weekend experiment with no external accounts, users, or ongoing operations.",
    "blind": "Never read, print, or copy secret values into the runbook. Record only variable names and which dashboard or password manager holds them.",
-   "fresh": true
+   "fresh": true,
+   "why": "Finds every account, dashboard setting, manual habit, and secret that lives only in your head or on your computer, and drafts a one-page emergency runbook.",
+   "scope": "wide",
+   "tools": "Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them."
   },
   {
    "id": "X15",
@@ -2584,7 +2659,10 @@
    "ev": "Recurring causes ranked by frequency, supporting commit hashes, and exact proposed additions or edits for your instruction file (marked New or Replaces).",
    "skip": "A new repository with fewer than roughly fifty commits of history.",
    "blind": "Reject vague platitudes like \"write clean tests.\" Every proposed rule must trace directly to real commits in this repository.",
-   "fresh": true
+   "fresh": true,
+   "why": "Mines your git history for reverts and fix-on-fix commits to spot mistakes coding agents keep repeating, and drafts exact lines for `AGENTS.md` or `CLAUDE.md` to prevent them.",
+   "scope": "wide",
+   "tools": "Repository and its git history."
   },
   {
    "id": "X16",
@@ -2597,7 +2675,10 @@
    "ev": "Three ranked incident risks with triggers, one evidence-backed incident timeline citing real files/settings at every step, and three preventive fixes with effort estimates.",
    "skip": "A throwaway prototype with no users, no stored data worth keeping, and no metered billing.",
    "blind": "Do not write dramatic fiction. Every link in the incident chain must be possible under this repository's actual code and configuration.",
-   "fresh": true
+   "fresh": true,
+   "why": "Writes a grounded, hour-by-hour preview of the most likely serious outage, data loss, security leak, or surprise bill waiting in your current setup — and the one fix worth doing this week.",
+   "scope": "wide",
+   "tools": "Repository access."
   },
   {
    "id": "AD10",
@@ -2610,7 +2691,10 @@
    "ev": "Every data store and file bucket found (file:line), the destructive paths that can wipe data permanently, what backup/restore mechanism is visible in config, and a short checklist of dashboard settings I must confirm and one safe restore drill to run.",
    "skip": "A stateless tool or static site that stores no user data or uploaded files.",
    "blind": "Agents assume a managed database host includes tested backups by default. Free tiers often have no point-in-time recovery or short retention, and file buckets (avatars, uploads) are frequently unbacked-up even when the database is. Flag every assumption that needs dashboard verification.",
-   "fresh": true
+   "fresh": true,
+   "why": "Checks whether your database, uploaded files, and user content are actually backed up and restorable — whatever database or host you use.",
+   "scope": "wide",
+   "tools": "Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them."
   },
   {
    "id": "X17",
@@ -2621,7 +2705,8 @@
    "line": "Forces the agent to label every claim as Checked, Inferred, or Guessed so you can tell verified facts from confident assumptions.",
    "use": "Use it when you can't tell whether an agent actually looked or only sounds sure, especially before acting on what it says.",
    "p": "Separate what you verified from what you assumed. In your answer, tag every factual claim as Checked (you ran it, read the file, or measured it — state how), Inferred (it follows from something you checked — state what), or Guessed (unverified). Before replying, verify any Guessed claim that your recommendation depends on. List any remaining guesses clearly along with what would change if they turned out wrong. Never state a guess in the same confident tone as a checked fact.",
-   "fresh": true
+   "fresh": true,
+   "why": "Forces the agent to label every claim as Checked, Inferred, or Guessed so you can tell verified facts from confident assumptions."
   },
   {
    "id": "AD03",
@@ -2632,7 +2717,8 @@
    "p": "Stop editing files. Step back and untangle where we are right now. Check git status and git diff against the last known working commit, then tell me in plain English: (1) what the original goal was, (2) every fix we already tried and what happened, (3) which uncommitted changes are half-finished patches that should be reverted, and (4) the single cleanest path forward from a clean base. Wait for my approval before reverting or editing anything.",
    "fresh": true,
    "dmode": "Asks before changing",
-   "use": "The agent has spent several turns patching a bug, each fix broke something else, and you have lost track of what changed."
+   "use": "The agent has spent several turns patching a bug, each fix broke something else, and you have lost track of what changed.",
+   "why": "Stops an agent that has been going in circles, maps out what was tried and what failed, and proposes one clean way back to a working state."
   },
   {
    "id": "X18",
@@ -2643,7 +2729,8 @@
    "line": "Makes the agent imagine the shipped change has already gone wrong, list the likeliest causes specific to your project, and add safeguards before editing.",
    "use": "Use it before a change that would be painful to undo: a migration, a payment change, a launch or a large rewrite.",
    "p": "Before you start, imagine this change is already shipped and has gone badly wrong. List up to five of the likeliest causes specific to this project, such as a false assumption, an untested edge case, a nearby feature broken by the edit, an unexpected bill, or a user doing something unintended. Stop as soon as the real risks run out instead of padding the list. For each risk, state how we would spot it early and what your plan does to prevent it. Show me that plan before changing files. When the work finishes, report which risks you eliminated and which remain possible.",
-   "fresh": true
+   "fresh": true,
+   "why": "Makes the agent imagine the shipped change has already gone wrong, list the likeliest causes specific to your project, and add safeguards before editing."
   },
   {
    "id": "X19",
@@ -2654,7 +2741,8 @@
    "line": "Wraps up a completed task with a short plain-English explanation of what changed, what could go wrong, and how to test it yourself, plus two quick check-in questions.",
    "use": "Use it on any change you'll have to live with, especially when you don't read the code yourself.",
    "p": "When you finish, explain what you changed so I could describe it to someone else and spot trouble later. Assume I understand the product and do not read code. In under 250 words of plain English, cover: what the problem was, what you changed and why you picked this over the main alternative, what a user will notice, what could still go wrong and how I would spot it, and one concrete thing I can open, click, or check myself to confirm it works. End with two short questions to verify I understood the parts that matter most.",
-   "fresh": true
+   "fresh": true,
+   "why": "Wraps up a completed task with a short plain-English explanation of what changed, what could go wrong, and how to test it yourself, plus two quick check-in questions."
   },
   {
    "id": "X20",
@@ -2665,7 +2753,8 @@
    "line": "Maps everyone and everything affected by a change beyond the code — active users, saved bookmarks, emails already sent, search engines, cached copies, and connected services — and plans the transitions.",
    "use": "Use it before renaming, moving or removing anything people or other systems rely on: a page, a field, a price, an email or an API.",
    "p": "Before making this change, list everyone and everything that will feel its impact beyond the files you edit: users on each plan, people mid-task during deploy, saved links and bookmarks, links inside emails already sent, search engines, analytics and reports, external apps or scripts calling this, cached responses, older client or app versions still running, in-flight background jobs, and admins or support. For each item that applies to this project, explain what they will experience and whether it needs a redirect, a migration, a notice, or temporary backwards compatibility. Show me the list before editing anything, include the agreed code transitions when you build the change, and separate what you handled from what needs manual action from me.",
-   "fresh": true
+   "fresh": true,
+   "why": "Maps everyone and everything affected by a change beyond the code — active users, saved bookmarks, emails already sent, search engines, cached copies, and connected services — and plans the transitions."
   },
   {
    "id": "AD01",
@@ -2676,7 +2765,8 @@
    "p": "Stay strictly inside the task I asked for. Do not refactor neighbouring code, rename unrelated variables, reformat untouched files, delete comments, or upgrade dependencies unless the task cannot work without it. If you spot a separate bug or cleanup opportunity while working, leave it untouched and list it at the end under \"Spotted outside scope\" with the file and line so I can decide whether to do it next. Before finishing, check the diff and revert any accidental edit outside scope.",
    "fresh": true,
    "dmode": "Asks before changing",
-   "use": "Past changes touched files you didn't expect, or you are editing a delicate area right before shipping."
+   "use": "Past changes touched files you didn't expect, or you are editing a delicate area right before shipping.",
+   "why": "Keeps the agent strictly inside the task you asked for so it does not refactor neighbouring files, reformat code, or upgrade packages on the side."
   },
   {
    "id": "AD02",
@@ -2687,7 +2777,8 @@
    "p": "Do not edit any files yet. Inspect the codebase and tell me your plan in plain English for someone who knows the product and does not read code. Cover what will change for a user, which areas of the product are touched, any tradeoffs or product choices I need to make, and what could break. Keep it under 200 words, end with any questions that need my call, and wait for my yes before making edits.",
    "fresh": true,
    "dmode": "Asks before changing",
-   "use": "You want to approve the approach before the agent touches code, especially on a big or unfamiliar change."
+   "use": "You want to approve the approach before the agent touches code, especially on a big or unfamiliar change.",
+   "why": "Makes the agent explain its plan in plain product terms and stop for your approval before editing a single file."
   },
   {
    "id": "EC01",

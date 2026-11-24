@@ -458,8 +458,8 @@ These live in the /engineer catalog. Use them when the routing table names them.
 - `I02` Why production might not match main: Lists every way 'merged' can fail to mean 'live'.
 - `I03` Check time that catches nothing: Finds paid automated-check minutes spent on checks that never catch anything.
 - `I06` Packages nobody uses, or that work by luck: Finds packages nobody uses and packages that work only by accident.
-- `M05` Let the expert decide: undefined
-- `M07` Spec without the interview: undefined
+- `M05` Let the expert decide: Tells the agent to make routine technical decisions on its own and escalate only product, cost, or risk calls to you.
+- `M07` Spec without the interview: Turns your request into a short, checkable plan with clear boundaries, answering technical questions from the codebase before asking you anything.
 - `P03` Queries that grow badly: Finds the database queries that will be the first to slow down as tables grow.
 - `P04` Work repeated for nothing: Finds work redone on every request or screen redraw when nothing it depends on changed.
 - `P05` What breaks at ten times the size: Names the first thing to break if the project takes off, before it does.

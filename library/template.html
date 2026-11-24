@@ -81,6 +81,7 @@ h1.title { margin: 6px 0 0; font-size: clamp(28px, 3.4vw, 38px); font-weight: 60
 .risk { color: var(--risk); font-weight: 600; }
 .linkbtn { background: none; border: 0; padding: 0; color: var(--accent); font-size: inherit; text-align: left; text-decoration: underline; text-underline-offset: 3px; }
 .linkbtn.code { font-family: var(--mono); font-size: .93em; letter-spacing: 0; }
+.more-res { margin-top: 14px; min-height: 32px; }
 @media (pointer: coarse) { .copy, .cmdchip, .tabs button, .search input { min-height: 44px; } }
 
 /* Home: three doors */
@@ -242,6 +243,8 @@ const NOT_SHOWN = LIB.notShown || {};
 const PATCH = V.patch || {};
 const E = [...LIB.entries, ...(LIB.keen || []), ...V.recipes.map(r => ({ ...r, sec: "recipe2" }))].filter(e => !NOT_SHOWN[e.id]).map(e => PATCH[e.id] ? { ...e, ...PATCH[e.id] } : e);
 const BY = Object.fromEntries(E.map(e => [e.id, e]));
+// An old link to a hidden entry opens what replaced it (an entry or a page recipe).
+const replacement = id => { for (let i = 0; i < 5 && !BY[id] && NOT_SHOWN[id] && typeof NOT_SHOWN[id] === "string"; i++) id = NOT_SHOWN[id]; return BY[id] ? id : null; };
 const CLOSEST = LIB.closest || {};
 function norm(s) { return s.toLowerCase().split("<")[0].replace(/,.*$/, "").replace(/\s+/g, " ").trim(); }
 const CMDIDX = {};
@@ -404,7 +407,8 @@ function openItem(id, push = true) {
 function fromHash() {
   const hs = decodeURIComponent(location.hash.slice(1));
   const m = /^(?:i\/|e-)(.+)$/.exec(hs);
-  if (m) { const raw = m[1]; const id = BY[raw] ? raw : BY[raw.replace(/^K-/, "K:")] ? raw.replace(/^K-/, "K:") : null; if (id && HOME[id]) return openItem(id, false); }
+  if (m) { const raw = m[1]; const id = BY[raw] ? raw : BY[raw.replace(/^K-/, "K:")] ? raw.replace(/^K-/, "K:") : replacement(raw); if (id && HOME[id]) return openItem(id, false); }
+  if (hs === "search" || hs.startsWith("search/")) { const qq = hs.slice(7); if (qq) { S.q = qq; $("#q").value = qq; $("#clear").hidden = false; S.hl = null; S.more = new Set(); render(); window.scrollTo(0, 0); return; } }
   const [view, group] = hs.split("/");
   if (["prompts", "skills", "recipes", "sources"].includes(view)) { S.view = view; S.group = group || null; }
   else { S.view = "home"; S.group = null; }
@@ -444,7 +448,7 @@ function searchList() {
   const pool = full.length ? full : scored.filter(x => x.hit >= Math.ceil(words.length / 2));
   return { list: pool.sort((a, b) => b.s - a.s || a.i - b.i).map(x => x.e), loose: !full.length && pool.length > 0 };
 }
-function clearSearch() { S.q = ""; $("#q").value = ""; $("#clear").hidden = true; }
+function clearSearch() { S.more = new Set(); S.q = ""; $("#q").value = ""; $("#clear").hidden = true; }
 
 /* One item */
 function item(e, opts = {}) {
@@ -516,7 +520,8 @@ function renderTabs() {
   ["prompt", "skill", "recipe"].forEach(k => v.append(h("button", { type: "button", style: `--c:${KIND[k].c}`, "aria-current": S.view === k + "s" && !S.q ? "page" : null, onclick: () => go(k + "s") }, KIND[k].name)));
 }
 const count = { prompt: V.promptCats.reduce((t, c) => t + c.ids.length, 0), skill: (LIB.keen || []).length + V.skillGroups.reduce((t, g) => t + g.ids.length, 0), recipe: V.recipeGroups.reduce((t, g) => t + g.ids.length, 0) };
-function runSearch(txt) { S.q = txt; $("#q").value = txt; $("#clear").hidden = false; setHash("#search", true); render(); window.scrollTo(0, 0); }
+const searchHash = () => "#search/" + encodeURIComponent(S.q);
+function runSearch(txt) { S.q = txt; $("#q").value = txt; $("#clear").hidden = false; setHash(searchHash(), true); render(); window.scrollTo(0, 0); }
 function renderHome(app) {
   const H = V.home || {}, D = H.doors || {};
   app.append(h("div", { class: "home-head" }, h("h1", { class: "title" }, H.title || "Things to give your coding agent"), h("p", { class: "lede" }, H.lede || "")));
@@ -599,7 +604,8 @@ function renderSearch(app) {
   app.append(h("section", { class: "res-sec", style: "--c:var(--accent)" }, h("h2", {}, "Best match"), h("div", { class: "list" }, item(found[0], { kind: true, where: true }))));
   for (const k of ["prompt", "skill", "recipe"]) {
     const all = found.slice(1).filter(e => kindOf(e) === k); if (!all.length) continue;
-    app.append(h("section", { class: "res-sec", style: `--c:${KIND[k].c}` }, h("h2", {}, KIND[k].name, h("span", { class: "n" }, String(all.length))), h("div", { class: "list" }, all.slice(0, 12).map(e => item(e, { where: true })))));
+    app.append(h("section", { class: "res-sec", style: `--c:${KIND[k].c}` }, h("h2", {}, KIND[k].name, h("span", { class: "n" }, String(all.length))), h("div", { class: "list" }, (S.more?.has(k) ? all : all.slice(0, 12)).map(e => item(e, { where: true }))),
+      all.length > 12 && !S.more?.has(k) ? h("button", { type: "button", class: "linkbtn more-res", onclick: () => { (S.more = S.more || new Set()).add(k); render(); } }, `Show all ${all.length} ${KIND[k].name.toLowerCase()}`) : null));
   }
 }
 function renderSources(app) {
@@ -624,7 +630,7 @@ function render() {
 
 /* Search box */
 const q = $("#q"); let qt;
-q.addEventListener("input", () => { clearTimeout(qt); qt = setTimeout(() => { S.q = q.value.trim(); $("#clear").hidden = !S.q; if (S.q) setHash("#search", false); else setHash(routeHash(), false); render(); }, 120); });
+q.addEventListener("input", () => { clearTimeout(qt); qt = setTimeout(() => { S.q = q.value.trim(); $("#clear").hidden = !S.q; if (S.q) setHash(searchHash(), false); else setHash(routeHash(), false); render(); }, 120); });
 q.addEventListener("keydown", ev => {
   if (ev.key === "Enter" && S.q) { const best = searchList().list[0]; if (best) { ev.preventDefault(); q.blur(); openItem(best.id); } }
   if (ev.key === "Escape") { clearSearch(); setHash(routeHash(), false); render(); }
