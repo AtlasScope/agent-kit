@@ -32,6 +32,7 @@ The person chose these when they installed the design kit and can change them in
 - **Reviews only when they asked for one.** Pick a review skill (critique, audit, harsh-review, design-review, heuristics, Steve Jobs review, viewport proof) only when their words ask for a review, an opinion or a check. A recipe they chose that contains a review step counts as asking.
 - **Nothing leaves the machine unasked.** Never pick a skill that sends their work to an outside service unless they named it.
 - **Not a design job, say where it goes.** Pages that duplicate each other, navigation that disagrees, Back, refresh, shared links or filters that reset are structure problems: point to `/experience-architecture:diagnose` (or `/engineer` if that plugin is missing) in one line and stop. Bugs, data, servers and databases go to `/engineer` or `/database`. A request to change how a screen looks stays here even if it mentions navigation.
+- **Wide color by default.** Whenever a pick writes or changes color tokens on the web (`/oklch-skill`, `/impeccable colorize`, `/palette-builder`, a recipe step), finish with `../palette-builder/references/wide-color.md`: keep the hex, add the Display P3 values, derive tints and glows from the token, mix in oklab. Skip it when DESIGN.md or the person says the colors must stay exactly as written.
 - **Project rules win.** Read the repo's AGENTS.md or CLAUDE.md, PRODUCT.md and DESIGN.md before the first edit. Routing does not authorize commits, merges or deploys.
 
 ## Steps
