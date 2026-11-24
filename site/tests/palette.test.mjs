@@ -5,7 +5,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { promptDoc, skillDoc, find, marks, pushRecent, keyOf, RECENT_MAX } from "../lib/search.ts";
-import { PLAIN, VAGUE } from "./search.test.mjs";
+import { PLAIN, VAGUE } from "./search-cases.mjs";
 
 const data = JSON.parse(fs.readFileSync(new URL("../content/generated.json", import.meta.url), "utf8"));
 const lc = (...xs) => xs.flat(2).filter(Boolean).join(" ").toLowerCase();

@@ -48,7 +48,7 @@ body:has(main.home, .inst) .nav__install { display: none; }
 .search { display: flex; gap: var(--space-2); max-width: 40rem; }
 .nav .search { position: relative; display: block; flex: 0 1 300px; min-width: 14rem; margin-left: auto; }
 .nav .search > svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--c-fg-3); pointer-events: none; }
-.nav .search .search__trigger { display: flex; align-items: center; width: 100%; min-height: 36px; padding: 0 52px 0 34px; border: 1px solid transparent; border-radius: var(--radius-md);
+.nav .search .search__trigger { display: flex; align-items: center; width: 100%; min-height: 36px; padding: 0 68px 0 34px; border: 1px solid transparent; border-radius: var(--radius-md);
   background: var(--c-fill); color: var(--c-fg-3); font: inherit; font-size: .875rem; text-align: left; cursor: text;
   transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
 .nav .search .search__trigger span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }

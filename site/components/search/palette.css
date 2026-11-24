@@ -126,7 +126,7 @@
    above the keyboard. 16px input text stops iOS zooming the page. */
 @media (max-width: 640px), (pointer: coarse) and (max-width: 900px) {
   .cmdk__panel {
-    inset: 0; left: 0; top: 0; width: 100%; height: 100dvh; max-height: none; transform: none; border: 0; border-radius: 0;
+    inset: 0; left: 0; top: 0; width: 100%; height: var(--cmdk-vh, 100dvh); max-height: none; transform: none; border: 0; border-radius: 0;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left); box-shadow: none; background: var(--c-canvas);
   }
   @media (prefers-reduced-motion: no-preference) { .cmdk[open] .cmdk__panel { animation: cmdk-sheet var(--dur-slow) var(--ease-out); } }

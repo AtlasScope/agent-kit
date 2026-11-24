@@ -9,8 +9,8 @@ import "./search/palette.css";
 // or the phone header's Search button (the "agent-kit:search" event) opens it. It is a native modal dialog, so the
 // browser traps focus and gives it back on close; it is portalled to <body> so it takes the page's theme rather
 // than the always-dark header's. The index (/search-index.json) loads the first time the pointer or focus reaches
-// the button, and ranking runs in the browser with the same code as /api/search. If the index can't load, typed
-// queries fall back to /api/search.
+// the button, or, on touch screens where there is no hover, once the page is idle. Ranking runs in the browser
+// with the same code as /api/search. If the index can't load, typed queries fall back to /api/search.
 //
 // Keys: ↑ ↓ (or Ctrl+N / Ctrl+P) move, Enter opens, ⌘Enter or Ctrl+Enter copies the result's prompt or install
 // command, Shift+Enter opens in a new tab, Escape clears the query and then closes. Every result is a real link,
@@ -21,8 +21,10 @@ type Hit = { kind: "prompt" | "skill"; ref: string; title: string; summary: stri
 type Group = { label: string; items: Entry[] };
 
 let indexPromise: Promise<Entry[]> | null = null;
+let loaded: Entry[] | null = null;
 function loadIndex() {
-  indexPromise ??= fetch("/search-index.json").then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))));
+  indexPromise ??= fetch("/search-index.json").then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+    .then((e: Entry[]) => (loaded = e));
   indexPromise.catch(() => { indexPromise = null; });
   return indexPromise;
 }
@@ -61,11 +63,14 @@ export function Search() {
   const router = useRouter();
   const path = usePathname();
 
+  // Stable, and reads module state rather than render state, so the idle preload and every open see the truth.
+  // After a failure it retries quietly: the palette stays on server results until a retry succeeds.
+  const failed = useRef(false);
   const warm = useCallback(() => {
-    if (entries || status === "loading") return;
-    setStatus("loading");
-    loadIndex().then((e) => { setEntries(e); setStatus("ready"); }, () => setStatus("error"));
-  }, [entries, status]);
+    if (loaded) { setEntries(loaded); setStatus("ready"); return; }
+    if (!failed.current) setStatus("loading");
+    loadIndex().then((e) => { failed.current = false; setEntries(e); setStatus("ready"); }, () => { failed.current = true; setStatus("error"); });
+  }, []);
 
   // Opens synchronously inside the click or key event, so iOS Safari raises the keyboard for the field.
   const show = useCallback(() => {
@@ -81,15 +86,15 @@ export function Search() {
   useEffect(() => { setMounted(true); setMod(isMac() ? "⌘" : "Ctrl"); }, []);
   // Fetch the index once the page is idle, so a phone's first tap on Search doesn't wait for it. Skipped when the
   // visitor asked to save data; it then loads on first use instead.
+  // Touch screens only: a mouse warms it on hover, a finger gives no warning before the tap.
   useEffect(() => {
     const conn = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
-    if (conn?.saveData) return;
+    if (conn?.saveData || !matchMedia("(hover: none)").matches) return;
     const ric = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 2500));
     const cancel = window.cancelIdleCallback ?? window.clearTimeout;
     const id = ric(() => warm(), { timeout: 5000 });
     return () => cancel(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [warm]);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement;
@@ -104,6 +109,15 @@ export function Search() {
     window.addEventListener("agent-kit:search", show);
     return () => { document.removeEventListener("keydown", key); window.removeEventListener("agent-kit:search", show); };
   }, [show, hide]);
+  // iOS Safari doesn't shrink 100dvh for the on-screen keyboard, so the phone sheet takes the visual viewport's
+  // height while it is open and the results stay above the keyboard.
+  useEffect(() => {
+    const vv = window.visualViewport, d = dlg.current;
+    if (!open || !vv || !d) return;
+    const fit = () => d.style.setProperty("--cmdk-vh", `${vv.height}px`);
+    fit(); vv.addEventListener("resize", fit);
+    return () => { vv.removeEventListener("resize", fit); d.style.removeProperty("--cmdk-vh"); };
+  }, [open]);
   // Back and Forward close it. (Not a path effect: that fires after a palette navigation lands and would close a
   // palette reopened in the meantime.)
   useEffect(() => { window.addEventListener("popstate", hide); return () => window.removeEventListener("popstate", hide); }, [hide]);
@@ -111,7 +125,8 @@ export function Search() {
   // Without the index, typed queries go to the server.
   useEffect(() => {
     const term = q.trim();
-    if (status !== "error" || !term) { setFallback([]); return; }
+    setFallback([]);
+    if (status !== "error" || !term) return;
     const ctl = new AbortController();
     const t = setTimeout(() => {
       fetch(`/api/search?q=${encodeURIComponent(term)}`, { signal: ctl.signal }).then((r) => r.json())
@@ -126,7 +141,7 @@ export function Search() {
   const groups: Group[] = useMemo(() => {
     const term = q.trim();
     if (term) {
-      if (status === "error") return [{ label: "Results", items: fallback }];
+      if (status === "error") return [{ label: "Results", items: fallback.filter((e) => scope === "all" || e.kind === scope) }];
       return entries ? [{ label: "Results", items: find(entries, term, scope) }] : [];
     }
     if (!entries) return [];
@@ -134,7 +149,7 @@ export function Search() {
     const rec = recent.map((r) => byKey.get(keyOf(r))).filter((e): e is Entry => !!e && inScope(e));
     const out: Group[] = [];
     if (rec.length) out.push({ label: "Recent", items: rec });
-    if (scope === "all") out.push({ label: "Go to", items: entries.filter((e) => e.kind === "page") });
+    if (scope === "all") out.push({ label: "Go to", items: entries.filter((e) => e.kind === "page" && !rec.includes(e)) });
     else out.push({ label: "Browse", items: entries.filter((e) => inScope(e) && !rec.includes(e)).slice(0, 12) });
     return out;
   }, [q, scope, entries, status, fallback, recent, byKey]);
