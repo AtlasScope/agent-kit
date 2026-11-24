@@ -202,9 +202,7 @@ export function Search() {
     const t = setTimeout(() => {
       fetch(`/api/search?q=${encodeURIComponent(term)}`, { signal: ctl.signal }).then((r) => r.json())
         .then((d: { results: Hit[] }) => {
-          // Copy works here too: the text comes from /search-copy like any other result's.
-          setFallback(d.results.map((h) => ({ ...h, fields: [], meta: KIND_LABEL[h.kind], href: h.kind === "skill" ? `/skills/${h.ref}` : `/prompts/${h.ref}`,
-            copy: h.kind === "skill" ? { label: "Copy install command", done: "Install command copied" } : { label: "Copy prompt", done: "Prompt copied" } })));
+          setFallback(d.results.map((h) => ({ ...h, fields: [], meta: KIND_LABEL[h.kind], href: h.kind === "skill" ? `/skills/${h.ref}` : `/prompts/${h.ref}` })));
           setFallbackFor(term);
         }).catch(() => {});
     }, 120);
@@ -282,14 +280,14 @@ export function Search() {
     const c = e.copy;
     if (!c) { say("Nothing to copy here. Press Enter to open it."); return; }
     const have = knownText(e), k = copyUrl(e);
-    let text: Promise<string> | null = null;
+    let text: Promise<string> | null = null, late = false;
     try {
       if (have !== undefined) await navigator.clipboard.writeText(have);
       else {
         text = copyText(e);
         text.then((t) => setPayload((p) => (p?.key === k ? { key: k, text: t } : p)), () => {});
         try {
-          if (typeof ClipboardItem === "undefined" || !navigator.clipboard.write) throw new Error("unsupported");
+          if (typeof ClipboardItem === "undefined" || !navigator.clipboard.write) { late = true; throw new Error("unsupported"); }
           const blob = text.then((t) => new Blob([t], { type: "text/plain" }));
           blob.catch(() => {});
           await navigator.clipboard.write([new ClipboardItem({ "text/plain": blob })]);
@@ -302,11 +300,10 @@ export function Search() {
     } catch {
       // Settle the text first: the clipboard can fail before the fetch does, and the fetch is the real cause.
       const loadFailed = text ? await text.then(() => null, (err: unknown) => err ?? true) : null;
-      // Where the preview shows this result, its note says it (and is announced); the toast would repeat it.
       if (claimGone(loadFailed, e)) forget(e);
       // The text arrived but the browser refused the late write (no ClipboardItem); it is cached now, so a second
       // press writes it at once.
-      else if (text && !loadFailed) say("The text is ready now. Press Copy again.");
+      else if (late && !loadFailed) say("The text is ready now. Press Copy again.");
       else say(loadFailed ? "Couldn’t load the text to copy. Open the page and copy from there." : "Copy was blocked. Open the page and copy from there.");
     }
   };
