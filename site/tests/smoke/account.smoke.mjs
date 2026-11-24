@@ -86,7 +86,7 @@ test("desktop: the rail opens collections, Back returns, and the last one opened
 test("desktop: a prompt copies the same payload as its page, the install command copies, empty collections link out", async () => {
   const { page, ctx } = await open(DESKTOP, `/account/fixture#${STARRED}`);
   const p = data.prompts.find((x) => x.id === "A01");
-  const row = openPanel(page).locator(".citem", { hasText: p.t });
+  const row = openPanel(page).locator(".prow", { hasText: p.t });
   await row.getByRole("button", { name: /Copy/ }).click();
   assert.equal(await page.evaluate(() => navigator.clipboard.readText()), composeCopy(p), "prompt payload is byte-identical");
   await openPanel(page).locator(".cpanel__install button").click();
@@ -127,11 +127,11 @@ test("desktop: New collection creates one and opens it; Remove takes an item out
 
   await page.locator(`[data-for="${DESIGN}"]`).click();
   await page.locator(`html[data-ws-sel="${DESIGN}"]`).waitFor({ state: "attached" });
-  const before = await openPanel(page).locator(".citem").count();
+  const before = await openPanel(page).locator(".prow, .srow").count();
   // Pop's trigger is a <summary>, which has no button role in Chromium's accessibility tree; find it by its label.
   await openPanel(page).locator('summary[aria-label^="Remove ux-heuristics"]').click();
   await openPanel(page).getByRole("button", { name: "Remove", exact: true }).click();
-  await page.waitForFunction((n) => document.querySelectorAll(".ws__panel[data-col$='0002'] .citem").length === n - 1, before, { timeout: 10000 });
+  await page.waitForFunction((n) => document.querySelectorAll(".ws__panel[data-col$='0002'] :is(.prow, .srow)").length === n - 1, before, { timeout: 10000 });
 
   await ctx.close();
 });

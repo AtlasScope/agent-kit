@@ -78,17 +78,12 @@
 .cpanel__empty strong { color: var(--c-fg); font-weight: 600; }
 .cpanel__emptylinks { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 
-/* Items, grouped by kind. The rows themselves are the library's (.prow, .srow in library.css); the workspace only
-   adds a Remove control beside each one. */
+/* Items, grouped by kind. The rows are the library's (.prow, .srow in library.css), with Remove in their action slot. */
 .cgroup { display: grid; gap: var(--space-2); min-width: 0; }
-.cgroup h3 { display: flex; align-items: baseline; gap: var(--space-2); margin: 0; font: 600 var(--type-sm)/1.4 var(--font-body); color: var(--c-fg); }
+.cgroup h2, .cgroup h3 { display: flex; align-items: baseline; gap: var(--space-2); margin: 0; font: 600 var(--type-sm)/1.4 var(--font-body); color: var(--c-fg); }
 .cgroup__n { color: var(--c-fg-3); font: 400 var(--type-xs)/1 var(--font-mono); }
-.citems { display: grid; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--c-line); }
-.citem { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: var(--space-2); border-bottom: 1px solid var(--c-line); }
-.citem__row { min-width: 0; }
-.citem__row .srows { border-top: 0; }
-.citem__row .srows > li { border-bottom: 0; }
-.citem > .col__pop { margin-top: var(--space-4); }
+/* A row's action controls stack above the row link, so an open Remove panel lifts its whole row above the next one. */
+.cgroup :is(.prows, .srows) > li:has(.col__pop[open]) { position: relative; z-index: 6; }
 
 /* Tablets and phones: the rail is the first screen; a collection opens in its place with a way back. */
 @media (max-width: 60rem) {
