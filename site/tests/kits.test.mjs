@@ -20,3 +20,14 @@ test("every command shown for a kit is a skill that kit ships", () => {
     }
   }
 });
+
+test("a kit page's install message names that kit, the repo and the steps page, and asks before installing everything", async () => {
+  const { kitInstallMessage, SITE } = await import("../lib/site.ts");
+  for (const k of KITS) {
+    const say = kitInstallMessage(k);
+    assert.ok(say.startsWith(`Install only the ${k} kit`), k);
+    assert.ok(say.includes(SITE.repo) && say.includes(`${SITE.url}/install.md`), k);
+    assert.match(say, /ask me before running it/);
+    assert.ok(!say.includes("\n"), "one line, so it pastes as one message");
+  }
+});
