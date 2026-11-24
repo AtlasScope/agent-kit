@@ -143,7 +143,7 @@
 .prow__a { grid-area: act; display: flex; align-items: center; gap: 4px; position: relative; z-index: 1; }
 .prow__a .btn { flex: none; }
 /* Rows with a caller action may open popovers; paint containment would clip them. */
-.prow--action, .srow--action { content-visibility: visible; contain-intrinsic-size: none; }
+.prow.prow--action, .srow.srow--action { content-visibility: visible; contain-intrinsic-size: none; }
 .pid { font: var(--weight-semibold) var(--type-micro)/1 var(--font-mono); padding: 4px 6px; border-radius: var(--radius-xs); color: var(--c-fg-2); background: var(--c-fill); border: 1px solid var(--c-line); }
 .best { color: var(--c-fg); font-weight: var(--weight-semibold); }
 /* "Changes code" and similar: a marked, brighter label, not the danger colour (the Danger Only Rule). */
