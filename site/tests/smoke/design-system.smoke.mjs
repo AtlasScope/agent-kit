@@ -94,7 +94,7 @@ for (const size of SIZES) {
       const pre = document.querySelector(".ds-float pre"), r = pre.getBoundingClientRect();
       return document.activeElement === pre && String(getSelection()).trim() === pre.textContent.trim()
         && r.top >= document.querySelector(".top").getBoundingClientRect().bottom && r.bottom <= innerHeight;
-    }, null, { timeout: 5000 });
+    }, null, { timeout: 2000 });
     const bar = page.locator(".fcopy[data-on] .fcopy__copy");
     // Twice: a repeat block while the first message still shows recovers too.
     for (const round of [1, 2]) {
@@ -115,7 +115,11 @@ for (const size of SIZES) {
     await page.waitForTimeout(300);
     assert.equal(await page.evaluate(() => scrollY), y, "a successful copy does not scroll the page");
     // The message clears, the bar hides once the panel is back on screen, and the hidden bar is inert.
+    // While focus is in the bar it stays up, even with the panel back on screen; it hides once focus leaves.
     await page.evaluate(() => scrollTo(0, 0));
+    await page.waitForTimeout(2000);
+    assert.equal(await page.locator(".fcopy[data-on]").count(), 1, "the bar stays up while it holds focus");
+    await page.locator("h1").click();
     await page.waitForFunction(() => !document.querySelector(".fcopy[data-on]"), null, { timeout: 4000 });
     assert.ok(await page.locator(".fcopy").evaluate((el) => el.inert));
     assert.deepEqual(errors, []);

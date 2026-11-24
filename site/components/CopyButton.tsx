@@ -11,7 +11,8 @@ const CopyIcon = () => (
 const BLOCKED = "Copy blocked: select the text";
 
 // data-copied is set while "Copied" shows and data-blocked while the blocked label shows, so a page can react
-// (select its text, restyle) without reading the label.
+// (select its text, restyle) without reading the label. Each press first commits a reset to the plain label (no
+// attribute), so a repeat outcome sets its attribute afresh; FloatingCopy relies on that.
 // `name` is what a screen reader hears when the visible label alone ("Copy") would be ambiguous on the page.
 export function CopyButton({ text, label = "Copy", className = "copy", icon = false, name }: { text: string; label?: string; className?: string; icon?: boolean; name?: string }) {
   const [state, setState] = useState(label);
