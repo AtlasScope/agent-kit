@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Crumbs } from "@/components/Crumbs";
-import { PromptCards, SkillCards } from "@/components/Cards";
+import { PromptRows, SkillCards } from "@/components/Cards";
 import { fixes, getFix, getPrompt } from "@/lib/content";
+import "../fix.css";
 
 export const dynamicParams = false;
 export const generateStaticParams = () => fixes.map((f) => ({ problem: f.slug }));
@@ -20,21 +21,35 @@ export async function generateMetadata({ params }: { params: Promise<{ problem: 
   };
 }
 
+// An ordered route, not a grid: the shared numbered prompt rows, the first marked Best first, so the order the page
+// promises is the order you read. Related symptoms in the same scope close the page.
 export default async function FixPage({ params }: { params: Promise<{ problem: string }> }) {
   const { problem } = await params;
   const f = getFix(problem);
   if (!f) notFound();
   const skillNames = [...new Set(f.prompts.flatMap((s) => getPrompt(s)?.skills || []))];
+  const others = fixes.filter((x) => x.scope === f.scope && x.slug !== f.slug);
   return (
-    <main className="page">
+    <main className="page fix-page">
       <div className="page-head">
         <Crumbs items={[["Fix a problem", "/fix"], [f.title, `/fix/${f.slug}`]]} />
+        <p className="kicker">{f.scope === "database" ? "PostgreSQL" : "Your app"}</p>
         <h1>{f.title}</h1>
         <p className="lead ink2">Start with the first prompt. Each one says what proof the agent should bring back and when to skip it.</p>
-        <p className="kicker">{f.scope === "database" ? "PostgreSQL" : "Your app"}</p>
       </div>
-      <section className="section" aria-labelledby="try-h"><h2 id="try-h">Prompts to try, in order</h2><PromptCards slugs={f.prompts} rank /></section>
-      {skillNames.length > 0 && <section className="section"><h2>Skills that help</h2><SkillCards names={skillNames} /></section>}
+      <div className="fix-page__body">
+        <section className="section" aria-labelledby="try-h">
+          <h2 id="try-h">Prompts to try, in order</h2>
+          <PromptRows slugs={f.prompts} ordered />
+        </section>
+        <aside className="fix-page__aside">
+          {skillNames.length > 0 && <section className="section"><h2>Skills that help</h2><SkillCards names={skillNames} /></section>}
+          {others.length > 0 && <nav className="section others" aria-labelledby="others-h">
+            <h2 id="others-h">{f.scope === "database" ? "Other database symptoms" : "Other symptoms in your app"}</h2>
+            <ul>{others.map((x) => <li key={x.slug}><Link href={`/fix/${x.slug}`}>{x.title}</Link></li>)}</ul>
+          </nav>}
+        </aside>
+      </div>
       <p className="note">Not quite your problem? <Link className="lic" href="/fix">See every symptom</Link>.</p>
     </main>
   );

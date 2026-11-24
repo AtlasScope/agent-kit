@@ -1,0 +1,169 @@
+/* Buttons. Hairline, 10px radius, medium weight. Primary is neutral: ink on light, white on dark (green on the stage). */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--control-h); padding: 0 var(--space-4);
+  border: 1px solid var(--c-line-2); border-radius: var(--radius-md); background: var(--c-surface); color: var(--c-fg); box-shadow: var(--shadow-1);
+  font: var(--weight-medium) .875rem/1 var(--font-body); letter-spacing: -0.005em; text-decoration: none; cursor: pointer; white-space: nowrap;
+  transition: background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-out); }
+.btn:active { transform: translateY(calc(1px * var(--travel))) scale(.985); }
+.btn:disabled, .btn[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
+.btn--sm { min-height: var(--control-h-sm); padding: 0 var(--space-3); border-radius: var(--radius-sm); font-size: var(--type-xs); }
+/* Touch: small buttons keep their drawn height and get a hit area at least --tap (44px) tall. */
+@media (pointer: coarse) { .btn--sm { position: relative; } .btn--sm::after { content: ""; position: absolute; inset: 50% 0 auto; height: max(100%, var(--tap)); transform: translateY(-50%); } }
+.btn--lg { min-height: var(--control-h-lg); padding: 0 var(--space-6); font-size: var(--type-body); }
+@media (min-width: 100rem) and (min-height: 900px) { .btn--lg { min-height: 56px; } }
+.btn--primary, .btn--solid { background: var(--c-primary); color: var(--c-on-primary); border-color: transparent; box-shadow: none; font-weight: var(--weight-semibold); }
+.btn--ghost { background: transparent; border-color: transparent; box-shadow: none; }
+.btn--danger { background: var(--c-danger); color: var(--c-on-danger); border-color: transparent; box-shadow: none; }
+.btn--tint { flex: 1; }
+/* Pressed toggles are something the visitor chose: the warm accent. */
+.btn[aria-pressed="true"] { background: var(--c-warm-soft); border-color: var(--c-warm); }
+@media (hover: hover) and (pointer: fine) { .btn:hover { background: var(--c-raised); border-color: var(--c-edge); } }
+@media (hover: hover) and (pointer: fine) { .btn--primary:hover, .btn--solid:hover { background: var(--c-primary-hover); border-color: transparent; } }
+@media (hover: hover) and (pointer: fine) { .btn--ghost:hover { background: var(--c-fill); border-color: transparent; } }
+@media (hover: hover) and (pointer: fine) { .btn--danger:hover { background: color-mix(in oklab, var(--c-danger), #000 10%); } }
+/* Copy. Stable width so the label change never moves the row; green only once the copy worked. */
+.copy { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex: 0 0 auto; min-width: 4.75rem; min-height: 32px; padding: 0 var(--space-3);
+  border: 1px solid var(--c-line-2); border-radius: var(--radius-sm); background: var(--c-surface); color: var(--c-fg); font: var(--weight-medium) var(--type-xs)/1 var(--font-body); cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-base) var(--ease-out); }
+.copy[data-copied] { border-color: color-mix(in oklab, var(--c-signal) 55%, transparent); color: var(--c-fg); }
+.copy[data-copied]::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--c-signal); }
+[data-copied]:not(.btn--solid):not(.btn--primary) .i { color: var(--c-signal); }
+.i--warm { color: var(--c-warm); }
+.copy--main, .block .copy.copy--main { background: var(--c-primary); color: var(--c-on-primary); border-color: transparent; font-weight: var(--weight-semibold); }
+.copy--main[data-copied]::before { background: currentColor; }
+@media (hover: hover) and (pointer: fine) { .copy:hover { background: var(--c-raised); border-color: var(--c-edge); } }
+@media (hover: hover) and (pointer: fine) { .copy--main:hover, .block .copy.copy--main:hover { background: var(--c-primary-hover); } }
+@media (pointer: coarse) { .copy { min-height: 40px; } }
+/* Fields */
+.input { min-width: 0; min-height: var(--control-h); padding: 0 var(--space-3); border: 1px solid var(--c-edge); border-radius: var(--radius-md); background: var(--c-surface); color: var(--c-fg);
+  font: inherit; font-size: var(--type-sm); transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out); }
+.input::placeholder { color: var(--c-fg-4); }
+.input:focus { border-color: var(--c-fg-3); }
+.input:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 1px; }
+.field { display: grid; gap: 6px; }
+.field > label, .field > span { font-size: var(--type-xs); font-weight: var(--weight-medium); color: var(--c-fg-2); }
+.field input { min-height: var(--control-h); padding: 0 var(--space-3); border: 1px solid var(--c-edge); border-radius: var(--radius-md); background: var(--c-surface); color: var(--c-fg); font: inherit; }
+.form-err { margin: 0; color: var(--c-danger); font-size: var(--type-xs); line-height: var(--lh-xs); }
+.form-err:empty { position: absolute; }
+/* Chips: pills that link or filter. Tags: static labels. Kbd: a key. */
+.chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.chip { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 var(--space-3); border: 1px solid var(--c-line-2); border-radius: var(--radius-pill); background: var(--c-surface);
+  font-size: var(--type-xs); font-weight: var(--weight-medium); color: var(--c-fg-2); text-decoration: none; transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out); }
+.chip code { font-size: var(--type-xs); color: var(--c-fg); }
+.chip__n { font: 400 var(--type-micro)/1 var(--font-mono); color: var(--c-fg-3); }
+.chip[aria-pressed="true"], .chip[aria-current="page"], .chip[aria-selected="true"] { background: var(--c-fg); border-color: var(--c-fg); color: var(--c-canvas); }
+.chip[aria-pressed="true"] .chip__n, .chip[aria-current="page"] .chip__n { color: inherit; opacity: .7; }
+@media (hover: hover) and (pointer: fine) { .chip:hover { background: var(--c-raised); border-color: var(--c-edge); color: var(--c-fg); } }
+@media (pointer: coarse) { .chip { min-height: 40px; padding: 0 var(--space-4); } }
+.tag { display: inline-flex; align-items: center; gap: 6px; min-height: 22px; padding: 0 8px; border-radius: var(--radius-xs); background: var(--c-fill); color: var(--c-fg-2);
+  font: var(--weight-medium) var(--type-micro)/1 var(--font-body); white-space: nowrap; }
+.tag--signal::before, .tag--warn::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--c-signal); }
+.tag--warn::before { background: var(--c-warm); }
+/* Code: a block with a labelled head and Copy, or a single command line. Payload text is shown exactly. */
+.block { position: relative; overflow: hidden; border: 1px solid var(--c-line); border-radius: var(--radius-lg); background: var(--c-surface); box-shadow: var(--shadow-1); }
+.block__head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); min-height: 44px; padding: 6px 6px 6px var(--space-4);
+  border-bottom: 1px solid var(--c-line); background: var(--c-raised); color: var(--c-fg-3); font-size: var(--type-xs); font-weight: var(--weight-medium); }
+.block pre { margin: 0; padding: var(--space-4) var(--space-5); white-space: pre-wrap; overflow-wrap: anywhere; font: 400 var(--type-code)/var(--lh-code) var(--font-mono); color: var(--c-fg); tab-size: 2; }
+.cmdline { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-width: 0; padding: 6px 6px 6px var(--space-4);
+  border: 1px solid var(--c-line); border-radius: var(--radius-md); background: var(--c-surface); font: 400 var(--type-xs)/1.5 var(--font-mono); }
+.cmdline code { overflow-wrap: anywhere; min-width: 0; }
+/* Menus */
+.menu { position: relative; }
+.menu__pop { position: absolute; right: 0; top: calc(100% + 6px); z-index: 10; min-width: 240px; display: grid; gap: 2px; padding: 6px;
+  border: 1px solid var(--c-line-2); border-radius: var(--radius-lg); background: var(--c-surface); box-shadow: var(--shadow-3); }
+.menu__pop button, .menu__pop a { display: flex; justify-content: space-between; gap: var(--space-3); padding: 8px 10px; border: 0; border-radius: var(--radius-sm); background: none;
+  color: var(--c-fg-2); font: inherit; font-size: var(--type-xs); text-align: left; cursor: pointer; text-decoration: none; }
+.menu__pop .is-saved { color: var(--c-warm); }
+@media (hover: hover) and (pointer: fine) { .menu__pop button:hover, .menu__pop a:hover { background: var(--c-fill); color: var(--c-fg); } }
+/* New collection, named in place inside the Save to menu. */
+.menu__new { display: flex; gap: 6px; padding: 4px; }
+.menu__new .input { flex: 1; min-height: 34px; font-size: var(--type-xs); }
+.menu__pop .menu__new .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0 var(--space-3); border: 1px solid transparent; border-radius: var(--radius-md);
+  background: var(--c-primary); color: var(--c-on-primary); font-weight: var(--weight-semibold); }
+/* Stars: keep something. Amber when kept. */
+.star { position: relative; z-index: 1; display: inline-grid; place-items: center; grid-auto-flow: column; gap: 6px; flex: none; min-width: 32px; min-height: 32px; padding: 0 6px;
+  border: 0; border-radius: var(--radius-sm); background: none; color: var(--c-fg-3); font: var(--weight-medium) .875rem/1 var(--font-body); text-decoration: none; cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out); }
+.star .i { width: 18px; height: 18px; }
+.star[aria-pressed="true"] { color: var(--c-warm); }
+.star--label { min-height: var(--control-h-sm); padding: 0 12px; border: 1px solid var(--c-line-2); background: var(--c-surface); color: var(--c-fg); }
+.star--label[aria-pressed="true"] { background: var(--c-warm-soft); border-color: var(--c-warm); color: var(--c-fg); }
+.star--label[aria-pressed="true"] .i { color: var(--c-warm); }
+@media (hover: hover) and (pointer: fine) { .star:hover { color: var(--c-fg); background: var(--c-fill); } }
+@media (pointer: coarse) { .star { min-width: 44px; min-height: 44px; } }
+/* Section hues: a small flat dot beside a title. */
+[data-sec="inv"] { --tone: var(--s-inv); }
+[data-sec="db"] { --tone: var(--s-db); }
+[data-sec="think"] { --tone: var(--s-think); }
+[data-sec="ecmd"] { --tone: var(--s-ecmd); }
+[data-sec="dcmd"] { --tone: var(--s-dcmd); }
+[data-sec="recipe"] { --tone: var(--s-recipe); }
+.dot { display: inline-block; flex: none; width: 8px; height: 8px; margin-right: 10px; border-radius: 50%; background: var(--tone, var(--c-fg-3)); }
+.kicker .dot { margin-right: 2px; }
+/* LED: the site's one status light. 7px, lit only where something is true now. Unlit it is a socket. */
+.led { display: inline-block; flex: none; width: 7px; height: 7px; border-radius: 50%; background: #23262C; box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); vertical-align: .1em; }
+:root:not(:has(.home, .quiet)) .led:not(.is-on) { background: var(--c-line-2); box-shadow: none; }
+.led.is-on { background: var(--led); box-shadow: var(--led-shine); }
+.led.is-hot { box-shadow: 0 0 0 1px color-mix(in oklab, var(--led) 70%, transparent), 0 0 6px var(--led), 0 0 16px color-mix(in oklab, var(--led) 70%, transparent), 0 0 34px color-mix(in oklab, var(--led) 30%, transparent); animation: led-on 520ms steps(1, end) 1; }
+@keyframes led-on { 0% { opacity: .15; } 18% { opacity: 1; } 32% { opacity: .35; } 50%, 100% { opacity: 1; } }
+:root:not(:has(.home, .quiet)) .led.is-on { background: var(--c-signal); box-shadow: none; }
+/* Text utilities */
+.lead { max-width: 56ch; font-size: var(--type-lead); line-height: var(--lh-lead); color: var(--c-fg-2); text-wrap: pretty; }
+.eyebrow { display: inline-flex; align-items: center; gap: var(--space-2); font: var(--weight-medium) var(--type-micro)/1 var(--font-mono); letter-spacing: .04em; text-transform: uppercase; color: var(--c-fg-3); }
+.kicker { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); font-size: var(--type-xs); color: var(--c-fg-3); }
+.kicker code { font-size: var(--type-xs); color: var(--c-fg-2); }
+.crumbs { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0; padding: 0; list-style: none; font-size: var(--type-xs); color: var(--c-fg-3); }
+.crumbs li { min-width: 0; overflow-wrap: anywhere; }
+.crumbs li + li::before { content: "/"; margin-right: var(--space-2); color: var(--c-fg-4); }
+.crumbs a { text-decoration: none; transition: color var(--dur-fast) var(--ease-out); }
+.muted { color: var(--c-fg-3); }
+.ink2 { color: var(--c-fg-2); }
+.lic { text-decoration-color: var(--c-line-2); text-underline-offset: 0.2em; }
+@media (hover: hover) and (pointer: fine) { .crumbs a:hover { color: var(--c-fg); } }
+@media (hover: hover) and (pointer: fine) { .lic:hover { color: var(--c-fg); text-decoration-color: currentColor; } }
+/* Touch: .lic inline actions and breadcrumb links get a hit area at least --tap tall, with no visual or layout change.
+   On an inline link the vertical padding is hit-testable but doesn't move the line, and it applies to each line of a
+   wrapped link; the box is about 1.2em of glyph area plus this padding, so it clears --tap at any font size. The
+   negative margin does nothing on an inline box and cancels the padding where a lane lays the link out as a block or
+   flex item. Only links whose sole class is lic, and unclassed crumbs: a link with a lane class of its own may set its
+   own padding or min-height, and the margin must never apply without the padding (.sd-eyebrow sizes its own too).
+   Plain prose links are left as they are: lines sit closer than --tap, so a taller box would reach into the next
+   line's links. The focus ring is pulled back in to fit the text. */
+@media (pointer: coarse) {
+  :where(a[class="lic"][href]:not(.sd-eyebrow a), .crumbs a[href]:not([class])) {
+    --hit: max(0px, calc((var(--tap) - 1em) / 2)); padding-block: var(--hit); margin-block: calc(-1 * var(--hit)); }
+  a[class="lic"]:focus-visible, .crumbs a:not([class]):focus-visible { outline-offset: calc(2px - var(--hit, 0px)); }
+}
+/* Stage (Home, /install): buttons keep main's look until Fable's track decides. */
+:root:has(.home, .quiet) { --control-h: 40px; --control-h-sm: 34px; }
+:root:has(.home, .quiet) .btn { border-color: var(--color-rule-2); box-shadow: none; font-weight: 550; letter-spacing: normal; }
+:root:has(.home, .quiet) .btn--sm { border-radius: 8px; font-size: .8125rem; padding: 0 var(--space-sm); }
+:root:has(.home, .quiet) .btn--lg { padding: 0 var(--space-lg); font-size: var(--text-md); }
+:root:has(.home, .quiet) .btn--primary, :root:has(.home, .quiet) .btn--solid { font-weight: 550; border-color: transparent; }
+:root:has(.home, .quiet) .btn--ghost { border-color: transparent; }
+
+/* Floating copy bar (components/ui/FloatingCopy.tsx): under the header on a computer, along the bottom on a phone. */
+.fcopy { position: fixed; z-index: 20; top: calc(var(--header-h) + var(--space-2));
+  right: max(var(--gutter), env(safe-area-inset-right), calc((100% - var(--container)) / 2 + var(--gutter)));
+  display: flex; align-items: center; gap: var(--space-3); max-width: min(28rem, calc(100vw - 2 * var(--gutter)));
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-4); border: 1px solid var(--c-line); border-radius: var(--radius-lg);
+  background: var(--c-raised); box-shadow: var(--shadow-3); visibility: hidden; opacity: 0;
+  transform: translateY(calc(-1 * var(--space-2) * var(--travel)));
+  transition: opacity var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out), visibility 0s linear var(--dur-base); }
+.fcopy[data-on] { visibility: visible; opacity: 1; transform: none; transition-delay: 0s; }
+.fcopy__label { display: grid; min-width: 0; line-height: 1.25; }
+.fcopy__title { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font: var(--weight-semibold) var(--type-xs)/1.25 var(--font-body); color: var(--c-fg); }
+.fcopy__detail { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: var(--type-micro); color: var(--c-fg-3); }
+.fcopy__copy { flex: none; min-width: 6.5rem; }
+.fcopy__copy .i { width: 16px; height: 16px; }
+.fcopy__copy[data-copied] .i { display: none; }
+.fcopy__copy[data-copied]::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--c-signal-bright); }
+@media (max-width: 40rem) {
+  .fcopy { top: auto; left: 0; right: 0; bottom: 0; max-width: none; border-width: 1px 0 0; border-radius: 0;
+    padding: var(--space-2) max(var(--gutter), env(safe-area-inset-right)) calc(var(--space-2) + env(safe-area-inset-bottom)) max(var(--gutter), env(safe-area-inset-left));
+    transform: translateY(calc(var(--space-2) * var(--travel))); }
+  .fcopy__label { flex: 1; }
+  /* Keeps the page's last lines clear of the bar while it shows. */
+  body:has(.fcopy[data-on]) { padding-bottom: calc(var(--tap) + 2 * var(--space-2) + env(safe-area-inset-bottom)); }
+}
+@media (pointer: coarse) { .fcopy__copy { min-height: var(--tap); } }
+@media (prefers-reduced-motion: reduce) { .fcopy, .fcopy[data-on] { transform: none; transition: none; } }

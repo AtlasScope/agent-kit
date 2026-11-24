@@ -1,7 +1,9 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 import { NavLinks } from "./NavLinks";
+import { SITE } from "@/lib/site";
 
 // Up to 1248px wide (78rem) the header is one row: brand, search, and these buttons. The menu is a native modal
 // dialog, so the browser traps focus inside it and closes it on Escape. It sits outside the buttons' wrapper, which
@@ -42,7 +44,8 @@ export function NavMenu() {
           <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 8h16M4 16h16" /></svg>
         </button>
       </div>
-      {/* A press on any link or button inside closes the sheet. Sign in, the account and GitHub stay in the bar. */}
+      {/* A press on any link or button inside closes the sheet. Sign in and the account stay in the bar; the sheet adds the
+          places the bar has no room for, and Install. */}
       <dialog ref={sheet} id="site-menu" className="sheet" aria-label="Menu"
         onClick={(e) => { if ((e.target as HTMLElement).closest("a, button")) sheet.current?.close(); }}>
         <div className="container sheet__top">
@@ -54,10 +57,18 @@ export function NavMenu() {
         </div>
         <nav className="container" aria-label="Sections">
           <NavLinks className="sheet__links" />
+          <ul className="sheet__more">
+            <li><Link href="/kits">Kits</Link></li>
+            <li><Link href="/learn">Learn</Link></li>
+            <li><Link href="/mcp-setup">Connect your agent</Link></li>
+            <li><a href={SITE.repo}>GitHub</a></li>
+            <li><Link href="/about">About</Link></li>
+          </ul>
+          <div className="sheet__act"><Link className="btn btn--lg btn--primary" href="/install">Install Agent Kit</Link></div>
         </nav>
       </dialog>
       {/* Without JavaScript the menu cannot open, so the section links show as a second row instead. */}
-      <noscript><style>{"@media (max-width: 78rem) { .nav { flex-wrap: wrap; } .nav > .links { display: flex; order: 9; width: 100%; overflow-x: auto; padding-bottom: 8px; } .nav__toggles { display: none; } }"}</style></noscript>
+      <noscript><style>{"@media (max-width: 78rem) { .nav { flex-wrap: wrap; } .nav > .links { display: flex; order: 9; width: 100%; overflow-x: auto; padding-bottom: 8px; } .nav__toggles { display: none; } .nav__gh { display: inline-flex; } }"}</style></noscript>
     </>
   );
 }
