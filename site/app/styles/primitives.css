@@ -126,3 +126,4 @@
 :root:has(.home, .quiet) .btn--sm { border-radius: 8px; font-size: .8125rem; padding: 0 var(--space-sm); }
 :root:has(.home, .quiet) .btn--lg { padding: 0 var(--space-lg); font-size: var(--text-md); }
 :root:has(.home, .quiet) .btn--primary, :root:has(.home, .quiet) .btn--solid { font-weight: 550; border-color: transparent; }
+:root:has(.home, .quiet) .btn--ghost { border-color: transparent; }
