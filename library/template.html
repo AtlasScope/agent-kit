@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
 <style>
-/* One quiet frame (header, search, four views) around a library you can scan. Section hues survive only as small wayfinding marks; amber is the single accent for actions and the current place. */
+/* One quiet frame (header, search, three views: a front door, the areas, other tools) around a library you can scan. Section hues survive only as small wayfinding marks; amber is the single accent for actions and the current place. */
 :root {
   --bg: #ECEAE4; --surface: #FFFFFF; --sunk: #E4E1DA; --hover: #DEDAD1;
   --line: #B9B3A6; --line-soft: #D2CEC4;
@@ -356,6 +356,20 @@ ol.steps .for { color: var(--ink-2); font-size: 14px; }
   details.composer summary span { display: none; }
   footer.foot { flex-direction: column; }
 }
+/* Areas, the mark, and the Agent Kit job named on other people's tools */
+.sectabs { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.areadoors { grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); }
+.areadoors .door span.d { font-family: var(--mono); font-size: 12.5px; letter-spacing: 0; }
+.areahead { max-width: 76ch; margin-top: 28px; }
+.areacmd { margin-top: 8px !important; color: var(--ink-3) !important; font-size: 14px; }
+.areacmd code, .closest code { font-family: var(--mono); font-size: .92em; background: var(--sunk); padding: 1px 6px; border-radius: 5px; }
+.mark { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: var(--on-s); background: var(--s-inv); padding: 0 8px 0 6px; border-radius: 999px; line-height: 20px; white-space: nowrap; }
+.mark svg { width: 12px; height: 12px; }
+.closest { margin: 0; font-size: 13.5px; color: var(--ink-2); }
+.linkbtn.code { font-family: var(--mono); font-size: .95em; }
+.idline { margin: 0; font-family: var(--mono); font-size: 12px; color: var(--ink-3); letter-spacing: 0; }
+@media (max-width: 1020px) { .sectabs { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .sectabs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 </style>
 
 <header class="top" id="top">
@@ -380,42 +394,39 @@ ol.steps .for { color: var(--ink-2); font-size: 14px; }
 
 <script>
 const LIB = JSON.parse(document.getElementById("library").textContent);
-const E = LIB.entries; const BY = Object.fromEntries(E.map(e => [e.id, e]));
+// Keen's jobs come from Keen's own job list at build time; they sit beside the library entries.
+const E = [...LIB.entries, ...(LIB.keen || [])];
+const BY = Object.fromEntries(E.map(e => [e.id, e]));
 const CMDIDX = {};
 E.forEach(e => { if (e.cmd) { const k = norm(e.cmd); if (!CMDIDX[k]) CMDIDX[k] = e.id; } });
 // Placeholders such as "<path>" always come last, so keep only the text before the first "<".
 function norm(s) { return s.toLowerCase().split("<")[0].replace(/,.*$/, "").replace(/\s+/g, " ").trim(); }
 function findCmd(s) { const k = norm(s); if (CMDIDX[k]) return CMDIDX[k]; const two = k.split(" ").slice(0, 2).join(" "); return CMDIDX[two] || CMDIDX[k.split(" ")[0]] || null; }
 
-const SECS = [
-  ["inv", "Engineering investigations", "Prompts that send an agent looking for one kind of problem without changing anything. Each says what proof to bring back and when to skip it. From the Agent Engineering Field Guide."],
-  ["db", "Database", "Prompts for PostgreSQL databases on any host: proving the data is right, simpler and cheaper writes, a leaner schema, real costs, and changes and restores tested on a copy. All read-only unless you say otherwise."],
-  ["think", "Thinking prompts", "Short lines you add to any task to change how the agent works: try to prove itself wrong, keep things simple, check its work, hand off cleanly."],
-  ["ecmd", "Engineering commands", "Installed skills you start with a slash command. Each one runs part of an investigation for you."],
-  ["dcmd", "Design commands", "Every design skill command, with a ready example prompt. From the Design Skills Field Guide."],
-  ["recipe", "Design recipes", "Short sequences of design commands for a whole job, from a new landing page to dark mode. Copy one step, or the whole recipe as one prompt that checks in with you between steps."],
-];
-const SEC = Object.fromEntries(SECS.map(s => [s[0], s]));
-if (E.some(e => e.sec === "desk")) { SECS.push(["desk", "Desk only", "Saved in Desk with no match in either guide."]); SEC.desk = SECS[SECS.length - 1]; }
-const GROUPED = new Set(["inv", "db", "ecmd", "dcmd"]);
-const INVLIKE = new Set(["inv", "db"]);
-const SECCOLOR = s => `var(--s-${s})`;
-const MODES = { read: "Changes nothing", repro: "Adds a test that shows it", change: "Suggests a fix" };
-const TOPO = { single: "One session", split: "Look first, then fix in a new session" };
-const TABS = [["start", "Start"], ["library", "Library"], ["choosing", "Which one?"], ["starred", "Starred"]];
-const VIEWS = ["start", "library", "choosing", "starred", "sources"];
-const STORE = "mpl-v1";
-let S = { view: "start", q: "", stage: "start", sym: -1, stars: [], stab: "code", lsec: "inv", lgrp: 0, recent: [] };
-try { const saved = JSON.parse(localStorage.getItem(STORE) || "{}"); Object.assign(S, { view: saved.view, stage: saved.stage || "start", stars: Array.isArray(saved.stars) ? saved.stars : [], stab: saved.stab || "code", lsec: saved.lsec || "inv", lgrp: Number.isInteger(saved.lgrp) ? saved.lgrp : 0, recent: Array.isArray(saved.recent) ? saved.recent : [] }); } catch (e) {}
-if (!VIEWS.includes(S.view)) S.view = S.view === "recipes" ? "library" : "start";
-function save() { try { localStorage.setItem(STORE, JSON.stringify({ view: S.view, stage: S.stage, stars: S.stars, stab: S.stab, lsec: S.lsec, lgrp: S.lgrp, recent: S.recent })); } catch (e) {} }
+// Areas match the kit's own areas. Every entry in an area is listed once; everything else is Other tools.
+const AREAS = LIB.areas || [];
+const AREA_HUE = { design: "dcmd", motion: "recipe", bugs: "inv", data: "db", nav: "ecmd", code: "inv", ship: "desk", routine: "ecmd", writing: "think", think: "think" };
+const hue = k => `var(--s-${AREA_HUE[k] || "desk"})`;
+const groupList = ref => typeof ref === "string" ? (LIB.keen || []).filter(k => "K:" + k.group === ref) : ref.map(id => BY[id]).filter(Boolean);
+const AREA_OF = {};
+AREAS.forEach(a => a.groups.forEach(([, ref]) => groupList(ref).forEach(e => { AREA_OF[e.id] = a.key; })));
+const NOT_SHOWN = LIB.notShown || {};
+const OTHER = LIB.entries.filter(e => !AREA_OF[e.id] && !NOT_SHOWN[e.id]);
+const CLOSEST = LIB.closest || {};
+const areaOf = e => AREAS.find(a => a.key === AREA_OF[e.id]);
+const colorOf = e => AREA_OF[e.id] ? hue(AREA_OF[e.id]) : "var(--ink-3)";
+
+const TABS = [["start", "Start"], ["areas", "Areas"], ["other", "Other tools"]];
+const STORE = "mpl-v2";
+let S = { view: "start", q: "", sym: -1, area: AREAS[0]?.key || "" };
+try { const saved = JSON.parse(localStorage.getItem(STORE) || "{}"); if (["start", "areas", "other"].includes(saved.view)) S.view = saved.view; if (AREAS.some(a => a.key === saved.area)) S.area = saved.area; } catch (e) {}
+function save() { try { localStorage.setItem(STORE, JSON.stringify({ view: S.view, area: S.area })); } catch (e) {} }
 
 const SVG = {
   copy: '<svg class="i cp" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="2"/><path d="M10.5 3.5V3A1.5 1.5 0 0 0 9 1.5H4A1.5 1.5 0 0 0 2.5 3v5A1.5 1.5 0 0 0 4 9.5h.5"/></svg><svg class="i ok" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 8.5l3 3 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-  star: '<svg class="i" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.9l1.85 3.87 4.23.55-3.1 2.93.8 4.2L8 11.4l-3.78 2.05.8-4.2-3.1-2.93 4.23-.55z"/></svg>',
   x: '<svg class="i" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>',
-  info: '<svg class="i" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="8" cy="8" r="6.25"/><path d="M8 7.25v4" stroke-linecap="round"/><circle cx="8" cy="5" r=".4" fill="currentColor"/></svg>',
   chev: '<svg class="i" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5"/></svg>',
+  check: '<svg class="i" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 };
 const $ = s => document.querySelector(s);
 function h(tag, attrs, ...kids) {
@@ -436,111 +447,162 @@ async function copy(text, btn, label) {
     // An open modal sheet makes the rest of the page inert, so the textarea must sit inside it to be selectable.
     (document.querySelector("dialog[open]") || document.body).append(ta); ta.focus(); ta.select();
     let ok = false; try { ok = document.execCommand("copy"); } catch (_) {} ta.remove();
-    if (!ok) { toast("Copy blocked here. Select the text and copy it."); return false; }
+    if (!ok) { toast("Copy blocked here. Open Details and select the text."); return false; }
   }
   if (btn) { btn.classList.add("copied"); setTimeout(() => btn.classList.remove("copied"), 1200); }
   toast(label || "Copied");
   return true;
 }
-function noteCopy(id, rerender = true) { if (!id) return; S.recent = [id, ...S.recent.filter(x => x !== id)].slice(0, 8); save(); }
-// A labelled copy button (prompts) or a command chip (commands).
 function copyBtn(label, text, opts = {}) {
   const b = h("button", { type: "button", class: "copy" + (opts.primary ? " primary" : "") + (opts.soft ? " soft" : ""), "aria-label": opts.aria || null }, label);
   b.insertAdjacentHTML("afterbegin", SVG.copy);
-  b.addEventListener("click", ev => { ev.stopPropagation(); copy(text, b, opts.toast).then(ok => ok && noteCopy(opts.id)); });
+  b.addEventListener("click", ev => { ev.stopPropagation(); copy(text, b, opts.toast); });
   return b;
 }
-function cmdChip(cmd, text, opts = {}) {
-  const b = h("button", { type: "button", class: "cmd" + (opts.pick ? " pick" : ""), title: "Copy " + cmd }, cmd);
-  b.insertAdjacentHTML("beforeend", SVG.copy);
-  b.addEventListener("click", ev => { ev.stopPropagation(); copy(text, b, opts.toast || "Copied " + cmd).then(ok => ok && noteCopy(opts.id)); });
-  return b;
-}
-function aboutBtn(id, label) {
-  return h("button", { type: "button", class: "about", "aria-label": "About " + label, title: "About " + label, html: SVG.info, onclick: () => openSheet(id) });
-}
-const isStar = id => S.stars.includes(id);
-function star(id, title) {
-  const b = h("button", { type: "button", class: "star", "aria-pressed": isStar(id) ? "true" : "false", "aria-label": (isStar(id) ? "Unstar " : "Star ") + title, title: isStar(id) ? "Unstar" : "Star", html: SVG.star });
-  b.addEventListener("click", ev => {
-    ev.stopPropagation();
-    S.stars = isStar(id) ? S.stars.filter(x => x !== id) : [...S.stars, id]; save();
-    document.querySelectorAll(`.star[data-id="${id}"]`).forEach(s => { s.setAttribute("aria-pressed", isStar(id) ? "true" : "false"); s.setAttribute("aria-label", (isStar(id) ? "Unstar " : "Star ") + title); s.title = isStar(id) ? "Unstar" : "Star"; });
-    renderTabs(); if (S.view === "starred" && !S.q && !$("#sheet").open) render();
-  });
-  b.dataset.id = id;
-  return b;
-}
-function copyText(e) { return e.sec === "ecmd" ? e.cmd : e.desk ? e.desk.body : e.p; }
-const isCode = e => e.sec === "ecmd" || e.sec === "dcmd";
-function desc(e) { return e.sec === "think" ? (e.use || e.p) : e.sec === "desk" ? e.desk?.body : e.why; }
-function copyLabel(e) { return e.flow ? "Copy workflow" : { dcmd: "Copy example", ecmd: "Copy command", recipe: "Copy recipe" }[e.sec] || "Copy prompt"; }
-const modeLabel = e => e.iso ? "Tests on a separate copy" : MODES[e.mode];
 
-// Search ranks results: an exact ID or command first, then title words, then other names and tags, then descriptions, then the body.
+/* What every card says, the same way for every kind of entry */
+const isCode = e => e.sec === "ecmd" || e.sec === "dcmd" || e.sec === "keen";
+const nameOf = e => isCode(e) ? (e.cmd || e.t) : e.t;
+const lineOf = e => e.line || (e.sec === "think" ? e.use : e.why) || "";
+const MODE_GET = {
+  read: "A report. Nothing changes.",
+  repro: "A report, plus a test that shows the problem. Your app code stays as it is.",
+  change: "A report, then a suggested fix for you to approve.",
+  "Changes code": "It edits your code.",
+  "Report only": "A report. Nothing changes.",
+  "Advice": "Advice in the chat. Nothing changes.",
+  "Asks before changing": "A plan first. Nothing changes until you say yes.",
+  "Writes notes only": "Notes or documents. Your app code stays as it is.",
+  "Depends on the task": "Depends on what it picks. It says which before it starts.",
+};
+function keenGet(kind) {
+  const k = kind.toLowerCase();
+  if (k === "report") return "A report. Nothing changes.";
+  if (k.startsWith("writes")) return kind.replace(/^Writes/, "Writes") + " after you say yes. The screen stays as it is.";
+  if (k.includes("pick only")) return "Three versions side by side. It edits only the one you pick.";
+  if (k.includes("text only")) return "It edits the words on the screen and shows before and after.";
+  if (k.includes("nothing looks different")) return "It tidies the code behind the screen. Nothing looks different.";
+  return "It edits the screen and shows before and after.";
+}
+function getsBack(e) {
+  if (e.sec === "keen") return keenGet(e.kind);
+  if (e.iso) return "A report, tested on a separate copy. Your real data is not touched.";
+  if (e.sec === "think") return "Changes how the agent works on your task.";
+  if (e.sec === "recipe") return "It edits your code, checking in with you between steps.";
+  return MODE_GET[e.mode || e.dmode] || "";
+}
+const RISKY = e => e.sec !== "think" && /edits|suggested fix|test that shows/i.test(getsBack(e));
+function kindLine(e) {
+  if (e.sec === "keen") return "Agent Kit command (design-kit plugin)";
+  if (e.sec === "inv") return "Prompt for any coding agent. Nothing to install.";
+  if (e.sec === "db") return (e.flow ? "Several prompts in order" : "Prompt") + " for any agent that can read your database. Nothing to install.";
+  if (e.sec === "think") return "Add it to any request, in any agent.";
+  if (e.sec === "recipe") return "Several commands in order. Each one must be installed.";
+  const b = e.badge || "";
+  if (/built into Claude Code/i.test(b) || b === "bundled") return "Command built into Claude Code";
+  return "Command from " + e.group + (b ? " (" + b + ")" : "");
+}
+// The mark: shown only where a run on a real project is recorded.
+function tried(e) {
+  if (LIB.tried?.[e.id]) return LIB.tried[e.id];
+  if (e.runs?.length) return "Run on " + e.runs.map(r => r[0]).join(" and ") + ".";
+  if (e.reviewed) return "Run on a real project, " + e.reviewed + ".";
+  return null;
+}
+const mark = e => tried(e) ? h("span", { class: "mark", title: tried(e) }, h("i", { html: SVG.check, style: "display:contents" }), "Tried on a real project") : null;
+
+// Copy hands over everything the agent needs: the prompt, what it may change, what to bring back,
+// when to stop, and a report that starts in plain English.
+const PLAIN = "Start your report in plain English: what you found, what it means, and whether I need to do anything. Put files, lines and commands underneath.";
+function copyText(e) {
+  if (e.sec === "keen" || e.sec === "ecmd") return e.cmd;
+  if (e.sec === "dcmd" || e.sec === "recipe" || e.sec === "think") return e.p;
+  if (e.flow) return e.p + "\n\n" + PLAIN;
+  const C = LIB.composer;
+  const parts = [e.p, C.mode[e.mode || "read"][1]];
+  if (e.iso) parts.push("Anything that changes state, such as a rebuild, replay or migration test, runs only on a separate database with safe test data, never on production.");
+  if (e.ev) parts.push("Bring back: " + e.ev);
+  if (e.skip) parts.push("If this describes the project, say so and stop instead: " + e.skip);
+  if (e.blind) parts.push("Watch out: " + e.blind);
+  if (e.avoid) parts.push("Avoid: " + e.avoid);
+  parts.push(PLAIN);
+  return parts.join("\n\n");
+}
+const copyLabel = e => isCode(e) ? "Copy command" : e.sec === "recipe" ? "Copy recipe" : "Copy prompt";
+
+// An Agent Kit job named on another author's tool: its card, or its area when it is an area's own command.
+function closestLink(c) {
+  const id = findCmd(c);
+  if (id && norm(BY[id].cmd || "") === norm(c)) return h("button", { type: "button", class: "linkbtn code", onclick: () => openSheet(id) }, c);
+  const a = AREAS.find(x => x.cmd && norm(x.cmd) === norm(c));
+  if (a) return h("button", { type: "button", class: "linkbtn code", onclick: () => { closeSheet(); go("areas", a.key); } }, c);
+  return id ? h("button", { type: "button", class: "linkbtn code", onclick: () => openSheet(id) }, c) : h("code", {}, c);
+}
+function card(e, opts = {}) {
+  const meta = h("div", { class: "c-meta" }, mark(e));
+  if (opts.best) meta.append(h("span", { class: "best-label" }, "Start here"));
+  if (e.desk) meta.append(h("span", { class: "tag" }, "In Desk"));
+  const get = getsBack(e);
+  if (get) meta.append(h("span", { class: RISKY(e) ? "risk" : null }, get));
+  const c = CLOSEST[e.id];
+  return h("article", { class: "card" + (opts.best ? " best" : ""), style: `--c:${colorOf(e)}` },
+    h("div", { class: "c-head" }, h("button", { type: "button", class: "c-title" + (isCode(e) ? " code" : ""), onclick: () => openSheet(e.id) }, nameOf(e))),
+    meta,
+    lineOf(e) ? h("p", { class: "c-desc" }, lineOf(e)) : null,
+    c ? h("p", { class: "closest" }, "Agent Kit job that does this: ", closestLink(c)) : null,
+    h("div", { class: "c-acts" }, copyBtn(copyLabel(e), copyText(e), { soft: true, toast: "Copied " + nameOf(e), aria: copyLabel(e) + ": " + nameOf(e) }), h("button", { type: "button", class: "details", tabindex: "-1", onclick: () => openSheet(e.id) }, "Details")));
+}
+const cards = (list, opts = {}) => h("div", { class: "cards" }, list.map((e, i) => card(e, { best: opts.best && i === 0 })));
+
+// Search ranks results: an exact command first, then title words, then other names and tags, then descriptions, then the body.
 const lc = (...xs) => xs.flat().filter(Boolean).join(" ").toLowerCase();
+// The front door's plain complaints count as other names for the entries they point to.
+const SAYS = {};
+const SAYS_RANK = {};
+(LIB.front || []).forEach(([txt, ids]) => ids.forEach((id, i) => { (SAYS[id] = SAYS[id] || []).push(txt); SAYS_RANK[id + "|" + txt] = 3 - i; }));
 const FIELDS = e => [
-  [lc(e.id), 60], [lc(e.t), 40],
-  [lc(e.aka, e.tags, e.cmd, e.desk?.t), 25],
-  [lc(e.why, e.use, e.group, e.sub), 10],
-  [lc(e.p, e.ev, e.skip, e.avoid, e.tools, e.desk?.body, (e.steps || []).map(s => s.join(" ")), (e.flow || []).map(s => s[2]), e.kit), 3],
+  [lc(e.id), 60], [lc(e.t, e.cmd), 40],
+  [lc(SAYS[e.id], e.use && e.sec === "keen" ? e.use : null), 35],
+  [lc(e.aka, e.tags, e.desk?.t, CLOSEST[e.id]), 25],
+  [lc(e.line, e.why, e.use, e.group, e.sub, areaOf(e)?.title), 10],
+  [lc(e.p, e.ev, e.skip, e.avoid, e.tools, (e.steps || []).map(s => s.join(" ")), e.kit), 3],
 ];
-const IDX = Object.fromEntries(E.map(e => [e.id, FIELDS(e)]));
+const SHOWN = E.filter(e => !NOT_SHOWN[e.id]);
+const IDX = Object.fromEntries(SHOWN.map(e => [e.id, FIELDS(e)]));
 const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const stem = w => w.length > 4 ? w.replace(/(ing|ed|es|s)$/, "") : w;
 function score(e, ql, words) {
   const f = IDX[e.id]; let s = 0, hit = 0;
-  if (f[0][0] === ql) s += 1000;
+  if (f[0][0] === ql.toLowerCase()) s += 1000;
   if (e.cmd && norm(e.cmd) === ql) s += 900;
-  if (f[1][0] === ql) s += 500; else if (ql.length > 2 && f[1][0].includes(ql)) s += 200;
-  if (words.length > 1 && f[2][0].includes(ql)) s += 120;
+  if (f[1][0].includes(ql) && ql.length > 2) s += 200;
+  if (words.length > 1 && (f[2][0].includes(ql) || f[3][0].includes(ql))) s += 120;
+  // Among entries a front-door complaint points to, its first pick ranks first.
+  for (const txt of SAYS[e.id] || []) if (words.every(([w]) => txt.toLowerCase().includes(w))) s += SAYS_RANK[e.id + "|" + txt] || 0;
   for (const [w, start] of words) {
     let best = 0;
     for (const [txt, wt] of f) if (txt.includes(w)) best = Math.max(best, start.test(txt) ? wt * 1.5 : wt);
     if (best) { hit++; s += best; }
   }
+  // Agent Kit's own jobs come before other people's tools when they match equally.
+  if (hit && AREA_OF[e.id]) s += 15;
   return { s, hit };
 }
 let LOOSE = false;
-// Every word must match. If nothing matches every word, show entries that match most of them.
 function searchList() {
   const ql = S.q.toLowerCase().replace(/\s+/g, " ").trim();
   const words = ql.split(" ").filter(Boolean).map(stem).map(w => [w, new RegExp("(^|[^a-z0-9])" + esc(w))]);
   if (!words.length) return [];
-  const scored = E.map((e, i) => ({ e, i, ...score(e, ql, words) })).filter(x => x.hit);
+  const scored = SHOWN.map((e, i) => ({ e, i, ...score(e, ql, words) })).filter(x => x.hit);
   const full = scored.filter(x => x.hit === words.length);
   const pool = full.length ? full : scored.filter(x => x.hit >= Math.ceil(words.length / 2));
   LOOSE = !full.length && pool.length > 0;
   return pool.sort((a, b) => b.s - a.s || a.i - b.i).map(x => x.e);
 }
 
-const RISKY = new Set(["Changes code", "Suggests a fix", "Adds a test that shows it"]);
-function card(e, opts = {}) {
-  const meta = h("div", { class: "c-meta" }, h("span", { class: "badge" }, e.id));
-  if (opts.best) meta.append(h("span", { class: "best-label" }, opts.label || "Best first"));
-  if (e.desk) meta.append(h("span", { class: "tag" }, "In Desk"));
-  const mode = INVLIKE.has(e.sec) && !e.flow ? modeLabel(e) : e.dmode || null;
-  if (mode) meta.append(h("span", { class: RISKY.has(mode) ? "risk" : null }, mode));
-  if (e.sec === "ecmd" && e.rel?.length) meta.append(h("span", {}, "Used in " + e.rel.length + (e.rel.length === 1 ? " investigation" : " investigations")));
-  if (e.sec === "recipe") meta.append(h("span", {}, e.steps.length + " steps"));
-  if (e.flow) meta.append(h("span", {}, "Workflow"));
-  const d = desc(e);
-  return h("article", { class: "card" + (opts.best ? " best" : ""), style: `--c:${SECCOLOR(e.sec)}` },
-    h("div", { class: "c-head" }, h("button", { type: "button", class: "c-title" + (isCode(e) ? " code" : ""), onclick: () => openSheet(e.id) }, e.t), star(e.id, e.t)),
-    meta,
-    d ? h("p", { class: "c-desc" }, d) : null,
-    e.sec === "recipe" ? h("ol", { class: "c-steps", "aria-label": "Steps" }, e.steps.map(([c]) => h("li", {}, c.split(/\s*<[^>]*>/).join("")))) : null,
-    e.flow ? h("ol", { class: "c-steps", "aria-label": "Steps" }, e.flow.filter(s => s[1].length).map(([l, ids]) => h("li", {}, l + ": " + ids.join(" or ")))) : null,
-    h("div", { class: "c-acts" }, copyBtn(copyLabel(e), copyText(e), { soft: true, id: e.id, toast: "Copied “" + e.t + "”", aria: copyLabel(e) + ": " + e.t }), h("button", { type: "button", class: "details", tabindex: "-1", onclick: () => openSheet(e.id) }, "Details")));
-}
-const cards = (list, opts = {}) => h("div", { class: "cards" }, list.map((e, i) => card(e, { best: opts.best && i === 0, label: opts.label })));
-
-// A row of tabs that switch one panel. Arrow keys move between them.
 function tablist(cls, label, items, cur, onpick) {
   const list = h("div", { class: cls, role: "tablist", "aria-label": label });
-  items.forEach(it => {
-    list.append(h("button", { type: "button", role: "tab", class: it.cls, style: it.c ? `--c:${it.c}` : null, "aria-selected": cur === it.k ? "true" : "false", tabindex: cur === it.k ? "0" : "-1", onclick: () => onpick(it.k) }, ...it.kids));
-  });
+  items.forEach(it => list.append(h("button", { type: "button", role: "tab", class: it.cls, style: it.c ? `--c:${it.c}` : null, "aria-selected": cur === it.k ? "true" : "false", tabindex: cur === it.k ? "0" : "-1", onclick: () => onpick(it.k) }, ...it.kids)));
   list.addEventListener("keydown", ev => {
     if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(ev.key)) return;
     const tabs = [...list.querySelectorAll('[role="tab"]')]; const i = tabs.indexOf(document.activeElement); if (i < 0) return;
@@ -554,25 +616,13 @@ function refocus(sel) { requestAnimationFrame(() => document.querySelector(sel)?
 
 function renderTabs() {
   const v = $("#tabs"); v.innerHTML = "";
-  TABS.forEach(([k, name]) => {
-    const b = h("button", { type: "button", "aria-current": S.view === k && !S.q ? "page" : null, onclick: () => go(k) }, name);
-    if (k === "starred" && S.stars.length) b.append(h("span", { class: "ct" }, S.stars.length));
-    v.append(b);
-  });
+  TABS.forEach(([k, name]) => v.append(h("button", { type: "button", "aria-current": S.view === k && !S.q ? "page" : null, onclick: () => go(k) }, name)));
 }
 function clearSearch() { S.q = ""; $("#q").value = ""; $("#clear").hidden = true; $("#kbd").hidden = false; }
-function libHash() { return S.lgrp >= 0 && GROUPED.has(S.lsec) ? `g-${S.lsec}-${S.lgrp}` : "s-" + S.lsec; }
-function viewHash() { return S.view === "library" ? libHash() : S.view; }
-function setLib(hs) {
-  const m = /^(?:s-(\w+)|g-(\w+)-(-?\d+))$/.exec(hs || ""); if (!m) return false;
-  const k = m[1] || m[2]; if (!SEC[k]) return false;
-  S.lsec = k; S.lgrp = m[3] != null ? +m[3] : (GROUPED.has(k) ? 0 : -1); return true;
-}
-// Moving to a new view or section adds a Back step; changing a group inside a section does not.
+const viewHash = () => S.view === "areas" ? "a-" + S.area : S.view;
 function nav(push) { const hs = "#" + viewHash(); if (location.hash === hs) return; history[push ? "pushState" : "replaceState"](null, "", hs); }
-function go(k, anchor) {
-  S.view = k; clearSearch();
-  if (k === "library" && anchor) setLib(anchor);
+function go(k, area) {
+  S.view = k; if (area) S.area = area; S.sym = -1; clearSearch();
   save(); nav(true); render(); window.scrollTo(0, 0);
 }
 
@@ -581,7 +631,7 @@ function render() {
   renderTabs();
   const app = $("#app"); app.innerHTML = "";
   if (S.q) renderSearch(app);
-  else ({ start: renderStart, library: renderLibrary, choosing: renderChoosing, starred: renderStarred, sources: renderSources }[S.view] || renderStart)(app);
+  else ({ start: renderStart, areas: renderAreas, other: renderOther, sources: renderSources }[S.view] || renderStart)(app);
   app.append(footer());
   RENDERED = S.q ? "" : viewHash();
 }
@@ -589,144 +639,65 @@ function render() {
 function renderSearch(app) {
   const list = searchList();
   const n = list.length, word = `${n} ${LOOSE ? "close " : ""}match${n === 1 ? "" : "es"}`;
-  const st = $("#status"); st.textContent = n ? `${word}. Press Enter to copy the best match.` : "No matches";
-  app.append(h("div", { class: "head" }, h("h1", {}, n ? word : "No matches"), h("p", {}, n ? (LOOSE ? `Nothing matches every word of “${S.q}”, so these match most of them. ` : `For “${S.q}”, across every section. `) + "Press Enter to copy the best match." : "Try a command name, a problem such as “slow” or “duplicate”, or an ID like R05.")));
+  $("#status").textContent = n ? `${word}. Press Enter to copy the best match.` : "No matches";
+  app.append(h("div", { class: "head" }, h("h1", {}, n ? word : "No matches"), h("p", {}, n ? (LOOSE ? `Nothing matches every word of “${S.q}”, so these match most of them. ` : `For “${S.q}”. `) + "Press Enter to copy the best match." : "Try a plain problem such as “slow”, “cluttered” or “duplicate”, or a command name.")));
   if (!n) return;
   const [top, ...rest] = list;
-  app.append(h("section", { class: "search-sec", style: `--c:${SECCOLOR(top.sec)}` }, h("h2", {}, "Best match"), cards([top], { best: true, label: "Enter copies this" })));
-  SECS.forEach(([k, name]) => {
-    const items = rest.filter(e => e.sec === k); if (!items.length) return;
-    app.append(h("section", { class: "search-sec", style: `--c:${SECCOLOR(k)}` }, h("h2", {}, name, h("span", { class: "n" }, String(items.length))), cards(items)));
-  });
+  app.append(h("section", { class: "search-sec", style: `--c:${colorOf(top)}` }, h("h2", {}, "Best match"), cards([top], { best: true })));
+  for (const a of AREAS) {
+    const items = rest.filter(e => AREA_OF[e.id] === a.key); if (!items.length) continue;
+    app.append(h("section", { class: "search-sec", style: `--c:${hue(a.key)}` }, h("h2", {}, a.title, h("span", { class: "n" }, String(items.length))), cards(items)));
+  }
+  const others = rest.filter(e => !AREA_OF[e.id]);
+  if (others.length) app.append(h("section", { class: "search-sec", style: "--c:var(--ink-3)" }, h("h2", {}, "Other tools", h("span", { class: "n" }, String(others.length))), cards(others)));
 }
 
-function recentRow(title) {
-  const list = S.recent.map(id => BY[id]).filter(Boolean); if (!list.length) return null;
-  return h("section", { class: "recent", "aria-label": title }, h("h2", {}, title), h("div", { class: "rlist" }, list.map(e => {
-    const c = h("button", { type: "button", class: "rc", "aria-label": "Copy " + e.t, title: "Copy", html: SVG.copy });
-    c.addEventListener("click", () => copy(copyText(e), c, "Copied “" + e.t + "”").then(ok => ok && noteCopy(e.id, false)));
-    return h("div", { class: "ritem", style: `--c:${SECCOLOR(e.sec)}` }, h("button", { type: "button", class: "rt", onclick: () => openSheet(e.id), title: e.t }, h("span", {}, e.t)), c);
-  })));
-}
-
-const DOORS = [
-  ["code", "Fix a code problem", "Pick what you're seeing and get the prompts that look into it.", "inv"],
-  ["db", "Check a database", "Wrong numbers, heavy writes, a crowded schema, cost or a risky migration.", "db"],
-  ["design", "Do design work", "Pick where you are in a design job and copy the usual command.", "dcmd"],
-  ["rhythm", "When to run checks", "A rough rhythm for running the investigations.", "think"],
-];
+const countIn = a => a.groups.reduce((t, [, ref]) => t + groupList(ref).length, 0);
 function renderStart(app) {
+  const own = SHOWN.filter(e => AREA_OF[e.id]).length;
   const deskN = E.filter(e => e.desk).length;
   app.append(h("section", { class: "head" },
-    h("h1", {}, "Find the right prompt for the job."),
-    h("p", {}, `${E.length} ready-to-copy prompts, commands and recipes for coding and design agents.` + (deskN ? ` The ${deskN} marked “In Desk” are also saved in Desk.` : ""))));
-  const cur = DOORS.find(d => d[0] === S.stab) ? S.stab : "code";
-  app.append(tablist("doors", "Starting point", DOORS.map(([k, name, d, sec]) => ({ k, cls: "door", c: SECCOLOR(sec), kids: [h("b", {}, name), h("span", { class: "d" }, d)] })), cur, k => { S.stab = k; S.sym = -1; save(); render(); refocus(".doors [aria-selected=true]"); }));
-  const [, , , sec] = DOORS.find(d => d[0] === cur);
-  const panel = h("section", { class: "panel", role: "tabpanel", style: `--c:${SECCOLOR(sec)}` });
-  // A grid of "what you're seeing" buttons; picking one opens its prompts, best first.
-  const symPanel = list => {
-    panel.append(h("div", { class: "symgrid" }, list.map(([txt], i) => h("button", { type: "button", class: "symcard", "data-i": i, "aria-expanded": S.sym === i ? "true" : "false", "aria-controls": "sym-results", onclick: () => {
-      S.sym = S.sym === i ? -1 : i; render(); refocus(`.symcard[data-i="${i}"]`);
-      if (S.sym >= 0) requestAnimationFrame(() => document.getElementById("sym-results")?.scrollIntoView({ block: "nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }));
-    } }, h("span", {}, txt), h("i", { html: SVG.chev, style: "display:contents" })))));
-    if (S.sym >= 0 && list[S.sym]) {
-      const [txt, ids] = list[S.sym];
-      panel.append(h("div", { class: "results", id: "sym-results", role: "region", "aria-label": txt }, h("h3", {}, txt + ": start with these"), cards(ids.map(id => BY[id]).filter(Boolean), { best: true })));
-    }
-  };
-  if (cur === "code") {
-    panel.append(h("div", { class: "panel-head" }, h("h2", {}, "Something is wrong in the code"), h("p", {}, "Pick what you're seeing. Each one opens three or four prompts that look into it, best first.")));
-    symPanel(LIB.symptoms);
-  } else if (cur === "db") {
-    panel.append(h("div", { class: "panel-head" }, h("h2", {}, "Something is off in the database"), h("p", {}, "Pick what you're seeing. Each one opens the prompts that look into it, best first. Every one is read-only and works on any PostgreSQL host.")));
-    symPanel(LIB.dbSymptoms || []);
-    if (BY.PG00) panel.append(h("div", { class: "results broad" }, h("h3", {}, "Can't name one problem? Start broad"), cards([BY.PG00])));
-  } else if (cur === "design") {
-    panel.append(h("div", { class: "panel-head" }, h("h2", {}, "Design work at any stage"), h("p", {}, "Pick where you are, then find what fits. The highlighted command is the usual choice. Tap one to copy it.")));
-    panel.append(h("div", { class: "stages", role: "group", "aria-label": "Stage" }, LIB.stages.map(([k, name]) => h("button", { type: "button", class: "chip", "data-k": k, "aria-pressed": S.stage === k ? "true" : "false", onclick: () => { S.stage = k; save(); render(); refocus(`.stages [data-k="${k}"]`); } }, name))));
-    const st = LIB.stages.find(s => s[0] === S.stage) || LIB.stages[0];
-    const box = h("div", { class: "sitbox" }, h("p", { class: "stage-note" }, st[2]));
-    st[3].forEach(([when, a, b]) => {
-      const cmds = h("div", { class: "cmds" }, sitCmd(a, true));
-      if (b) cmds.append(h("span", { class: "or" }, "or"), sitCmd(b));
-      box.append(h("div", { class: "sit" }, h("p", { class: "when" }, when), cmds));
-    });
-    panel.append(box);
-  } else {
-    panel.append(h("div", { class: "panel-head" }, h("h2", {}, "When to run the investigations"), h("p", {}, "A rough rhythm, not a fixed schedule. Skip a check when nothing it looks at has changed.")));
-    panel.append(h("div", { class: "cards" }, LIB.routines.map(([k, what, rule]) => h("article", { class: "card rcard" }, h("div", { class: "k" }, k), h("p", {}, what), h("p", { class: "rule" }, rule)))));
+    h("h1", {}, "What's wrong?"),
+    h("p", {}, `Pick what sounds like your problem, or search. Each one opens up to three things to try, best first. ${own} prompts and Agent Kit commands for coding agents such as Claude Code, Codex and Cursor.` + (deskN ? ` The ${deskN} marked “In Desk” are also saved in Desk.` : ""))));
+  const panel = h("section", { class: "panel", style: "--c:var(--accent)" });
+  const list = LIB.front || [];
+  panel.append(h("div", { class: "symgrid" }, list.map(([txt, ids], i) => h("button", { type: "button", class: "symcard", "data-i": i, style: `--c:${colorOf(BY[ids[0]] || {})}`, "aria-expanded": S.sym === i ? "true" : "false", "aria-controls": "sym-results", onclick: () => {
+    S.sym = S.sym === i ? -1 : i; render(); refocus(`.symcard[data-i="${i}"]`);
+    if (S.sym >= 0) requestAnimationFrame(() => document.getElementById("sym-results")?.scrollIntoView({ block: "nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }));
+  } }, h("span", {}, txt), h("i", { html: SVG.chev, style: "display:contents" })))));
+  if (S.sym >= 0 && list[S.sym]) {
+    const [txt, ids] = list[S.sym];
+    panel.append(h("div", { class: "results", id: "sym-results", role: "region", "aria-label": txt, style: `--c:${colorOf(BY[ids[0]] || {})}` }, h("h3", {}, txt + ": try these"), cards(ids.map(id => BY[id]).filter(Boolean), { best: true })));
   }
   app.append(panel);
-  const rr = recentRow("Recently copied"); if (rr) app.append(rr);
-}
-function sitCmd(cmd, pick) {
-  const id = findCmd(cmd); const e = id ? BY[id] : null;
-  const text = e && norm(e.cmd) === norm(cmd) && !/[<,]/.test(cmd) ? e.p : cmd;
-  const b = cmdChip(cmd, text, { pick, id: e && text === e.p ? e.id : null });
-  if (!e) return b;
-  return h("span", { class: "opt" }, b, aboutBtn(e.id, e.cmd));
+  app.append(h("section", { class: "block" }, h("h2", {}, "Or browse by area"), h("p", { class: "lede" }, "Each area matches one part of Agent Kit. Its command opens a short menu in your agent; the prompts work without installing anything."),
+    h("div", { class: "doors areadoors" }, AREAS.map(a => h("button", { type: "button", class: "door", style: `--c:${hue(a.key)}`, onclick: () => go("areas", a.key) }, h("b", {}, a.title, h("span", { class: "n" }, countIn(a))), h("span", { class: "d" }, a.cmd ? a.cmd : "Prompts for any agent"))))));
 }
 
-function groupsOf(k) {
-  const order = []; const groups = {};
-  E.filter(e => e.sec === k).forEach(e => { if (!groups[e.group]) { groups[e.group] = []; order.push(e.group); } groups[e.group].push(e); });
-  return order.map(g => [g, groups[g]]);
-}
-const CHIPS = 6;
-function pickGroup(i) { S.lgrp = i; save(); nav(false); render(); }
-function groupSelect(cls, gs, items, label) {
-  const sel = h("select", { "aria-label": label, class: items.some(([i]) => i === S.lgrp) ? "on" : "" });
-  if (cls === "wide") sel.append(h("option", { value: "", disabled: true, selected: !items.some(([i]) => i === S.lgrp) }, "More groups"));
-  items.forEach(([i, name, n]) => { const o = h("option", { value: String(i) }, `${name} (${n})`); if (i === S.lgrp) o.selected = true; sel.append(o); });
-  sel.addEventListener("change", () => { pickGroup(+sel.value); refocus(`.gsel.${cls} select`); });
-  return h("label", { class: "gsel " + cls }, sel);
-}
-function renderLibrary(app) {
-  if (!SEC[S.lsec]) { S.lsec = "inv"; S.lgrp = 0; }
-  const k = S.lsec;
-  app.append(h("h1", { class: "sr" }, "Library"));
-  const counts = {}; E.forEach(e => counts[e.sec] = (counts[e.sec] || 0) + 1);
-  app.append(tablist("sectabs doors", "Sections", SECS.map(([sk, name]) => ({ k: sk, cls: "door", c: SECCOLOR(sk), kids: [h("b", {}, name, h("span", { class: "n" }, counts[sk] || 0))] })), k, sk => { S.lsec = sk; S.lgrp = GROUPED.has(sk) ? 0 : -1; save(); nav(true); render(); refocus(".sectabs [aria-selected=true]"); }));
-  const panel = h("section", { class: "", role: "tabpanel", "aria-label": SEC[k][1], style: `--c:${SECCOLOR(k)}` }, h("p", { class: "sec-line" }, SEC[k][2]));
-  if (GROUPED.has(k)) {
-    const gs = groupsOf(k);
-    if (S.lgrp >= gs.length) S.lgrp = 0;
-    const all = gs.map(([g, list], i) => [i, g, list.length]).concat([[-1, "All", counts[k]]]);
-    const shown = gs.length > CHIPS + 1 ? all.slice(0, CHIPS).concat([all[all.length - 1]]) : all;
-    const rest = all.filter(x => !shown.includes(x));
-    const bar = h("div", { class: "gbar" });
-    bar.append(tablist("gtabs", "Groups", shown.map(([i, g, n]) => ({ k: i, cls: "gtab", kids: [g, h("span", { class: "n" }, n)] })), S.lgrp, i => { pickGroup(i); refocus(".gtabs [aria-selected=true]"); }));
-    if (rest.length) bar.append(groupSelect("wide", gs, rest, "More groups"));
-    bar.append(groupSelect("narrow", gs, all, "Group"));
-    panel.append(bar);
-    const blurbOf = (g, list) => INVLIKE.has(k) ? (LIB.areaBlurb?.[g] || "") : (list[0].gnote || "");
-    if (S.lgrp >= 0) {
-      const [g, list] = gs[S.lgrp]; const bl = blurbOf(g, list);
-      if (bl && bl.length <= 160) panel.append(h("p", { class: "blurb" }, bl));
-      else if (bl) panel.append(h("details", { class: "gabout" }, h("summary", {}, h("i", { html: SVG.chev, style: "display:contents" }), "About " + g), h("p", {}, bl)));
-      panel.append(cards(list));
-    } else gs.forEach(([g, list]) => panel.append(h("div", { class: "gsec" }, h("h3", {}, g, h("span", { class: "n" }, list.length)), cards(list))));
-  } else panel.append(cards(E.filter(e => e.sec === k)));
+function renderAreas(app) {
+  const a = AREAS.find(x => x.key === S.area) || AREAS[0]; if (!a) return;
+  app.append(h("h1", { class: "sr" }, "Areas"));
+  app.append(tablist("sectabs doors", "Areas", AREAS.map(x => ({ k: x.key, cls: "door", c: hue(x.key), kids: [h("b", {}, x.title, h("span", { class: "n" }, countIn(x)))] })), a.key, k => { S.area = k; save(); nav(true); render(); refocus(".sectabs [aria-selected=true]"); }));
+  const panel = h("section", { role: "tabpanel", "aria-label": a.title, style: `--c:${hue(a.key)}` });
+  panel.append(h("div", { class: "panel-head areahead" }, h("h2", {}, a.title), h("p", {}, a.blurb), a.cmd ? h("p", { class: "areacmd" }, "In your agent, type ", h("code", {}, a.cmd), " and say what you want.") : null));
+  if (a.key === "routine" && LIB.routines?.length) panel.append(h("div", { class: "gsec" }, h("h3", {}, "When each kind of check is worth running"), h("div", { class: "cards" }, LIB.routines.map(([k, what, rule]) => h("article", { class: "card rcard" }, h("div", { class: "k" }, k), h("p", {}, what), h("p", { class: "rule" }, rule))))));
+  a.groups.forEach(([title, ref]) => { const list = groupList(ref); if (list.length) panel.append(h("div", { class: "gsec" }, h("h3", {}, title, h("span", { class: "n" }, list.length)), cards(list))); });
   app.append(panel);
 }
 
-function renderChoosing(app) {
-  app.append(h("section", { class: "head" }, h("h1", {}, "Which one?"), h("p", {}, "When two or more commands do the same kind of job, this shows how to choose. For coding work, each investigation lists the commands that help with it.")));
-  app.append(h("div", { class: "cards", style: "grid-template-columns:repeat(auto-fill,minmax(min(100%,460px),1fr))" }, LIB.overlaps.map(([job, opts, pick]) => h("section", { class: "card ov", style: `--c:${SECCOLOR("dcmd")}` }, h("h2", { class: "c-title" }, job),
-    h("ul", { class: "opts" }, opts.map(([cmd, what]) => h("li", {}, sitCmd(cmd), h("span", {}, what)))),
-    h("p", { class: "pickwhen" }, h("b", {}, "Pick: "), pick)))));
-}
-
-function renderStarred(app) {
-  const list = S.stars.map(id => BY[id]).filter(Boolean);
-  app.append(h("section", { class: "head" }, h("h1", {}, "Starred"), h("p", {}, "Star anything to keep it here. Stars are saved in this browser, so each device keeps its own list.")));
-  if (list.length) app.append(cards(list));
-  else {
-    app.append(h("p", { class: "empty" }, "Nothing starred yet. These are good ones to start with:"));
-    app.append(cards(["M07", "R02", "M02"].map(id => BY[id]).filter(Boolean)));
+function renderOther(app) {
+  app.append(h("section", { class: "head" }, h("h1", {}, "Other tools"), h("p", {}, "Commands written by other people, and recipes built from them. They still work if you have them installed. Where Agent Kit now has a job that does the same work, each one names it. This page shrinks as each tool is replaced.")));
+  const groups = [];
+  for (const e of OTHER) {
+    const g = e.sec === "recipe" ? "Design recipes built on these tools" : e.group;
+    let x = groups.find(y => y.g === g); if (!x) groups.push(x = { g, list: [] }); x.list.push(e);
   }
-  const rr = recentRow("Recently copied"); if (rr) app.append(rr);
+  groups.sort((x, y) => y.list.filter(e => CLOSEST[e.id]).length - x.list.filter(e => CLOSEST[e.id]).length);
+  for (const { g, list } of groups) {
+    const n = list.filter(e => CLOSEST[e.id]).length;
+    const about = list.find(e => e.gnote)?.gnote;
+    app.append(h("div", { class: "gsec" }, h("h3", {}, g, h("span", { class: "n" }, list.length + (n ? ` · ${n} with an Agent Kit job` : ""))), about ? h("p", { class: "blurb" }, about) : null, cards(list)));
+  }
 }
 
 function renderSources(app) {
@@ -738,154 +709,93 @@ function renderSources(app) {
   const rows = E.filter(e => e.desk).sort((a, b) => a.desk.cat.localeCompare(b.desk.cat) || a.desk.t.localeCompare(b.desk.t));
   if (!rows.length) return;
   app.append(h("section", { class: "block" }, h("h2", {}, "Desk prompts and their entries"),
-    h("div", { class: "tbl-wrap" }, h("table", { class: "tbl" }, h("thead", {}, h("tr", {}, h("th", {}, "Desk title"), h("th", {}, "Category"), h("th", {}, "Entry"), h("th", {}, "Note"))),
-      h("tbody", {}, rows.map(e => h("tr", {}, h("td", { class: "k" }, e.desk.t), h("td", {}, e.desk.cat), h("td", {}, h("button", { type: "button", onclick: () => openSheet(e.id) }, e.id)), h("td", {}, e.also ? "Also covers " + e.also.join(", ") : ""))))))));
+    h("div", { class: "tbl-wrap" }, h("table", { class: "tbl" }, h("thead", {}, h("tr", {}, h("th", {}, "Desk title"), h("th", {}, "Category"), h("th", {}, "Entry"))),
+      h("tbody", {}, rows.map(e => h("tr", {}, h("td", { class: "k" }, e.desk.t), h("td", {}, e.desk.cat), h("td", {}, h("button", { type: "button", onclick: () => openSheet(e.id) }, nameOf(e))))))))));
 }
 
 function footer() {
+  const n = SHOWN.filter(e => tried(e)).length;
   return h("footer", { class: "foot" },
-    h("p", {}, "Copy puts the text on your clipboard. Nothing is sent anywhere. Stars, recent copies and your last page stay in this browser."),
+    h("p", {}, "Copy puts the text on your clipboard. Nothing is sent anywhere. “Tried on a real project” marks the " + n + (n === 1 ? " entry" : " entries") + " with a recorded run on a real project; the rest have been written and reviewed, not yet run."),
     h("p", {}, h("button", { type: "button", class: "linkbtn", onclick: () => go("sources") }, "Where these came from")));
 }
 
 /* Detail sheet */
-let SH = { id: null, ver: "desk", mode: "read", scope: "repo", proj: [], footer: true, open: false };
-// Opening a sheet adds a Back step, so Back or the iPhone swipe closes it instead of leaving the page.
-let RETURN_FOCUS = null, HIST_CLOSE = false;
+let RETURN_FOCUS = null, HIST_CLOSE = false, SHEET_ID = null, SHEET_PUSHED = false;
+const hashOf = id => "e-" + id.replace(":", "-");
+const idOfHash = hs => { const r = hs.slice(2); return BY[r] ? r : BY[r.replace(/^K-/, "K:")] ? r.replace(/^K-/, "K:") : null; };
 function openSheet(id) {
   const e = BY[id]; if (!e) return;
   const d = $("#sheet"); const already = d.open;
-  const pushed = already ? SH.pushed : false;
-  SH = { id, ver: e.desk ? "desk" : "guide", mode: e.mode || "read", scope: "repo", proj: [], footer: true, open: false, pushed };
-  drawSheet();
+  SHEET_ID = id; drawSheet();
   if (!already) { RETURN_FOCUS = document.activeElement; d.showModal(); }
   $("#sheet-in").scrollTop = 0; $("#sheet-in").focus({ preventScroll: true });
-  if (location.hash.startsWith("#e-")) history.replaceState(null, "", "#e-" + id);
-  else { history.pushState(null, "", "#e-" + id); SH.pushed = true; }
+  if (location.hash.startsWith("#e-")) history.replaceState(null, "", "#" + hashOf(id));
+  else { history.pushState(null, "", "#" + hashOf(id)); SHEET_PUSHED = true; }
 }
 function closeSheet() { const d = $("#sheet"); if (d.open) d.close(); }
 $("#sheet").addEventListener("close", () => {
   if (HIST_CLOSE) HIST_CLOSE = false;
-  else if (location.hash.startsWith("#e-")) { if (SH.pushed) history.back(); else history.replaceState(null, "", "#" + viewHash()); }
-  if (S.view === "starred" && !S.q) render();
+  else if (location.hash.startsWith("#e-")) { if (SHEET_PUSHED) history.back(); else history.replaceState(null, "", "#" + viewHash()); }
+  SHEET_PUSHED = false;
   const f = RETURN_FOCUS; RETURN_FOCUS = null;
   if (f && f.isConnected) f.focus({ preventScroll: true });
 });
 $("#sheet").addEventListener("click", ev => { if (ev.target.id === "sheet") closeSheet(); });
 
-function basePrompt(e) {
-  if (SH.ver === "desk" && e.desk) return e.sec === "inv" ? e.desk.core : e.desk.body;
-  return e.p;
-}
-function composed(e) {
-  const C = LIB.composer;
-  const parts = [basePrompt(e)];
-  if (SH.proj.length) parts.push("Project: " + SH.proj.map(k => LIB.projects[k][0] + " (watch for " + LIB.projects[k][1] + ")").join("; ") + ".");
-  if (C.scope[SH.scope][1]) parts.push(C.scope[SH.scope][1]);
-  parts.push(C.mode[SH.mode][1]);
-  if (e.iso) parts.push("Anything that changes state, such as a rebuild, replay or migration test, runs only on a separate database with safe test data, never on production.");
-  if (e.ev) parts.push("Evidence I expect: " + e.ev);
-  if (e.blind) parts.push("Watch out: " + e.blind);
-  if (e.avoid) parts.push("Avoid: " + e.avoid);
-  if (SH.footer) parts.push(C.footer);
-  return parts.join("\n\n");
-}
-function seg(label, options, cur, onpick) {
-  return h("div", { class: "seg", role: "group", "aria-label": label }, options.map(([k, l]) => h("button", { type: "button", "aria-pressed": cur === k ? "true" : "false", onclick: () => onpick(k) }, l)));
-}
-function relChips(ids) { return h("div", { class: "rel" }, ids.filter(id => BY[id]).map(id => h("button", { type: "button", class: "chip", onclick: () => openSheet(id) }, h("span", { class: "n" }, id), BY[id].t))); }
-function facts(rows) { return h("dl", { class: "facts" }, rows.filter(Boolean).flatMap(([k, v]) => [h("dt", {}, k), h("dd", {}, v)])); }
+function relChips(ids) { return h("div", { class: "rel" }, ids.filter(id => BY[id] && !NOT_SHOWN[id]).map(id => h("button", { type: "button", class: "chip", onclick: () => openSheet(id) }, nameOf(BY[id])))); }
+function facts(rows) { return h("dl", { class: "facts" }, rows.filter(r => r && r[1]).flatMap(([k, v]) => [h("dt", {}, k), h("dd", {}, v)])); }
 function sub(title, node) { return h("div", {}, h("p", { class: "sub-h" }, title), node); }
 
 function drawSheet() {
-  const e = BY[SH.id]; const box = $("#sheet-in");
-  box.innerHTML = ""; box.style.setProperty("--c", SECCOLOR(e.sec));
-  const meta = h("div", { class: "sh-meta" }, h("span", { class: "badge" }, e.id), h("span", {}, SEC[e.sec][1]), e.group && e.group !== SEC[e.sec][1] ? h("span", {}, e.group) : null, e.desk ? h("span", { class: "tag" }, "In Desk · " + e.desk.cat) : null, e.aka ? h("span", {}, "Field guide name: " + e.aka) : null);
+  const e = BY[SHEET_ID]; const box = $("#sheet-in");
+  box.innerHTML = ""; box.style.setProperty("--c", colorOf(e));
+  const a = areaOf(e);
+  const meta = h("div", { class: "sh-meta" }, mark(e), h("span", {}, a ? a.title + (e.group && e.sec === "keen" ? " · " + e.group : "") : "Other tools"), e.desk ? h("span", { class: "tag" }, "In Desk · " + e.desk.cat) : null);
   box.append(h("div", { class: "sh-head" },
-    h("div", { class: "hd" }, h("h2", { id: "sheet-title", class: isCode(e) ? "code" : "" }, e.t), meta, e.why && e.sec !== "think" ? h("p", { class: "sh-why" }, e.why) : null),
-    star(e.id, e.t), h("button", { type: "button", class: "x", "aria-label": "Close", html: SVG.x, onclick: closeSheet })));
+    h("div", { class: "hd" }, h("h2", { id: "sheet-title", class: isCode(e) ? "code" : "" }, nameOf(e)), meta, lineOf(e) ? h("p", { class: "sh-why" }, lineOf(e)) : null),
+    h("button", { type: "button", class: "x", "aria-label": "Close", html: SVG.x, onclick: closeSheet })));
+  if (tried(e)) box.append(h("p", { class: "note" }, h("b", {}, "Tried on a real project. "), tried(e)));
+  const c = CLOSEST[e.id];
+  if (c) box.append(h("p", { class: "note" }, h("b", {}, "Agent Kit job that does this: "), closestLink(c), ". This command comes from another author and is kept here for people who still use it."));
 
-  if (e.flow) {
-    box.append(h("ol", { class: "steps" }, e.flow.map(([label, ids, note]) => h("li", {}, h("div", { class: "sb" }, h("b", {}, label), ids.length ? relChips(ids) : null, h("span", { class: "for" }, note))))));
-    box.append(h("p", { class: "prompt" }, e.p));
-    box.append(h("div", { class: "acts" }, copyBtn("Copy whole workflow", e.p, { primary: true, id: e.id, toast: "Copied " + e.t })));
-    box.append(h("p", { class: "note" }, "The copied text includes each prompt in full, so it works in any agent without this page."));
-  }
-  if ((INVLIKE.has(e.sec) && !e.flow) || e.sec === "think" || e.sec === "desk") {
-    if (e.desk && e.sec !== "desk") box.append(seg("Wording", [["desk", "Desk wording"], ["guide", "Guide wording"]], SH.ver, k => { SH.ver = k; drawSheet(); }));
-    const text = INVLIKE.has(e.sec) ? basePrompt(e) : (SH.ver === "desk" && e.desk ? e.desk.body : e.p);
-    box.append(h("p", { class: "prompt" }, text));
-    box.append(h("div", { class: "acts" }, copyBtn("Copy this wording", text, { primary: true, id: e.id, toast: "Copied “" + e.t + "”" })));
-    if (e.use) box.append(h("p", { class: "note" }, h("b", {}, "When to use. "), e.use));
-    if (e.desk && e.sec === "inv" && SH.ver === "desk" && e.desk.body.slice(e.desk.core.length).trim()) box.append(h("p", { class: "note" }, "In Desk this prompt also ends with: “" + e.desk.body.slice(e.desk.core.length).trim() + "” The fuller prompt below adds a matching line for the option you pick."));
-    if (e.also) box.append(h("p", { class: "note" }, "The Desk wording also covers " + e.also.map(id => id + " (" + BY[id].t + ")").join(", ") + "."));
-  }
-  if (e.sec === "db" && !e.flow) {
-    box.append(facts([
-      ["What it should bring back", e.ev], ["Skip it when", e.skip], ["Common overreach", e.avoid], ["What you need", e.tools],
-      ["How it runs", modeLabel(e) + ". " + (e.iso ? "Reads production, and runs any rebuild or replay on a separate database you approve." : "Reads only. Nothing in production changes.")],
-      ["Works with", e.plat], ["Install", "Nothing. It is a plain prompt for any agent."]]));
-    const refs = (e.refs || []).filter(k => LIB.dbTools?.[k]);
-    if (refs.length) box.append(sub("Tools that can help (installed separately)", h("ul", { class: "reflist" }, refs.map(k => { const [name, url, what] = LIB.dbTools[k]; return h("li", {}, h("a", { href: url, target: "_blank", rel: "noopener" }, name), h("span", {}, what)); }))));
-    if (refs.length && LIB.dbToolsVerified) box.append(h("p", { class: "note" }, "Install steps last checked " + LIB.dbToolsVerified + ". Follow the linked page if they have changed."));
-  }
-  if (INVLIKE.has(e.sec) && !e.flow) {
-    if (e.sec === "inv") box.append(facts([
-      ["What it should bring back", e.ev], ["Skip it when", e.skip], ["What you need", e.tools],
-      ["How it runs", MODES[e.mode] + ". " + TOPO[e.top] + ". " + (e.scope === "wide" ? "Looks across the whole project." : "Looks at one area.")],
-      ["Most useful for", (e.proj || []).filter(k => LIB.projects?.[k]).length ? e.proj.filter(k => LIB.projects?.[k]).map(k => LIB.projects[k][0]).join(", ") : "Any project"],
-      e.kit.length ? ["Skills that help", h("div", {}, e.kit.map(k => { const id = findCmd(k); return id ? h("button", { type: "button", class: "cmd", onclick: () => openSheet(id) }, k) : h("span", { class: "cmd" }, k); }))] : null]));
-    if (e.blind) box.append(h("p", { class: "note" }, h("b", {}, "Where agents slip up. "), e.blind));
-    if (e.runs) box.append(h("p", { class: "note" }, h("b", {}, "Past runs. "), ...e.runs.flatMap(([n, u], i) => [i ? ", " : "", h("a", { href: u, target: "_blank", rel: "noopener" }, n)])));
-    const C = LIB.composer;
-    const out = h("pre", { class: "out" }, composed(e));
-    let cbtn = copyBtn("Copy full prompt", composed(e), { primary: true, toast: "Copied full " + e.id });
-    const refresh = () => { out.textContent = composed(e); const n = copyBtn("Copy full prompt", composed(e), { primary: true, toast: "Copied full " + e.id }); cbtn.replaceWith(n); cbtn = n; };
-    const projBox = h("div", { class: "checks" }, Object.entries(LIB.projects || {}).map(([k, [name]]) => {
-      const inp = h("input", { type: "checkbox", id: "pj-" + k }); inp.checked = SH.proj.includes(k);
-      inp.addEventListener("change", () => { SH.proj = inp.checked ? [...SH.proj, k] : SH.proj.filter(x => x !== k); refresh(); });
-      return h("label", { for: "pj-" + k }, inp, name);
-    }));
-    const ft = h("input", { type: "checkbox", id: "pj-footer" }); ft.checked = SH.footer;
-    ft.addEventListener("change", () => { SH.footer = ft.checked; refresh(); });
-    const det = h("details", { class: "composer" }, h("summary", {}, h("i", { html: SVG.chev, style: "display:contents" }), "Build a fuller prompt", h("span", {}, "choose what it may change, how far it looks, which project")),
-      h("div", { class: "cbody" },
-        h("div", { class: "crow" }, h("span", { class: "lab" }, "Changes"), seg("Mode", Object.entries(C.mode).map(([k, v]) => [k, v[0]]), SH.mode, k => { SH.mode = k; SH.open = true; drawSheet(); })),
-        h("div", { class: "crow" }, h("span", { class: "lab" }, "How far"), seg("Scope", Object.entries(C.scope).map(([k, v]) => [k, v[0]]), SH.scope, k => { SH.scope = k; SH.open = true; drawSheet(); })),
-        Object.keys(LIB.projects || {}).length ? h("div", { class: "crow" }, h("span", { class: "lab" }, "Project"), projBox) : null,
-        h("div", { class: "crow" }, h("span", { class: "lab" }, "Ending"), h("div", { class: "checks" }, h("label", { for: "pj-footer" }, ft, "End with a table for my playbook"))),
-        out, h("div", { class: "acts" }, cbtn)));
-    if (SH.open) det.open = true;
-    det.addEventListener("toggle", () => { SH.open = det.open; });
+  const text = copyText(e);
+  box.append(h("p", { class: "sub-h" }, e.sec === "keen" ? "Type this in your agent" : isCode(e) ? (e.sec === "dcmd" && e.p !== e.cmd ? "An example to paste" : "Type this in your agent") : "What gets copied"));
+  box.append(h("p", { class: "prompt" + (isCode(e) ? " code" : "") }, text));
+  box.append(h("div", { class: "acts" }, copyBtn(copyLabel(e), text, { primary: true, toast: "Copied " + nameOf(e) })));
+  if (!isCode(e) && e.sec !== "think" && e.sec !== "recipe") box.append(h("p", { class: "note" }, "The copied text already says what the agent may change, what to bring back, when to stop, and to start its report in plain English."));
+
+  if (e.flow) box.append(sub("The steps", h("ol", { class: "steps" }, e.flow.map(([label, ids, note]) => h("li", {}, h("div", { class: "sb" }, h("b", {}, label), ids.length ? relChips(ids) : null, h("span", { class: "for" }, note)))))));
+  if (e.steps) box.append(sub("The steps", h("ol", { class: "steps" }, e.steps.map(([cmd, why]) => { const id = findCmd(cmd); return h("li", {}, h("div", { class: "sb" }, id ? h("button", { type: "button", class: "cmd", onclick: () => openSheet(id) }, cmd) : h("span", { class: "cmd" }, cmd), h("span", { class: "for" }, why))); }))));
+
+  box.append(facts([
+    ["What you get", getsBack(e)],
+    ["Use it when", e.sec === "keen" ? e.use : e.sec === "think" ? (e.line ? e.use : null) : e.line ? e.why : null],
+    ["What it should bring back", e.ev],
+    ["Skip it when", e.skip || e.skipw],
+    ["Best for", e.best],
+    ["What you need", e.tools],
+    ["Works with", e.plat],
+    ["Where it comes from", kindLine(e)],
+  ]));
+  if (e.blind) box.append(h("p", { class: "note" }, h("b", {}, "Where agents slip up. "), e.blind));
+  if (e.avoid) box.append(h("p", { class: "note" }, h("b", {}, "Common overreach. "), e.avoid));
+  if (e.runs) box.append(h("p", { class: "note" }, h("b", {}, "Past runs. "), ...e.runs.flatMap(([n, u], i) => [i ? ", " : "", h("a", { href: u, target: "_blank", rel: "noopener" }, n)])));
+  const refs = (e.refs || []).filter(k => LIB.dbTools?.[k]);
+  if (refs.length) box.append(sub("Tools that can help (installed separately)", h("ul", { class: "reflist" }, refs.map(k => { const [name, url, what] = LIB.dbTools[k]; return h("li", {}, h("a", { href: url, target: "_blank", rel: "noopener" }, name), h("span", {}, what)); }))));
+  if (e.sec === "keen") {
+    const det = h("details", { class: "composer" }, h("summary", {}, h("i", { html: SVG.chev, style: "display:contents" }), "No Agent Kit? Copy the full instructions", h("span", {}, "works in any agent")),
+      h("div", { class: "cbody" }, h("pre", { class: "out" }, e.full), h("div", { class: "acts" }, copyBtn("Copy full instructions", e.full, { primary: true, toast: "Copied the full " + e.cmd + " instructions" }))));
     box.append(det);
   }
-  if (e.sec === "dcmd") {
-    box.append(h("p", { class: "prompt code" }, e.p));
-    box.append(h("div", { class: "acts" }, copyBtn("Copy example prompt", e.p, { primary: true, id: e.id, toast: "Copied example" }), cmdChip(e.cmd, e.cmd)));
-    box.append(facts([["What it does", e.dmode], ["Comes from", e.group + (e.badge ? " · " + e.badge : "")], e.best ? ["Best for", e.best] : null, e.skipw ? ["Skip it for", e.skipw] : null]));
-    if (e.note) box.append(h("p", { class: "note" }, e.note));
-    const sibs = E.filter(x => x.sec === "dcmd" && x.group === e.group && x.id !== e.id).slice(0, 12);
-    if (sibs.length) box.append(sub("More from " + e.group, relChips(sibs.map(x => x.id))));
-  }
-  if (e.sec === "ecmd") {
-    box.append(h("div", { class: "acts" }, copyBtn("Copy " + e.cmd, e.cmd, { primary: true, toast: "Copied " + e.cmd })));
-    box.append(facts([["Comes from", e.group + " · " + e.badge], ["About it", e.gnote]]));
-  }
-  if (e.sec === "recipe") {
-    box.append(h("ol", { class: "steps" }, e.steps.map(([cmd, why]) => {
-      const id = findCmd(cmd);
-      return h("li", {}, h("div", { class: "sb" }, h("span", { class: "opt" }, cmdChip(cmd, cmd), id ? aboutBtn(id, cmd) : null), h("span", { class: "for" }, why)));
-    })));
-    box.append(h("p", { class: "prompt" }, e.p));
-    box.append(h("div", { class: "acts" }, copyBtn("Copy whole recipe", e.p, { primary: true, id: e.id, toast: "Copied " + e.t })));
-  }
-  if (e.dmode && e.sec !== "dcmd") box.append(facts([["What it does", e.dmode]]));
-  const rel = e.flow ? [] : (e.rel || []).filter(id => BY[id]);
-  if (rel.length) box.append(sub(e.sec === "ecmd" ? "Prompts it helps with" : "Related", relChips(rel)));
-  if (INVLIKE.has(e.sec)) {
+  if (e.note && !AREA_OF[e.id]) box.append(h("p", { class: "note" }, e.note));
+  const rel = (e.rel || []).filter(id => BY[id]);
+  if (rel.length && !e.flow) box.append(sub(e.sec === "ecmd" ? "Prompts it helps with" : "Related", relChips(rel)));
+  if (e.sec === "inv" || e.sec === "db") {
     const tools = E.filter(x => x.sec === "ecmd" && (x.rel || []).includes(e.id));
     if (tools.length) box.append(sub("Commands that help", relChips(tools.map(x => x.id))));
   }
+  if (e.sec !== "keen") box.append(h("p", { class: "idline" }, "Library ID " + e.id));
   box.append(h("div", { class: "sh-bottom" }, h("button", { type: "button", class: "details", onclick: closeSheet }, "Close")));
 }
 
@@ -897,18 +807,19 @@ const q = $("#q");
 q.addEventListener("input", () => { S.q = q.value.trim(); $("#clear").hidden = !S.q; $("#kbd").hidden = !!S.q; render(); window.scrollTo(0, 0); });
 q.addEventListener("keydown", ev => {
   if (ev.key === "Escape" && q.value) { ev.preventDefault(); clearSearch(); $("#status").textContent = ""; render(); }
-  if (ev.key === "Enter" && S.q) { const first = searchList()[0]; if (first) { ev.preventDefault(); copy(copyText(first), null, "Copied best match: “" + first.t + "”").then(ok => ok && noteCopy(first.id)); } }
+  if (ev.key === "Enter" && S.q) { const first = searchList()[0]; if (first) { ev.preventDefault(); copy(copyText(first), null, "Copied best match: " + nameOf(first)); } }
 });
 $("#clear").addEventListener("click", () => { clearSearch(); render(); q.focus(); });
 document.addEventListener("keydown", ev => { if (ev.key === "/" && document.activeElement !== q && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "") && !$("#sheet").open) { ev.preventDefault(); q.focus(); } });
 function fromHash() {
   const hs = decodeURIComponent(location.hash.slice(1));
-  if (hs.startsWith("e-") && BY[hs.slice(2)]) { if (!$("#sheet").open) { if (RENDERED !== viewHash()) render(); openSheet(hs.slice(2)); } return; }
+  if (hs.startsWith("e-") && idOfHash(hs)) { if (!$("#sheet").open) { if (RENDERED !== viewHash()) render(); openSheet(idOfHash(hs)); } return; }
   if ($("#sheet").open) { HIST_CLOSE = true; closeSheet(); }
   if (hs && hs === RENDERED) return;
-  if (setLib(hs)) { S.view = "library"; clearSearch(); save(); render(); window.scrollTo(0, 0); return; }
-  if (hs === "recipes") { go("library", "s-recipe"); return; }
-  if (VIEWS.includes(hs)) S.view = hs;
+  // Closing a sheet steps back to the current view; a search typed meanwhile stays.
+  if (S.q && hs === viewHash()) return;
+  if (hs.startsWith("a-") && AREAS.some(a => a.key === hs.slice(2))) { S.view = "areas"; S.area = hs.slice(2); clearSearch(); save(); render(); window.scrollTo(0, 0); return; }
+  if (["start", "areas", "other", "sources"].includes(hs)) { S.view = hs; clearSearch(); }
   render();
 }
 addEventListener("hashchange", fromHash);
