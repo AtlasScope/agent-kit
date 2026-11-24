@@ -20,6 +20,14 @@ function retiredAreaRedirects() {
   return retired.map((slug) => ({ source: `/prompts/${slug}`, destination: "/prompts#dcmd", permanent: true }));
 }
 
+// The library's old groups became categories; each old group page points at its new category.
+function oldAreaRedirects() {
+  const file = path.join(process.cwd(), "content", "generated.json");
+  if (!fs.existsSync(file)) return [];
+  const { oldAreas = [] } = JSON.parse(fs.readFileSync(file, "utf8")) as { oldAreas?: { from: string; to: string }[] };
+  return oldAreas.map(({ from, to }) => ({ source: `/prompts/${from}`, destination: `/prompts/${to}`, permanent: true }));
+}
+
 const config: NextConfig = {
   async redirects() {
     // Clerk's production instance only runs on atlasscope.dev, so account pages on *.vercel.app
@@ -28,7 +36,7 @@ const config: NextConfig = {
     const toSite = ["/sign-in/:path*", "/account", "/collections/:path*"].map((source) => ({
       source, has: vercelHost, destination: `${SITE_URL}${source}`, permanent: false,
     }));
-    return [...toSite, ...idRedirects(), ...retiredAreaRedirects()];
+    return [...toSite, ...idRedirects(), ...retiredAreaRedirects(), ...oldAreaRedirects()];
   },
   // Preview and *.vercel.app hosts serve the same pages as www.atlasscope.dev; keep them out of search results.
   async headers() {

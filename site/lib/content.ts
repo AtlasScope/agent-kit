@@ -8,6 +8,8 @@ export type Prompt = {
   aka?: string; src?: string; use?: string; cmd?: string; sub?: string; gnote?: string; best?: string; skipw?: string; note?: string;
   badge?: string; dmode?: string; mode?: string; top?: string; scope?: string; iso?: boolean;
   steps?: [string, string][]; flow?: [string, string, string][]; tags?: string;
+  line?: string; when?: string; fresh?: boolean; replacedBy?: string; split?: boolean;
+  planSteps?: { label: string; note: string; slug: string | null; kind: "command" | "prompt" | "step"; copy: string | null }[];
   related: string[]; skills: string[];
 };
 export type Skill = {
@@ -28,6 +30,8 @@ const C = data as unknown as {
 export const sections = C.sections;
 export const areas = C.areas;
 export const prompts = C.prompts;
+// Entries the library replaced keep their page but leave lists, search and the sitemap.
+export const listed = prompts.filter((p) => !p.replacedBy);
 export const skills = C.skills;
 export const kits = C.kits;
 export const fixes = C.fixes;
@@ -60,7 +64,14 @@ export const authors = () => {
 export const copyText = (p: Prompt) => composeCopy(p);
 export const isCommand = (p: Prompt) => p.sec === "ecmd" || p.sec === "dcmd";
 export const kindLabel = (p: Prompt) =>
-  ({ ecmd: "Command", dcmd: "Command", recipe: "Recipe", think: "Thinking prompt" } as Record<string, string>)[p.sec] || "Prompt";
+  ({ ecmd: "Command", dcmd: "Command", recipe: "Older recipe", plan: "Recipe", think: "Way of working" } as Record<string, string>)[p.sec] || "Investigation";
+// What a card or page says the entry does, and when to reach for it.
+export const whatOf = (p: Prompt) => p.line || p.why || p.use || "";
+export const whenOf = (p: Prompt) => {
+  const w = (p.when || (p.line ? p.use : "") || "").replace(/^Use it (when )?/i, "").trim();
+  return w ? w[0].toUpperCase() + w.slice(1).replace(/([^.!?])$/, "$1.") : "";
+};
+export const copyLabel = (p: Prompt) => (p.sec === "plan" ? (p.split ? "Copy step 1" : "Copy recipe") : p.steps ? "Copy recipe" : p.sec === "ecmd" ? "Copy command" : "Copy prompt");
 
 export const MODES: Record<string, string> = { read: "Changes nothing", repro: "Adds a test that shows it", change: "Suggests a fix" };
 export const TOPO: Record<string, string> = { single: "One session", split: "Look first, then fix in a new session" };
@@ -73,5 +84,5 @@ export function skillInstall(s: Skill) {
 }
 
 // Ranked search lives in lib/search.ts so tests can run it on the built content.
-const ranked = makeSearch(prompts, skills);
+const ranked = makeSearch(listed, skills);
 export const search = (q: string, limit = 10) => ranked(q, limit);

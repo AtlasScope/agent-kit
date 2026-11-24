@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { execSync } from "node:child_process";
 import { SITE } from "@/lib/site";
-import { prompts, areas, skills, kits, fixes } from "@/lib/content";
+import { listed, areas, skills, kits, fixes } from "@/lib/content";
 import { STEPS } from "@/lib/start";
 import { LESSONS } from "@/lib/lessons";
 
@@ -26,7 +26,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...fixes.map((f) => ({ url: u(`/fix/${f.slug}`), lastModified: lib, priority: 0.8 })),
     ...kits.map((k) => ({ url: u(`/kits/${k.name}`), lastModified: gitDate(`kits/${k.name}`) || now, priority: 0.7 })),
     ...areas.map((a) => ({ url: u(`/prompts/${a.slug}`), lastModified: lib, priority: 0.6 })),
-    ...prompts.map((p) => ({ url: u(`/prompts/${p.slug}`), lastModified: lib, priority: 0.6 })),
+    ...listed.map((p) => ({ url: u(`/prompts/${p.slug}`), lastModified: lib, priority: 0.6 })),
     ...skills.map((s) => ({ url: u(`/skills/${s.name}`), lastModified: gitDate(s.sourcePath) || now, priority: 0.6 })),
   ];
 }

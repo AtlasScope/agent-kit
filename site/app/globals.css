@@ -319,6 +319,13 @@ svg.i { width: 16px; height: 16px; flex: none; }
 .pid { font: 600 0.75rem/1 var(--font-mono); padding: 4px 6px; border-radius: 5px; color: var(--color-ink-2); background: var(--color-paper-3); border: 1px solid var(--color-rule); }
 .best { color: var(--color-ink); font-weight: 650; }
 .pcard__d { color: var(--color-ink-2); font-size: 0.9375rem; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.pcard__w { color: var(--color-muted); font-size: 0.875rem; line-height: 1.5; margin-top: -2px; }
+.pcard__w b { font-weight: 600; color: var(--color-ink-2); }
+.replaced { border: 1px solid var(--color-rule); border-radius: 10px; padding: 12px 14px; margin-top: 12px; }
+.plan-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.plan-steps li { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 10px 0; border-bottom: 1px solid var(--color-rule-2); }
+.plan-steps .muted { display: block; }
+@media (max-width: 640px) { .plan-steps li { grid-template-columns: 28px minmax(0, 1fr); } .plan-steps li > :last-child { grid-column: 2; justify-self: start; } }
 .pcard__a { display: flex; gap: var(--space-xs); margin-top: auto; padding-top: 4px; }
 .pcard__a .btn { min-height: 36px; font-size: var(--text-sm); }
 .scard .pcard__t { display: flex; align-items: center; }
