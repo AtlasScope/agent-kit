@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { CopyButton } from "@/components/CopyButton";
 import "./ds.css";
+import { CodeWithFloat } from "./Float";
 
 // The design-system contract as a page: every token and primitive page lanes may use, rendered with the real CSS.
 // Not for visitors: noindex, and app/sitemap.ts lists routes explicitly, so it stays out of the sitemap.
@@ -37,6 +38,12 @@ export default function DesignSystem() {
         <h1>Design system</h1>
         <p className="lead">The tokens and primitives every interior page uses, drawn with the site’s own CSS. The written contract is DESIGN-CONTRACT.md at the repository root.</p>
       </header>
+
+      <section className="section" aria-labelledby="ds-code">
+        <h2 id="ds-code">Code</h2>
+        <CodeWithFloat />
+        <p className="ds-note">Scroll this block’s Copy behind the header to see FloatingCopy.</p>
+      </section>
 
       <section className="section" aria-labelledby="ds-colour">
         <h2 id="ds-colour">Colour</h2>
@@ -102,13 +109,6 @@ export default function DesignSystem() {
         </div>
       </section>
 
-      <section className="section" aria-labelledby="ds-code">
-        <h2 id="ds-code">Code</h2>
-        <div className="block">
-          <div className="block__head"><span>Terminal</span><CopyButton text="claude plugin marketplace add AtlasScope/agent-kit" /></div>
-          <pre>claude plugin marketplace add AtlasScope/agent-kit</pre>
-        </div>
-      </section>
     </main>
   );
 }

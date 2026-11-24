@@ -103,7 +103,7 @@ Smoke files in `site/tests/smoke/` run in parallel, and each starts its own `nex
 These are used across page families and by the homepage handoff. Their exported names, props and output must not change without the coordinator's sign-off. Styling around them is fine.
 
 - `components/Cards.tsx`: `PromptCard`, `PromptCards({ slugs, rank })`, `SkillCards({ names, kit })`, `StartCard`, `firstSentence`.
-- `components/CopyButton.tsx`: `CopyButton({ text, label, className, icon, name })`, its `data-copied` attribute and its live-region label text.
+- `components/CopyButton.tsx`: `CopyButton({ text, label, className, icon, name })`, its `data-copied` attribute (set while "Copied" shows), its `data-blocked` attribute (set while "Copy blocked: select the text" shows) and its live-region label text. React to the attributes, not the label.
 - `lib/copy.ts`: everything. It composes the exact prompt payloads people copy.
 - `lib/site.ts`: `SITE`, `INSTALL_MESSAGE`, `kitInstallMessage`, `AGENTS` (install commands), `KITS`, `KIT_GUIDE`, `installMd`. Install commands and messages are byte-for-byte contracts.
 - `components/install-choice.ts`: the Home to Install handoff (`saveHandoff`, `readHandoff`, `clearHandoff`, `lastAgent`, `commandFor`, `AGENT_KEY` and the session key it writes). Fable's homepage track depends on it.
@@ -116,7 +116,7 @@ The homepage artwork, renderer and composition (`components/orbit/`, `components
 ## Rules for page families
 
 1. Use tokens, never raw values. Colours come from `--c-*` (or, in older CSS, the `--color-*` aliases). Sizes from `--type-*`, spacing from `--space-N`, radii from `--radius-*`, durations from `--dur-*`. A raw hex or pixel value in a page file needs a comment saying why.
-2. Use primitives before writing new controls: `.btn` (`--primary`, default, `--ghost`, `--danger`, `--sm`, `--lg`), `.iconbtn`, `.input`, `.chip`, `.tag`, `.kbd`, `.block` (code with a head and Copy), `.cmdline`, `.menu__pop`, `.led`. If a primitive is missing, ask for it.
+2. Use primitives before writing new controls: `.btn` (`--primary`, default, `--ghost`, `--danger`, `--sm`, `--lg`), `.iconbtn`, `.input`, `.chip`, `.tag`, `.kbd`, `.block` (code with a head and Copy), `.cmdline`, `.menu__pop`, `.led`, and `FloatingCopy` (`components/ui/FloatingCopy.tsx`: `FloatingCopy({ anchor, text, title, detail?, name?, label? })`, a fixed Copy bar that shows once `anchor` scrolls behind the header; under the header on a computer, along the bottom on a phone; inert while hidden; styled by `.fcopy`). If a primitive is missing, ask for it.
 3. Colour means something. Green (`--c-signal`) only for a state that is true now: copied, tested, finished, current. Never a fill, a wash, a border glow or a large text colour. Amber (`--c-warm`) for what the visitor kept or chose. Red only for destructive actions and errors. The main action is neutral (ink on light, white on dark).
 4. Hairlines before shadows, flat before glass. No gradients, glows, neon edges or decorative blur on interior pages.
 5. One `h1` per page in the display face; `h2`/`h3` in the body face at the token sizes.

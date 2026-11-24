@@ -11,3 +11,4 @@
 .ds-boxes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 9rem), 1fr)); gap: var(--space-4); margin: var(--space-4) 0 0; padding: 0; list-style: none; }
 .ds-boxes li { display: grid; place-items: center; height: 5rem; border: 1px solid var(--c-line-2); background: var(--c-surface); }
 .ds-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.ds-note { margin: 0; color: var(--c-fg-3); font-size: var(--type-xs); }
