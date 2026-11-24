@@ -19,7 +19,7 @@ Taken for the redesign, from the founder's brief, the dossier (v0.9) and the ben
 | Phone menu | Fills the screen: section links large, then Kits, Learn, Connect your agent, GitHub, About, then a full-width Install. GitHub leaves the bar under 40rem. |
 | Type | Montserrat 600 for page titles only. Geist for everything else; section headings 600 (was 650). Geist Mono for payloads, commands and ids. |
 | Section hues | Kept, as small flat dots (no gloss). |
-| Home and the quiet stage | Unchanged palette, including the green main action, until Fable's track decides. |
+| Home and the quiet stage | The dark stage covers Home and `/install` only. It keeps main's palette and button look, including the green main action, until Fable's track decides. `/start` follows the system light or dark like every other interior page. |
 | First frame | Interior pages show real content in the first viewport: title, one line, then the thing itself. No hero blocks on interior pages. |
 
 ## Tokens
@@ -39,45 +39,71 @@ All in `site/app/styles/tokens.css`. Use these names in new CSS.
 
 The older `--color-*`, `--space-xs…2xl`, `--text-*`, `--lift*`, `--led*` and `--accent-*` names still work and resolve to the tokens above. Don't add new uses of them.
 
-## Stylesheets
+## Stylesheets and owners
 
-`site/app/globals.css` is only an index. It imports `site/app/styles/*.css` in this order, and the order is part of the cascade (later files win ties):
+`site/app/globals.css` is only an index. It imports these `site/app/styles/*.css` files in this order, and the order is part of the cascade (later files win ties). Every lane has its own file; edit only yours.
 
 | File | Holds | Owner |
 |---|---|---|
-| `tokens.css` | Custom properties only: colour, type, space, shape, depth, motion, legacy aliases | Design system |
-| `base.css` | Element defaults, focus, selection, container, skip link, reduced motion | Design system |
-| `primitives.css` | Buttons, copy, chips, tags, inputs, kbd, menus, stars, dots, LED, code blocks | Design system |
-| `shell.css` | Header, navigation, menu sheet, header search field and results, footer | Design system (search results: search lane, see below) |
-| `layout.css` | Page scaffolding: `.page`, `.page-head`, `.section`, `.sec-head`, `.list`, `.grid` | Design system |
-| `guides.css` | Start and Learn guides, welcome offer | Start/Learn/Fix lane |
-| `docs.css` | About, Privacy, Terms | Utility lane |
-| `account.css` | Sign in, Collections | Collections/account lane |
-| `quiet.css` | The dark stage behind `/install` and `/start` | Install lane, coordinated with Fable |
-| `library.css` | Tiles, rows, prompt and skill cards, starting points, browse index | Prompt browsing lane (cards shared with skills browsing, see Cards.tsx) |
-| `detail.css` | Facts, credit, prose, two-column detail, kit contents, kit install | Detail lanes (prompt detail and skill/kit detail share it; coordinate) |
+| `tokens.css` | Custom properties only: colour, type, space, shape, depth, motion, legacy aliases, the stage palette | W1 design system |
+| `base.css` | Element defaults, focus, selection, container, skip link, reduced motion | W1 |
+| `primitives.css` | Buttons, copy, chips, tags, inputs, kbd, menus, stars, dots, LED, code blocks, text utilities | W1 |
+| `shell.css` | Icon buttons, header, navigation, phone menu sheet, footer | W2 shell |
+| `search.css` | Header search field and results popover | W3 search |
+| `layout.css` | Page scaffolding: `.page`, `.page-head`, `.section`, `.list`, `.grid` | W1 |
+| `library.css` | Cards, tiles, prompt and skill cards, starting points, browse index | W4 prompt browsing |
+| `skills.css` | Selectors only skills and kits pages use (`.sec-head`, kit rows) | W6 skills and kits browsing |
+| `detail-prompt.css` | Prompt-only detail blocks | W5 prompt detail |
+| `detail-skill.css` | Facts, credit, prose, two-column detail, kit contents, kit install | W7 skill and kit detail |
+| `guide.css` | Start and Learn guides, welcome offer | W8 |
+| `reading.css` | About, Privacy, Terms | W10 accounts and utility pages |
+| `account.css` | Sign in, Collections | W10 |
+| `quiet.css` | The dark stage behind `/install` | W9 install |
+| `overrides.css` | The 10 grouped rules whose selectors span several lanes' files. Loads last so they keep winning as they did in the single file | Coordinator |
 
-Route-only CSS stays beside its route: `app/launch.css` (Home, Fable), `app/install/install.css` (Install), `app/start/start.css` (Start). A lane that needs new page CSS adds a colocated file for its route (for example `app/fix/fix.css`, imported from that route's page) instead of growing a shared file.
+A rule in `overrides.css` belongs to the coordinator. To change one, ask; the coordinator may move it into your file once the screenshot gate shows no change.
 
-The split from the old single `globals.css` was mechanical: rules moved between files only where the cascade order of every overlapping rule stayed the same, and 32 production-build captures (10 routes, desktop and phone, light and dark) were pixel-identical before and after.
+Route-only CSS stays beside its route: `app/launch.css` (Home, Fable), `app/install/install.css` (W9), `app/start/start.css` and `app/fix/fix.css` (W8). A lane that needs new page CSS for one route adds a colocated file for it instead of growing a shared file.
 
-## Shared files only the design system edits
+Both splits from the old single `globals.css` were mechanical. Rules moved only where the cascade order of every overlapping rule stayed the same, and production-build captures (16 routes; desktop light and dark, phone light, plus phone dark for two routes; 50 images) were pixel-identical before and after.
 
-- `site/app/layout.tsx`
-- `site/app/globals.css` and `site/app/styles/{tokens,base,primitives,shell,layout}.css`
-- `site/components/Nav.tsx`, `NavLinks.tsx`, `NavMenu.tsx`, `Footer.tsx`, `AtlasScopeLogo.tsx` (generated, never hand-edited), `CopyButton.tsx`, `Crumbs.tsx`, `Pop.tsx`
-- `DESIGN.md`, this file
+## Lanes and their files
 
-Need a change in one of these? Ask the design-system lane with the exact selector or prop you need. Don't patch around it with a higher-specificity override in your own file.
+| Lane | Files |
+|---|---|
+| W1 design system | `tokens.css`, `base.css`, `primitives.css`, `layout.css`, `app/design-system/**` (the contract page, `noindex`, not in the sitemap), `components/ui/**`, `CopyButton.tsx`, `Crumbs.tsx`, `Pop.tsx`, `DESIGN.md` (not the Homepage section), `app/layout.tsx` fonts and theme colour, this file |
+| W2 shell | `Nav.tsx`, `NavLinks.tsx`, `NavMenu.tsx`, `AuthNav.tsx`, `Footer.tsx`, `components/shell/**`, `shell.css`, `app/layout.tsx` body structure, `app/not-found.tsx`. `AtlasScopeLogo.tsx` is generated and never hand-edited |
+| W3 search | `Search.tsx`, `components/search/**`, `search.css`, `app/api/search/route.ts`, `lib/search.ts`. W2 renders `<Search />` and owns the slot's size, position and breakpoints |
+| W4 prompt browsing | `app/prompts/page.tsx`, `components/prompts/AreaPage.tsx`, `components/prompts/browse/**`, `Cards.tsx`, `ScardMore.tsx`, `library.css` |
+| W5 prompt detail | `components/prompts/PromptPage.tsx`, `components/prompts/detail/**`, `SaveMenu.tsx`, `Star.tsx`, `StarIcon.tsx`, `detail-prompt.css` |
+| W6 skills and kits browsing | `app/skills/page.tsx`, `app/kits/page.tsx`, `KitRows.tsx`, `components/skills/browse/**`, `skills.css` |
+| W7 skill and kit detail | `app/skills/[name]/page.tsx`, `app/kits/[kit]/page.tsx`, `components/skills/detail/**`, `detail-skill.css` |
+| W8 Start, Learn and Fix | `app/start/**` (with `start.css`), `app/learn/**`, `app/fix/**`, `GuideProgress.tsx`, `StartWelcome.tsx`, `components/guide/**`, `guide.css` |
+| W9 install | `InstallPage.tsx`, `components/install/**`, `app/install/**`, `quiet.css`. Never `install-choice.ts` or the handoff timing |
+| W10 accounts and utility | `app/account/**`, `app/collections/**`, `app/sign-in/**`, `CollectionsView.tsx`, `ActionForm.tsx`, `components/auth/**`, `components/account/**`, `lib/clerk-appearance.ts`, `app/{about,privacy,terms,mcp-setup}/**`, `DocPage.tsx`, `reading.css`, `account.css` |
+| Coordinator | `overrides.css`, `globals.css` (the import order), `lib/site.ts`, `lib/content.ts`, `lib/copy.ts`, `install-choice.ts`, `app/mcp/route.ts`, `next.config.ts`, `proxy.ts`, `package.json` |
 
-`site/components/Search.tsx` and the `.search`/`.results` rules in `shell.css` belong to the search lane once it starts. The header slot it sits in (size, position, breakpoints) stays with the design system.
+Need a change in a file you don't own? Ask its owner with the exact selector or prop. Don't patch around it with a higher-specificity override in your own file.
+
+## Smoke tests
+
+Smoke files in `site/tests/smoke/` run in parallel, and each starts its own `next start`, so each needs its own port. Ports count down from 3999. Claim one here in the same pull request that adds the file.
+
+| Port | File |
+|---|---|
+| 3999 | `journeys.smoke.mjs` |
+| 3998 | `install.smoke.mjs` |
+| 3997 | `library.smoke.mjs` |
+| 3996 | `browse.smoke.mjs` |
+| 3995 | `guides.smoke.mjs` |
+| 3994 | The smoke file added in #136 |
 
 ## Frozen APIs
 
 These are used across page families and by the homepage handoff. Their exported names, props and output must not change without the coordinator's sign-off. Styling around them is fine.
 
 - `components/Cards.tsx`: `PromptCard`, `PromptCards({ slugs, rank })`, `SkillCards({ names, kit })`, `StartCard`, `firstSentence`.
-- `components/CopyButton.tsx`: `CopyButton({ text, label, className, icon, name })`, its `data-copied` attribute and its live-region label text.
+- `components/CopyButton.tsx`: `CopyButton({ text, label, className, icon, name })`, its `data-copied` attribute (set while "Copied" shows), its `data-blocked` attribute (set while "Copy blocked: select the text" shows) and its live-region label text. React to the attributes, not the label.
 - `lib/copy.ts`: everything. It composes the exact prompt payloads people copy.
 - `lib/site.ts`: `SITE`, `INSTALL_MESSAGE`, `kitInstallMessage`, `AGENTS` (install commands), `KITS`, `KIT_GUIDE`, `installMd`. Install commands and messages are byte-for-byte contracts.
 - `components/install-choice.ts`: the Home to Install handoff (`saveHandoff`, `readHandoff`, `clearHandoff`, `lastAgent`, `commandFor`, `AGENT_KEY` and the session key it writes). Fable's homepage track depends on it.
@@ -85,12 +111,12 @@ These are used across page families and by the homepage handoff. Their exported 
 
 ## Off limits
 
-The homepage artwork, renderer and composition (`components/orbit/`, `components/LaunchHero.tsx`, `app/launch.css`, `app/page.tsx`) and the Home to Install transition belong to Fable's track. The `:root:has(.home, .quiet)` token block in `tokens.css` keeps the stage palette as it was on `main` so the homepage does not change underneath that work.
+The homepage artwork, renderer and composition (`components/orbit/`, `components/LaunchHero.tsx`, `app/launch.css`, `app/page.tsx`) and the Home to Install transition belong to Fable's track. The `:root:has(.home, .quiet)` blocks in `tokens.css` and `primitives.css` keep the stage palette and button look as they were on `main`, so the homepage does not change underneath that work.
 
 ## Rules for page families
 
 1. Use tokens, never raw values. Colours come from `--c-*` (or, in older CSS, the `--color-*` aliases). Sizes from `--type-*`, spacing from `--space-N`, radii from `--radius-*`, durations from `--dur-*`. A raw hex or pixel value in a page file needs a comment saying why.
-2. Use primitives before writing new controls: `.btn` (`--primary`, default, `--ghost`, `--danger`, `--sm`, `--lg`), `.iconbtn`, `.input`, `.chip`, `.tag`, `.kbd`, `.block` (code with a head and Copy), `.cmdline`, `.menu__pop`, `.led`. If a primitive is missing, ask for it.
+2. Use primitives before writing new controls: `.btn` (`--primary`, default, `--ghost`, `--danger`, `--sm`, `--lg`), `.iconbtn`, `.input`, `.chip`, `.tag`, `.kbd`, `.block` (code with a head and Copy), `.cmdline`, `.menu__pop`, `.led`, and `FloatingCopy` (`components/ui/FloatingCopy.tsx`: `FloatingCopy({ anchor, text, title, detail?, name?, label? })`, a fixed Copy bar that shows once `anchor` scrolls behind the header; under the header on a computer, along the bottom on a phone; inert while hidden; styled by `.fcopy`). If a primitive is missing, ask for it.
 3. Colour means something. Green (`--c-signal`) only for a state that is true now: copied, tested, finished, current. Never a fill, a wash, a border glow or a large text colour. Amber (`--c-warm`) for what the visitor kept or chose. Red only for destructive actions and errors. The main action is neutral (ink on light, white on dark).
 4. Hairlines before shadows, flat before glass. No gradients, glows, neon edges or decorative blur on interior pages.
 5. One `h1` per page in the display face; `h2`/`h3` in the body face at the token sizes.

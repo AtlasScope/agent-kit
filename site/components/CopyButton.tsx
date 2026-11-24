@@ -7,22 +7,28 @@ const CopyIcon = () => (
   </svg>
 );
 
+const BLOCKED = "Copy blocked: select the text";
+
+// data-copied is set while "Copied" shows and data-blocked while the blocked label shows, so a page can react
+// (select its text, restyle) without reading the label.
 // `name` is what a screen reader hears when the visible label alone ("Copy") would be ambiguous on the page.
 export function CopyButton({ text, label = "Copy", className = "copy", icon = false, name }: { text: string; label?: string; className?: string; icon?: boolean; name?: string }) {
   const [state, setState] = useState(label);
   // One reset timer per button: a second press restarts it, so an earlier timer never overwrites a newer state.
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  useEffect(() => () => clearTimeout(timer.current), []);
-  const show = (next: string, ms: number) => { clearTimeout(timer.current); setState(next); timer.current = setTimeout(() => setState(label), ms); };
+  const alive = useRef(true);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; clearTimeout(timer.current); }; }, []);
+  const show = (next: string, ms: number) => { if (!alive.current) return; clearTimeout(timer.current); setState(next); timer.current = setTimeout(() => setState(label), ms); };
   return (
     <button
       type="button"
       className={className}
       data-copied={state === "Copied" || undefined}
+      data-blocked={state === BLOCKED || undefined}
       aria-label={name}
       onClick={async () => {
         try { await navigator.clipboard.writeText(text); show("Copied", 1600); }
-        catch { show("Copy blocked: select the text", 5000); }
+        catch { show(BLOCKED, 5000); }
       }}
     >
       {icon && <CopyIcon />}<span aria-live="polite">{state}</span>

@@ -1,6 +1,5 @@
 /* Reading pages: About, Privacy, Terms.
-   Ownership: see DESIGN-CONTRACT.md. Split from globals.css with no change in cascade order. */
-
+   Owner: W10 accounts and utility pages (DESIGN-CONTRACT.md). */
 /* Reading pages (About, Privacy, Terms): sections at a reading width, a short contents list beside them. */
 .doc-notice { max-width: var(--measure); padding: var(--space-sm) var(--space-md); border: 1px solid var(--color-rule-2); border-radius: var(--radius); background: var(--color-paper-2); color: var(--color-ink-2); font-size: var(--text-sm); line-height: 1.5; }
 .doc-notice strong { color: var(--color-ink); font-weight: 600; }
