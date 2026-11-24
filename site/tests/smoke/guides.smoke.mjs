@@ -11,7 +11,7 @@ import { LESSONS } from "../../lib/lessons.ts";
 
 const require = createRequire(import.meta.url);
 const data = require("../../content/generated.json");
-const PORT = 3998;
+const PORT = 3994; // each smoke file needs its own port: node --test runs files in parallel
 let base = process.env.SMOKE_URL?.replace(/\/$/, "");
 let server, browser;
 
@@ -123,10 +123,10 @@ for (const size of SIZES) {
     await page.getByRole("link", { name: new RegExp(f.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) }).first().click();
     await page.waitForURL(new RegExp(`/fix/${f.slug}$`));
     await noSideScroll(page, `/fix/${f.slug}`);
-    const titles = await page.locator(".route .pcard__t").allTextContents();
+    const titles = await page.locator(".prows--ranked .prow__t").allTextContents();
     const want = f.prompts.map((s) => data.prompts.find((p) => p.slug === s)?.t).filter(Boolean);
     assert.deepEqual(titles, want);
-    assert.equal(await page.locator(".route .pcard--best").count(), 1);
+    assert.equal(await page.locator(".prows--ranked .prow--best").count(), 1);
     assert.deepEqual(errors, []);
     await ctx.close();
   });
