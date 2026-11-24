@@ -127,3 +127,30 @@
 :root:has(.home, .quiet) .btn--lg { padding: 0 var(--space-lg); font-size: var(--text-md); }
 :root:has(.home, .quiet) .btn--primary, :root:has(.home, .quiet) .btn--solid { font-weight: 550; border-color: transparent; }
 :root:has(.home, .quiet) .btn--ghost { border-color: transparent; }
+
+/* Floating copy bar (components/ui/FloatingCopy.tsx): under the header on a computer, along the bottom on a phone. */
+.fcopy { position: fixed; z-index: 20; top: calc(var(--header-h) + var(--space-2));
+  right: max(var(--gutter), env(safe-area-inset-right), calc((100vw - var(--container)) / 2 + var(--gutter)));
+  display: flex; align-items: center; gap: var(--space-3); max-width: min(28rem, calc(100vw - 2 * var(--gutter)));
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-4); border: 1px solid var(--c-line); border-radius: var(--radius-lg);
+  background: var(--c-raised); box-shadow: var(--shadow-3); visibility: hidden; opacity: 0;
+  transform: translateY(calc(-1 * var(--space-2) * var(--travel)));
+  transition: opacity var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out), visibility 0s linear var(--dur-base); }
+.fcopy[data-on] { visibility: visible; opacity: 1; transform: none; transition-delay: 0s; }
+.fcopy__label { display: grid; min-width: 0; line-height: 1.25; }
+.fcopy__title { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font: var(--weight-semibold) var(--type-xs)/1.25 var(--font-body); color: var(--c-fg); }
+.fcopy__detail { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: var(--type-micro); color: var(--c-fg-3); }
+.fcopy__copy { flex: none; min-width: 6.5rem; }
+.fcopy__copy .i { width: 16px; height: 16px; }
+.fcopy__copy[data-copied] .i { display: none; }
+.fcopy__copy[data-copied]::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--c-signal-bright); }
+@media (max-width: 40rem) {
+  .fcopy { top: auto; left: 0; right: 0; bottom: 0; max-width: none; border-width: 1px 0 0; border-radius: 0;
+    padding: var(--space-2) max(var(--gutter), env(safe-area-inset-right)) calc(var(--space-2) + env(safe-area-inset-bottom)) max(var(--gutter), env(safe-area-inset-left));
+    transform: translateY(calc(var(--space-2) * var(--travel))); }
+  .fcopy__label { flex: 1; }
+  /* Keeps the page's last lines clear of the bar while it shows. */
+  body:has(.fcopy[data-on]) { padding-bottom: calc(var(--tap) + 2 * var(--space-2) + env(safe-area-inset-bottom)); }
+}
+@media (pointer: coarse) { .fcopy__copy { min-height: var(--tap); } }
+@media (prefers-reduced-motion: reduce) { .fcopy, .fcopy[data-on] { transform: none; transition: none; } }
