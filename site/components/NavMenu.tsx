@@ -68,7 +68,7 @@ export function NavMenu() {
         </nav>
       </dialog>
       {/* Without JavaScript the menu cannot open, so the section links show as a second row instead. */}
-      <noscript><style>{"@media (max-width: 78rem) { .nav { flex-wrap: wrap; } .nav > .links { display: flex; order: 9; width: 100%; overflow-x: auto; padding-bottom: 8px; } .nav__toggles { display: none; } }"}</style></noscript>
+      <noscript><style>{"@media (max-width: 78rem) { .nav { flex-wrap: wrap; } .nav > .links { display: flex; order: 9; width: 100%; overflow-x: auto; padding-bottom: 8px; } .nav__toggles { display: none; } .nav__gh { display: inline-flex; } }"}</style></noscript>
     </>
   );
 }

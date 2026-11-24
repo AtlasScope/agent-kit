@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { AreaPage } from "./AreaPage";
-import { PromptPage } from "./PromptPage";
+import { AreaPage } from "@/components/prompts/AreaPage";
+import { PromptPage } from "@/components/prompts/PromptPage";
 import { prompts, areas, getPrompt, getArea, sectionOf, whatOf, type Prompt } from "@/lib/content";
 
 export const dynamicParams = false;

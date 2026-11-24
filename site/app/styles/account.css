@@ -1,6 +1,5 @@
 /* Sign in and Collections.
-   Ownership: see DESIGN-CONTRACT.md. Split from globals.css with no change in cascade order. */
-
+   Owner: W10 accounts and utility pages (DESIGN-CONTRACT.md). */
 /* Sign in: why an account helps on the left, the form on the right; stacked on phones. */
 .signin { grid-template-columns: minmax(0, 1fr) auto; align-items: start; column-gap: var(--space-2xl); }
 .signin__why { display: grid; gap: var(--space-md); max-width: 34rem; padding-top: var(--space-md); }
