@@ -1,5 +1,6 @@
 // Plain markdown for every page: the .md twins, llms.txt, llms-full.txt and the MCP server all use these.
 import { SITE, AGENTS } from "./site";
+export { installMd } from "./site";
 import {
   type Prompt, type Skill, type Kit, type Fix, type Area,
   prompts, skills, kits, fixes, areas, sections, counts, getPrompt, getSkill, getArea,

@@ -1,10 +1,10 @@
-// The install command a visitor gets: their last-picked agent, else Claude Code. Shared by the homepage Install
-// button, which copies it on click, and the install page, which shows it.
+// The install page's per-agent commands: the tab a visitor last picked, else Claude Code. The homepage Install button
+// does not use these; it copies INSTALL_MESSAGE (lib/site.ts), which works in any agent.
 import { AGENTS, type Agent } from "@/lib/site";
 
 export const AGENT_KEY = "agent-kit:agent";
-// Every agent with an install path, most used first.
-export const SHOWN: Agent[] = ["claude", "codex", "cursor", "gemini", "copilot", "any"].map((id) => AGENTS.find((a) => a.id === id)!);
+// The agents with their own tab on the install page, most used first. Any other agent uses the last one.
+export const SHOWN: Agent[] = ["claude", "codex", "cursor", "any"].map((id) => AGENTS.find((a) => a.id === id)!);
 export const FALLBACK = AGENTS.find((a) => a.id === "any")!;
 
 export const lastAgent = (): Agent => {
@@ -18,14 +18,14 @@ export const commandFor = (a: Agent) => a.steps.join("\n");
 // this when it loads) still finds it.
 const COPIED_KEY = "agent-kit:copied";
 const FRESH_MS = 10_000;
-export type Handoff = { agent: string } | { blocked: true };
+export type Handoff = { message: true } | { agent: string } | { blocked: true };
 export const saveHandoff = (h: Handoff) => { try { sessionStorage.setItem(COPIED_KEY, JSON.stringify({ ...h, at: Date.now() })); } catch {} };
 export const clearHandoff = () => { try { sessionStorage.removeItem(COPIED_KEY); } catch {} };
 export const readHandoff = (): Handoff | null => {
   try {
     const v = JSON.parse(sessionStorage.getItem(COPIED_KEY) || "null");
     if (!v || typeof v.at !== "number" || Date.now() - v.at > FRESH_MS) return null;
-    return v.blocked ? { blocked: true } : typeof v.agent === "string" ? { agent: v.agent } : null;
+    return v.blocked ? { blocked: true } : v.message ? { message: true } : typeof v.agent === "string" ? { agent: v.agent } : null;
   } catch { return null; }
 };
 // Which paste keys this computer uses, on <html data-os>: mac (⌘ V), linux (Ctrl Shift V in a terminal) or other
