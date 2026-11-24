@@ -49,9 +49,10 @@
 .pd-stepcopy { min-width: 5.5rem; justify-content: center; }
 
 .pd-key { display: none; min-width: 22px; padding: 0 var(--space-2); border: 1px solid var(--c-edge); border-radius: var(--radius-sm); font: var(--weight-regular) var(--type-micro)/20px var(--font-mono); text-align: center; color: var(--c-fg-3); } /* 22px / 20px: same box as the header search key */
-/* The C shortcut works while focus is on the panel's Copy or in the text it copies, so its hint shows only then. */
+/* The C shortcut works while focus is anywhere in the panel; its hint shows while keyboard focus is there
+   (Payload.tsx sets data-keys from focus events). */
 @media (hover: hover) and (pointer: fine) and (min-width: 40.0625rem) {
-  .pd-payload:has(.pd-payload__head .pd-copy:focus, > .pd-text:focus, > .pd-fallback:not(.pd-fallback--step) .pd-text:focus) .pd-key { display: inline-block; }
+  .pd-payload[data-keys] .pd-key { display: inline-block; }
 }
 
 /* Steps: numbered rows on hairlines. Inside the panel (split recipes) each row has its own Copy. */
