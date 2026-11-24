@@ -14,7 +14,7 @@ A loud screen is one where everything was made to stand out, so nothing does. Th
 2. **Capture before**, at 390 and 1440 wide.
 3. **Count the noise.** Run `node <skill-dir>/scripts/measure.mjs` and run what it prints inside the page, for the number of colours, text sizes and corner shapes. Then count by eye: filled buttons, bold runs of text, boxes with borders, shadows, badges, icons, anything that moves without being asked.
 4. **Turn things down** in the order below. After each, look again; stop when the main thing is the first thing you see.
-5. **Capture after**, count again, and report on the worksheet with before and after side by side.
+5. **Capture after**, count again, and report on the Keen page with before and after side by side.
 
 ## What to turn down, in order
 

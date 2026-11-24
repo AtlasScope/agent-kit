@@ -17,7 +17,7 @@ If the screen has too much on it, layout will not save it. Stop and suggest `/ke
 3. **Find the project's spacing values**: DESIGN.md, then the theme or token file, then the values used most on this screen. If there is no set, use steps of 4 (4, 8, 12, 16, 24, 32, 48, 64) and say so.
 4. **Work through the six passes** below.
 5. **Capture after**, same sizes, and check the thumbnail again: the thing that matters most should now be what stands out.
-6. **Report** on the worksheet, before and after side by side.
+6. **Report** on the Keen page, before and after side by side.
 
 ## The six passes
 

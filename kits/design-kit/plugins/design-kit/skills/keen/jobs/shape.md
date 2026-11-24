@@ -25,7 +25,7 @@ Read PRODUCT.md and DESIGN.md. Look at two or three screens the product already 
 4. **Walk the path.** Number the steps from arriving to done. Then name the states this screen will have: nothing yet, loading, a failure, too much, not allowed. One line each on what the person sees.
 5. **Sketch three arrangements that differ in kind**, not in decoration. They should disagree about what comes first or how the work is split, for example one long page, a step at a time, or a list beside a detail. Draw each as a plain grey wireframe: boxes, real labels, no colour, no styling, at phone width first. One page of HTML holding all three is enough. For each, one line on what it is best at and one on what it costs.
 6. **Recommend one** and say why in two lines, tied to the job sentence.
-7. **Show it** on the worksheet: the job sentence, the ranked content, the three sketches side by side, and your recommendation as the suggested next step. Each sketch is a next step the person can pick.
+7. **Show it** on the Keen page: the job sentence, the ranked content, the three sketches side by side, and your recommendation as the suggested next step. Each sketch is a next step the person can pick.
 8. **When they pick, write the brief** to `docs/design/<screen>.md`, or wherever the project already keeps this kind of note. It holds the job sentence, the ranked content, the path, the states and the chosen arrangement with its sketch. Under 60 lines. This is the file the build reads.
 
 ## Rules

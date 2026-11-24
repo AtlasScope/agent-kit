@@ -25,7 +25,7 @@ A screen is crowded when things that matter a little are shown as loudly as the 
    - Group what remains by what belongs together, using space before lines and lines before boxes.
    - Bring the counts down: aim for three or four text sizes and one accent colour on the screen, using the project's own values.
    - Rewrite labels that need a sentence of help into labels that do not. Remove the help.
-7. **Capture after**, same sizes, and build the worksheet with before and after side by side.
+7. **Capture after**, same sizes, and build the page with before and after side by side.
 
 ## Checks before you report
 

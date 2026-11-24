@@ -17,7 +17,7 @@ An audit that passes does not mean the screen works. A page can meet every stand
 3. **Do the checks the script cannot do**, marked "by hand" in the table below. Write a short script for the repetitive ones, such as tabbing through every control. For each, say in the report how you checked it. Also look at every piece of text the script lists under `overPictureNotMeasured`.
 4. **Measure speed** if the tool can: load the page fresh, press the screen's main control once, and read the three numbers in the speed table. Speed only counts on a built, production copy of the product. On a development copy the numbers run slow: give them as a rough reading, do not call them a pass or a fail, and say so. If you cannot measure, say so under "Not checked". Do not estimate.
 5. **Rank** by who is stopped, using the order below.
-6. **Report** on the worksheet, with the worst failures pinned on the screenshot. The script gives each failure's position in pixels; a pin wants a percentage of the image.
+6. **Report** on the Keen page, with the worst failures pinned on the screenshot. The script gives each failure's position in pixels; a pin wants a percentage of the image.
 
 ## What is measured
 
@@ -86,4 +86,4 @@ Do not turn the result into a score out of 100. A score hides which people are s
 
 ## Report
 
-Follow the report shape in SKILL.md. "What happened" is the verdict. Teach each term the first time it appears: most people have never heard "contrast ratio" or "Layout Shift". Under Details, a few lines summarising the script's output for each width, and the name of the file where the full output is saved beside the page. Under "Not checked", every row you could not measure, and every state of the screen you did not open.
+Follow the report shape in SKILL.md. "What happened" is the verdict. Teach each term the first time it appears: most people have never heard "contrast ratio" or "Layout Shift". Under Details, a few lines summarising the script's output for each width, with the numbers that matter. Keep the full output in a temporary folder outside the project and say it is there if they want it. Under "Not checked", every row you could not measure, and every state of the screen you did not open.

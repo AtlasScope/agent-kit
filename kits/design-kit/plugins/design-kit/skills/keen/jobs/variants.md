@@ -14,8 +14,8 @@ Most people cannot say what they want from a design until they see something the
 2. **Read** PRODUCT.md, DESIGN.md and the notes in that part's code. The versions use the project's own colours, fonts and components.
 3. **Capture the current version** at 390 and 1440 wide. It is always shown as a fourth choice, "keep it as it is".
 4. **Choose three directions that disagree.** Pick three from the list below that suit this part, and say in one line what each is betting on.
-5. **Build each one for real**, in the project's code, with the product's real content. After building one, capture it at 390 and 1440, save the change as a patch file in the book folder, and put the code back exactly as it was before building the next. The working copy ends as it began.
-6. **Show them** on the worksheet: the four captures side by side at each width, each with its one-line bet, what it is best at and what it costs. Each is a next step the person can pick. Mark your recommendation and say why in a line.
+5. **Build each one for real**, in the project's code, with the product's real content. After building one, capture it at 390 and 1440, save the change as a patch file in a temporary folder outside the project, and put the code back exactly as it was before building the next. The working copy ends as it began.
+6. **Show them** on the Keen page: the four captures side by side at each width, each with its one-line bet, what it is best at and what it costs. Each is a next step the person can pick. Mark your recommendation and say why in a line.
 7. **Apply the pick.** Put that version's change back, run the project's own checks, capture it again, and delete the other patch files. If they pick "keep it", change nothing and say so.
 8. **If none is right**, ask what was closest and what was wrong with it, and build one more round from that answer. Two rounds at most; after that the problem is not this part, and `/keen critique` is the better job.
 

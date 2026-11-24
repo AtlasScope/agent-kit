@@ -24,7 +24,7 @@ Ask once, with your best guess as the default for each, unless PRODUCT.md alread
 2. **Take the five-second test.** Look at the first screen for five seconds, look away, and write what the product is, who it is for and what to do next. Whatever you could not write is the first fault.
 3. **Work through the page** with the table below.
 4. **Measure the basics**: run `node <skill-dir>/scripts/measure.mjs` and run what it prints inside the page, for text that is hard to read and buttons too small to press. A slow page loses visitors before any of this matters; if it is slow, offer `/keen optimize` as the first next step.
-5. **Capture after** and report on the worksheet, before and after side by side.
+5. **Capture after** and report on the Keen page, before and after side by side.
 
 ## The page, top to bottom
 

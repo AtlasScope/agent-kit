@@ -16,7 +16,7 @@ The words on a screen are part of how it works. A button that says "Submit" make
 4. **Rewrite**, using the table and rules below.
 5. **Read every line aloud.** Anything you would not say to a person standing next to you gets rewritten.
 6. **Check the fit.** Longer words can break a layout. Look at 390 wide and fix any text that now wraps badly or is cut off, by shortening the words, not by shrinking the text.
-7. **Capture after** and report on the worksheet with before and after side by side.
+7. **Capture after** and report on the Keen page with before and after side by side.
 
 ## What each kind of text must do
 

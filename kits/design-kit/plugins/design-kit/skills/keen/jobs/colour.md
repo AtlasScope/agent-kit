@@ -25,7 +25,7 @@ Colour on a screen does three jobs: it shows what can be pressed, it shows what 
 5. **Build the steps evenly.** When you create or fill in a scale, step the lightness evenly in a colour space made to match what the eye sees, such as OKLCH, which CSS supports. Even steps in ordinary hex values look uneven. Tint the greys slightly toward the accent so they sit together, and keep pure black and pure white for the rare case that needs them.
 6. **Fix every pair that fails**, using the table below. Change the lightness of the weaker colour and keep its hue, so the palette still looks like itself.
 7. **Do the same for dark mode** if the product has one. Dark mode is its own set of pairs, not the light one reversed: surfaces get lighter as they come forward, and strong colours are toned down so they do not glare.
-8. **Capture after**, run the measuring script again, and report on the worksheet with before and after side by side.
+8. **Capture after**, run the measuring script again, and report on the Keen page with before and after side by side.
 
 ## What must be readable
 

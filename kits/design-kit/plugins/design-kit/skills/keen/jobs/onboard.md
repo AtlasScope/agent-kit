@@ -24,7 +24,7 @@ If PRODUCT.md already answers both, do not ask.
 3. **Shorten the path.** Remove what is never needed. Move what is needed later to the moment it is needed. Fill in what the product can work out or sensibly assume, and let the person change it afterwards.
 4. **Design each empty screen** on the path using the table below.
 5. **Mark the first result.** When it happens, say so plainly and offer the one next thing worth doing. No confetti.
-6. **Walk it again**, capture, count and time it, and report on the worksheet with the two walks side by side.
+6. **Walk it again**, capture, count and time it, and report on the Keen page with the two walks side by side.
 
 ## Each kind of first-time moment
 
