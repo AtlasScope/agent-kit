@@ -81,93 +81,139 @@ function stepCard(step, index) {
 </section>`;
 }
 
-/** One page of the book as an HTML fragment. */
+// A long piece of text shows its first paragraph; the rest opens on request, so a page is looked at before it is read.
+const lead = (v) => {
+  const parts = String(v ?? "").split(/\n{2,}/).map((s) => s.trim()).filter(Boolean);
+  if (!parts.length) return "";
+  const rest = parts.slice(1);
+  return `<p>${esc(parts[0])}</p>${rest.length ? `<details class="more"><summary>More</summary>${rest.map((s) => `<p>${esc(s)}</p>`).join("")}</details>` : ""}`;
+};
+
+/** One page as an HTML fragment. */
 export function renderPage(page, { baseDir = process.cwd() } = {}) {
   const r = page.report || {};
   const steps = (page.steps || []).map(stepCard).join("\n");
   const menu = (page.menu || []).filter((m) => m.command);
-  const shots = (page.shots || []).map((s) => `<figure><div class="frame"><img src="${esc(image(s.src, baseDir))}" alt="${esc(s.alt || s.caption || "Screenshot")}">${(s.pins || []).map((p) => `<span class="pin" style="left:${Number(p.x) || 0}%;top:${Number(p.y) || 0}%">${esc(p.n)}</span>`).join("")}</div><figcaption>${esc(s.caption)}</figcaption></figure>`).join("\n");
-  const problems = (page.problems || []).map((p) => `<li><h3>${esc(p.title)}</h3>${para(p.body)}</li>`).join("\n");
+  const figure = (s) => `<figure><div class="frame"><img src="${esc(image(s.src, baseDir))}" alt="${esc(s.alt || s.caption || "Screenshot")}">${(s.pins || []).map((p) => `<span class="pin" style="left:${Number(p.x) || 0}%;top:${Number(p.y) || 0}%">${esc(p.n)}</span>`).join("")}</div><figcaption>${esc(s.caption)}</figcaption></figure>`;
+  const shots = (page.shots || []).map(figure).join("\n");
+  const stats = (page.stats || []).slice(0, 4).map((s) => `<div class="stat"><b>${esc(s.value)}</b><span>${esc(s.label)}</span></div>`).join("");
+  const problems = (page.problems || []).map((p) => `<li><h3>${esc(p.title)}</h3>${lead(p.body)}</li>`).join("\n");
   const hasNext = steps || menu.length;
-  return `<h1>${esc(page.title || "Keen")}</h1>
-${page.subtitle ? `<p class="sub">${esc(page.subtitle)}</p>` : ""}
+  const todo = r.todo || (hasNext ? "Pick what to run next." : "Nothing.");
+  return `<header class="hero">
+${page.tab ? `<p class="eyebrow">${esc(page.tab)}</p>` : ""}
+<h1>${esc(page.title || "Keen")}</h1>
 ${page.verdict ? `<p class="verdict">${esc(page.verdict)}</p>` : ""}
-<dl class="box">
-<dt>What happened</dt><dd>${esc(r.happened)}</dd>
-<dt>What it means</dt><dd>${esc(r.means)}</dd>
-<dt>What you need to do</dt><dd>${esc(r.todo || (hasNext ? "Read on, then pick what to run next at the bottom of the screen." : "Nothing."))}</dd>
-</dl>
-${shots ? `<h2>What it looks like</h2><div class="shots">${shots}</div>` : ""}
-${problems ? `<h2>What was found, most important first</h2><ol class="problems">${problems}</ol>` : ""}
-${(page.also || []).length ? `<h2>Also found</h2><ul>${page.also.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>` : ""}
-${(page.working || []).length ? `<h2>What is working</h2>${page.working.map((w) => `<p>${esc(w)}</p>`).join("")}` : ""}
-${hasNext ? `<h2>What you can run next</h2>
-<p class="sub">Add as many as you want, in the order you want them. Nothing starts until you press Start at the bottom.</p>
-${steps}
+${page.subtitle ? `<p class="sub">${esc(page.subtitle)}</p>` : ""}
+</header>
+${stats ? `<div class="stats">${stats}</div>` : ""}
+${shots ? `<section class="sec" aria-label="What it looks like"><div class="gallery">${shots}</div></section>` : ""}
+<section class="trio">
+<div class="card"><h2>What happened</h2><p>${esc(r.happened)}</p></div>
+<div class="card"><h2>What it means</h2><p>${esc(r.means)}</p></div>
+<div class="card key"><h2>What you need to do</h2><p>${esc(todo)}</p></div>
+</section>
+${problems ? `<section class="sec"><p class="label">What was found, most important first</p><ol class="problems">${problems}</ol></section>` : ""}
+${(page.also || []).length || (page.working || []).length ? `<section class="sec pair">
+${(page.also || []).length ? `<div><h2>Also found</h2><ul>${page.also.map((w) => `<li>${esc(w)}</li>`).join("")}</ul></div>` : ""}
+${(page.working || []).length ? `<div><h2>What is working</h2><ul class="ticks">${page.working.map((w) => `<li>${esc(w)}</li>`).join("")}</ul></div>` : ""}
+</section>` : ""}
+${hasNext ? `<section class="sec"><p class="label">What you can run next</p>
+<p class="sub">Add as many as you want, in the order you want. Nothing starts until you press Start.</p>
+<div class="steps">${steps}
 ${steps && (page.steps || []).length > 1 ? `<section class="step all"><h3>Or take them all</h3>${para(page.order || "They run in the order listed, with a report after each.")}<div class="acts"><button type="button" data-all>Add all, in this order</button></div></section>` : ""}
-${menu.length ? `<section class="step other"><h3>Something else</h3><p>Every job Keen can run on this screen.</p><label class="pick">Job <select data-menu>${menu.map((m, i) => `<option value="${i}">${esc(m.label)}</option>`).join("")}</select></label><p class="why" data-menu-why>${esc(menu[0].why || "")}</p><p class="cmd" data-menu-cmd>${esc(menu[0].command)}</p><div class="acts"><button type="button" class="add" data-add-menu>Add to my run</button><button type="button" data-copy-menu>Copy</button></div></section>` : ""}` : ""}
-${page.notChecked ? `<h2>Not checked</h2>${para(page.notChecked)}` : ""}
-${page.details ? `<details><summary>Details for someone technical</summary><pre>${esc(page.details)}</pre></details>` : ""}`;
+${menu.length ? `<section class="step other"><h3>Something else</h3><p>Every job Keen can run on this screen.</p><label class="pick">Job <select data-menu>${menu.map((m, i) => `<option value="${i}">${esc(m.label)}</option>`).join("")}</select></label><p class="why" data-menu-why>${esc(menu[0].why || "")}</p><p class="cmd" data-menu-cmd>${esc(menu[0].command)}</p><div class="acts"><button type="button" class="add" data-add-menu>Add to my run</button><button type="button" data-copy-menu>Copy</button></div></section>` : ""}</div></section>` : ""}
+${page.notChecked ? `<section class="sec"><p class="label">Not checked</p>${para(page.notChecked)}</section>` : ""}
+${page.details ? `<details class="tech"><summary>Details for someone technical</summary><pre>${esc(page.details)}</pre></details>` : ""}`;
 }
 
 // Keen's own look. Every value is set here, so the page is the same in every project and every browser tab:
-// warm paper and near-black ink, one lime accent that only ever sits behind ink-coloured text, a red-orange
-// for the numbered marks on screenshots, system fonts, and no pictures or web fonts to fetch.
-const STYLE = `:root{color-scheme:light dark;--paper:oklch(0.975 0.006 95);--card:oklch(1 0 0);--ink:oklch(0.2 0.012 95);--soft:oklch(0.44 0.012 95);--line:oklch(0.87 0.008 95);--lime:oklch(0.87 0.2 128);--on-lime:oklch(0.2 0.03 128);--mark:oklch(0.56 0.21 30);--amber:oklch(0.75 0.16 75);--ring:oklch(0.2 0.012 95)}
-@media (prefers-color-scheme:dark){:root{--paper:oklch(0.165 0.008 95);--card:oklch(0.21 0.008 95);--ink:oklch(0.95 0.006 95);--soft:oklch(0.72 0.01 95);--line:oklch(0.32 0.008 95);--mark:oklch(0.68 0.19 30);--ring:oklch(0.87 0.2 128)}}
+// black, white type set tight and large, hairlines for structure, one green that marks what is live and what
+// to press, system fonts, and nothing fetched from anywhere. It is always dark, like a product page, not a document.
+const STYLE = `:root{color-scheme:dark;--bg:#000;--card:#0a0a0a;--card2:#111;--ink:#f5f5f5;--soft:#a1a1a1;--dim:#6f6f6f;--line:rgba(255,255,255,.1);--line2:rgba(255,255,255,.18);--green:oklch(0.86 0.21 150);--on-green:#03130a;--mark:oklch(0.68 0.2 28);--amber:oklch(0.8 0.15 80);--sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-.top{position:sticky;top:0;z-index:4;background:var(--paper);border-bottom:1px solid var(--line)}
-.top .in{max-width:960px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.brand{display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:18px;letter-spacing:-0.03em}
-.brand i{width:13px;height:13px;background:var(--lime);transform:rotate(45deg) skew(12deg,12deg);border:1.5px solid var(--ink);display:inline-block}
-.state{margin-left:auto;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600;border:1px solid var(--line);border-radius:999px;padding:5px 12px 5px 10px;background:var(--card);max-width:100%}
-.state i{width:9px;height:9px;border-radius:50%;background:var(--soft);flex:none}
-.state[data-is=listening] i{background:var(--lime);box-shadow:0 0 0 1.5px var(--ink)}
-.state[data-is=working] i{background:var(--amber);box-shadow:0 0 0 1.5px var(--ink);animation:beat 1.2s ease-in-out infinite}
-@keyframes beat{50%{opacity:.35}}
-@media (prefers-reduced-motion:reduce){.state i{animation:none!important}}
-main{max-width:960px;margin:0 auto;padding:0 16px 210px}
-h1{font-size:28px;line-height:1.15;letter-spacing:-0.025em;font-weight:750;margin:26px 0 6px}h2{font-size:18px;letter-spacing:-0.01em;margin:42px 0 12px}h3{font-size:16px;margin:0 0 4px}
-p{margin:0 0 10px;max-width:68ch}.sub,figcaption,.why{color:var(--soft)}
-ul{max-width:68ch;padding-left:20px}
-nav.tabs{display:flex;gap:6px;flex-wrap:wrap;padding:12px 0 0}
+html{-webkit-text-size-adjust:100%;background:var(--bg)}
+body{margin:0;background:radial-gradient(1200px 420px at 50% -120px,rgba(0,220,130,.13),transparent 70%) no-repeat,var(--bg);color:var(--ink);font:16px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+.top{position:sticky;top:0;z-index:4;background:rgba(0,0,0,.72);-webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--line)}
+.top .in{max-width:1120px;margin:0 auto;padding:0 20px;min-height:56px;display:flex;align-items:center;gap:14px}
+.brand{display:inline-flex;align-items:center;gap:10px;font-weight:650;font-size:17px;letter-spacing:-0.02em}
+.brand i{width:11px;height:11px;background:var(--green);transform:rotate(45deg);border-radius:2px;display:inline-block;box-shadow:0 0 18px rgba(0,220,130,.55)}
+nav.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;flex:1 1 auto;min-width:0;margin:0 4px}
+nav.tabs::-webkit-scrollbar{display:none}
 nav.tabs[hidden]{display:none}
-nav.tabs button{min-height:40px;padding:0 14px;font-weight:600;border-radius:999px}
-nav.tabs button[aria-selected=true]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+nav.tabs button{min-height:36px;padding:0 12px;font-weight:500;font-size:14px;border:0;background:transparent;color:var(--soft);border-radius:8px;white-space:nowrap}
+nav.tabs button[aria-selected=true]{background:rgba(255,255,255,.1);color:var(--ink)}
+.state{margin-left:auto;flex:none;display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:var(--soft);border:1px solid var(--line);border-radius:999px;padding:6px 12px 6px 10px;max-width:46vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.state i{width:8px;height:8px;border-radius:50%;background:var(--dim);flex:none}
+.state[data-is=listening]{color:var(--ink)}.state[data-is=listening] i{background:var(--green);box-shadow:0 0 10px rgba(0,220,130,.8)}
+.state[data-is=working]{color:var(--ink)}.state[data-is=working] i{background:var(--amber);animation:beat 1.2s ease-in-out infinite}
+@keyframes beat{50%{opacity:.3}}
+@media (prefers-reduced-motion:reduce){.state i{animation:none!important}}
+main{max-width:1120px;margin:0 auto;padding:0 20px 200px}
 .page[hidden]{display:none}
-.verdict{font-size:21px;line-height:1.38;font-weight:550;letter-spacing:-0.01em;border-left:5px solid var(--lime);padding-left:16px;margin:20px 0;max-width:58ch}
-.box,.step,figure,ol.problems li{background:var(--card);border:1px solid var(--line);border-radius:12px}
-.box{padding:16px 18px}.box dt{font-weight:700;margin-top:10px}.box dt:first-child{margin-top:0}.box dd{margin:2px 0 0;max-width:68ch}
-.shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;align-items:start}
-figure{margin:0;padding:10px}.frame{position:relative}.frame img{display:block;width:100%;height:auto;border-radius:6px}figcaption{font-size:14px;margin-top:8px}
-.pin,ol.problems li::before{width:26px;height:26px;border-radius:50%;background:var(--mark);color:#fff;font:700 14px/26px system-ui,sans-serif;text-align:center}
-.pin{position:absolute;margin:-13px 0 0 -13px;box-shadow:0 0 0 3px rgba(0,0,0,.45)}
-ol.problems{padding:0;margin:0;list-style:none;counter-reset:p}
-ol.problems li{counter-increment:p;padding:14px 16px 6px 54px;margin:0 0 12px;position:relative}
-ol.problems li::before{content:counter(p);position:absolute;left:16px;top:14px}
-.step{padding:14px 16px;margin:0 0 12px}.step.suggested{border:2px solid var(--ink)}.step.all,.step.other{background:transparent;border-style:dashed}
-.step.picked{box-shadow:inset 6px 0 0 var(--lime)}
-.tag{font-size:12px;font-weight:700;background:var(--lime);color:var(--on-lime);border-radius:999px;padding:2px 10px;margin-left:6px;vertical-align:1px}
-.pick{display:flex;align-items:center;gap:8px;font-weight:600;margin:6px 0}
-select{font:inherit;min-height:44px;max-width:100%;padding:0 10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
-.cmd{font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;color:var(--soft);overflow-wrap:anywhere}
+.hero{padding:72px 0 40px;max-width:900px}
+.eyebrow,.label{font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--green);margin:0 0 18px}
+.label{color:var(--dim);margin-bottom:16px}
+h1{font-size:clamp(34px,5.2vw,64px);line-height:1.02;letter-spacing:-0.045em;font-weight:600;margin:0 0 22px;background:linear-gradient(180deg,#fff 30%,#9c9c9c);-webkit-background-clip:text;background-clip:text;color:transparent;text-wrap:balance}
+.verdict{font-size:clamp(18px,2vw,23px);line-height:1.42;letter-spacing:-0.015em;color:var(--ink);margin:0 0 14px;max-width:44ch;text-wrap:pretty}
+h2{font-size:15px;font-weight:600;letter-spacing:-0.005em;margin:0 0 8px}h3{font-size:17px;font-weight:600;letter-spacing:-0.015em;margin:0 0 6px}
+p{margin:0 0 10px;max-width:66ch}.sub,figcaption,.why{color:var(--soft)}.sub{font-size:15px}
+ul{margin:0;padding-left:18px;max-width:60ch;color:var(--soft)}li{margin:0 0 6px}
+.ticks{list-style:none;padding:0}.ticks li{padding-left:22px;position:relative}.ticks li::before{content:"";position:absolute;left:2px;top:.5em;width:9px;height:5px;border-left:2px solid var(--green);border-bottom:2px solid var(--green);transform:rotate(-45deg)}
+.sec{margin-top:64px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card);margin-bottom:24px}
+.stat{padding:22px 20px;box-shadow:1px 0 0 var(--line),0 1px 0 var(--line)}.stat b{display:block;font-size:clamp(30px,4vw,44px);line-height:1;font-weight:600;letter-spacing:-0.04em}.stat span{display:block;margin-top:10px;font-size:13.5px;color:var(--soft);line-height:1.35}
+.gallery{display:flex;gap:16px;overflow-x:auto;padding:28px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,#0d0d0d,#050505);scroll-snap-type:x proximity;align-items:flex-start}
+.sec:has(.gallery){margin-top:0}
+figure{margin:0;flex:0 0 auto;width:min(300px,72vw);scroll-snap-align:start}
+.gallery figure:only-child{width:min(560px,100%);margin:0 auto}
+.frame{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line2);box-shadow:0 30px 60px -20px rgba(0,0,0,.9)}
+.frame img{display:block;width:100%;height:auto}figcaption{font-size:13.5px;line-height:1.4;margin-top:12px}
+.pin,ol.problems li::before{width:26px;height:26px;border-radius:50%;background:var(--mark);color:#fff;font:600 13px/26px var(--sans);text-align:center}
+.pin{position:absolute;margin:-13px 0 0 -13px;box-shadow:0 0 0 3px rgba(0,0,0,.6)}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:24px}
+.card{background:var(--card);padding:22px}.card h2{color:var(--dim);font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px}.card p{margin:0;font-size:15.5px;line-height:1.55}
+.card.key h2{color:var(--green)}
+ol.problems{padding:0;margin:0;list-style:none;counter-reset:p;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;max-width:none}
+ol.problems li{counter-increment:p;margin:0;padding:22px 22px 14px;position:relative;background:var(--card);border:1px solid var(--line);border-radius:14px}
+ol.problems li::before{content:counter(p);display:block;margin-bottom:14px}
+ol.problems p{color:var(--soft);font-size:15px}
+.more{margin:2px 0 8px}.more summary,.tech summary{cursor:pointer;color:var(--ink);font-size:14px;font-weight:500;list-style:none;display:inline-flex;align-items:center;gap:6px;min-height:32px}
+.more summary::after,.tech summary::after{content:"";width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px);opacity:.7}
+.more[open] summary::after,.tech[open] summary::after{transform:rotate(225deg) translateY(-2px)}
+.more summary::-webkit-details-marker,.tech summary::-webkit-details-marker{display:none}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:40px}.pair h2{margin-bottom:12px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-top:20px}
+.step{padding:22px;margin:0;background:var(--card);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column}
+.step p{font-size:15px;color:var(--soft)}
+.step .acts{margin-top:auto;padding-top:12px}
+.step.suggested{border-color:rgba(0,220,130,.55);background:linear-gradient(180deg,rgba(0,220,130,.07),transparent 60%),var(--card)}
+.step.all,.step.other{background:transparent;border-style:dashed}
+.step.picked{border-color:var(--green);box-shadow:inset 0 0 0 1px var(--green)}
+.tag{display:inline-block;font:500 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;background:var(--green);color:var(--on-green);border-radius:999px;padding:4px 9px;margin-left:8px;vertical-align:2px}
+.pick{display:flex;align-items:center;gap:10px;font-weight:500;font-size:14px;color:var(--soft);margin:8px 0}
+select{font:inherit;font-size:15px;min-height:44px;max-width:100%;flex:1 1 auto;min-width:0;padding:0 12px;border-radius:10px;border:1px solid var(--line2);background:var(--card2);color:var(--ink)}
+.cmd{font:12.5px/1.5 var(--mono);color:var(--dim)!important;overflow-wrap:anywhere}
 .acts{display:flex;gap:8px;flex-wrap:wrap}
-button{font:inherit;font-weight:650;min-height:44px;padding:0 18px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
-button.add[aria-pressed=true]{border-color:var(--ink)}
-button.go{background:var(--lime);border-color:var(--ink);color:var(--on-lime);font-weight:750;padding:0 26px}
-button:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--ring);outline-offset:2px}
-button[disabled]{opacity:.45;cursor:default}
-#bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:2px solid var(--ink);padding:12px 16px calc(12px + env(safe-area-inset-bottom));z-index:3}
-#bar .in{max-width:960px;margin:0 auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-#bar ol{margin:0;padding-left:20px;flex:1 1 260px;min-width:0}#bar ol:empty{display:none}
-#bar .hint{flex:1 1 260px;margin:0;color:var(--soft)}
-#bar li button{min-height:32px;padding:0 8px;margin-left:8px;font-weight:500}
-#status,#held{margin:0 auto 8px;max-width:960px;font-weight:650}#status:empty,#held:empty{display:none}
-#held{font-weight:500;color:var(--soft)}
-details{border-top:1px solid var(--line);margin-top:40px;padding-top:14px}summary{cursor:pointer;font-weight:650}
-pre{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;color:var(--soft)}`;
+button{font:inherit;font-size:14.5px;font-weight:500;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--line2);background:var(--card2);color:var(--ink);cursor:pointer;transition:background .15s,border-color .15s}
+button:hover{background:#1a1a1a;border-color:rgba(255,255,255,.3)}
+button.add{background:#fff;color:#000;border-color:#fff}button.add:hover{background:#dcdcdc}
+button.add[aria-pressed=true]{background:transparent;color:var(--green);border-color:var(--green)}
+button.go{background:var(--green);border-color:var(--green);color:var(--on-green);font-weight:650;padding:0 26px;box-shadow:0 0 28px rgba(0,220,130,.35)}
+button.go:hover{background:oklch(0.9 0.2 150);border-color:oklch(0.9 0.2 150)}
+button:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+button[disabled]{opacity:.4;cursor:default;box-shadow:none}
+#bar{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(880px,calc(100% - 24px));background:rgba(14,14,14,.86);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--line2);border-radius:18px;padding:12px 12px 12px 18px;z-index:3;box-shadow:0 24px 60px -12px rgba(0,0,0,.95)}
+#bar .in{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#bar ol{margin:0;padding-left:20px;flex:1 1 240px;min-width:0;font-size:14.5px;color:var(--ink)}#bar ol:empty{display:none}
+#bar .hint{flex:1 1 200px;margin:0;color:var(--soft);font-size:14.5px}
+#bar li button{min-height:28px;padding:0 8px;margin-left:8px;font-size:12.5px}
+#status,#held{margin:0 0 8px;font-size:14px;font-weight:500;max-width:none}#status:empty,#held:empty{display:none}
+#held{color:var(--soft)}
+.tech{border-top:1px solid var(--line);margin-top:64px;padding-top:18px}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12.5px/1.6 var(--mono);color:var(--soft);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0 0}
+@media (max-width:820px){.trio{grid-template-columns:1fr}.hero{padding:44px 0 28px}.sec{margin-top:48px}.gallery{padding:16px;border-radius:14px}main{padding-bottom:230px}}
+@media (max-width:560px){.top .in{flex-wrap:wrap;padding:8px 16px;gap:8px}nav.tabs{order:3;flex-basis:100%;margin:0 -4px}main{padding-left:16px;padding-right:16px}.state{max-width:60vw}#bar{padding:10px 10px 10px 14px}#copyall[disabled]{display:none}}`;
 
 // The page's own script. It reads everything it needs from DATA and never builds markup from text.
 const CLIENT = `const tabs=document.getElementById("tabs"),book=document.getElementById("book"),queueEl=document.getElementById("queue"),hint=document.getElementById("hint"),startBtn=document.getElementById("start"),copyAll=document.getElementById("copyall"),clearBtn=document.getElementById("clear"),statusEl=document.getElementById("status"),heldEl=document.getElementById("held"),stateEl=document.getElementById("state"),stateText=document.getElementById("statetext");
@@ -248,9 +294,8 @@ export function render(pages, { baseDir = process.cwd(), live = null } = {}) {
 <title>${esc(list.at(-1)?.title || "Keen")}</title>
 <style>${STYLE}</style>
 <body>
-<header class="top"><div class="in"><span class="brand"><i aria-hidden="true"></i>Keen</span><span class="state" id="state" role="status" aria-live="polite"><i aria-hidden="true"></i><span id="statetext"></span></span></div></header>
+<header class="top"><div class="in"><span class="brand"><i aria-hidden="true"></i>Keen</span><nav class="tabs" id="tabs" role="tablist" aria-label="Pages" hidden></nav><span class="state" id="state" role="status" aria-live="polite"><i aria-hidden="true"></i><span id="statetext"></span></span></div></header>
 <main>
-<nav class="tabs" id="tabs" role="tablist" aria-label="Pages" hidden></nav>
 <div id="book">${html.map((h) => `<section class="page">${h}</section>`).join("\n")}</div>
 </main>
 <div id="bar"><p id="status" role="status" aria-live="polite"></p><p id="held"></p><div class="in"><p class="hint" id="hint"></p><ol id="queue" aria-label="Your run, in order"></ol><button type="button" id="clear" hidden>Clear</button><button type="button" id="copyall">Copy</button><button type="button" class="go" id="start">Start</button></div></div>

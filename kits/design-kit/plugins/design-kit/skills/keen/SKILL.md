@@ -153,7 +153,7 @@ The person never has to type any of this. The Keen page below turns each next st
 
 Every job that has something to show or a next step ends on the Keen page: one live page the person keeps open beside the conversation. Each finished job adds a page to it. A page holds the report, the screenshots with each problem marked, and what can run next. The person reads, picks one or several next steps in the order they want, and presses Start. You hear about it, do the work, add the next page, and their open page turns to it by itself.
 
-The page is served by a small program that comes with this skill and stays running while the work goes on. It looks the same in every project and every tool. It always tells the person the truth about you: whether you are listening, what you are working on, and what they have started that is waiting its turn.
+The page is served by a small program that comes with this skill and stays running while the work goes on. It looks the same in every project and every tool: Keen's own dark page, with its own header, set entirely by the program. Do not restyle it or wrap it in anything. It always tells the person the truth about you: whether you are listening, what you are working on, and what they have started that is waiting its turn.
 
 A job that changes nothing visible and has no next step reports in text only.
 
@@ -203,6 +203,7 @@ Rules:
   "title": "Keen critique: Today",
   "subtitle": "Looked at with sample data. Nothing was changed.",
   "verdict": "One honest sentence about this screen.",
+  "stats": [{ "value": "3", "label": "problems that get in a visitor's way" }, { "value": "8 of 95", "label": "pieces of text that are hard to read" }],
   "report": { "happened": "...", "means": "..." },
   "shots": [{ "src": "today-phone.jpg", "caption": "Phone, first screen.", "pins": [{ "n": 1, "x": 50, "y": 89 }] }],
   "problems": [{ "title": "Your day is not on the first screen", "body": "Plain words. Blank line between paragraphs." }],
@@ -227,6 +228,12 @@ Rules:
 }
 ```
 
+- **The page is looked at before it is read.** It opens on the title, the verdict, the numbers and the screenshots. Write for that:
+  - `verdict`: one sentence, 25 words at most.
+  - `stats`: two to four numbers a person can take in at a glance, each a short value with a few words under it. Measured numbers only, and say what each is a number of.
+  - `report.happened` and `report.means`: two sentences each at most.
+  - A problem's `body`: the first paragraph is what shows, so make it the whole point in 40 words or fewer. Later paragraphs sit behind "More".
+  - Every page that judges or changes a screen has at least one screenshot. A page with no picture is a wall of words.
 - `tab` is the two or three words on the page's tab: the job and, after an edit, what changed.
 - `steps` are the ranked next steps, up to three. Give a step `options` when more than one job could do it, best first; the person sees a job picker on that step. A step with one way to do it has just `command`.
 - `menu` is every other job that could run on this screen, so the person is never limited to your ranking. List Keen's other jobs, and any other installed Agent Kit command the findings point to.
