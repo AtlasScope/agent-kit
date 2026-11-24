@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 // Always dark, so the browser's own bar matches it in both themes.
-export const viewport: Viewport = { themeColor: "#030409", colorScheme: "dark" };
+export const viewport: Viewport = { themeColor: "#020302", colorScheme: "dark" };
 
 export default function Install() {
   const a = authors();
