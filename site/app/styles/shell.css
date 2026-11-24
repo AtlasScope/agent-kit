@@ -80,12 +80,12 @@ html:has(.sheet[open]) { overflow: hidden; }
 @media (max-width: 78rem) { .nav__end .btn--ghost { min-width: 36px; padding-inline: 0; } }
 @media (max-width: 78rem) { .nav__toggles { display: flex; gap: 2px; margin-right: -8px; } }
 @media (max-width: 78rem) { .nav__find { display: none; } }
-/* Phones: search is a button that opens a field over the bar; GitHub lives in the sheet. */
+/* Phones: the Search button (.nav__find) opens the palette as a full-screen sheet; GitHub lives in the sheet. */
 @media (max-width: 40rem) { .nav { position: relative; gap: var(--space-2); } }
 @media (max-width: 40rem) { .nav__end { margin-left: auto; } }
 @media (max-width: 40rem) { .nav__end .auth-coll span, .nav__gh { display: none; } }
 @media (max-width: 40rem) { .nav__find { display: inline-grid; } }
-/* Touch: 44px targets; no key hint; a 16px field so iOS does not zoom; results short enough to clear the keyboard. */
+/* Touch: 44px targets. */
 @media (pointer: coarse) { .wordmark { min-height: 44px; } }
 @media (pointer: coarse) { .links a { min-height: 40px; } }
 @media (pointer: coarse) { .nav__end .btn--sm, .nav__end .btn--ghost { min-width: 44px; min-height: 44px; } }

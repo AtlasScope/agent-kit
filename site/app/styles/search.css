@@ -1,35 +1,16 @@
-/* Header search field and its results popover.
-   Owner: W3 search (DESIGN-CONTRACT.md). */
-/* Header search field. A filled well with a key hint; the results drop below as a popover. */
+/* Header search: a field-shaped button that opens the command palette (components/search/palette.css).
+   Owner: W3 search (DESIGN-CONTRACT.md). The slot (.nav .search size, position, breakpoints) is the shell's; the button inside it is the search lane's. */
 .search { display: flex; gap: var(--space-2); max-width: 40rem; }
 .nav .search { position: relative; display: block; flex: 0 1 300px; min-width: 14rem; margin-left: auto; }
 .nav .search > svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--c-fg-3); pointer-events: none; }
-.nav .search input { width: 100%; min-height: 36px; padding: 0 36px 0 34px; border: 1px solid transparent; border-radius: var(--radius-md); background: var(--c-fill); color: var(--c-fg);
-  font: inherit; font-size: .875rem; outline: none; -webkit-appearance: none; appearance: none; transition: background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out); }
-.nav .search input::placeholder { color: var(--c-fg-3); }
-.nav .search input::-webkit-search-cancel-button { display: none; }
-.nav .search input:focus { background: var(--c-surface); border-color: var(--c-line-2); }
-.nav .search input:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 1px; }
+.nav .search .search__trigger { display: flex; align-items: center; width: 100%; min-height: 36px; padding: 0 68px 0 34px; border: 1px solid transparent; border-radius: var(--radius-md);
+  background: var(--c-fill); color: var(--c-fg-3); font: inherit; font-size: .875rem; text-align: left; cursor: text;
+  transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
+.nav .search .search__trigger span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.nav .search .search__trigger:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 1px; }
 .nav .search .kbd { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none; }
-@media (hover: hover) and (pointer: fine) { .nav .search input:hover:not(:focus) { background: var(--c-fill-2); } }
-.results { position: absolute; left: 0; right: 0; top: calc(100% + 8px); z-index: 40; min-width: min(440px, calc(100vw - 32px)); max-height: min(70vh, 520px); overflow-y: auto; overscroll-behavior: contain;
-  margin: 0; padding: 6px; list-style: none; border: 1px solid var(--c-line-2); border-radius: var(--radius-lg); background: var(--c-surface); box-shadow: var(--shadow-3); }
-.results li { display: block; padding: 0; border-radius: var(--radius-md); cursor: pointer; }
-.results li[aria-selected="true"] { background: var(--c-fill); }
-.results__a { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px var(--space-3); padding: 9px 10px; border-radius: var(--radius-md); color: inherit; text-decoration: none; }
-.results__t { font-size: var(--type-sm); font-weight: var(--weight-medium); overflow-wrap: anywhere; }
-.results__k { align-self: start; padding: 3px 6px; border-radius: var(--radius-xs); background: var(--c-fill); color: var(--c-fg-3); font: var(--weight-medium) var(--type-micro)/1 var(--font-body); }
-.results__d { grid-column: 1 / -1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: var(--c-fg-3); font-size: var(--type-xs); line-height: var(--lh-xs); }
-.results__none { padding: 9px 10px; color: var(--c-fg-3); font-size: var(--type-xs); cursor: default; }
-.search__close { display: none; }
+@media (hover: hover) and (pointer: fine) { .nav .search .search__trigger:hover { background: var(--c-fill-2); color: var(--c-fg-2); } }
 @media (max-width: 78rem) { .nav .search { flex: 0 1 420px; min-width: 0; } }
-@media (max-width: 40rem) { .nav .search { position: absolute; z-index: 1; inset: 0 max(var(--gutter), env(safe-area-inset-right)) 0 max(var(--gutter), env(safe-area-inset-left)); display: flex; align-items: center; gap: 4px;
-    margin: 0; background: var(--c-canvas); opacity: 0; visibility: hidden; transition: opacity 150ms var(--ease-out), visibility 0s 150ms; } }
-@media (max-width: 40rem) { .nav .search.is-shown { opacity: 1; visibility: visible; transition: opacity 150ms var(--ease-out); } }
-@media (max-width: 40rem) { .nav .search input { flex: 1; width: auto; padding-right: 12px; } }
-@media (max-width: 40rem) { .search__close { display: inline-grid; margin-right: -8px; } }
-@media (max-width: 40rem) { .results { top: 100%; } }
-@media (max-width: 40rem) { .nav .search .kbd { display: none; } }
+@media (max-width: 40rem) { .nav .search { display: none; } }
+@media (pointer: coarse) { .nav .search .search__trigger { min-height: 44px; padding-right: 12px; } }
 @media (pointer: coarse) { .nav .search .kbd { display: none; } }
-@media (pointer: coarse) { .nav .search input { font-size: 1rem; } }
-@media (pointer: coarse) { .results { max-height: min(520px, 42svh); } }

@@ -14,8 +14,8 @@
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 30%, #000 70%, transparent 100%); mask-image: linear-gradient(to bottom, transparent 0%, #000 30%, #000 70%, transparent 100%); }
 .quiet::after { content: ""; position: absolute; left: 0; right: 0; top: 22svh; height: 260px; z-index: -1; pointer-events: none;
   background: radial-gradient(60% 50% at 50% 50%, color-mix(in oklab, var(--led) 10%, transparent), color-mix(in oklab, var(--s-dcmd) 5%, transparent) 45%, transparent 75%); }
-.quiet :is(.inst__term, .inst__tabs, .hub__card, .hub__way) { box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 30px 60px -20px rgba(0,0,0,.95), 0 12px 24px -12px rgba(0,0,0,.9); }
-.quiet :is(.inst__term, .hub__card, .hub__way) { background: linear-gradient(180deg, oklch(15% .006 160), oklch(11% .004 160)); }
+.quiet :is(.hub__card, .hub__way) { box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 30px 60px -20px rgba(0,0,0,.95), 0 12px 24px -12px rgba(0,0,0,.9); }
+.quiet :is(.hub__card, .hub__way) { background: linear-gradient(180deg, oklch(15% .006 160), oklch(11% .004 160)); }
 
 /* The /start hub on the stage keeps its green hover edge, as on main. */
 @media (hover: hover) and (pointer: fine) { .quiet .hub__way:hover { border-color: color-mix(in oklab, var(--c-primary) 85%, transparent); box-shadow: 0 0 0 3px color-mix(in oklab, var(--c-primary) 12%, transparent); } }
