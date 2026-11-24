@@ -34,7 +34,7 @@ function loadIndex() {
   indexPromise ??= fetch("/search-index.v2.json", reload ? { cache: "reload" } : undefined).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
     .then((e: Entry[]) => (loaded = e));
   const mine = indexPromise;
-  indexPromise.catch(() => { if (indexPromise === mine) indexPromise = null; });
+  indexPromise.catch(() => { if (indexPromise === mine) { indexPromise = null; if (reload) refetch = true; } });
   return indexPromise;
 }
 
@@ -44,12 +44,21 @@ function loadIndex() {
 // so the next preview or Copy asks again.
 const texts = new Map<string, Promise<string>>();
 const known = new Map<string, string>();
+// AbortSignal.timeout is missing before Safari 16 and Chrome 103.
+function timeout(ms: number): AbortSignal {
+  if (typeof AbortSignal.timeout === "function") return AbortSignal.timeout(ms);
+  const c = new AbortController();
+  setTimeout(() => c.abort(), ms);
+  return c.signal;
+}
+const isGone = (err: unknown) => err instanceof Error && err.message === "404";
+const CHANGED = "This result may have changed since the page loaded. Close and reopen search to refresh the list.";
 function copyText(e: Entry): Promise<string> {
   if (e.copy?.text !== undefined) return Promise.resolve(e.copy.text);
   const k = copyUrl(e);
   let p = texts.get(k);
   if (!p) {
-    p = fetch(k, { signal: AbortSignal.timeout(10000) }).then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status))))).then((t) => { known.set(k, t); return t; });
+    p = fetch(k, { signal: timeout(10000) }).then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status))))).then((t) => { known.set(k, t); return t; });
     const mine = p;
     p.catch(() => { if (texts.get(k) === mine) texts.delete(k); });
     texts.set(k, p);
@@ -206,7 +215,7 @@ export function Search() {
   // only when it is copied.
   // `text: null` means the fetch failed (Copy tries again and, if it succeeds, fills the preview).
   // `waiting` turns on after 400 ms without the text (a timer, so reduced motion shows it).
-  const [payload, setPayload] = useState<{ key: string; text: string | null } | null>(null);
+  const [payload, setPayload] = useState<{ key: string; text: string | null; gone?: boolean } | null>(null);
   const [waiting, setWaiting] = useState(false);
   const [wide, setWide] = useState(false);
   useEffect(() => {
@@ -225,7 +234,7 @@ export function Search() {
     let live = true;
     const e = active;
     const t = setTimeout(() => copyText(e).then((text) => { if (live) setPayload({ key: k, text }); },
-      () => { if (live) setPayload({ key: k, text: null }); }), 120);
+      (err) => { if (!live) return; if (isGone(err)) staleIndex(); setPayload({ key: k, text: null, gone: isGone(err) }); }), 120);
     const w = setTimeout(() => setWaiting(true), 400);
     return () => { live = false; clearTimeout(t); clearTimeout(w); };
   }, [open, wide, active]);
@@ -253,14 +262,13 @@ export function Search() {
     const c = e.copy;
     if (!c) { say("Nothing to copy here. Press Enter to open it."); return; }
     const have = knownText(e), k = copyUrl(e);
-    let text: Promise<string> | null = null, late = false;
+    let text: Promise<string> | null = null, late = false, slow: ReturnType<typeof setTimeout> | undefined;
     try {
       if (have !== undefined) await navigator.clipboard.writeText(have);
       else {
         text = copyText(e);
         // Phones have no preview, so say something if the text takes a moment.
-        const slow = setTimeout(() => say("Copying…", true), 300);
-        text.finally(() => clearTimeout(slow)).catch(() => {});
+        slow = setTimeout(() => say("Copying…", true), 300);
         text.then((t) => setPayload((p) => (p?.key === k ? { key: k, text: t } : p)), () => {});
         try {
           if (typeof ClipboardItem === "undefined" || !navigator.clipboard.write) throw new Error("unsupported");
@@ -274,13 +282,14 @@ export function Search() {
           await navigator.clipboard.writeText(await text);
         }
       }
-      say(c.done); remember(e);
+      clearTimeout(slow); say(c.done); remember(e);
     } catch (err) {
       // Settle the text first: the clipboard can fail before the fetch does, and the fetch is the real cause.
       const loadFailed = text ? await text.then(() => null, (err: unknown) => err ?? true) : null;
+      clearTimeout(slow);
       // The text arrived but the browser refused the late write; it is cached now, so a second press writes it at once.
       if (late && !loadFailed && navigator.clipboard && err instanceof DOMException && err.name === "NotAllowedError") say("The text is ready now. Press Copy again.");
-      else if (loadFailed instanceof Error && loadFailed.message === "404") { staleIndex(); say("This result may have changed since the page loaded. Close and reopen search to refresh the list."); }
+      else if (isGone(loadFailed)) { staleIndex(); say(CHANGED); }
       else say(loadFailed ? "Couldn’t load the text to copy. Open the page and copy from there." : "Copy was blocked. Open the page and copy from there.");
     }
   };
@@ -364,7 +373,7 @@ export function Search() {
               {active.summary && <p className="cmdk__ps">{active.summary}</p>}
               {active.copy && typeof shown?.text === "string" && <pre className="cmdk__payload" data-long={shown.text.length > 360 || undefined} aria-label={`${active.copy.label.replace(/^Copy /, "")} text`}>{shown.text}</pre>}
               {active.copy && !shown && waiting && <p className="cmdk__ps">Loading the text…</p>}
-              <p className="cmdk__ps cmdk__pnote" aria-live="polite">{active.copy && shown?.text === null ? "The text didn’t load. Copy will try again." : ""}</p>
+              <p className="cmdk__ps cmdk__pnote" aria-live="polite">{active.copy && shown?.text === null ? ("gone" in shown && shown.gone ? CHANGED : "The text didn’t load. Copy will try again.") : ""}</p>
               <div className="cmdk__actions">
                 <button type="button" className="cmdk__btn cmdk__btn--main" onClick={() => go(active)}>Open<kbd aria-hidden="true">↵</kbd></button>
                 {active.copy && <button type="button" className="cmdk__btn" onClick={() => copy(active)}>{active.copy.label}<kbd aria-hidden="true">{mod}↵</kbd></button>}
