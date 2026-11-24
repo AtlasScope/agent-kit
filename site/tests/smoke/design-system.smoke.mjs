@@ -115,12 +115,13 @@ for (const size of SIZES) {
     await page.waitForTimeout(300);
     assert.equal(await page.evaluate(() => scrollY), y, "a successful copy does not scroll the page");
     // Keyboard focus holds the bar up even with the panel back on screen; once focus moves on, it hides and goes inert.
+    await page.locator(".fcopy__copy:not([data-copied])").waitFor();
     await away();
-    await page.locator(".ds-float .block__head .copy").focus();
+    await page.locator(".ds-float .block__head .copy").evaluate((el) => el.focus({ preventScroll: true }));
     await page.keyboard.press("Tab");
     assert.ok(await page.locator(".fcopy__copy").evaluate((el) => el === document.activeElement), "Tab reaches the bar's Copy");
     await page.evaluate(() => scrollTo(0, 0));
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(500);
     assert.equal(await page.locator(".fcopy[data-on]").count(), 1, "the bar stays up while it holds keyboard focus");
     await page.keyboard.press("Shift+Tab");
     await page.waitForFunction(() => !document.querySelector(".fcopy[data-on]"), null, { timeout: 4000 });

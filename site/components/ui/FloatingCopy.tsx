@@ -15,7 +15,7 @@ const TABBABLE = 'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"
 // `target` (optional) is the element holding the text. If the clipboard refuses a press of the bar's Copy, the page
 // scrolls the target (or the anchor) back into view, selects the target's text so Cmd/Ctrl+C finishes the job, and
 // moves focus there (to the anchor's first control, or the anchor, without a target). The bar stays up while its
-// "Copied" or "Copy blocked" message shows, and while focus is in it.
+// "Copied" or "Copy blocked" message shows, and while keyboard focus is in it.
 // Render all refs in the same commit as the bar (they are read on mount). Pass `name` so the two Copy buttons are told
 // apart by a screen reader, for example "Copy the install command".
 // The bar is inert while hidden so it takes no focus. Styles: .fcopy in app/styles/primitives.css.
@@ -60,7 +60,8 @@ export function FloatingCopy({ anchor, end, target, text, title, detail, name, l
   const land = () => {
     const t = target?.current, a = anchor.current;
     const el = t || (a?.matches(TABBABLE) ? a : a?.querySelector<HTMLElement>(TABBABLE)) || a;
-    if (!el) return;
+    // Never send focus somewhere a screen reader can't follow (an aria-hidden marker anchor); stay in the bar instead.
+    if (!el || el.closest("[aria-hidden=true]")) return;
     el.focus({ preventScroll: true });
     if (document.activeElement === el || el.hasAttribute("tabindex")) return;
     // Not focusable as it stands (a <pre>, an <a> without href): make it focusable for this visit only.
@@ -96,7 +97,8 @@ export function FloatingCopy({ anchor, end, target, text, title, detail, name, l
   return (
     <div className="fcopy" ref={bar} data-on={shown || undefined} inert={!shown}
       onFocus={(e) => setHasFocus(keyboard(e.target))}
-      onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null) && document.hasFocus()) setHasFocus(false); }}>
+      onKeyDown={() => setHasFocus(true)}
+      onBlur={(e) => { const to = e.relatedTarget as Node | null; if (to ? !e.currentTarget.contains(to) : document.hasFocus()) setHasFocus(false); }}>
       <span className="fcopy__label">
         <span className="fcopy__title">{title}</span>
         {detail && <span className="fcopy__detail">{detail}</span>}
