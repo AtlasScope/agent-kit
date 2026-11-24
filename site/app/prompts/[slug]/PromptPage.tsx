@@ -70,7 +70,7 @@ export function PromptPage({ p }: { p: Prompt }) {
       <div className="pd-grid">
         <div className="pd-main">
           {p.split && p.planSteps ? (
-            <Payload label="Steps" meta={<><span>{p.planSteps.length} steps, one per message</span><code translate="no">{p.id}</code></>} text={text} copyLabel={copyLabel(p)} actions={<>{save}{md}</>} title={p.t}>
+            <Payload label="Steps" meta={<><span>{p.planSteps.length} steps, one per message</span><code translate="no">{p.id}</code></>} text={text} copyLabel={copyLabel(p)} actions={<>{save}{md}</>} title={p.t} steps={p.planSteps.map((st) => st.copy)}>
               <p className="pd-steps__note">Run one step per message. Start a fresh chat for each investigation, and read the result before the next step.</p>
               <ol className="pd-steps pd-steps--copy" role="list">
                 {p.planSteps.map((st, i) => (
@@ -80,7 +80,7 @@ export function PromptPage({ p }: { p: Prompt }) {
                       {st.slug ? <Link className="lic" href={`/prompts/${st.slug}`}>{st.label}</Link> : st.kind === "command" ? <code>{st.label}</code> : <b>{st.label}</b>}
                       <span className="pd-steps__d">{st.note}</span>
                     </span>
-                    {st.copy ? <CopyButton className="btn btn--sm pd-stepcopy" text={st.copy} label="Copy" name={`Copy step ${i + 1}: ${st.label}`} icon /> : <span />}
+                    {st.copy ? <span className="pd-stepcopywrap" data-step={i}><CopyButton className="btn btn--sm pd-stepcopy" text={st.copy} label="Copy" name={`Copy step ${i + 1}: ${st.label}`} icon /></span> : <span />}
                   </li>
                 ))}
               </ol>
