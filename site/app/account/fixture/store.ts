@@ -10,8 +10,6 @@ export const fixturesEnabled = () =>
 const seed = (): CollectionData[] => [
   { id: "00000000-0000-4000-8000-000000000001", name: "Starred", is_starred: true, is_public: false, items: [
     { kind: "prompt", ref: "A01" }, { kind: "skill", ref: "diagnosing-bugs" }, { kind: "prompt", ref: "RC11" }, { kind: "prompt", ref: "S06" },
-    // RC11 saved a second time under another spelling, as an older client could: it shows, counts and removes as one.
-    { kind: "prompt", ref: "rc11" },
   ] },
   { id: "00000000-0000-4000-8000-000000000002", name: "Design reviews", is_starred: false, is_public: true, items: [
     { kind: "skill", ref: "refactoring-ui" }, { kind: "skill", ref: "ux-heuristics" }, { kind: "prompt", ref: "UI042" },
