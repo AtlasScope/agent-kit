@@ -6,6 +6,8 @@
 .btn:active { transform: translateY(calc(1px * var(--travel))) scale(.985); }
 .btn:disabled, .btn[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
 .btn--sm { min-height: var(--control-h-sm); padding: 0 var(--space-3); border-radius: var(--radius-sm); font-size: var(--type-xs); }
+/* Touch: small buttons keep their drawn height and get a hit area at least --tap (44px) tall. */
+@media (pointer: coarse) { .btn--sm { position: relative; } .btn--sm::after { content: ""; position: absolute; inset: 50% 0 auto; height: max(100%, var(--tap)); transform: translateY(-50%); } }
 .btn--lg { min-height: var(--control-h-lg); padding: 0 var(--space-6); font-size: var(--type-body); }
 @media (min-width: 100rem) and (min-height: 900px) { .btn--lg { min-height: 56px; } }
 .btn--primary, .btn--solid { background: var(--c-primary); color: var(--c-on-primary); border-color: transparent; box-shadow: none; font-weight: var(--weight-semibold); }
