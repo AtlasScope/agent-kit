@@ -6,425 +6,266 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
 <style>
-/* One quiet frame (header, search, three views: a front door, the areas, other tools) around a library you can scan. Section hues survive only as small wayfinding marks; amber is the single accent for actions and the current place. */
+/* Three ways in (Prompts, Skills, Recipes), each a short list of categories, each category a list you can read top to bottom.
+   Colour says only which kind of thing you are looking at: green prompts, blue skills, pink recipes. Amber is for actions. */
 :root {
   --bg: #ECEAE4; --surface: #FFFFFF; --sunk: #E4E1DA; --hover: #DEDAD1;
   --line: #B9B3A6; --line-soft: #D2CEC4;
-  --ink: #0B0A08; --ink-2: #26231E; --ink-3: #46423A;
+  --ink: #0B0A08; --ink-2: #26231E; --ink-3: #4F4A41;
   --accent: #8A4B00; --on-accent: #FFFFFF; --accent-soft: #F6E6CF;
-  --s-inv: #00704A; --s-think: #5A2FC2; --s-ecmd: #006C80; --s-dcmd: #1849C4; --s-recipe: #BF1F5E; --s-desk: #8A4B00; --s-db: #5C6B00; --on-s: #FFFFFF;
+  --k-prompt: #00704A; --k-skill: #1849C4; --k-recipe: #BF1F5E; --on-k: #FFFFFF;
   --sans: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
   --mono: "Geist Mono", "Cascadia Mono", Consolas, ui-monospace, monospace;
-  --hh: 0px;
   --lift: inset 0 1px 0 rgba(255,255,255,.8), 0 1px 2px rgba(28,22,10,.07), 0 6px 14px -6px rgba(28,22,10,.10), 0 20px 34px -22px rgba(28,22,10,.22);
-  --lift-hi: inset 0 1px 0 rgba(255,255,255,.8), 0 2px 4px rgba(28,22,10,.08), 0 10px 22px -8px rgba(28,22,10,.16), 0 28px 44px -24px rgba(28,22,10,.30);
   --risk: #B42318;
   color-scheme: light;
 }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+@media (prefers-color-scheme: dark) { :root {
   --bg: #070707; --surface: #1A1917; --sunk: #0F0E0D; --hover: #2A2825; --line: #4C4740; --line-soft: #34312C;
   --ink: #FFFFFF; --ink-2: #E6E2DA; --ink-3: #BDB7AB;
   --accent: #F5A524; --on-accent: #120C02; --accent-soft: #2A1F0E;
-  --s-inv: #4BF0A8; --s-think: #BFA8FF; --s-ecmd: #3FE0F5; --s-dcmd: #8CB6FF; --s-recipe: #FF7FB2; --s-desk: #F5A524; --s-db: #C9E05A; --on-s: #0B0B0A;
-  --lift: inset 0 1px 0 rgba(255,255,255,.07), 0 1px 2px rgba(0,0,0,.6), 0 8px 20px -10px rgba(0,0,0,.7), 0 24px 40px -24px rgba(0,0,0,.9);
-  --lift-hi: inset 0 1px 0 rgba(255,255,255,.09), 0 2px 4px rgba(0,0,0,.6), 0 12px 26px -10px rgba(0,0,0,.8), 0 30px 50px -24px rgba(0,0,0,1);
+  --k-prompt: #4BF0A8; --k-skill: #8CB6FF; --k-recipe: #FF7FB2; --on-k: #0B0B0A;
+  --lift: inset 0 1px 0 rgba(255,255,255,.07), 0 1px 2px rgba(0,0,0,.6), 0 8px 20px -10px rgba(0,0,0,.7);
   --risk: #FF8A75;
   color-scheme: dark;
 } }
-:root[data-theme="dark"] {
-  --bg: #070707; --surface: #1A1917; --sunk: #0F0E0D; --hover: #2A2825; --line: #4C4740; --line-soft: #34312C;
-  --ink: #FFFFFF; --ink-2: #E6E2DA; --ink-3: #BDB7AB;
-  --accent: #F5A524; --on-accent: #120C02; --accent-soft: #2A1F0E;
-  --s-inv: #4BF0A8; --s-think: #BFA8FF; --s-ecmd: #3FE0F5; --s-dcmd: #8CB6FF; --s-recipe: #FF7FB2; --s-desk: #F5A524; --s-db: #C9E05A; --on-s: #0B0B0A;
-  --lift: inset 0 1px 0 rgba(255,255,255,.07), 0 1px 2px rgba(0,0,0,.6), 0 8px 20px -10px rgba(0,0,0,.7), 0 24px 40px -24px rgba(0,0,0,.9);
-  --lift-hi: inset 0 1px 0 rgba(255,255,255,.09), 0 2px 4px rgba(0,0,0,.6), 0 12px 26px -10px rgba(0,0,0,.8), 0 30px 50px -24px rgba(0,0,0,1);
-  --risk: #FF8A75;
-  color-scheme: dark;
-}
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; }
 body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.55; letter-spacing: -0.008em; -webkit-font-smoothing: antialiased; }
-::selection { background: var(--accent-soft); color: var(--ink); }
-* { scrollbar-color: var(--line) transparent; }
-button, input, textarea, select { font: inherit; letter-spacing: inherit; color: inherit; }
+button, input { font: inherit; letter-spacing: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
 a { color: var(--accent); text-underline-offset: 3px; }
 svg.i { width: 16px; height: 16px; flex: none; }
-.wrap { max-width: 1440px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-@media (min-width: 860px) { .wrap { padding-left: max(32px, env(safe-area-inset-left, 0px)); padding-right: max(32px, env(safe-area-inset-right, 0px)); } }
-.mono { font-family: var(--mono); letter-spacing: 0; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); }
+@media (min-width: 860px) { .wrap { padding-inline: 32px; } }
 
 /* Header */
-.top { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter: saturate(1.4) blur(12px); -webkit-backdrop-filter: saturate(1.4) blur(12px); border-bottom: 1px solid var(--line-soft); padding-top: env(safe-area-inset-top, 0px); }
-.top .wrap { display: flex; align-items: center; gap: 10px 28px; min-height: 64px; }
-.brand { font-size: 18px; font-weight: 600; letter-spacing: -0.025em; color: var(--ink); text-decoration: none; white-space: nowrap; }
+.top { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter: saturate(1.4) blur(12px); -webkit-backdrop-filter: saturate(1.4) blur(12px); border-bottom: 1px solid var(--line-soft); }
+.top .wrap { display: flex; align-items: center; gap: 10px 24px; min-height: 64px; }
+.brand { all: unset; cursor: pointer; font-size: 18px; font-weight: 600; letter-spacing: -0.025em; white-space: nowrap; }
 .brand b { color: var(--accent); }
-.tabs { display: flex; gap: 2px; }
-.tabs button { border: 0; background: none; height: 36px; padding: 0 12px; border-radius: 8px; color: var(--ink-3); font-weight: 500; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
+.tabs { display: flex; gap: 4px; }
+.tabs button { border: 0; background: none; height: 38px; padding: 0 13px; border-radius: 9px; color: var(--ink-3); font-weight: 500; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.tabs button::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
 .tabs button:hover { color: var(--ink); background: var(--hover); }
 .tabs button[aria-current="page"] { color: var(--ink); background: var(--hover); font-weight: 600; }
-.tabs .ct { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); letter-spacing: 0; }
-.search { position: relative; margin-left: auto; flex: 0 1 380px; min-width: 0; }
+.search { position: relative; margin-left: auto; flex: 0 1 360px; min-width: 0; }
 .search > svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--ink-3); pointer-events: none; }
-.search input { width: 100%; height: 40px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); padding: 0 40px 0 36px; outline: none; -webkit-appearance: none; appearance: none; }
+.search input { width: 100%; height: 40px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); padding: 0 38px 0 36px; outline: none; -webkit-appearance: none; appearance: none; }
 .search input::-webkit-search-cancel-button { display: none; }
 .search input::placeholder { color: var(--ink-3); }
 .search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-.kbd { position: absolute; right: 9px; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-size: 11px; color: var(--ink-3); border: 1px solid var(--line); border-radius: 5px; padding: 0 6px; pointer-events: none; }
 .clear { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 32px; height: 32px; border-radius: 8px; border: 0; background: none; color: var(--ink-3); display: grid; place-items: center; }
-.clear:hover { background: var(--hover); color: var(--ink); }
-@media (hover: none) { .kbd { display: none; } }
+main .wrap { padding-block: 36px 96px; }
 
-main .wrap { padding-block: 32px 80px; }
-.spectrum { display: grid; grid-template-columns: repeat(5, 1fr); height: 3px; }
-.spectrum span { background: var(--c); }
-.stages .chip[aria-pressed="true"] { background: var(--c); border-color: var(--c); color: var(--on-s); }
+/* Shared */
+.kicker { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; color: var(--c); letter-spacing: 0.01em; }
+.kicker::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+h1.title { margin: 6px 0 0; font-size: clamp(28px, 3.4vw, 38px); font-weight: 600; letter-spacing: -0.035em; line-height: 1.1; text-wrap: balance; }
+.lede { margin: 10px 0 0; color: var(--ink-2); font-size: 16.5px; max-width: 62ch; text-wrap: pretty; }
+.back { all: unset; cursor: pointer; display: none; align-items: center; gap: 6px; color: var(--ink-3); font-size: 14px; font-weight: 500; margin-bottom: 14px; min-height: 40px; }
+.back:hover { color: var(--ink); }
+.back svg { transform: rotate(180deg); }
+.copy { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 36px; padding: 0 14px; border-radius: 9px; border: 1px solid color-mix(in srgb, var(--c) 45%, var(--line-soft)); background: color-mix(in srgb, var(--c) 10%, var(--surface)); color: var(--c); font-size: 13.5px; font-weight: 600; white-space: nowrap; }
+.copy:hover, .copy:focus-visible { background: var(--c); border-color: var(--c); color: var(--on-k); }
+.copy .ok, .cmdchip .ok { display: none; } .copy.copied .ok, .cmdchip.copied .ok { display: block; } .copy.copied .cp, .cmdchip.copied .cp { display: none; }
+.cmdchip { display: inline-flex; align-items: center; gap: 8px; min-height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); font-family: var(--mono); font-size: 13px; letter-spacing: 0; color: var(--ink); }
+.cmdchip:hover { border-color: var(--c); }
+.cmdchip svg { width: 13px; height: 13px; opacity: .6; }
+.tag { font-size: 12px; font-weight: 600; padding: 0 8px; line-height: 20px; border-radius: 999px; color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); white-space: nowrap; }
+.mark { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: var(--on-k); background: var(--k-prompt); padding: 0 8px 0 6px; border-radius: 999px; line-height: 20px; white-space: nowrap; }
+.mark svg { width: 12px; height: 12px; }
+.risk { color: var(--risk); font-weight: 600; }
+.linkbtn { background: none; border: 0; padding: 0; color: var(--accent); font-size: inherit; text-align: left; text-decoration: underline; text-underline-offset: 3px; }
+.linkbtn.code { font-family: var(--mono); font-size: .93em; letter-spacing: 0; }
+@media (pointer: coarse) { .copy, .cmdchip, .tabs button, .search input { min-height: 44px; } }
 
-/* Shared controls */
-.copy { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 11px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-size: 13px; font-weight: 500; white-space: nowrap; }
-.copy:hover { border-color: var(--accent); color: var(--accent); }
-.copy.primary { background: var(--c, var(--accent)); border-color: var(--c, var(--accent)); color: var(--on-s); font-weight: 600; min-height: 34px; padding: 0 14px; border-radius: 9px; }
-.copy.primary:hover { filter: brightness(1.1); color: var(--on-s); }
-.copy .ok, .cmd .ok { display: none; }
-.copy.copied .ok, .cmd.copied .ok { display: block; } .copy.copied .cp, .cmd.copied .cp { display: none; }
-.cmd { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; min-height: 32px; padding: 4px 10px; border-radius: 8px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); font-family: var(--mono); font-size: 12.5px; letter-spacing: 0; line-height: 1.35; text-align: left; overflow-wrap: anywhere; }
-.cmd svg { width: 13px; height: 13px; opacity: .5; flex: none; }
-.cmd:hover { border-color: var(--accent); } .cmd:hover svg { opacity: 1; }
-.cmd.pick { background: color-mix(in srgb, var(--c, var(--accent)) 16%, var(--surface)); border-color: color-mix(in srgb, var(--c, var(--accent)) 55%, var(--line)); font-weight: 600; }
-.opt { display: inline-flex; align-items: center; gap: 2px; max-width: 100%; }
-.about { width: 30px; height: 30px; flex: none; border: 0; border-radius: 8px; background: none; color: var(--ink-3); display: grid; place-items: center; }
-.about:hover { color: var(--accent); background: var(--hover); }
-.star { width: 32px; height: 32px; flex: none; border: 0; border-radius: 8px; background: none; color: var(--ink-3); display: grid; place-items: center; margin: -5px -6px 0 0; }
-.star:hover { color: var(--ink); background: var(--hover); }
-.star[aria-pressed="true"] { color: var(--accent); }
-.star[aria-pressed="true"] svg path { fill: currentColor; }
-.chip { min-height: 34px; padding: 0 13px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink-2); display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
-.chip:hover { color: var(--ink); border-color: var(--accent); }
-.chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); font-weight: 600; }
-.chip .n { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); letter-spacing: 0; }
-.tag { font-size: 12px; font-weight: 600; padding: 0 8px; line-height: 20px; border-radius: 999px; background: transparent; color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); white-space: nowrap; }
-@media (pointer: coarse) { .copy, .cmd, .chip { min-height: 44px; } .tabs button, .search input { height: 44px; } .star, .about { width: 44px; height: 44px; } .star { margin: -10px -12px -6px 0; } }
+/* Home: three doors */
+.home-head { max-width: 760px; }
+.kinds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 32px; }
+.kind { all: unset; box-sizing: border-box; cursor: pointer; display: flex; flex-direction: column; gap: 10px; padding: 22px 22px 20px; border-radius: 18px; background: var(--surface); border: 1px solid var(--line-soft); border-top: 4px solid var(--c); box-shadow: var(--lift); }
+.kind:hover { border-color: color-mix(in srgb, var(--c) 55%, var(--line)); border-top-color: var(--c); }
+.kind:focus-visible { outline: 2px solid var(--c); outline-offset: 3px; }
+.kind h2 { margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.03em; display: flex; align-items: baseline; gap: 10px; }
+.kind h2 .n { font-family: var(--mono); font-size: 14px; font-weight: 500; color: var(--c); letter-spacing: 0; }
+.kind .def { margin: 0; font-size: 15.5px; font-weight: 600; color: var(--ink); }
+.kind .more { margin: 0; color: var(--ink-2); font-size: 14.5px; }
+.kind .eg { margin: auto 0 0; padding-top: 12px; border-top: 1px solid var(--line-soft); color: var(--ink-3); font-size: 13.5px; }
+.kind .go { color: var(--c); font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 4px; }
+.homegrid { display: flex; flex-direction: column; }
+.complaints { margin-top: 44px; }
+ol.steps .stepcopy { margin-left: 8px; vertical-align: 1px; font-family: var(--sans); font-size: 12.5px; letter-spacing: 0; padding: 2px 9px; min-height: 28px; }
+@media (pointer: coarse) { ol.steps .stepcopy { min-height: 44px; } }
+.complaints h2 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
+.complaints p { margin: 4px 0 14px; color: var(--ink-3); }
+.qchips { display: flex; flex-wrap: wrap; gap: 8px; }
+.qchip { min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); font-size: 14px; }
+.qchip:hover { border-color: var(--accent); color: var(--ink); }
 
-/* Page heads */
-.head { max-width: 760px; margin-bottom: 32px; }
-.head h1 { margin: 0; font-size: clamp(28px, 3.4vw, 40px); font-weight: 600; letter-spacing: -0.035em; line-height: 1.08; text-wrap: balance; }
-.head p { margin: 12px 0 0; color: var(--ink-2); font-size: 16px; max-width: 56ch; text-wrap: pretty; }
-.block { margin-top: 48px; }
-.block > h2 { margin: 0; font-size: 21px; font-weight: 600; letter-spacing: -0.02em; }
-.block > .lede { margin: 4px 0 16px; color: var(--ink-3); max-width: 64ch; }
+/* Overview of categories */
+.cats-sec { margin-top: 36px; }
+.cats-sec > h2 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -0.02em; }
+.cats-sec > p { margin: 2px 0 14px; color: var(--ink-3); max-width: 70ch; }
+.cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 12px; }
+.cat { all: unset; box-sizing: border-box; cursor: pointer; display: flex; flex-direction: column; gap: 4px; padding: 16px 18px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line-soft); box-shadow: var(--lift); }
+.cat:hover { border-color: color-mix(in srgb, var(--c) 55%, var(--line)); }
+.cat:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
+.cat b { font-size: 16px; font-weight: 600; letter-spacing: -0.015em; display: flex; align-items: baseline; gap: 8px; }
+.cat b .n { margin-left: auto; font-family: var(--mono); font-size: 12.5px; font-weight: 500; color: var(--c); letter-spacing: 0; }
+.cat span { color: var(--ink-2); font-size: 14px; }
+.cat.quiet { box-shadow: none; background: transparent; border-style: dashed; }
+.tips { margin-top: 28px; padding: 18px 20px; border-radius: 16px; background: color-mix(in srgb, var(--c) 7%, var(--surface)); border: 1px solid color-mix(in srgb, var(--c) 30%, var(--line-soft)); }
+.tips h2 { margin: 0 0 10px; font-size: 16px; font-weight: 600; }
+.tips ol { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: 12px 20px; counter-reset: t; }
+.tips li { counter-increment: t; font-size: 14px; color: var(--ink-2); }
+.tips li b { display: block; color: var(--ink); font-size: 14.5px; }
+.tips li b::before { content: counter(t) ". "; color: var(--c); }
 
-/* Calm, lifted surfaces. Color marks where things belong (a wash at the top of each card, the ID badge, the selected tab); solid color is kept for the one thing you are choosing or the best pick. */
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 16px; }
-.card { position: relative; display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 16px 16px 14px; border-radius: 16px; background: linear-gradient(180deg, color-mix(in srgb, var(--c) 10%, var(--surface)) 0, var(--surface) 76px); border: 1px solid color-mix(in srgb, var(--c) 22%, var(--line-soft)); box-shadow: var(--lift); }
-.card:hover { border-color: color-mix(in srgb, var(--c) 50%, var(--line)); box-shadow: var(--lift-hi); }
-.c-head { display: flex; align-items: flex-start; gap: 8px; }
-.c-title { all: unset; cursor: pointer; flex: 1; min-width: 0; color: var(--ink); font-size: 15.5px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.35; overflow-wrap: anywhere; }
-.c-title.code { font-family: var(--mono); font-size: 14px; letter-spacing: 0; }
-.c-title:hover { color: var(--c); }
-.c-title:focus-visible { outline: 2px solid var(--c); outline-offset: 3px; border-radius: 4px; }
-.c-desc { margin: 0; color: var(--ink-2); font-size: 14px; text-wrap: pretty; }
-.c-steps { margin: 0; padding: 8px 10px; list-style: none; display: flex; flex-wrap: wrap; gap: 4px 6px; font-family: var(--mono); font-size: 12px; color: var(--ink-2); letter-spacing: 0; background: var(--sunk); border-radius: 8px; }
-.c-steps li + li::before { content: "→ "; color: var(--c); }
-.c-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 12.5px; color: var(--ink-3); }
-.badge { font-family: var(--mono); font-size: 11.5px; font-weight: 600; letter-spacing: 0; padding: 0 7px; border-radius: 6px; line-height: 20px; background: color-mix(in srgb, var(--c) 14%, var(--surface)); color: var(--c); border: 1px solid color-mix(in srgb, var(--c) 32%, transparent); }
-.risk { color: var(--risk); font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
-.risk::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-.best-label { font-size: 12px; font-weight: 700; color: var(--c); }
-.c-acts { display: flex; gap: 8px; margin-top: auto; padding-top: 6px; }
-.c-acts .copy { flex: 1; justify-content: center; }
-.copy.soft { min-height: 34px; padding: 0 14px; border-radius: 9px; background: color-mix(in srgb, var(--c) 12%, var(--surface)); border-color: color-mix(in srgb, var(--c) 40%, var(--line-soft)); color: var(--c); font-weight: 600; }
-.copy.soft:hover, .copy.soft:focus-visible, .card.best .copy.soft { background: var(--c); border-color: var(--c); color: var(--on-s); }
-.details { display: inline-flex; align-items: center; justify-content: center; min-height: 34px; padding: 0 14px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); font-size: 13.5px; font-weight: 500; }
-.details:hover { border-color: var(--ink-3); color: var(--ink); }
+/* Category page: rail + list */
+.split { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 40px; align-items: start; }
+.rail { position: sticky; top: 88px; display: flex; flex-direction: column; gap: 2px; max-height: calc(100vh - 110px); overflow-y: auto; padding: 0 4px 12px 0; }
+.rail .all { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; color: var(--ink-3); font-size: 13.5px; font-weight: 500; padding: 4px 10px 10px; }
+.rail .all:hover { color: var(--ink); }
+.rail .all svg { transform: rotate(180deg); }
+.rail h3 { margin: 14px 0 6px 10px; font-size: 12px; font-weight: 600; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
+.rail .r { all: unset; box-sizing: border-box; cursor: pointer; display: flex; align-items: baseline; gap: 8px; padding: 7px 10px; border-radius: 8px; font-size: 14px; color: var(--ink-2); line-height: 1.35; }
+.rail .r .n { margin-left: auto; font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); letter-spacing: 0; }
+.rail .r:hover { background: var(--hover); color: var(--ink); }
+.rail .r:focus-visible { outline: 2px solid var(--c); }
+.rail .r[aria-current="true"] { background: var(--surface); color: var(--ink); font-weight: 600; box-shadow: inset 3px 0 0 var(--c), var(--lift); }
+.cathead { margin-bottom: 22px; max-width: 70ch; }
+.cathead h1 { margin: 4px 0 0; font-size: 28px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; }
+.cathead p { margin: 6px 0 0; color: var(--ink-2); }
+.cathead .how { margin-top: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; color: var(--ink-3); font-size: 14px; }
+.sub { margin: 30px 0 10px; font-size: 15px; font-weight: 600; color: var(--ink-2); }
 
-/* Tabs that switch a panel. Unselected: a lifted neutral tile with a color dot. Selected: solid color. */
-.doors { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px; }
-.door { all: unset; box-sizing: border-box; cursor: pointer; display: flex; flex-direction: column; gap: 4px; padding: 15px 18px 17px; border-radius: 16px; border: 1px solid var(--line-soft); background: var(--surface); box-shadow: var(--lift); min-width: 0; }
-.door b { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; display: flex; align-items: center; gap: 9px; }
-.door b::before { content: ""; width: 10px; height: 10px; border-radius: 3px; background: var(--c); flex: none; }
-.door b .n { margin-left: auto; font-family: var(--mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0; color: var(--c); }
-.door span.d { font-size: 13.5px; color: var(--ink-2); }
-.door:hover { border-color: color-mix(in srgb, var(--c) 55%, var(--line)); box-shadow: var(--lift-hi); }
-.door:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
-.door[aria-selected="true"] { background: var(--c); border-color: var(--c); color: var(--on-s); box-shadow: 0 1px 0 rgba(255,255,255,.18) inset, 0 14px 30px -16px var(--c); }
-.door[aria-selected="true"] b::before { background: currentColor; opacity: .8; }
-.door[aria-selected="true"] b .n, .door[aria-selected="true"] span.d { color: inherit; opacity: .85; }
-.sectabs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
-.sectabs .door { padding: 12px 14px; }
-.sectabs .door b { font-size: 15px; }
-.sec-line { margin: 14px 0 18px; color: var(--ink-2); max-width: 75ch; }
-.panel { margin-top: 28px; }
-.panel-head { margin-bottom: 16px; }
-.panel-head h2 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.025em; }
-.panel-head p { margin: 4px 0 0; color: var(--ink-2); max-width: 70ch; }
-.gbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 14px; }
-.gtabs { display: contents; }
-.gtab { min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 500; display: inline-flex; align-items: center; gap: 7px; font-size: 13.5px; white-space: nowrap; }
-.gtab .n { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); letter-spacing: 0; }
-.gtab:hover { border-color: var(--c); }
-.gtab[aria-selected="true"] { background: var(--c); border-color: var(--c); color: var(--on-s); font-weight: 600; }
-.gtab[aria-selected="true"] .n { color: inherit; opacity: .8; }
-.gsel { position: relative; display: inline-flex; }
-.gsel select { -webkit-appearance: none; appearance: none; min-height: 34px; padding: 0 34px 0 13px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-size: 13.5px; font-weight: 500; cursor: pointer; max-width: 100%; }
-.gsel select.on { background: var(--c); border-color: var(--c); color: var(--on-s); font-weight: 600; }
-.gsel::after { content: ""; position: absolute; right: 13px; top: 50%; width: 7px; height: 7px; border-right: 1.6px solid currentColor; border-bottom: 1.6px solid currentColor; transform: translateY(-70%) rotate(45deg); pointer-events: none; color: var(--ink-3); }
-.gsel:has(select.on)::after { color: var(--on-s); }
-.gsel.narrow { display: none; width: 100%; }
-.gsel.narrow select { width: 100%; min-height: 44px; border-radius: 12px; }
-.blurb { margin: -2px 0 16px; color: var(--ink-3); font-size: 14px; max-width: 80ch; }
-details.gabout { margin: -2px 0 16px; max-width: 80ch; }
-details.gabout summary { cursor: pointer; color: var(--ink-2); font-size: 13.5px; font-weight: 500; list-style: none; display: inline-flex; align-items: center; gap: 6px; }
-details.gabout summary::-webkit-details-marker { display: none; }
-details.gabout summary svg { transition: transform .2s cubic-bezier(.2,.8,.2,1); color: var(--c); }
-details.gabout[open] summary svg { transform: rotate(90deg); }
-details.gabout p { margin: 6px 0 0; color: var(--ink-3); font-size: 14px; }
-.gsec + .gsec { margin-top: 28px; }
-.gsec h3 { margin: 0 0 10px; font-size: 16px; font-weight: 600; display: flex; align-items: baseline; gap: 8px; }
-.gsec h3 .n { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--ink-3); }
+/* One item: name, what it does, when to use it, what you get back, Copy. Open it for the full text. */
+.list { display: flex; flex-direction: column; gap: 10px; }
+.item { background: var(--surface); border: 1px solid var(--line-soft); border-radius: 14px; box-shadow: var(--lift); padding: 16px 18px; scroll-margin-top: 90px; }
+.item.hl { border-color: var(--c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 25%, transparent), var(--lift); }
+.it-head { display: flex; align-items: flex-start; gap: 14px; }
+.it-name { flex: 1; min-width: 0; }
+.it-name h3 { margin: 0; font-size: 16.5px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.35; overflow-wrap: anywhere; }
+.it-name h3.code { font-family: var(--mono); font-size: 15px; letter-spacing: 0; }
+.it-what { margin: 4px 0 0; color: var(--ink-2); font-size: 14.5px; max-width: 72ch; text-wrap: pretty; }
+.it-when { margin: 8px 0 0; font-size: 14px; color: var(--ink-2); max-width: 72ch; }
+.it-when b { color: var(--ink); font-weight: 600; }
+.it-meta { margin-top: 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: 13px; color: var(--ink-3); }
+.it-meta .kdot { display: inline-flex; align-items: center; gap: 6px; color: var(--c); font-weight: 600; }
+.it-meta .kdot::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.foot-copy { display: none; }
+.toggle { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; margin-left: auto; color: var(--ink-2); font-size: 13.5px; font-weight: 500; min-height: 28px; }
+.toggle:hover { color: var(--ink); }
+.toggle:focus-visible { outline: 2px solid var(--c); border-radius: 4px; }
+.toggle svg { transform: rotate(90deg); transition: transform .18s; }
+.toggle[aria-expanded="true"] svg { transform: rotate(-90deg); }
+.more-box { margin-top: 12px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.more-box > * { align-self: stretch; }
+.more-box > .copy { align-self: flex-start; }
+pre.text { margin: 0; padding: 14px 16px; border-radius: 10px; background: var(--sunk); border: 1px solid var(--line-soft); font-family: var(--sans); font-size: 14px; line-height: 1.6; color: var(--ink-2); white-space: pre-wrap; overflow-wrap: anywhere; max-height: 420px; overflow: auto; }
+.facts { margin: 0; display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 0; }
+.facts dt, .facts dd { margin: 0; padding: 8px 0; border-top: 1px solid var(--line-soft); font-size: 14px; }
+.facts dt { color: var(--ink-3); padding-right: 14px; }
+.facts dd { color: var(--ink-2); overflow-wrap: anywhere; }
+.facts code { font-family: var(--mono); font-size: 13px; }
+.closest { margin: 8px 0 0; font-size: 14px; color: var(--ink-2); }
+ol.steps { margin: 12px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; counter-reset: s; }
+ol.steps li { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; align-items: start; font-size: 14px; color: var(--ink-2); }
+ol.steps li::before { counter-increment: s; content: counter(s); font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--c); width: 24px; height: 24px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--c) 45%, var(--line)); display: grid; place-items: center; }
+ol.steps li > span { padding-top: 2px; }
+ol.steps .stp { font-weight: 600; color: var(--ink); }
+ol.steps .stp.code { font-family: var(--mono); font-size: 13px; letter-spacing: 0; font-weight: 500; }
+ol.steps .kd { display: inline-block; margin: 0 2px 0 6px; font-size: 11.5px; font-weight: 600; color: var(--k); }
 
-/* Start */
-.symgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 10px; }
-.symcard { all: unset; box-sizing: border-box; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line-soft); background: var(--surface); box-shadow: var(--lift); font-weight: 500; line-height: 1.35; }
-.symcard span { flex: 1; }
-.symcard svg { color: var(--c); transition: transform .2s cubic-bezier(.2,.8,.2,1); }
-.symcard:hover { border-color: color-mix(in srgb, var(--c) 55%, var(--line)); }
-.symcard:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
-.symcard[aria-expanded="true"] { background: var(--c); border-color: var(--c); color: var(--on-s); font-weight: 600; }
-.symcard[aria-expanded="true"] svg { color: inherit; transform: rotate(90deg); }
-.results { margin-top: 18px; padding: 18px; border-radius: 18px; background: color-mix(in srgb, var(--c) 7%, var(--bg)); border: 1px solid color-mix(in srgb, var(--c) 35%, var(--line-soft)); }
-.results h3 { margin: 0 0 12px; font-size: 15px; font-weight: 600; }
-.stages { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
-.sitbox { border-radius: 16px; background: var(--surface); border: 1px solid var(--line-soft); box-shadow: var(--lift); padding: 4px 18px; }
-.sitbox .stage-note { margin: 12px 0 4px; color: var(--ink-3); }
-.sit { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 8px 32px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line-soft); }
-.sit .when { margin: 0; }
-.sit .cmds { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
-.sit .or { color: var(--ink-3); font-size: 13px; }
-.rcard .k { font-weight: 600; font-size: 15.5px; }
-.rcard p { margin: 0; font-size: 14px; color: var(--ink-2); }
-.rcard p.rule { color: var(--ink-3); }
-.recent { margin-top: 28px; }
-.recent h2 { margin: 0 0 10px; font-size: 15px; font-weight: 600; color: var(--ink-2); }
-.rlist { display: flex; flex-wrap: wrap; gap: 8px; }
-.ritem { display: inline-flex; align-items: center; max-width: 100%; border-radius: 10px; border: 1px solid var(--line-soft); background: var(--surface); box-shadow: var(--lift); }
-.ritem .rt { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; padding: 7px 4px 7px 12px; font-size: 13.5px; font-weight: 500; min-width: 0; }
-.ritem .rt::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--c); flex: none; }
-.ritem .rt span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 28ch; }
-.ritem .rt:hover { color: var(--c); }
-.ritem .rt:focus-visible { outline: 2px solid var(--c); border-radius: 8px; }
-.ritem .rc { width: 34px; height: 34px; border: 0; background: none; color: var(--c); display: grid; place-items: center; border-radius: 8px; }
-.ritem .rc:hover { background: color-mix(in srgb, var(--c) 14%, var(--surface)); }
-.ritem .rc .ok { display: none; } .ritem .rc.copied .ok { display: block; } .ritem .rc.copied .cp { display: none; }
-.count { color: var(--ink-3); margin: 0 0 14px; }
-.empty { color: var(--ink-2); padding: 12px 0 0; max-width: 60ch; }
-.search-sec + .search-sec { margin-top: 32px; }
-.search-sec h2 { margin: 0 0 12px; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 9px; }
-.search-sec h2::before { content: ""; width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
-.search-sec h2 .n { font-family: var(--mono); font-size: 13px; color: var(--ink-3); font-weight: 500; }
+/* Search */
+.res-sec { margin-top: 28px; }
+.res-sec h2 { margin: 0 0 10px; font-size: 17px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.res-sec h2::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--c); }
+.res-sec h2 .n { font-family: var(--mono); font-size: 12.5px; font-weight: 500; color: var(--ink-3); }
 
-/* Which one */
-.ov .opts { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.ov .opts li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
-.ov .opts li > span { color: var(--ink-3); font-size: 13.5px; }
-.ov .pickwhen { margin: 4px 0 0; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--c) 9%, var(--surface)); color: var(--ink-2); font-size: 14px; max-width: 72ch; }
-.ov .pickwhen b { color: var(--c); }
-.ov .c-title { cursor: default; flex: none; margin: 0; }
-
-/* About */
-.src { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 4px 32px; padding: 14px 0; border-top: 1px solid var(--line-soft); }
-.src h3 { margin: 0; font-size: 15px; font-weight: 600; }
-.src p { margin: 0; color: var(--ink-2); font-size: 14px; }
-.tbl-wrap { overflow-x: auto; margin-top: 12px; }
-table.tbl { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 14px; }
-.tbl th { text-align: left; font-size: 12.5px; font-weight: 600; color: var(--ink-3); padding: 8px 12px 8px 0; border-bottom: 1px solid var(--line); white-space: nowrap; }
-.tbl td { padding: 9px 12px 9px 0; border-top: 1px solid var(--line-soft); vertical-align: top; color: var(--ink-2); }
-.tbl td.k { font-weight: 600; color: var(--ink); }
-.tbl button { all: unset; cursor: pointer; font-family: var(--mono); font-size: 12.5px; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
-.tbl button:focus-visible { outline: 2px solid var(--accent); }
 footer.foot { margin-top: 72px; padding-top: 16px; border-top: 1px solid var(--line-soft); color: var(--ink-3); font-size: 13px; display: flex; flex-wrap: wrap; gap: 6px 24px; justify-content: space-between; }
 footer.foot p { margin: 0; max-width: 80ch; }
-.linkbtn { background: none; border: 0; padding: 0; color: var(--accent); font-size: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.src { padding: 12px 0; border-top: 1px solid var(--line-soft); }
+.src h3 { margin: 0; font-size: 15px; } .src p { margin: 2px 0 0; color: var(--ink-2); font-size: 14px; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); max-width: calc(100vw - 32px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; background: var(--ink); color: var(--bg); font-weight: 600; font-size: 13.5px; padding: 9px 16px; border-radius: 10px; z-index: 60; }
 
-/* Sheet */
-dialog.sheet { margin: 0 0 0 auto; height: 100%; max-height: none; width: min(680px, 100%); max-width: 100%; border: 0; border-left: 1px solid var(--line); padding: 0; background: var(--bg); color: var(--ink); overflow: hidden; box-shadow: -24px 0 60px -30px rgba(0,0,0,.45); }
-dialog.sheet::backdrop { background: rgba(8, 6, 2, .4); }
-.sheet-in:focus { outline: none; }
-.sh-bottom { display: none; }
-.sheet-in { box-shadow: inset 0 4px 0 var(--c); }
-.rel .chip:hover { border-color: var(--c); }
-.sheet-in { height: 100%; overflow-y: auto; overscroll-behavior: contain; padding: max(24px, env(safe-area-inset-top, 0px)) max(24px, env(safe-area-inset-right, 0px)) max(48px, env(safe-area-inset-bottom, 0px)) 28px; display: flex; flex-direction: column; gap: 20px; }
-.sh-head { display: flex; gap: 8px; align-items: flex-start; }
-.sh-head .hd { flex: 1; min-width: 0; }
-.sh-head h2 { margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; text-wrap: balance; overflow-wrap: anywhere; }
-.sh-head h2.code { font-family: var(--mono); font-size: 20px; letter-spacing: 0; }
-.sh-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-top: 8px; font-size: 13px; color: var(--ink-3); }
-.sh-why { margin: 10px 0 0; color: var(--ink-2); max-width: 62ch; }
-.x { width: 36px; height: 36px; flex: none; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); display: grid; place-items: center; }
-.x:hover { color: var(--ink); border-color: var(--ink-3); }
-.sh-head .star { margin: 2px 0 0; width: 36px; height: 36px; }
-.prompt { margin: 0; padding: 16px 18px; border-radius: 12px; border: 1.5px solid color-mix(in srgb, var(--c) 55%, var(--line)); background: var(--surface); font-size: 15px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
-.prompt.code { font-family: var(--mono); font-size: 13.5px; letter-spacing: 0; }
-.acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 10px; background: var(--sunk); border: 1px solid var(--line-soft); align-self: flex-start; }
-.seg button { border: 0; background: none; padding: 5px 11px; border-radius: 7px; color: var(--ink-3); font-size: 13.5px; }
-.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px var(--line-soft); }
-@media (pointer: coarse) { .seg button { min-height: 40px; } .x { width: 44px; height: 44px; } }
-dl.facts { margin: 0; display: grid; grid-template-columns: 150px minmax(0, 1fr); }
-dl.facts dt, dl.facts dd { border-top: 1px solid var(--line-soft); padding: 10px 0; margin: 0; font-size: 14px; }
-dl.facts dt { color: var(--ink-3); font-weight: 500; padding-right: 16px; }
-dl.facts dd { color: var(--ink-2); }
-dl.facts dd .cmd { margin: 0 6px 6px 0; }
-.note { margin: 0; color: var(--ink-2); font-size: 14px; padding: 12px 14px; background: color-mix(in srgb, var(--c) 10%, var(--surface)); border: 1px solid color-mix(in srgb, var(--c) 35%, var(--line-soft)); border-radius: 10px; }
-.note b { color: var(--ink); }
-.reflist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.reflist li { display: grid; gap: 2px; padding: 10px 12px; border: 1px solid var(--line-soft); border-radius: 10px; background: var(--surface); }
-.reflist a { color: var(--ink); font-weight: 600; text-underline-offset: 3px; }
-.reflist span { color: var(--ink-2); font-size: 14px; }
-.results.broad { background: transparent; border-style: dashed; }
-details.composer { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
-details.composer summary { cursor: pointer; padding: 14px 16px; font-weight: 600; list-style: none; display: flex; align-items: center; gap: 10px; }
-details.composer summary::-webkit-details-marker { display: none; }
-details.composer summary svg { color: var(--ink-3); transition: transform .2s cubic-bezier(.2,.8,.2,1); }
-details.composer[open] summary svg { transform: rotate(90deg); }
-details.composer summary span { color: var(--ink-3); font-weight: 400; font-size: 13.5px; }
-.cbody { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 12px; }
-.crow { display: grid; grid-template-columns: 80px minmax(0, 1fr); gap: 6px 12px; align-items: center; }
-.crow > .lab { color: var(--ink-3); font-size: 13.5px; }
-.checks { display: flex; flex-wrap: wrap; gap: 6px; }
-.checks label { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--line); cursor: pointer; }
-.checks label:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
-.checks input { accent-color: var(--accent); margin: 0; }
-pre.out { margin: 0; padding: 12px 14px; background: var(--sunk); border-radius: 10px; font-family: var(--mono); font-size: 12px; line-height: 1.6; letter-spacing: 0; color: var(--ink-2); white-space: pre-wrap; overflow-wrap: anywhere; max-height: 340px; overflow: auto; }
-.sub-h { margin: 0 0 8px; font-size: 13.5px; font-weight: 600; color: var(--ink-3); }
-.rel { display: flex; flex-wrap: wrap; gap: 6px; }
-.rel .chip { white-space: normal; text-align: left; min-height: 34px; padding-block: 5px; border-radius: 10px; }
-ol.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; counter-reset: s; }
-ol.steps li { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 10px; align-items: start; }
-ol.steps li::before { counter-increment: s; content: counter(s); font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--ink-3); width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; margin-top: 4px; }
-ol.steps .sb { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; min-width: 0; }
-ol.steps .for { color: var(--ink-2); font-size: 14px; }
-
-.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); max-width: calc(100vw - 32px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; background: var(--ink); color: var(--bg); font-weight: 600; font-size: 13.5px; padding: 9px 16px; border-radius: 10px; box-shadow: 0 12px 30px -10px rgba(0,0,0,.5); z-index: 60; }
-
-@media (prefers-reduced-motion: no-preference) {
-  .copy, .cmd, .chip, .tabs button, .search input, .star, .about, .door, .gtab, .symcard, .details, .card { transition: color .15s, background-color .15s, border-color .15s, box-shadow .15s; }
-  dialog.sheet[open] { animation: slide .26s cubic-bezier(.16,1,.3,1); }
-  dialog.sheet[open]::backdrop { animation: fade .26s ease-out; }
-  @keyframes slide { from { transform: translateX(32px); opacity: 0; } to { transform: none; opacity: 1; } }
-  @keyframes fade { from { opacity: 0; } }
-  .results { animation: rise .24s cubic-bezier(.16,1,.3,1); }
-  @keyframes rise { from { opacity: 0; transform: translateY(-4px); } }
+@media (max-width: 960px) {
+  .kinds { grid-template-columns: minmax(0, 1fr); }
+  .split { grid-template-columns: minmax(0, 1fr); }
+  .rail { display: none; }
+  .back { display: inline-flex; }
 }
-@media (prefers-reduced-motion: reduce) { .sym svg, details.composer summary svg { transition: none; } }
-
-@media (min-width: 1800px) { body { font-size: 16px; } .wrap { max-width: 1720px; } }
-@media (max-width: 1020px) { .sectabs { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 760px) {
+  .complaints { order: -1; margin: 24px 0 8px; }
   .top { position: static; backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--bg); }
-  .top .wrap { flex-wrap: wrap; padding-block: 12px; min-height: 0; gap: 10px 12px; }
+  .top .wrap { flex-wrap: wrap; padding-block: 12px; min-height: 0; gap: 10px; }
   .search { order: 2; flex: 1 1 100%; margin: 0; }
-  .tabs { position: fixed; z-index: 40; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; padding: 6px max(8px, env(safe-area-inset-left, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-right, 0px)); background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -8px 24px -16px rgba(0,0,0,.35); }
-  .tabs button { justify-content: center; padding: 0 4px; height: 48px; border-radius: 10px; font-size: 14px; }
-  .tabs button[aria-current="page"] { color: var(--ink); background: var(--hover); font-weight: 700; box-shadow: inset 0 0 0 1px var(--line); }
-  main .wrap { padding-block: 24px calc(96px + env(safe-area-inset-bottom, 0px)); }
-  .toast { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
-  .sit, .src { grid-template-columns: minmax(0, 1fr); }
-  .doors:not(.sectabs) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-  .sectabs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-  .sectabs .door { padding: 9px 11px; border-radius: 12px; min-height: 44px; justify-content: center; }
-  .sectabs .door b { font-size: 13.5px; line-height: 1.25; }
-  .doors:not(.sectabs) .door { padding: 10px 10px 11px; border-radius: 12px; justify-content: center; }
-  .doors:not(.sectabs) .door b { font-size: 14px; line-height: 1.25; }
-  .doors:not(.sectabs) .door span.d { display: none; }
-  .results { padding: 12px; margin-inline: -4px; }
-  .sitbox { padding: 2px 14px; }
-  .gtabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: -16px; padding-inline: 16px; }
-  .gtabs::-webkit-scrollbar { display: none; }
-  dialog.sheet { width: 100%; border-left: 0; }
-  .sh-bottom { display: block; position: sticky; bottom: calc(-1 * max(48px, env(safe-area-inset-bottom, 0px))); margin: 0 -16px calc(-1 * max(48px, env(safe-area-inset-bottom, 0px))); padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--bg); border-top: 1px solid var(--line); }
-  .sh-bottom .details { width: 100%; min-height: 48px; font-weight: 600; color: var(--ink); }
-  .gbar .gtabs, .gsel.wide { display: none; }
-  .gsel.narrow { display: flex; }
-  .sheet-in { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-  .sh-head h2 { font-size: 21px; }
-  dl.facts { grid-template-columns: minmax(0, 1fr); }
-  dl.facts dd { border-top: 0; padding-top: 0; }
-  .crow { grid-template-columns: minmax(0, 1fr); }
-  details.composer summary span { display: none; }
+  .tabs { position: fixed; z-index: 40; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-top: 1px solid var(--line); }
+  .tabs button { justify-content: center; height: 48px; font-size: 14.5px; }
+  main .wrap { padding-block: 24px calc(100px + env(safe-area-inset-bottom, 0px)); }
+  .toast { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+  .kind { padding: 18px; } .kind h2 { font-size: 21px; }
+  .item { padding: 14px; }
+  .it-head { flex-direction: column; gap: 10px; }
+  .head-copy { display: none; }
+  .it-meta .foot-copy { display: inline-flex; order: 9; flex: 1 1 100%; }
+  .it-meta .toggle { order: 10; margin: 0 auto; }
+  .facts { grid-template-columns: minmax(0, 1fr); } .facts dd { border-top: 0; padding-top: 0; }
   footer.foot { flex-direction: column; }
 }
-/* Areas, the mark, and the Agent Kit job named on other people's tools */
-.sectabs { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-.areadoors { grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); }
-.areadoors .door span.d { font-family: var(--mono); font-size: 12.5px; letter-spacing: 0; }
-.areahead { max-width: 76ch; margin-top: 28px; }
-.areacmd { margin-top: 8px !important; color: var(--ink-3) !important; font-size: 14px; }
-.areacmd code, .closest code { font-family: var(--mono); font-size: .92em; background: var(--sunk); padding: 1px 6px; border-radius: 5px; }
-.mark { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: var(--on-s); background: var(--s-inv); padding: 0 8px 0 6px; border-radius: 999px; line-height: 20px; white-space: nowrap; }
-.mark svg { width: 12px; height: 12px; }
-.closest { margin: 0; font-size: 13.5px; color: var(--ink-2); }
-.linkbtn.code { font-family: var(--mono); font-size: .95em; }
-.idline { margin: 0; font-family: var(--mono); font-size: 12px; color: var(--ink-3); letter-spacing: 0; }
-@media (max-width: 1020px) { .sectabs { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (max-width: 760px) { .sectabs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (prefers-reduced-motion: reduce) { .toggle svg { transition: none; } }
 </style>
 
-<header class="top" id="top">
+<header class="top">
   <div class="wrap">
-    <a class="brand" href="#start">Prompt Library<b>.</b></a>
-    <nav class="tabs" id="tabs" aria-label="Views"></nav>
+    <button type="button" class="brand" id="brand">Prompt Library<b>.</b></button>
+    <nav class="tabs" id="tabs" aria-label="Kinds"></nav>
     <div class="search" role="search">
       <svg class="i" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="7" cy="7" r="4.75"/><path d="M10.5 10.5l3.25 3.25" stroke-linecap="round"/></svg>
-      <input id="q" type="search" placeholder="Search prompts, commands and recipes" aria-label="Search the library" autocomplete="off" spellcheck="false">
-      <span class="kbd" id="kbd" aria-hidden="true">/</span>
+      <input id="q" type="search" placeholder="Search, or describe the problem" aria-label="Search the library" autocomplete="off" spellcheck="false">
       <button type="button" class="clear" id="clear" aria-label="Clear search" hidden><svg class="i" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
     </div>
   </div>
-  <div class="spectrum" aria-hidden="true"><span style="--c:var(--s-inv)"></span><span style="--c:var(--s-db)"></span><span style="--c:var(--s-think)"></span><span style="--c:var(--s-ecmd)"></span><span style="--c:var(--s-dcmd)"></span><span style="--c:var(--s-recipe)"></span></div>
 </header>
 <main><div class="wrap" id="app"></div></main>
-<dialog class="sheet" id="sheet" aria-labelledby="sheet-title"><div class="sheet-in" id="sheet-in" tabindex="-1"></div></dialog>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <p class="sr" id="status" role="status" aria-live="polite"></p>
 
 <script type="application/json" id="library">__LIBRARY_DATA__</script>
-
 <script>
 const LIB = JSON.parse(document.getElementById("library").textContent);
-// Keen's jobs come from Keen's own job list at build time; they sit beside the library entries.
-const E = [...LIB.entries, ...(LIB.keen || [])];
+const V = LIB.v3 || { tips: [], promptCats: [], when: {}, skillGroups: [], recipeGroups: [], recipes: [] };
+const NOT_SHOWN = LIB.notShown || {};
+const PATCH = V.patch || {};
+const E = [...LIB.entries, ...(LIB.keen || []), ...V.recipes.map(r => ({ ...r, sec: "recipe2" }))].filter(e => !NOT_SHOWN[e.id]).map(e => PATCH[e.id] ? { ...e, ...PATCH[e.id] } : e);
 const BY = Object.fromEntries(E.map(e => [e.id, e]));
+const CLOSEST = LIB.closest || {};
+function norm(s) { return s.toLowerCase().split("<")[0].replace(/,.*$/, "").replace(/\s+/g, " ").trim(); }
 const CMDIDX = {};
 E.forEach(e => { if (e.cmd) { const k = norm(e.cmd); if (!CMDIDX[k]) CMDIDX[k] = e.id; } });
-// Placeholders such as "<path>" always come last, so keep only the text before the first "<".
-function norm(s) { return s.toLowerCase().split("<")[0].replace(/,.*$/, "").replace(/\s+/g, " ").trim(); }
-function findCmd(s) { const k = norm(s); if (CMDIDX[k]) return CMDIDX[k]; const two = k.split(" ").slice(0, 2).join(" "); return CMDIDX[two] || CMDIDX[k.split(" ")[0]] || null; }
+const findCmd = s => { const k = norm(s); return CMDIDX[k] || CMDIDX[k.split(" ").slice(0, 2).join(" ")] || null; };
 
-// Areas match the kit's own areas. Every entry in an area is listed once; everything else is Other tools.
-const AREAS = LIB.areas || [];
-const AREA_HUE = { design: "dcmd", motion: "recipe", bugs: "inv", data: "db", nav: "ecmd", code: "inv", ship: "desk", routine: "ecmd", writing: "think", think: "think" };
-const hue = k => `var(--s-${AREA_HUE[k] || "desk"})`;
-const groupList = ref => typeof ref === "string" ? (LIB.keen || []).filter(k => "K:" + k.group === ref) : ref.map(id => BY[id]).filter(Boolean);
-const AREA_OF = {};
-AREAS.forEach(a => a.groups.forEach(([, ref]) => groupList(ref).forEach(e => { AREA_OF[e.id] = a.key; })));
-const NOT_SHOWN = LIB.notShown || {};
-const OTHER = LIB.entries.filter(e => !AREA_OF[e.id] && !NOT_SHOWN[e.id]);
-const CLOSEST = LIB.closest || {};
-const areaOf = e => AREAS.find(a => a.key === AREA_OF[e.id]);
-const colorOf = e => AREA_OF[e.id] ? hue(AREA_OF[e.id]) : "var(--ink-3)";
-
-const TABS = [["start", "Start"], ["areas", "Areas"], ["other", "Other tools"]];
-const STORE = "mpl-v2";
-let S = { view: "start", q: "", sym: -1, area: AREAS[0]?.key || "" };
-try { const saved = JSON.parse(localStorage.getItem(STORE) || "{}"); if (["start", "areas", "other"].includes(saved.view)) S.view = saved.view; if (AREAS.some(a => a.key === saved.area)) S.area = saved.area; } catch (e) {}
-function save() { try { localStorage.setItem(STORE, JSON.stringify({ view: S.view, area: S.area })); } catch (e) {} }
+/* Where everything lives: each id has one home, [kind, group]. */
+const KIND = { prompt: { name: "Prompts", one: "Prompt", c: "var(--k-prompt)" }, skill: { name: "Skills", one: "Skill", c: "var(--k-skill)" }, recipe: { name: "Recipes", one: "Recipe", c: "var(--k-recipe)" } };
+const HOME = {};
+V.promptCats.forEach(c => c.ids.forEach(id => { HOME[id] = ["prompt", c.key]; }));
+const keenGroups = [...new Set((LIB.keen || []).map(k => k.group))];
+(LIB.keen || []).forEach(k => { HOME[k.id] = ["skill", "design"]; });
+V.skillGroups.forEach(g => g.ids.forEach(id => { HOME[id] = ["skill", g.key]; }));
+const OTHER_SKILLS = E.filter(e => (e.sec === "ecmd" || e.sec === "dcmd") && !HOME[e.id]);
+OTHER_SKILLS.forEach(e => { HOME[e.id] = ["skill", "other"]; });
+V.recipeGroups.forEach(g => g.ids.forEach(id => { HOME[id] = ["recipe", g.key]; }));
+const OLD_RECIPES = E.filter(e => e.sec === "recipe" && !HOME[e.id]);
+OLD_RECIPES.forEach(e => { HOME[e.id] = ["recipe", "older"]; });
+const kindOf = e => HOME[e.id]?.[0] || "prompt";
+const listOf = ids => ids.map(id => BY[id]).filter(Boolean);
+const skillGroupItems = g => g.keen ? [...(LIB.keen || []), ...listOf(g.ids)] : listOf(g.ids);
 
 const SVG = {
   copy: '<svg class="i cp" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="2"/><path d="M10.5 3.5V3A1.5 1.5 0 0 0 9 1.5H4A1.5 1.5 0 0 0 2.5 3v5A1.5 1.5 0 0 0 4 9.5h.5"/></svg><svg class="i ok" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 8.5l3 3 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-  x: '<svg class="i" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>',
   chev: '<svg class="i" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5"/></svg>',
   check: '<svg class="i" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 };
@@ -436,43 +277,38 @@ function h(tag, attrs, ...kids) {
     if (k === "class") n.className = v; else if (k === "html") n.innerHTML = v; else if (k === "style") n.setAttribute("style", v);
     else if (k.startsWith("on")) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v === true ? "" : v);
   }
-  for (const c of kids.flat()) { if (c == null || c === false) continue; n.append(c.nodeType ? c : document.createTextNode(c)); }
+  for (const c of kids.flat(Infinity)) { if (c == null || c === false) continue; n.append(c.nodeType ? c : document.createTextNode(c)); }
   return n;
 }
+const icon = k => h("i", { html: SVG[k], style: "display:contents" });
 function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => t.hidden = true, 1600); }
 async function copy(text, btn, label) {
   try { await navigator.clipboard.writeText(text); }
   catch (e) {
     const ta = h("textarea", { style: "position:fixed;left:-9999px;top:0" }); ta.value = text;
-    // An open modal sheet makes the rest of the page inert, so the textarea must sit inside it to be selectable.
-    (document.querySelector("dialog[open]") || document.body).append(ta); ta.focus(); ta.select();
+    document.body.append(ta); ta.focus(); ta.select();
     let ok = false; try { ok = document.execCommand("copy"); } catch (_) {} ta.remove();
-    if (!ok) { toast("Copy blocked here. Open Details and select the text."); return false; }
+    if (!ok) { toast("Copy is blocked here. Open the item and select the text."); return; }
   }
   if (btn) { btn.classList.add("copied"); setTimeout(() => btn.classList.remove("copied"), 1200); }
   toast(label || "Copied");
-  return true;
 }
-function copyBtn(label, text, opts = {}) {
-  const b = h("button", { type: "button", class: "copy" + (opts.primary ? " primary" : "") + (opts.soft ? " soft" : ""), "aria-label": opts.aria || null }, label);
+function copyBtn(label, text, name, cls = "copy") {
+  const b = h("button", { type: "button", class: cls, "aria-label": name && name !== label ? label + ": " + name : null }, label);
   b.insertAdjacentHTML("afterbegin", SVG.copy);
-  b.addEventListener("click", ev => { ev.stopPropagation(); copy(text, b, opts.toast); });
+  b.addEventListener("click", ev => { ev.stopPropagation(); copy(text, b, "Copied " + (name || label)); });
   return b;
 }
 
-/* What every card says, the same way for every kind of entry */
-const isCode = e => e.sec === "ecmd" || e.sec === "dcmd" || e.sec === "keen";
-const nameOf = e => isCode(e) ? (e.cmd || e.t) : e.t;
-const lineOf = e => e.line || (e.sec === "think" ? e.use : e.why) || "";
+/* What each item says */
+const isSkill = e => e.sec === "ecmd" || e.sec === "dcmd" || e.sec === "keen";
+const nameOf = e => isSkill(e) ? (e.cmd || e.t) : e.t;
+const whatOf = e => e.line || e.why || "";
+const whenOf = e => V.when[e.id] || e.use || "";
 const MODE_GET = {
-  read: "A report. Nothing changes.",
-  repro: "A report, plus a test that shows the problem. Your app code stays as it is.",
-  change: "A report, then a suggested fix for you to approve.",
-  "Changes code": "It edits your code.",
-  "Report only": "A report. Nothing changes.",
-  "Advice": "Advice in the chat. Nothing changes.",
-  "Asks before changing": "A plan first. Nothing changes until you say yes.",
-  "Writes notes only": "Notes or documents. Your app code stays as it is.",
+  read: "A report. Nothing changes.", repro: "A report, plus a test that shows the problem. Your app code stays as it is.", change: "A report, then a suggested fix for you to approve.",
+  "Changes code": "It edits your code.", "Report only": "A report. Nothing changes.", "Advice": "Advice in the chat. Nothing changes.",
+  "Asks before changing": "A plan first. Nothing changes until you say yes.", "Writes notes only": "Notes or documents. Your app code stays as it is.",
   "Depends on the task": "Depends on what it picks. It says which before it starts.",
 };
 function keenGet(kind) {
@@ -486,40 +322,41 @@ function keenGet(kind) {
 }
 function getsBack(e) {
   if (e.sec === "keen") return keenGet(e.kind);
+  if (e.gets) return e.gets;
   if (e.iso) return "A report, tested on a separate copy. Your real data is not touched.";
-  if (e.sec === "think") return "Changes how the agent works on your task.";
-  if (e.sec === "recipe") return "It edits your code, checking in with you between steps.";
+  if (e.sec === "think") return "Changes how the agent works on your request.";
+  if (e.sec === "recipe2" && isSplit(e) && !e.copy) return "One step at a time. Each step has its own Copy.";
+  if (e.sec === "recipe" || e.sec === "recipe2") return "Several steps in one chat. It waits for your yes between them.";
   return MODE_GET[e.mode || e.dmode] || "";
 }
-const RISKY = e => e.sec !== "think" && /edits|suggested fix|test that shows/i.test(getsBack(e));
-function kindLine(e) {
-  if (e.sec === "keen") return "Agent Kit command (design-kit plugin)";
-  if (e.sec === "inv") return "Prompt for any coding agent. Nothing to install.";
-  if (e.sec === "db") return (e.flow ? "Several prompts in order" : "Prompt") + " for any agent that can read your database. Nothing to install.";
-  if (e.sec === "think") return "Add it to any request, in any agent.";
-  if (e.sec === "recipe") return "Several commands in order. Each one must be installed.";
-  const b = e.badge || "";
-  if (/built into Claude Code/i.test(b) || b === "bundled") return "Command built into Claude Code";
-  return "Command from " + e.group + (b ? " (" + b + ")" : "");
-}
-// The mark: shown only where a run on a real project is recorded.
+const risky = e => !["think", "recipe", "recipe2"].includes(e.sec) && /edits|suggested fix|test that shows/i.test(getsBack(e));
 function tried(e) {
   if (LIB.tried?.[e.id]) return LIB.tried[e.id];
   if (e.runs?.length) return "Run on " + e.runs.map(r => r[0]).join(" and ") + ".";
   if (e.reviewed) return "Run on a real project, " + e.reviewed + ".";
   return null;
 }
-const mark = e => tried(e) ? h("span", { class: "mark", title: tried(e) }, h("i", { html: SVG.check, style: "display:contents" }), "Tried on a real project") : null;
+function needs(e) {
+  if (e.sec === "keen") return "The design-kit plugin.";
+  const b = e.badge || "";
+  if (/built into Claude Code/i.test(b)) return "Nothing. It's built into Claude Code.";
+  if (e.group === "Engineering kit") return "The engineering-kit plugin.";
+  if (/design-kit/.test(b)) return "The design-kit plugin.";
+  if (/motion-kit/.test(b)) return "The motion-kit plugin.";
+  if (/working-style/.test(b)) return "The working-style plugin.";
+  if (e.group === "Experience architecture") return "The experience-architecture plugin.";
+  return e.group + (b ? " (" + b + ")" : "") + ".";
+}
 
-// Copy hands over everything the agent needs: the prompt, what it may change, what to bring back,
-// when to stop, and a report that starts in plain English.
+// Copy hands the agent everything it needs: the prompt, what it may change, what to bring back, when to stop.
 const PLAIN = "Start your report in plain English: what you found, what it means, and whether I need to do anything. Put files, lines and commands underneath.";
 function copyText(e) {
   if (e.sec === "keen" || e.sec === "ecmd") return e.cmd;
   if (e.sec === "dcmd" || e.sec === "recipe" || e.sec === "think") return e.p;
+  if (e.sec === "recipe2") return recipeText(e);
   if (e.flow) return e.p + "\n\n" + PLAIN;
   const C = LIB.composer;
-  const parts = [e.p, C.mode[e.mode || "read"][1]];
+  const parts = [e.p, e.modeText || C.mode[e.mode || "read"][1]];
   if (e.iso) parts.push("Anything that changes state, such as a rebuild, replay or migration test, runs only on a separate database with safe test data, never on production.");
   if (e.ev) parts.push("Bring back: " + e.ev);
   if (e.skip) parts.push("If this describes the project, say so and stop instead: " + e.skip);
@@ -528,301 +365,272 @@ function copyText(e) {
   parts.push(PLAIN);
   return parts.join("\n\n");
 }
-const copyLabel = e => isCode(e) ? "Copy command" : e.sec === "recipe" ? "Copy recipe" : "Copy prompt";
-
-// An Agent Kit job named on another author's tool: its card, or its area when it is an area's own command.
-function closestLink(c) {
-  const id = findCmd(c);
-  if (id && norm(BY[id].cmd || "") === norm(c)) return h("button", { type: "button", class: "linkbtn code", onclick: () => openSheet(id) }, c);
-  const a = AREAS.find(x => x.cmd && norm(x.cmd) === norm(c));
-  if (a) return h("button", { type: "button", class: "linkbtn code", onclick: () => { closeSheet(); go("areas", a.key); } }, c);
-  return id ? h("button", { type: "button", class: "linkbtn code", onclick: () => openSheet(id) }, c) : h("code", {}, c);
+const stepEntry = ref => BY[ref] || (ref.startsWith("/") ? BY[findCmd(ref)] : null);
+// A step on its own: a command is typed as its own message; a prompt carries all its rules.
+const stepText = e => isSkill(e) ? e.cmd : copyText(e);
+const isSplit = r => r.split || r.steps.some(([ref]) => { const e = stepEntry(ref); return e && isSkill(e); });
+function recipeText(r) {
+  if (r.copy) return r.copy;
+  if (isSplit(r)) {
+    const first = stepEntry(r.steps[0][0]);
+    return first ? stepText(first) : r.steps[0][0];
+  }
+  const lines = [r.t + ". " + r.line, "Run these steps one at a time. After each one, tell me what you found or changed and wait for my yes before starting the next. Steps that only investigate must not change anything."];
+  r.steps.forEach(([ref, note], i) => {
+    const e = stepEntry(ref); const n = `Step ${i + 1}`;
+    if (!e) lines.push(`${n}: ${ref}, ${note}.`);
+    else lines.push(`${n} (${note}):\n` + stepText(e).replace("\n\n" + PLAIN, ""));
+  });
+  lines.push(PLAIN);
+  return lines.join("\n\n");
 }
-function card(e, opts = {}) {
-  const meta = h("div", { class: "c-meta" }, mark(e));
-  if (opts.best) meta.append(h("span", { class: "best-label" }, "Start here"));
-  if (e.desk) meta.append(h("span", { class: "tag" }, "In Desk"));
-  const get = getsBack(e);
-  if (get) meta.append(h("span", { class: RISKY(e) ? "risk" : null }, get));
-  const c = CLOSEST[e.id];
-  return h("article", { class: "card" + (opts.best ? " best" : ""), style: `--c:${colorOf(e)}` },
-    h("div", { class: "c-head" }, h("button", { type: "button", class: "c-title" + (isCode(e) ? " code" : ""), onclick: () => openSheet(e.id) }, nameOf(e))),
-    meta,
-    lineOf(e) ? h("p", { class: "c-desc" }, lineOf(e)) : null,
-    c ? h("p", { class: "closest" }, "Agent Kit job that does this: ", closestLink(c)) : null,
-    h("div", { class: "c-acts" }, copyBtn(copyLabel(e), copyText(e), { soft: true, toast: "Copied " + nameOf(e), aria: copyLabel(e) + ": " + nameOf(e) }), h("button", { type: "button", class: "details", tabindex: "-1", onclick: () => openSheet(e.id) }, "Details")));
-}
-const cards = (list, opts = {}) => h("div", { class: "cards" }, list.map((e, i) => card(e, { best: opts.best && i === 0 })));
+const copyLabel = e => isSkill(e) ? "Copy command" : e.sec === "recipe2" && isSplit(e) && !e.copy ? "Copy step 1" : e.sec.startsWith("recipe") ? "Copy recipe" : "Copy prompt";
 
-// Search ranks results: an exact command first, then title words, then other names and tags, then descriptions, then the body.
-const lc = (...xs) => xs.flat().filter(Boolean).join(" ").toLowerCase();
-// The front door's plain complaints count as other names for the entries they point to.
+/* State and routes: #prompts, #prompts/<cat>, #skills/<group>, #recipes/<group>, #i/<id>, #search, #sources */
+let S = { view: "home", group: null, q: "", open: new Set(), hl: null };
+const routeHash = () => S.view === "home" ? "" : "#" + S.view + (S.group ? "/" + S.group : "");
+function setHash(hs, push) { const url = hs || location.pathname + location.search; history[push ? "pushState" : "replaceState"](null, "", url); }
+function go(view, group, push = true) {
+  S.view = view; S.group = group || null; S.hl = null; clearSearch();
+  setHash(routeHash(), push); render(); window.scrollTo(0, 0);
+}
+function openItem(id, push = true) {
+  const home = HOME[id]; if (!home) return;
+  S.view = home[0] + "s"; S.group = home[1]; S.open.add(id); S.hl = id; clearSearch();
+  if (push) setHash("#i/" + id.replace(":", "-"), true);
+  render();
+  requestAnimationFrame(() => document.getElementById("it-" + id.replace(":", "-"))?.scrollIntoView({ block: "start" }));
+}
+function fromHash() {
+  const hs = decodeURIComponent(location.hash.slice(1));
+  const m = /^(?:i\/|e-)(.+)$/.exec(hs);
+  if (m) { const raw = m[1]; const id = BY[raw] ? raw : BY[raw.replace(/^K-/, "K:")] ? raw.replace(/^K-/, "K:") : null; if (id && HOME[id]) return openItem(id, false); }
+  const [view, group] = hs.split("/");
+  if (["prompts", "skills", "recipes", "sources"].includes(view)) { S.view = view; S.group = group || null; }
+  else { S.view = "home"; S.group = null; }
+  S.hl = null; clearSearch(); render(); window.scrollTo(0, 0);
+}
+window.addEventListener("popstate", fromHash);
+
+/* Search */
 const SAYS = {};
-const SAYS_RANK = {};
-(LIB.front || []).forEach(([txt, ids]) => ids.forEach((id, i) => { (SAYS[id] = SAYS[id] || []).push(txt); SAYS_RANK[id + "|" + txt] = 3 - i; }));
-const FIELDS = e => [
-  [lc(e.id), 60], [lc(e.t, e.cmd), 40],
-  [lc(SAYS[e.id], e.use && e.sec === "keen" ? e.use : null), 35],
-  [lc(e.aka, e.tags, e.desk?.t, CLOSEST[e.id]), 25],
-  [lc(e.line, e.why, e.use, e.group, e.sub, areaOf(e)?.title), 10],
-  [lc(e.p, e.ev, e.skip, e.avoid, e.tools, (e.steps || []).map(s => s.join(" ")), e.kit), 3],
-];
-const SHOWN = E.filter(e => !NOT_SHOWN[e.id]);
-const IDX = Object.fromEntries(SHOWN.map(e => [e.id, FIELDS(e)]));
+(LIB.front || []).forEach(([txt, ids]) => ids.forEach(id => { (SAYS[id] = SAYS[id] || []).push(txt); }));
+const lc = (...xs) => xs.flat().filter(Boolean).join(" ").toLowerCase();
+const FIELDS = e => [[lc(e.id), 60], [lc(e.t, e.cmd), 40], [lc(SAYS[e.id], whenOf(e)), 30], [lc(e.aka, e.tags, CLOSEST[e.id]), 22], [lc(whatOf(e), e.why, e.group), 10], [lc(e.p, e.ev, e.skip, (e.steps || []).map(s => s.join(" "))), 3]];
+const SEARCHABLE = E.filter(e => HOME[e.id] && HOME[e.id][1] !== "other" && HOME[e.id][1] !== "older");
+const IDX = Object.fromEntries(SEARCHABLE.map(e => [e.id, FIELDS(e)]));
 const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const stem = w => w.length > 4 ? w.replace(/(ing|ed|es|s)$/, "") : w;
-function score(e, ql, words) {
-  const f = IDX[e.id]; let s = 0, hit = 0;
-  if (f[0][0] === ql.toLowerCase()) s += 1000;
-  if (e.cmd && norm(e.cmd) === ql) s += 900;
-  if (f[1][0].includes(ql) && ql.length > 2) s += 200;
-  if (words.length > 1 && (f[2][0].includes(ql) || f[3][0].includes(ql))) s += 120;
-  // Among entries a front-door complaint points to, its first pick ranks first.
-  for (const txt of SAYS[e.id] || []) if (words.every(([w]) => txt.toLowerCase().includes(w))) s += SAYS_RANK[e.id + "|" + txt] || 0;
-  for (const [w, start] of words) {
-    let best = 0;
-    for (const [txt, wt] of f) if (txt.includes(w)) best = Math.max(best, start.test(txt) ? wt * 1.5 : wt);
-    if (best) { hit++; s += best; }
-  }
-  // Agent Kit's own jobs come before other people's tools when they match equally.
-  if (hit && AREA_OF[e.id]) s += 15;
-  return { s, hit };
-}
-let LOOSE = false;
+const STOP = new Set(["the", "and", "or", "it", "it's", "is", "a", "an", "to", "of", "my", "i", "i'm", "im", "on", "in", "with", "don't", "dont", "for", "want", "about", "what", "can't", "know", "like", "looks", "look", "too", "much", "something"]);
 function searchList() {
   const ql = S.q.toLowerCase().replace(/\s+/g, " ").trim();
-  const words = ql.split(" ").filter(Boolean).map(stem).map(w => [w, new RegExp("(^|[^a-z0-9])" + esc(w))]);
-  if (!words.length) return [];
-  const scored = SHOWN.map((e, i) => ({ e, i, ...score(e, ql, words) })).filter(x => x.hit);
+  let words = ql.split(" ").filter(w => !STOP.has(w));
+  if (!words.length) words = ql.split(" ").filter(Boolean);
+  words = words.map(stem).map(w => [w, new RegExp("(^|[^a-z0-9])" + esc(w))]);
+  if (!words.length) return { list: [], loose: false };
+  const frontRow = (LIB.front || []).find(([t]) => t.toLowerCase() === ql);
+  const scored = SEARCHABLE.map((e, i) => {
+    const f = IDX[e.id]; let s = 0, hit = 0;
+    if (f[0][0] === ql) s += 1000;
+    if (e.cmd && norm(e.cmd) === ql) s += 900;
+    if (f[1][0].includes(ql) && ql.length > 2) s += 200;
+    // A problem picked from the home page puts its own picks first, best first.
+    if (frontRow && frontRow[1].includes(e.id)) { s += 500 - frontRow[1].indexOf(e.id) * 20; hit = words.length; return { e, i, s, hit }; }
+    for (const [w, start] of words) { let best = 0; for (const [txt, wt] of f) if (txt.includes(w)) best = Math.max(best, start.test(txt) ? wt * 1.5 : wt); if (best) { hit++; s += best; } }
+    if (hit && HOME[e.id][1] !== "other" && HOME[e.id][1] !== "older") s += 15;
+    return { e, i, s, hit };
+  }).filter(x => x.hit);
   const full = scored.filter(x => x.hit === words.length);
   const pool = full.length ? full : scored.filter(x => x.hit >= Math.ceil(words.length / 2));
-  LOOSE = !full.length && pool.length > 0;
-  return pool.sort((a, b) => b.s - a.s || a.i - b.i).map(x => x.e);
+  return { list: pool.sort((a, b) => b.s - a.s || a.i - b.i).map(x => x.e), loose: !full.length && pool.length > 0 };
 }
+function clearSearch() { S.q = ""; $("#q").value = ""; $("#clear").hidden = true; }
 
-function tablist(cls, label, items, cur, onpick) {
-  const list = h("div", { class: cls, role: "tablist", "aria-label": label });
-  items.forEach(it => list.append(h("button", { type: "button", role: "tab", class: it.cls, style: it.c ? `--c:${it.c}` : null, "aria-selected": cur === it.k ? "true" : "false", tabindex: cur === it.k ? "0" : "-1", onclick: () => onpick(it.k) }, ...it.kids)));
-  list.addEventListener("keydown", ev => {
-    if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(ev.key)) return;
-    const tabs = [...list.querySelectorAll('[role="tab"]')]; const i = tabs.indexOf(document.activeElement); if (i < 0) return;
-    ev.preventDefault();
-    const n = ev.key === "Home" ? 0 : ev.key === "End" ? tabs.length - 1 : (i + (ev.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
-    tabs[n].focus(); tabs[n].click();
-  });
-  return list;
+/* One item */
+function item(e, opts = {}) {
+  const k = kindOf(e), id = e.id.replace(":", "-");
+  const open = S.open.has(e.id);
+  const meta = h("div", { class: "it-meta" });
+  if (opts.kind) meta.append(h("span", { class: "kdot", style: `--c:${KIND[k].c}` }, KIND[k].one));
+  if (e.fresh) meta.append(h("span", { class: "tag" }, "New"));
+  const gb = getsBack(e); if (gb) meta.append(h("span", { class: risky(e) ? "risk" : null }, gb));
+  if (opts.where) meta.append(h("span", {}, "In " + whereName(e)));
+  const label = open ? "Hide" : isSkill(e) ? "Details" : e.sec.startsWith("recipe") ? "What gets copied" : "Show the full prompt";
+  meta.append(copyBtn(copyLabel(e), copyText(e), nameOf(e), "copy foot-copy"));
+  if (!(e.sec === "recipe2" && isSplit(e) && !e.copy)) meta.append(h("button", { type: "button", class: "toggle", "aria-expanded": open ? "true" : "false", onclick: () => {
+    open ? S.open.delete(e.id) : S.open.add(e.id);
+    const el = document.getElementById("it-" + id); const fresh = item(e, opts); el.replaceWith(fresh); fresh.querySelector(".toggle")?.focus();
+  } }, label, icon("chev")));
+  const node = h("article", { class: "item" + (S.hl === e.id ? " hl" : ""), id: "it-" + id, style: `--c:${KIND[k].c}` },
+    h("div", { class: "it-head" },
+      h("div", { class: "it-name" }, h("h3", { class: isSkill(e) ? "code" : null }, nameOf(e)), whatOf(e) ? h("p", { class: "it-what" }, whatOf(e)) : null),
+      copyBtn(copyLabel(e), copyText(e), nameOf(e), "copy head-copy")),
+    whenOf(e) ? h("p", { class: "it-when" }, h("b", {}, "Use it when: "), whenOf(e).replace(/^Use it (when )?/i, "").replace(/^./, c => c.toUpperCase()).replace(/([^.!?])$/, "$1.")) : null,
+    e.steps && e.sec === "recipe2" && isSplit(e) && !e.copy ? h("p", { class: "how" }, "Run one step per message. Start a fresh chat for each investigation, and read the result before the next step.") : null,
+    e.steps ? stepsList(e) : null,
+    CLOSEST[e.id] ? h("p", { class: "closest" }, "Agent Kit skill for the same job: ", cmdLink(CLOSEST[e.id])) : null,
+    meta);
+  if (open) node.append(more(e));
+  return node;
 }
-function refocus(sel) { requestAnimationFrame(() => document.querySelector(sel)?.focus({ preventScroll: true })); }
+function cmdLink(c) {
+  const id = findCmd(c);
+  return id && HOME[id] ? h("button", { type: "button", class: "linkbtn code", onclick: () => openItem(id) }, c) : h("code", {}, c);
+}
+function stepsList(r) {
+  return h("ol", { class: "steps" }, r.steps.map(([ref, note]) => {
+    const e = stepEntry(ref);
+    const kk = e && HOME[e.id] ? kindOf(e) : null;
+    const label = e ? (isSkill(e) ? e.cmd : e.t) : ref;
+    return h("li", {}, h("span", {},
+      kk ? h("button", { type: "button", class: "linkbtn" + (isSkill(e) ? " code" : ""), onclick: () => openItem(e.id) }, label) : h("span", { class: "stp" + (ref.startsWith("/") ? " code" : "") }, label),
+      kk ? h("span", { class: "kd", style: `--k:${KIND[kk].c}` }, KIND[kk].one.toLowerCase()) : null,
+      note ? " · " + note : "",
+      e && isSplit(r) ? copyBtn("Copy", stepText(e), label, "cmdchip stepcopy") : null));
+  }));
+}
+function more(e) {
+  const box = h("div", { class: "more-box" });
+  const facts = rows => { rows = rows.filter(([, v]) => v); if (rows.length) box.append(h("dl", { class: "facts" }, rows.flatMap(([k, v]) => [h("dt", {}, k), h("dd", {}, v)]))); };
+  if (e.sec === "keen") {
+    facts([["Type", h("code", {}, e.cmd)], ["Needs", needs(e)]]);
+    box.append(h("p", { class: "it-what" }, "No Agent Kit? Copy the job's full instructions and paste them into any agent instead."), copyBtn("Copy the full instructions", e.full, e.cmd + " instructions"));
+    return box;
+  }
+  if (isSkill(e)) { facts([["Type", h("code", {}, e.cmd)], ["Needs", needs(e)], ["Example", e.p && e.p !== e.cmd ? e.p : null], ["Good for", e.best], ["Skip it when", e.skipw], ["Note", e.note], ["About", e.gnote]]); return box; }
+  box.append(h("pre", { class: "text" }, copyText(e)));
+  if (!e.sec.startsWith("recipe")) facts([["Skip it when", e.skip], ["Watch out", e.blind], ["Needs", e.tools]]);
+  return box;
+}
+function whereName(e) {
+  const [k, g] = HOME[e.id] || [];
+  if (k === "prompt") return V.promptCats.find(c => c.key === g)?.title || "";
+  if (k === "skill") return g === "other" ? "Other people's skills" : V.skillGroups.find(x => x.key === g)?.title || "";
+  return g === "older" ? "Older recipes" : V.recipeGroups.find(x => x.key === g)?.title || "";
+}
+const list = items => h("div", { class: "list" }, items.map(e => item(e)));
 
+/* Views */
 function renderTabs() {
   const v = $("#tabs"); v.innerHTML = "";
-  TABS.forEach(([k, name]) => v.append(h("button", { type: "button", "aria-current": S.view === k && !S.q ? "page" : null, onclick: () => go(k) }, name)));
+  ["prompt", "skill", "recipe"].forEach(k => v.append(h("button", { type: "button", style: `--c:${KIND[k].c}`, "aria-current": S.view === k + "s" && !S.q ? "page" : null, onclick: () => go(k + "s") }, KIND[k].name)));
 }
-function clearSearch() { S.q = ""; $("#q").value = ""; $("#clear").hidden = true; $("#kbd").hidden = false; }
-const viewHash = () => S.view === "areas" ? "a-" + S.area : S.view;
-function nav(push) { const hs = "#" + viewHash(); if (location.hash === hs) return; history[push ? "pushState" : "replaceState"](null, "", hs); }
-function go(k, area) {
-  S.view = k; if (area) S.area = area; S.sym = -1; clearSearch();
-  save(); nav(true); render(); window.scrollTo(0, 0);
+const count = { prompt: V.promptCats.reduce((t, c) => t + c.ids.length, 0), skill: (LIB.keen || []).length + V.skillGroups.reduce((t, g) => t + g.ids.length, 0), recipe: V.recipeGroups.reduce((t, g) => t + g.ids.length, 0) };
+function runSearch(txt) { S.q = txt; $("#q").value = txt; $("#clear").hidden = false; setHash("#search", true); render(); window.scrollTo(0, 0); }
+function renderHome(app) {
+  const H = V.home || {}, D = H.doors || {};
+  app.append(h("div", { class: "home-head" }, h("h1", { class: "title" }, H.title || "Things to give your coding agent"), h("p", { class: "lede" }, H.lede || "")));
+  const door = k => { const d = D[KIND[k].name] || {}; return h("button", { type: "button", class: "kind", style: `--c:${KIND[k].c}`, onclick: () => go(k + "s") },
+    h("h2", {}, KIND[k].name, h("span", { class: "n" }, String(count[k]))), h("p", { class: "def" }, d.def), h("p", { class: "more" }, d.more), h("p", { class: "eg" }, d.eg), h("span", { class: "go" }, "Browse " + KIND[k].name.toLowerCase(), icon("chev"))); };
+  app.append(h("div", { class: "homegrid" }, h("div", { class: "kinds" }, door("prompt"), door("skill"), door("recipe")),
+    h("section", { class: "complaints" }, h("h2", {}, "Start from what's wrong"), h("p", {}, "Pick a problem and see what fits, across all three kinds."),
+      h("div", { class: "qchips" }, (LIB.front || []).map(([txt]) => h("button", { type: "button", class: "qchip", onclick: () => runSearch(txt) }, txt))))));
+}
+function overview(app, k, title, lede, extra, sections) {
+  app.append(h("div", { class: "home-head", style: `--c:${KIND[k].c}` }, h("h1", { class: "title" }, title), h("p", { class: "lede" }, lede)));
+  if (extra) app.append(extra);
+  sections.forEach(([t, p, cats]) => app.append(h("section", { class: "cats-sec", style: `--c:${KIND[k].c}` }, t ? h("h2", {}, t) : null, p ? h("p", {}, p) : null,
+    h("div", { class: "cats" }, cats.map(([key, name, blurb, n, quiet]) => h("button", { type: "button", class: "cat" + (quiet ? " quiet" : ""), onclick: () => go(k + "s", key) }, h("b", {}, name, h("span", { class: "n" }, String(n))), h("span", {}, blurb)))))));
+}
+function page(app, k, railSecs, head, body) {
+  const rail = h("nav", { class: "rail", "aria-label": KIND[k].name + " categories" }, h("button", { type: "button", class: "all", onclick: () => go(k + "s") }, icon("chev"), "All " + KIND[k].name.toLowerCase()));
+  railSecs.forEach(([t, cats]) => { if (t) rail.append(h("h3", {}, t)); cats.forEach(([key, name, n]) => rail.append(h("button", { type: "button", class: "r", "aria-current": S.group === key ? "true" : null, onclick: () => go(k + "s", key) }, name, h("span", { class: "n" }, String(n))))); });
+  app.append(h("div", { class: "split", style: `--c:${KIND[k].c}` }, rail,
+    h("div", {}, h("button", { type: "button", class: "back", onclick: () => go(k + "s") }, icon("chev"), "All " + KIND[k].name.toLowerCase()), head, body)));
+}
+const kicker = (k, txt) => h("span", { class: "kicker", style: `--c:${KIND[k].c}` }, txt);
+
+function renderPrompts(app) {
+  const cats = V.promptCats;
+  const secs = [["Ways of working", "Add one to the end of any request. They change how the agent works, not what it works on.", cats.filter(c => c.kind === "work")], ["Investigations", "Paste one to ask a careful question about your project. Each reports first and changes nothing.", cats.filter(c => c.kind === "inv")]];
+  const c = cats.find(x => x.key === S.group);
+  if (!c) {
+    const tips = h("section", { class: "tips", style: `--c:${KIND.prompt.c}` }, h("h2", {}, "How to get better answers from your agent"), h("ol", {}, V.tips.map(([t, d]) => h("li", {}, h("b", {}, t), d))));
+    return overview(app, "prompt", "Prompts", V.ledes?.prompts || "", tips, secs.map(([t, p, cs]) => [t, p, cs.map(x => [x.key, x.title, x.blurb, x.ids.length])]));
+  }
+  const isWork = c.kind === "work";
+  page(app, "prompt", secs.map(([t, , cs]) => [t, cs.map(x => [x.key, x.title, x.ids.length])]),
+    h("div", { class: "cathead" }, kicker("prompt", isWork ? "Ways of working · add to any request" : "Investigations · report first, nothing changes"), h("h1", {}, c.title), h("p", {}, c.blurb),
+      isWork ? h("p", { class: "how" }, "Write your request as usual, then paste one of these after it.") : null),
+    list(listOf(c.ids)));
 }
 
-let RENDERED = "";
+function renderSkills(app) {
+  const groups = V.skillGroups;
+  const railSecs = [["Agent Kit", groups.map(g => [g.key, g.title, skillGroupItems(g).length])], ["Other authors", [["other", "Other people's skills", OTHER_SKILLS.length]]]];
+  if (!S.group) {
+    return overview(app, "skill", "Skills", V.ledes?.skills || "", null,
+      [["Agent Kit", "Written for this kit, for people who direct the work and judge the result.", groups.map(g => [g.key, g.title, g.blurb, skillGroupItems(g).length])],
+       ["Other authors", "Borrowed skills that stay in the kits until Agent Kit has its own.", [["other", "Other people's skills", "Commands by other authors. Each names the Agent Kit skill that replaces it, where there is one.", OTHER_SKILLS.length, true]]]]);
+  }
+  if (S.group === "other") {
+    const by = {}; OTHER_SKILLS.forEach(e => (by[e.group] = by[e.group] || []).push(e));
+    const order = Object.entries(by).sort((a, b) => b[1].filter(e => CLOSEST[e.id]).length - a[1].filter(e => CLOSEST[e.id]).length);
+    return page(app, "skill", railSecs, h("div", { class: "cathead" }, kicker("skill", "Other authors"), h("h1", {}, "Other people's skills"), h("p", {}, "These come from other authors and still work if you have them installed. Where Agent Kit has its own skill for the same job, the item names it, and the borrowed one will leave the kit.")),
+      h("div", {}, order.map(([g, items]) => [h("h2", { class: "sub" }, g + " · " + items.length), list(items)])));
+  }
+  const g = groups.find(x => x.key === S.group); if (!g) return go("skills", null, false);
+  const head = h("div", { class: "cathead" }, kicker("skill", g.plugin ? g.plugin + " plugin" : "Nothing to install"), h("h1", {}, g.title), h("p", {}, g.blurb),
+    g.head ? h("p", { class: "how" }, "Start with", copyBtn(g.head, g.head, g.head, "cmdchip"), "and say what you want.") : null);
+  const body = g.keen ? h("div", {}, keenGroups.map(kg => [h("h2", { class: "sub" }, kg), list((LIB.keen || []).filter(x => x.group === kg))]), g.ids.length ? [h("h2", { class: "sub" }, g.idsTitle || "More"), list(listOf(g.ids))] : null) : list(listOf(g.ids));
+  page(app, "skill", railSecs, head, body);
+}
+
+function renderRecipes(app) {
+  const groups = V.recipeGroups;
+  const railSecs = [["By area", groups.map(g => [g.key, g.title, g.ids.length])], ["Older", [["older", "Older recipes", OLD_RECIPES.length]]]];
+  if (!S.group) {
+    return overview(app, "recipe", "Recipes", V.ledes?.recipes || "", null,
+      [["By area", null, groups.map(g => [g.key, g.title, g.blurb || listOf(g.ids).map(e => e.t).slice(0, 3).join(" · "), g.ids.length])],
+       ["Older", null, [["older", "Older recipes", "Built on borrowed design tools. Kept until the new recipes cover the same jobs.", OLD_RECIPES.length, true]]]]);
+  }
+  if (S.group === "older") return page(app, "recipe", railSecs, h("div", { class: "cathead" }, kicker("recipe", "Older"), h("h1", {}, "Older recipes"), h("p", {}, "These chain design tools by other authors. They still work if those tools are installed. Each goes once a recipe built on Agent Kit's own skills covers the same job.")), list(OLD_RECIPES));
+  const g = groups.find(x => x.key === S.group); if (!g) return go("recipes", null, false);
+  page(app, "recipe", railSecs, h("div", { class: "cathead" }, kicker("recipe", "Recipes"), h("h1", {}, g.title), g.blurb ? h("p", {}, g.blurb) : null), list(listOf(g.ids)));
+}
+
+function renderSearch(app) {
+  const { list: found, loose } = searchList();
+  const n = found.length;
+  $("#status").textContent = n ? `${n} matches. Press Enter to open the best one.` : "No matches";
+  app.append(h("div", { class: "home-head" }, h("h1", { class: "title" }, n ? `${n} ${loose ? "close " : ""}match${n === 1 ? "" : "es"}` : "No matches"),
+    h("p", { class: "lede" }, n ? (loose ? `Nothing matches every word of “${S.q}”, so these match most of them. ` : `For “${S.q}”. `) + "Press Enter to open the best one." : "Try a plain problem such as “slow”, “cluttered” or “numbers wrong”, or a command name.")));
+  if (!n) return;
+  app.append(h("section", { class: "res-sec", style: "--c:var(--accent)" }, h("h2", {}, "Best match"), h("div", { class: "list" }, item(found[0], { kind: true, where: true }))));
+  for (const k of ["prompt", "skill", "recipe"]) {
+    const all = found.slice(1).filter(e => kindOf(e) === k); if (!all.length) continue;
+    app.append(h("section", { class: "res-sec", style: `--c:${KIND[k].c}` }, h("h2", {}, KIND[k].name, h("span", { class: "n" }, String(all.length))), h("div", { class: "list" }, all.slice(0, 12).map(e => item(e, { where: true })))));
+  }
+}
+function renderSources(app) {
+  const SRC = LIB.sources || { intro: "", items: [] };
+  app.append(h("div", { class: "home-head" }, h("h1", { class: "title" }, "Where these came from"), SRC.intro ? h("p", { class: "lede" }, SRC.intro) : null));
+  app.append(h("div", { style: "margin-top:20px" }, SRC.items.map(([t, url, d]) => h("div", { class: "src" }, h("h3", {}, url ? h("a", { href: url, target: "_blank", rel: "noopener" }, t) : t), h("p", {}, d)))));
+}
+function footer() {
+  return h("footer", { class: "foot" },
+    h("p", {}, "Copy puts the text on your clipboard. Nothing leaves your browser. Items marked New have not been run on a real project yet."),
+    h("p", {}, h("button", { type: "button", class: "linkbtn", onclick: () => go("sources") }, "Where these came from")));
+}
 function render() {
   renderTabs();
   const app = $("#app"); app.innerHTML = "";
   if (S.q) renderSearch(app);
-  else ({ start: renderStart, areas: renderAreas, other: renderOther, sources: renderSources }[S.view] || renderStart)(app);
+  else ({ home: renderHome, prompts: renderPrompts, skills: renderSkills, recipes: renderRecipes, sources: renderSources }[S.view] || renderHome)(app);
   app.append(footer());
-  RENDERED = S.q ? "" : viewHash();
+  const t = S.q ? "Search" : { prompts: "Prompts", skills: "Skills", recipes: "Recipes", sources: "Sources" }[S.view];
+  document.title = (t ? t + " · " : "") + "Prompt Library";
 }
 
-function renderSearch(app) {
-  const list = searchList();
-  const n = list.length, word = `${n} ${LOOSE ? "close " : ""}match${n === 1 ? "" : "es"}`;
-  $("#status").textContent = n ? `${word}. Press Enter to copy the best match.` : "No matches";
-  app.append(h("div", { class: "head" }, h("h1", {}, n ? word : "No matches"), h("p", {}, n ? (LOOSE ? `Nothing matches every word of “${S.q}”, so these match most of them. ` : `For “${S.q}”. `) + "Press Enter to copy the best match." : "Try a plain problem such as “slow”, “cluttered” or “duplicate”, or a command name.")));
-  if (!n) return;
-  const [top, ...rest] = list;
-  app.append(h("section", { class: "search-sec", style: `--c:${colorOf(top)}` }, h("h2", {}, "Best match"), cards([top], { best: true })));
-  for (const a of AREAS) {
-    const items = rest.filter(e => AREA_OF[e.id] === a.key); if (!items.length) continue;
-    app.append(h("section", { class: "search-sec", style: `--c:${hue(a.key)}` }, h("h2", {}, a.title, h("span", { class: "n" }, String(items.length))), cards(items)));
-  }
-  const others = rest.filter(e => !AREA_OF[e.id]);
-  if (others.length) app.append(h("section", { class: "search-sec", style: "--c:var(--ink-3)" }, h("h2", {}, "Other tools", h("span", { class: "n" }, String(others.length))), cards(others)));
-}
-
-const countIn = a => a.groups.reduce((t, [, ref]) => t + groupList(ref).length, 0);
-function renderStart(app) {
-  const own = SHOWN.filter(e => AREA_OF[e.id]).length;
-  const deskN = E.filter(e => e.desk).length;
-  app.append(h("section", { class: "head" },
-    h("h1", {}, "What's wrong?"),
-    h("p", {}, `Pick what sounds like your problem, or search. Each one opens up to three things to try, best first. ${own} prompts and Agent Kit commands for coding agents such as Claude Code, Codex and Cursor.` + (deskN ? ` The ${deskN} marked “In Desk” are also saved in Desk.` : ""))));
-  const panel = h("section", { class: "panel", style: "--c:var(--accent)" });
-  const list = LIB.front || [];
-  panel.append(h("div", { class: "symgrid" }, list.map(([txt, ids], i) => h("button", { type: "button", class: "symcard", "data-i": i, style: `--c:${colorOf(BY[ids[0]] || {})}`, "aria-expanded": S.sym === i ? "true" : "false", "aria-controls": "sym-results", onclick: () => {
-    S.sym = S.sym === i ? -1 : i; render(); refocus(`.symcard[data-i="${i}"]`);
-    if (S.sym >= 0) requestAnimationFrame(() => document.getElementById("sym-results")?.scrollIntoView({ block: "nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }));
-  } }, h("span", {}, txt), h("i", { html: SVG.chev, style: "display:contents" })))));
-  if (S.sym >= 0 && list[S.sym]) {
-    const [txt, ids] = list[S.sym];
-    panel.append(h("div", { class: "results", id: "sym-results", role: "region", "aria-label": txt, style: `--c:${colorOf(BY[ids[0]] || {})}` }, h("h3", {}, txt + ": try these"), cards(ids.map(id => BY[id]).filter(Boolean), { best: true })));
-  }
-  app.append(panel);
-  app.append(h("section", { class: "block" }, h("h2", {}, "Or browse by area"), h("p", { class: "lede" }, "Each area matches one part of Agent Kit. Its command opens a short menu in your agent; the prompts work without installing anything."),
-    h("div", { class: "doors areadoors" }, AREAS.map(a => h("button", { type: "button", class: "door", style: `--c:${hue(a.key)}`, onclick: () => go("areas", a.key) }, h("b", {}, a.title, h("span", { class: "n" }, countIn(a))), h("span", { class: "d" }, a.cmd ? a.cmd : "Prompts for any agent"))))));
-}
-
-function renderAreas(app) {
-  const a = AREAS.find(x => x.key === S.area) || AREAS[0]; if (!a) return;
-  app.append(h("h1", { class: "sr" }, "Areas"));
-  app.append(tablist("sectabs doors", "Areas", AREAS.map(x => ({ k: x.key, cls: "door", c: hue(x.key), kids: [h("b", {}, x.title, h("span", { class: "n" }, countIn(x)))] })), a.key, k => { S.area = k; save(); nav(true); render(); refocus(".sectabs [aria-selected=true]"); }));
-  const panel = h("section", { role: "tabpanel", "aria-label": a.title, style: `--c:${hue(a.key)}` });
-  panel.append(h("div", { class: "panel-head areahead" }, h("h2", {}, a.title), h("p", {}, a.blurb), a.cmd ? h("p", { class: "areacmd" }, "In your agent, type ", h("code", {}, a.cmd), " and say what you want.") : null));
-  if (a.key === "routine" && LIB.routines?.length) panel.append(h("div", { class: "gsec" }, h("h3", {}, "When each kind of check is worth running"), h("div", { class: "cards" }, LIB.routines.map(([k, what, rule]) => h("article", { class: "card rcard" }, h("div", { class: "k" }, k), h("p", {}, what), h("p", { class: "rule" }, rule))))));
-  a.groups.forEach(([title, ref]) => { const list = groupList(ref); if (list.length) panel.append(h("div", { class: "gsec" }, h("h3", {}, title, h("span", { class: "n" }, list.length)), cards(list))); });
-  app.append(panel);
-}
-
-function renderOther(app) {
-  app.append(h("section", { class: "head" }, h("h1", {}, "Other tools"), h("p", {}, "Commands written by other people, and recipes built from them. They still work if you have them installed. Where Agent Kit now has a job that does the same work, each one names it. This page shrinks as each tool is replaced.")));
-  const groups = [];
-  for (const e of OTHER) {
-    const g = e.sec === "recipe" ? "Design recipes built on these tools" : e.group;
-    let x = groups.find(y => y.g === g); if (!x) groups.push(x = { g, list: [] }); x.list.push(e);
-  }
-  groups.sort((x, y) => y.list.filter(e => CLOSEST[e.id]).length - x.list.filter(e => CLOSEST[e.id]).length);
-  for (const { g, list } of groups) {
-    const n = list.filter(e => CLOSEST[e.id]).length;
-    const about = list.find(e => e.gnote)?.gnote;
-    app.append(h("div", { class: "gsec" }, h("h3", {}, g, h("span", { class: "n" }, list.length + (n ? ` · ${n} with an Agent Kit job` : ""))), about ? h("p", { class: "blurb" }, about) : null, cards(list)));
-  }
-}
-
-function renderSources(app) {
-  const SRC = LIB.sources || { intro: "", items: [] };
-  app.append(h("section", { class: "head" }, h("h1", {}, "Where these came from"), SRC.intro ? h("p", {}, SRC.intro) : null));
-  const p = h("div", { class: "rows" });
-  SRC.items.forEach(([t, url, d]) => p.append(h("div", { class: "src" }, h("h3", {}, url ? h("a", { href: url, target: "_blank", rel: "noopener" }, t) : t), h("p", {}, d))));
-  app.append(p);
-  const rows = E.filter(e => e.desk).sort((a, b) => a.desk.cat.localeCompare(b.desk.cat) || a.desk.t.localeCompare(b.desk.t));
-  if (!rows.length) return;
-  app.append(h("section", { class: "block" }, h("h2", {}, "Desk prompts and their entries"),
-    h("div", { class: "tbl-wrap" }, h("table", { class: "tbl" }, h("thead", {}, h("tr", {}, h("th", {}, "Desk title"), h("th", {}, "Category"), h("th", {}, "Entry"))),
-      h("tbody", {}, rows.map(e => h("tr", {}, h("td", { class: "k" }, e.desk.t), h("td", {}, e.desk.cat), h("td", {}, h("button", { type: "button", onclick: () => openSheet(e.id) }, nameOf(e))))))))));
-}
-
-function footer() {
-  const n = SHOWN.filter(e => tried(e)).length;
-  return h("footer", { class: "foot" },
-    h("p", {}, "Copy puts the text on your clipboard. Nothing is sent anywhere. “Tried on a real project” marks the " + n + (n === 1 ? " entry" : " entries") + " with a recorded run on a real project; the rest have been written and reviewed, not yet run."),
-    h("p", {}, h("button", { type: "button", class: "linkbtn", onclick: () => go("sources") }, "Where these came from")));
-}
-
-/* Detail sheet */
-let RETURN_FOCUS = null, HIST_CLOSE = false, SHEET_ID = null, SHEET_PUSHED = false;
-const hashOf = id => "e-" + id.replace(":", "-");
-const idOfHash = hs => { const r = hs.slice(2); return BY[r] ? r : BY[r.replace(/^K-/, "K:")] ? r.replace(/^K-/, "K:") : null; };
-function openSheet(id) {
-  const e = BY[id]; if (!e) return;
-  const d = $("#sheet"); const already = d.open;
-  SHEET_ID = id; drawSheet();
-  if (!already) { RETURN_FOCUS = document.activeElement; d.showModal(); }
-  $("#sheet-in").scrollTop = 0; $("#sheet-in").focus({ preventScroll: true });
-  if (location.hash.startsWith("#e-")) history.replaceState(null, "", "#" + hashOf(id));
-  else { history.pushState(null, "", "#" + hashOf(id)); SHEET_PUSHED = true; }
-}
-function closeSheet() { const d = $("#sheet"); if (d.open) d.close(); }
-$("#sheet").addEventListener("close", () => {
-  if (HIST_CLOSE) HIST_CLOSE = false;
-  else if (location.hash.startsWith("#e-")) { if (SHEET_PUSHED) history.back(); else history.replaceState(null, "", "#" + viewHash()); }
-  SHEET_PUSHED = false;
-  const f = RETURN_FOCUS; RETURN_FOCUS = null;
-  if (f && f.isConnected) f.focus({ preventScroll: true });
-});
-$("#sheet").addEventListener("click", ev => { if (ev.target.id === "sheet") closeSheet(); });
-
-function relChips(ids) { return h("div", { class: "rel" }, ids.filter(id => BY[id] && !NOT_SHOWN[id]).map(id => h("button", { type: "button", class: "chip", onclick: () => openSheet(id) }, nameOf(BY[id])))); }
-function facts(rows) { return h("dl", { class: "facts" }, rows.filter(r => r && r[1]).flatMap(([k, v]) => [h("dt", {}, k), h("dd", {}, v)])); }
-function sub(title, node) { return h("div", {}, h("p", { class: "sub-h" }, title), node); }
-
-function drawSheet() {
-  const e = BY[SHEET_ID]; const box = $("#sheet-in");
-  box.innerHTML = ""; box.style.setProperty("--c", colorOf(e));
-  const a = areaOf(e);
-  const meta = h("div", { class: "sh-meta" }, mark(e), h("span", {}, a ? a.title + (e.group && e.sec === "keen" ? " · " + e.group : "") : "Other tools"), e.desk ? h("span", { class: "tag" }, "In Desk · " + e.desk.cat) : null);
-  box.append(h("div", { class: "sh-head" },
-    h("div", { class: "hd" }, h("h2", { id: "sheet-title", class: isCode(e) ? "code" : "" }, nameOf(e)), meta, lineOf(e) ? h("p", { class: "sh-why" }, lineOf(e)) : null),
-    h("button", { type: "button", class: "x", "aria-label": "Close", html: SVG.x, onclick: closeSheet })));
-  if (tried(e)) box.append(h("p", { class: "note" }, h("b", {}, "Tried on a real project. "), tried(e)));
-  const c = CLOSEST[e.id];
-  if (c) box.append(h("p", { class: "note" }, h("b", {}, "Agent Kit job that does this: "), closestLink(c), ". This command comes from another author and is kept here for people who still use it."));
-
-  const text = copyText(e);
-  box.append(h("p", { class: "sub-h" }, e.sec === "keen" ? "Type this in your agent" : isCode(e) ? (e.sec === "dcmd" && e.p !== e.cmd ? "An example to paste" : "Type this in your agent") : "What gets copied"));
-  box.append(h("p", { class: "prompt" + (isCode(e) ? " code" : "") }, text));
-  box.append(h("div", { class: "acts" }, copyBtn(copyLabel(e), text, { primary: true, toast: "Copied " + nameOf(e) })));
-  if (!isCode(e) && e.sec !== "think" && e.sec !== "recipe") box.append(h("p", { class: "note" }, "The copied text already says what the agent may change, what to bring back, when to stop, and to start its report in plain English."));
-
-  if (e.flow) box.append(sub("The steps", h("ol", { class: "steps" }, e.flow.map(([label, ids, note]) => h("li", {}, h("div", { class: "sb" }, h("b", {}, label), ids.length ? relChips(ids) : null, h("span", { class: "for" }, note)))))));
-  if (e.steps) box.append(sub("The steps", h("ol", { class: "steps" }, e.steps.map(([cmd, why]) => { const id = findCmd(cmd); return h("li", {}, h("div", { class: "sb" }, id ? h("button", { type: "button", class: "cmd", onclick: () => openSheet(id) }, cmd) : h("span", { class: "cmd" }, cmd), h("span", { class: "for" }, why))); }))));
-
-  box.append(facts([
-    ["What you get", getsBack(e)],
-    ["Use it when", e.sec === "keen" ? e.use : e.sec === "think" ? (e.line ? e.use : null) : e.line ? e.why : null],
-    ["What it should bring back", e.ev],
-    ["Skip it when", e.skip || e.skipw],
-    ["Best for", e.best],
-    ["What you need", e.tools],
-    ["Works with", e.plat],
-    ["Where it comes from", kindLine(e)],
-  ]));
-  if (e.blind) box.append(h("p", { class: "note" }, h("b", {}, "Where agents slip up. "), e.blind));
-  if (e.avoid) box.append(h("p", { class: "note" }, h("b", {}, "Common overreach. "), e.avoid));
-  if (e.runs) box.append(h("p", { class: "note" }, h("b", {}, "Past runs. "), ...e.runs.flatMap(([n, u], i) => [i ? ", " : "", h("a", { href: u, target: "_blank", rel: "noopener" }, n)])));
-  const refs = (e.refs || []).filter(k => LIB.dbTools?.[k]);
-  if (refs.length) box.append(sub("Tools that can help (installed separately)", h("ul", { class: "reflist" }, refs.map(k => { const [name, url, what] = LIB.dbTools[k]; return h("li", {}, h("a", { href: url, target: "_blank", rel: "noopener" }, name), h("span", {}, what)); }))));
-  if (e.sec === "keen") {
-    const det = h("details", { class: "composer" }, h("summary", {}, h("i", { html: SVG.chev, style: "display:contents" }), "No Agent Kit? Copy the full instructions", h("span", {}, "works in any agent")),
-      h("div", { class: "cbody" }, h("pre", { class: "out" }, e.full), h("div", { class: "acts" }, copyBtn("Copy full instructions", e.full, { primary: true, toast: "Copied the full " + e.cmd + " instructions" }))));
-    box.append(det);
-  }
-  if (e.note && !AREA_OF[e.id]) box.append(h("p", { class: "note" }, e.note));
-  const rel = (e.rel || []).filter(id => BY[id]);
-  if (rel.length && !e.flow) box.append(sub(e.sec === "ecmd" ? "Prompts it helps with" : "Related", relChips(rel)));
-  if (e.sec === "inv" || e.sec === "db") {
-    const tools = E.filter(x => x.sec === "ecmd" && (x.rel || []).includes(e.id));
-    if (tools.length) box.append(sub("Commands that help", relChips(tools.map(x => x.id))));
-  }
-  if (e.sec !== "keen") box.append(h("p", { class: "idline" }, "Library ID " + e.id));
-  box.append(h("div", { class: "sh-bottom" }, h("button", { type: "button", class: "details", onclick: closeSheet }, "Close")));
-}
-
-/* Header height, search and boot */
-const top_ = $("#top");
-function measure() { document.documentElement.style.setProperty("--hh", (getComputedStyle(top_).position === "sticky" ? top_.offsetHeight : 0) + "px"); }
-new ResizeObserver(measure).observe(top_); addEventListener("resize", measure); measure();
-const q = $("#q");
-q.addEventListener("input", () => { S.q = q.value.trim(); $("#clear").hidden = !S.q; $("#kbd").hidden = !!S.q; render(); window.scrollTo(0, 0); });
+/* Search box */
+const q = $("#q"); let qt;
+q.addEventListener("input", () => { clearTimeout(qt); qt = setTimeout(() => { S.q = q.value.trim(); $("#clear").hidden = !S.q; if (S.q) setHash("#search", false); else setHash(routeHash(), false); render(); }, 120); });
 q.addEventListener("keydown", ev => {
-  if (ev.key === "Escape" && q.value) { ev.preventDefault(); clearSearch(); $("#status").textContent = ""; render(); }
-  if (ev.key === "Enter" && S.q) { const first = searchList()[0]; if (first) { ev.preventDefault(); copy(copyText(first), null, "Copied best match: " + nameOf(first)); } }
+  if (ev.key === "Enter" && S.q) { const best = searchList().list[0]; if (best) { ev.preventDefault(); q.blur(); openItem(best.id); } }
+  if (ev.key === "Escape") { clearSearch(); setHash(routeHash(), false); render(); }
 });
-$("#clear").addEventListener("click", () => { clearSearch(); render(); q.focus(); });
-document.addEventListener("keydown", ev => { if (ev.key === "/" && document.activeElement !== q && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "") && !$("#sheet").open) { ev.preventDefault(); q.focus(); } });
-function fromHash() {
-  const hs = decodeURIComponent(location.hash.slice(1));
-  if (hs.startsWith("e-") && idOfHash(hs)) { if (!$("#sheet").open) { if (RENDERED !== viewHash()) render(); openSheet(idOfHash(hs)); } return; }
-  if ($("#sheet").open) { HIST_CLOSE = true; closeSheet(); }
-  if (hs && hs === RENDERED) return;
-  // Closing a sheet steps back to the current view; a search typed meanwhile stays.
-  if (S.q && hs === viewHash()) return;
-  if (hs.startsWith("a-") && AREAS.some(a => a.key === hs.slice(2))) { S.view = "areas"; S.area = hs.slice(2); clearSearch(); save(); render(); window.scrollTo(0, 0); return; }
-  if (["start", "areas", "other", "sources"].includes(hs)) { S.view = hs; clearSearch(); }
-  render();
-}
-addEventListener("hashchange", fromHash);
+$("#clear").addEventListener("click", () => { clearSearch(); setHash(routeHash(), false); render(); q.focus(); });
+$("#brand").addEventListener("click", () => go("home"));
+document.addEventListener("keydown", ev => { if (ev.key === "/" && document.activeElement !== q && !ev.metaKey && !ev.ctrlKey && !/input|textarea/i.test(document.activeElement.tagName)) { ev.preventDefault(); q.focus(); } });
 fromHash();
 </script>
-
