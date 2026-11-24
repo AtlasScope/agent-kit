@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { SharedCollection } from "@/components/CollectionsView";
-import { store, fixturesEnabled } from "../store";
+import { store, fixturesEnabled, SAMPLE_PATH } from "../store";
 
 export const metadata = { title: "Shared collection (sample data)", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -11,5 +11,5 @@ export default async function SharedFixture({ searchParams }: { searchParams: Pr
   const { id } = await searchParams;
   const c = store().find((x) => x.id === id) ?? store().find((x) => x.is_public);
   if (!c) notFound();
-  return <SharedCollection c={c} />;
+  return <SharedCollection c={c} own manageHref={SAMPLE_PATH} />;
 }

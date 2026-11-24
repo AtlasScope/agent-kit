@@ -3,53 +3,75 @@ import { CopyButton } from "./CopyButton";
 import { Crumbs } from "./Crumbs";
 import { firstSentence } from "./Cards";
 import { resolve, installFor } from "@/lib/items";
+import { getPromptById, copyText, copyLabel } from "@/lib/content";
 import type { Item } from "@/lib/collections";
 import type { ActionState } from "@/app/account/actions";
 import { ActionForm, Submit } from "./ActionForm";
 import { Pop } from "./Pop";
+import { Workspace, type RailEntry } from "./account/Workspace";
+import { BOOT, selectionCss } from "./account/boot";
 import { SITE } from "@/lib/site";
 
 export type CollectionData = { id: string; name: string; is_starred: boolean; is_public: boolean; items: Item[] };
 type Action = (s: ActionState, f: FormData) => Promise<ActionState>;
 type Actions = Record<"create" | "rename" | "share" | "remove" | "removeItem", Action>;
+type Resolved = ReturnType<typeof resolve>[number];
 
 const PLUS = <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>;
 const X = <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>;
+const BACK = <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 6l-6 6 6 6" /></svg>;
 
-// The signed-in Collections page: one panel per collection with its items, its sharing state and its actions,
-// under a bar whose New collection button opens the name field in place. Rename, Delete and Remove open in place; Delete and Remove ask once first.
-export function CollectionsView({ cols, actions }: { cols: CollectionData[]; actions: Actions }) {
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+const split = (items: Resolved[]) => ({ prompts: items.filter((i) => i.kind === "prompt"), skills: items.filter((i) => i.kind === "skill") });
+export const summaryOf = (items: Resolved[]) => {
+  const { prompts, skills } = split(items);
+  return [prompts.length && plural(prompts.length, "prompt", "prompts"), skills.length && plural(skills.length, "skill", "skills")].filter(Boolean).join(" · ") || "Empty";
+};
+const stateOf = (c: CollectionData) => (c.is_starred ? "Only you" : c.is_public ? "Shared" : "Private");
+
+// The signed-in Collections page, laid out as a workspace: a rail that lists every collection, and the open
+// collection beside it. On phones the rail is the first screen and a collection opens in its place. Which
+// collection is open lives in the URL hash, so Back works and a link can open one; the last one opened is
+// remembered on this device. `sharedHref` points the "Open page" link elsewhere (the sample-data pages use it).
+export function CollectionsView({ cols, actions, sharedHref = (id) => `/collections/${id}` }: { cols: CollectionData[]; actions: Actions; sharedHref?: (id: string) => string }) {
+  const resolved = cols.map((c) => ({ c, items: resolve(c.items) }));
+  const rail: RailEntry[] = resolved.map(({ c, items }) => ({ id: c.id, name: c.name, count: items.length, starred: c.is_starred, state: stateOf(c) }));
   return (
-    <>
-      <div className="cols-bar">
-        <p className="cols-bar__n">{cols.length === 1 ? "1 collection" : `${cols.length} collections`}</p>
-        <Pop summary={<>{PLUS}New collection</>} summaryClass="btn btn--sm btn--solid">
+    <Workspace
+      rail={rail}
+      boot={<><style>{selectionCss(rail.map((r) => r.id))}</style><script dangerouslySetInnerHTML={{ __html: BOOT }} /></>}
+      newCollection={
+        <Pop summary={<>{PLUS}New collection</>} summaryClass="btn btn--sm ws__new">
           <ActionForm action={actions.create} className="col__popform" reset>
-            <input className="input" name="name" placeholder="Name it, for example Design reviews…" aria-label="New collection name" maxLength={80} autoComplete="off" required autoFocus />
+            <label className="col__poplabel" htmlFor="new-col">Name the collection</label>
+            <input id="new-col" className="input" name="name" placeholder="For example, Design reviews" maxLength={80} autoComplete="off" required autoFocus />
             <Submit className="btn btn--sm btn--solid" busy="Creating…">Create</Submit>
           </ActionForm>
         </Pop>
-      </div>
-      <div className="cols">
-        {cols.map((c) => <CollectionPanel key={c.id} c={c} actions={actions} />)}
-      </div>
-    </>
+      }
+    >
+      {resolved.map(({ c, items }) => <CollectionPanel key={c.id} c={c} items={items} actions={actions} sharedHref={sharedHref(c.id)} />)}
+    </Workspace>
   );
 }
 
-function CollectionPanel({ c, actions }: { c: CollectionData; actions: Actions }) {
-  const items = resolve(c.items);
+function CollectionPanel({ c, items, actions, sharedHref }: { c: CollectionData; items: Resolved[]; actions: Actions; sharedHref: string }) {
   const install = installFor(c.items);
   const url = `${SITE.url}/collections/${c.id}`;
+  const { prompts, skills } = split(items);
   return (
-    <section className="col" aria-labelledby={`col-${c.id}`}>
-      <header className="col__head">
-        <div className="col__title">
-          <h2 id={`col-${c.id}`}>{c.name}</h2>
-          <span className="col__meta">{items.length} {items.length === 1 ? "item" : "items"} <span aria-hidden="true">·</span> {c.is_starred ? "Only you" : c.is_public ? "Shared" : "Private"}</span>
+    <section className="ws__panel" id={`panel-${c.id}`} data-col={c.id} aria-labelledby={`col-${c.id}`}>
+      <a className="ws__back" href="#all">{BACK}All collections</a>
+      <header className="cpanel__head">
+        <div className="cpanel__title">
+          <h2 id={`col-${c.id}`} tabIndex={-1}>{c.name}</h2>
+          <p className="cpanel__meta">
+            <span>{summaryOf(items)}</span>
+            <span className={`cpanel__state${c.is_public ? " is-shared" : ""}`}>{c.is_public && <span className="led is-on" aria-hidden="true" />}{stateOf(c)}</span>
+          </p>
         </div>
         {!c.is_starred && (
-          <div className="col__acts">
+          <div className="cpanel__acts">
             <ActionForm action={actions.share} className="col__inline">
               <input type="hidden" name="id" value={c.id} /><input type="hidden" name="public" value={c.is_public ? "0" : "1"} />
               <Submit busy={c.is_public ? "Stopping…" : "Sharing…"} label={`${c.is_public ? "Stop sharing" : "Share"} ${c.name}`}>{c.is_public ? "Stop sharing" : "Share"}</Submit>
@@ -57,7 +79,8 @@ function CollectionPanel({ c, actions }: { c: CollectionData; actions: Actions }
             <Pop summary="Rename" label={`Rename ${c.name}`}>
               <ActionForm action={actions.rename} className="col__popform">
                 <input type="hidden" name="id" value={c.id} />
-                <input className="input" name="name" defaultValue={c.name} aria-label={`New name for ${c.name}`} maxLength={80} autoComplete="off" required />
+                <label className="col__poplabel" htmlFor={`rn-${c.id}`}>New name</label>
+                <input id={`rn-${c.id}`} className="input" name="name" defaultValue={c.name} maxLength={80} autoComplete="off" required />
                 <Submit className="btn btn--sm btn--solid" busy="Saving…">Save name</Submit>
               </ActionForm>
             </Pop>
@@ -73,76 +96,106 @@ function CollectionPanel({ c, actions }: { c: CollectionData; actions: Actions }
       </header>
 
       {c.is_public && (
-        <div className="cmdline col__link"><code translate="no">{url.replace(/^https?:\/\//, "")}</code><CopyButton text={url} label="Copy link" name={`Copy the link to ${c.name}`} /></div>
-      )}
-
-      {items.length === 0 ? (
-        <p className="col__empty">
-          {c.is_starred
-            ? <>Press the star on any <Link className="lic" href="/prompts">prompt</Link> or <Link className="lic" href="/skills">skill</Link> and it shows up here.</>
-            : <>Empty for now. Use <strong>Save to</strong> on any prompt or skill page to add it here.</>}
-        </p>
-      ) : (
-        <ul className="col__items">
-          {items.map((i) => (
-            <li key={i.kind + i.ref}>
-              <span className="col__kind">{i.kind === "skill" ? "Skill" : "Prompt"}</span>
-              <Link href={i.href} className={i.kind === "skill" ? "col__name col__name--cmd" : "col__name"} translate={i.kind === "skill" ? "no" : undefined}>{i.title}</Link>
-              <Pop summary={X} summaryClass="col__rm" label={`Remove ${i.title} from ${c.name}`}>
-                <ActionForm action={actions.removeItem} className="col__popform">
-                  <input type="hidden" name="id" value={c.id} /><input type="hidden" name="kind" value={i.kind} /><input type="hidden" name="ref" value={i.ref} />
-                  <p>Remove {i.title} from {c.name}? It stays in the library.</p>
-                  <Submit busy="Removing…">Remove</Submit>
-                </ActionForm>
-              </Pop>
-            </li>
-          ))}
-        </ul>
+        <div className="cpanel__share">
+          <p className="cpanel__label">Anyone with this link can open it</p>
+          <div className="cmdline"><code translate="no">{url.replace(/^https?:\/\//, "")}</code><span className="cpanel__sharebtns"><Link className="copy" href={sharedHref}>Open page</Link><CopyButton text={url} label="Copy link" name={`Copy the link to ${c.name}`} /></span></div>
+        </div>
       )}
 
       {install && (
-        <div className="col__install">
-          <p>Install its skills in any agent</p>
+        <div className="cpanel__install">
+          <p className="cpanel__label">Install {skills.length === 1 ? "its skill" : `its ${skills.length} skills`} in any agent</p>
           <div className="cmdline"><code translate="no">{install}</code><CopyButton text={install} name={`Copy the install command for ${c.name}`} /></div>
         </div>
+      )}
+
+      {items.length === 0 ? (
+        <div className="cpanel__empty">
+          {c.is_starred
+            ? <p>Press the star on any <Link className="lic" href="/prompts">prompt</Link> or <Link className="lic" href="/skills">skill</Link> and it shows up here.</p>
+            : <p>Empty for now. Use <strong>Save to</strong> on any prompt or skill page to add it here.</p>}
+          <p className="cpanel__emptylinks"><Link className="btn btn--sm" href="/prompts">Browse prompts</Link><Link className="btn btn--sm" href="/skills">Browse skills</Link></p>
+        </div>
+      ) : (
+        <>
+          {prompts.length > 0 && <ItemGroup title="Prompts" items={prompts} c={c} actions={actions} />}
+          {skills.length > 0 && <ItemGroup title="Skills" items={skills} c={c} actions={actions} />}
+        </>
       )}
     </section>
   );
 }
 
-// The page for one collection: shared ones are public, private ones only open for their owner.
-export function SharedCollection({ c }: { c: Omit<CollectionData, "is_starred"> }) {
+function ItemGroup({ title, items, c, actions }: { title: string; items: Resolved[]; c: CollectionData; actions?: Actions }) {
+  const hid = `${c.id}-${title.toLowerCase()}`;
+  return (
+    <section className="cgroup" aria-labelledby={hid}>
+      <h3 id={hid}>{title} <span className="cgroup__n">{items.length}</span></h3>
+      <ul className="citems">
+        {items.map((i) => <ItemRow key={i.kind + i.ref} i={i} c={c} actions={actions} />)}
+      </ul>
+    </section>
+  );
+}
+
+function ItemRow({ i, c, actions }: { i: Resolved; c: { id: string; name: string }; actions?: Actions }) {
+  const p = i.kind === "prompt" ? getPromptById(i.ref) : undefined;
+  const skill = i.kind === "skill";
+  return (
+    <li className="citem">
+      <span className="citem__body">
+        <Link href={i.href} className={skill ? "citem__name citem__name--cmd" : "citem__name"} translate={skill ? "no" : undefined}>{i.title}</Link>
+        {i.summary && <span className="citem__sum">{skill ? firstSentence(i.summary) : i.summary}</span>}
+      </span>
+      <span className="citem__acts">
+        {p && <CopyButton className="btn btn--sm citem__copy" text={copyText(p)} label={copyLabel(p)} name={`${copyLabel(p)}: ${i.title}`} icon />}
+        {actions && (
+          <Pop summary={X} summaryClass="col__rm" label={`Remove ${i.title} from ${c.name}`}>
+            <ActionForm action={actions.removeItem} className="col__popform">
+              <input type="hidden" name="id" value={c.id} /><input type="hidden" name="kind" value={i.kind} /><input type="hidden" name="ref" value={i.ref} />
+              <p>Remove {i.title} from {c.name}? It stays in the library.</p>
+              <Submit busy="Removing…">Remove</Submit>
+            </ActionForm>
+          </Pop>
+        )}
+      </span>
+    </li>
+  );
+}
+
+// The page for one collection: shared ones are public, private ones only open for their owner. The owner
+// also gets a way back to the workspace with this collection open.
+export function SharedCollection({ c, own = false, manageHref = "/account" }: { c: Omit<CollectionData, "is_starred">; own?: boolean; manageHref?: string }) {
   const items = resolve(c.items);
   const install = installFor(c.items);
-  const n = (k: string) => items.filter((i) => i.kind === k).length;
-  const parts = [n("prompt") && `${n("prompt")} ${n("prompt") === 1 ? "prompt" : "prompts"}`, n("skill") && `${n("skill")} ${n("skill") === 1 ? "skill" : "skills"}`].filter(Boolean);
+  const { prompts, skills } = split(items);
+  const parts = [prompts.length && plural(prompts.length, "prompt", "prompts"), skills.length && plural(skills.length, "skill", "skills")].filter(Boolean);
+  const row = { id: c.id, name: c.name, is_starred: false, is_public: c.is_public, items: c.items };
   return (
-    <main className="page">
+    <main className="page shared">
       <div className="page-head">
         <Crumbs items={[["Collections", "/account"], [c.name, `/collections/${c.id}`]]} />
+        <p className="kicker shared__kicker">
+          <span className={`cpanel__state${c.is_public ? " is-shared" : ""}`}>{c.is_public && <span className="led is-on" aria-hidden="true" />}{c.is_public ? "Shared collection" : "Private collection, only you can see it"}</span>
+        </p>
         <h1>{c.name}</h1>
         <p className="lead ink2">{parts.length ? `A collection of ${parts.join(" and ")} from the Agent Kit library.` : <>This collection is empty. Browse the <Link className="lic" href="/prompts">prompts</Link> and <Link className="lic" href="/skills">skills</Link> to find something to save.</>}</p>
-        <p className="kicker">{c.is_public ? "Shared collection" : "Private collection, only you can see it"}</p>
+        {own && <p className="shared__own"><Link className="btn btn--sm" href={`${manageHref}#${c.id}`}>Manage in Collections</Link></p>}
       </div>
       {install && (
-        <section className="col__install col__install--lead" aria-labelledby="install-h">
-          <h2 id="install-h">Install its skills</h2>
-          <p>One command, in any agent that reads skills.</p>
+        <section className="shared__install" aria-labelledby="install-h">
+          <div className="sec-head">
+            <h2 id="install-h">Install its skills</h2>
+            <p>One command, in any agent that reads skills.</p>
+          </div>
           <div className="cmdline"><code translate="no">{install}</code><CopyButton text={install} name={`Copy the install command for ${c.name}`} /></div>
         </section>
       )}
       {items.length > 0 && (
-        <ul className="col__items col__items--full">
-          {items.map((i) => (
-            <li key={i.kind + i.ref}>
-              <span className="col__kind">{i.kind === "skill" ? "Skill" : "Prompt"}</span>
-              <span className="col__body">
-                <Link href={i.href} className={i.kind === "skill" ? "col__name col__name--cmd" : "col__name"} translate={i.kind === "skill" ? "no" : undefined}>{i.title}</Link>
-                {i.summary && <span className="col__sum">{i.kind === "skill" ? firstSentence(i.summary) : i.summary}</span>}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <div className="shared__groups">
+          {prompts.length > 0 && <ItemGroup title="Prompts" items={prompts} c={row} />}
+          {skills.length > 0 && <ItemGroup title="Skills" items={skills} c={row} />}
+        </div>
       )}
     </main>
   );
