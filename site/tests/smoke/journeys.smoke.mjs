@@ -169,21 +169,25 @@ for (const size of SIZES) {
     await ctx.close();
   });
 
-  test(`${size.name}: a result removed since the index loaded refreshes the list`, async () => {
+  test(`${size.name}: a result removed since the index loaded says so, and reopening fetches a fresh index`, async () => {
     const { page, ctx, errors } = await open(size, "/skills");
+    const mod = process.platform === "darwin" ? "Meta" : "Control";
     await page.getByRole("banner").locator(".kbd", { hasText: "K" }).waitFor({ state: "attached" });
-    await page.keyboard.press(`${process.platform === "darwin" ? "Meta" : "Control"}+k`);
+    await page.keyboard.press(`${mod}+k`);
     const box = page.getByRole("combobox", { name: "Search the library" });
-    // As if a deploy had removed it: its Copy text is gone. On a wide screen the preview finds that out; on a
-    // phone, Copy does.
+    // As if a deploy had removed it: its Copy text is gone.
     await page.route("**/search-copy/skill/tdd*", (r) => r.fulfill({ status: 404, body: "" }));
-    const fresh = page.waitForRequest((r) => /\/search-index\.json\?r=/.test(r.url()));
     await box.fill("tdd");
-    await page.locator('#search-results a[role="option"][href="/skills/tdd"]').first().waitFor();
-    if (size.name === "phone") { await page.locator('#search-results a[role="option"][href="/skills/tdd"]').first().hover(); await box.press("Control+Enter"); }
+    const opt = page.locator('#search-results a[role="option"][href="/skills/tdd"]').first();
+    await opt.waitFor();
+    await opt.hover();
+    await box.press(`${mod}+Enter`);
+    await page.getByRole("status").filter({ hasText: "removed in an update" }).waitFor();
+    const fresh = page.waitForRequest((r) => /\/search-index\.json\?r=/.test(r.url()));
+    await box.press("Escape"); await box.press("Escape");
+    await box.waitFor({ state: "hidden" });
+    await page.keyboard.press(`${mod}+k`);
     await fresh;
-    await page.getByRole("status").filter({ hasText: "The list is up to date" }).waitFor();
-    assert.equal(await page.locator('#search-results a[role="option"][href="/skills/tdd"]').count(), 0, "the removed result leaves the list");
     assert.deepEqual(errors, []);
     await ctx.close();
   });

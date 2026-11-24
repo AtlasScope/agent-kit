@@ -25,22 +25,22 @@ type Group = { label: string; items: Entry[] };
 let indexPromise: Promise<Entry[]> | null = null;
 let loaded: Entry[] | null = null;
 // The browser may keep the index for an hour. If a deploy in that time removed a result, its Copy text is gone
-// (404). The palette then forgets that result, drops the index and its cached texts, and fetches a fresh index
-// with a query that no cache along the way has seen. `gen` stops fetches from before the drop refilling the cache.
+// (404). The palette then says so and drops the index and its cached texts, and the next open fetches a fresh index
+// with a query no cache has seen. `gen` stops a fetch from before the drop refilling either cache.
 let stale = false, gen = 0;
-const removed = new Set<string>();
-function dropIndex(e: Entry) { removed.add(keyOf(e)); loaded = null; indexPromise = null; stale = true; gen++; texts.clear(); known.clear(); }
+function dropIndex() {
+  if (stale && !indexPromise) return;
+  loaded = null; indexPromise = null; stale = true; gen++; texts.clear(); known.clear();
+}
 function loadIndex() {
+  const g = gen;
   indexPromise ??= fetch(stale ? `/search-index.json?r=${Date.now()}` : "/search-index.json").then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-    .then((e: Entry[]) => {
-      // A cache that hasn't caught up may still list a removed result; leave it out of this load only.
-      const fresh = removed.size ? e.filter((x) => !removed.has(keyOf(x))) : e;
-      stale = false; removed.clear();
-      return (loaded = fresh);
-    });
-  indexPromise.catch(() => { indexPromise = null; });
+    .then((e: Entry[]) => { if (g === gen) { stale = false; loaded = e; } return e; });
+  const mine = indexPromise;
+  indexPromise.catch(() => { if (indexPromise === mine) indexPromise = null; });
   return indexPromise;
 }
+const GONE = "This result was removed in an update. Close and reopen search for the latest list.";
 
 // Copy texts by URL (which carries the text's version): `texts` holds the requests, `known` the answers, so a
 // cached text can go to the clipboard inside the click or key event without waiting.
@@ -205,21 +205,15 @@ export function Search() {
   const active = items[Math.min(cur, items.length - 1)];
 
   useEffect(() => { setCur(0); list.current?.scrollTo({ top: 0 }); }, [q, scope]);
-  // The preview (wide screens only) shows what Copy sends. It is fetched once the selection rests for a moment,
-  // so holding an arrow key doesn't request every result it passes.
-  // `text: null` means the fetch failed (Copy tries again and, if it succeeds, fills the preview). `waitFor` names
-  // the text that has taken over 400 ms, which then says it is loading (a timer, not CSS, so reduced motion shows it).
-  const [payload, setPayload] = useState<{ key: string; text: string | null } | null>(null);
-  const [waitFor, setWaitFor] = useState("");
-  const [wide, setWide] = useState(false);
+  // The selected result's Copy text is fetched once the selection rests for a moment (so holding an arrow key
+  // doesn't request every result it passes). The wide preview shows it, and Copy then writes it at once.
+  // `text: null` means the fetch failed (Copy tries again and, if it succeeds, fills the preview); `gone` that the
+  // result no longer exists. `waiting` turns on after 400 ms without the text (a timer, so reduced motion shows it).
+  const [payload, setPayload] = useState<{ key: string; text: string | null; gone?: boolean } | null>(null);
+  const [waiting, setWaiting] = useState(false);
   useEffect(() => {
-    if (!open) return;
-    const mq = matchMedia("(min-width: 900px)"), on = () => setWide(mq.matches);
-    on(); mq.addEventListener("change", on);
-    return () => mq.removeEventListener("change", on);
-  }, [open]);
-  useEffect(() => {
-    if (!open || !wide || !active?.copy) return;
+    setWaiting(false);
+    if (!open || !active?.copy) return;
     const k = copyUrl(active), have = knownText(active);
     if (have !== undefined) { setPayload({ key: k, text: have }); return; }
     // Coming back to a text that failed: it shows as loading again while it retries.
@@ -227,22 +221,16 @@ export function Search() {
     let live = true;
     const e = active;
     const t = setTimeout(() => copyText(e).then((text) => { if (live) setPayload({ key: k, text }); },
-      (err) => { if (!live) return; if (gone(err)) refresh(e); else setPayload({ key: k, text: null }); }), 120);
-    const w = setTimeout(() => setWaitFor(k), 400);
+      (err) => { if (!live) return; const g = gone(err); if (g) dropIndex(); setPayload({ key: k, text: null, gone: g }); }), 120);
+    const w = setTimeout(() => setWaiting(true), 400);
     return () => { live = false; clearTimeout(t); clearTimeout(w); };
-  }, [open, wide, active]);
+  }, [open, active]);
   const shown = active?.copy && payload?.key === copyUrl(active) ? payload : undefined;
   useEffect(() => {
     if (!active) return;
     document.getElementById(`cmdk-${keyOf(active)}`)?.scrollIntoView({ block: "nearest" });
   }, [active]);
 
-  // The index is out of date: fetch a fresh one now, past the retry throttle, without the removed result.
-  const refresh = (e: Entry) => {
-    dropIndex(e); setPayload(null); setStatus("loading"); say("This result was removed in an update. Refreshing the list…");
-    loadIndex().then((fresh) => { failed.current = false; setEntries(fresh); setStatus("ready"); say("This result was removed in an update. The list is up to date."); },
-      () => { failed.current = true; lastTry.current = Date.now(); setStatus("error"); say("This result was removed in an update. Reload the page for the latest list."); });
-  };
   const remember = (e: Entry) => { const next = pushRecent(readRecent(), e); writeRecent(next); setRecent(next); };
   const go = (e: Entry, newTab = false) => {
     remember(e);
@@ -276,7 +264,7 @@ export function Search() {
       }
       say(c.done); remember(e);
     } catch {
-      if (gone(loadFailed)) refresh(e);
+      if (gone(loadFailed)) { dropIndex(); setPayload({ key: k, text: null, gone: true }); say(GONE); }
       else say(loadFailed ? "Couldn’t load the text to copy. Open the page and copy from there." : "Copy was blocked. Open the page and copy from there.");
     }
   };
@@ -359,8 +347,8 @@ export function Search() {
               <h2 className="cmdk__ph" translate={active.kind === "skill" || active.kind === "kit" ? "no" : undefined}>{active.title}</h2>
               {active.summary && <p className="cmdk__ps">{active.summary}</p>}
               {active.copy && typeof shown?.text === "string" && <pre className="cmdk__payload" data-long={shown.text.length > 360 || undefined} aria-label={`${active.copy.label.replace(/^Copy /, "")} text`}>{shown.text}</pre>}
-              {active.copy && shown?.text === null && <p className="cmdk__ps">The text didn’t load. Copy will try again.</p>}
-              {active.copy && !shown && waitFor === copyUrl(active) && <p className="cmdk__ps">Loading the text…</p>}
+              {active.copy && shown?.text === null && <p className="cmdk__ps">{shown.gone ? GONE : "The text didn’t load. Copy will try again."}</p>}
+              {active.copy && !shown && waiting && <p className="cmdk__ps">Loading the text…</p>}
               <div className="cmdk__actions">
                 <button type="button" className="cmdk__btn cmdk__btn--main" onClick={() => go(active)}>Open<kbd aria-hidden="true">↵</kbd></button>
                 {active.copy && <button type="button" className="cmdk__btn" onClick={() => copy(active)}>{active.copy.label}<kbd aria-hidden="true">{mod}↵</kbd></button>}
