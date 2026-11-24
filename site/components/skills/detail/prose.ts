@@ -45,13 +45,16 @@ export function withAnchors(html: string): { html: string; toc: TocItem[] } {
 //   lead   the first sentence written for a person (a short one takes the next with it),
 //   more   the rest of those sentences,
 //   agent  the trigger rules, shown on the page behind a disclosure.
-// When no sentence fits as a lead, lead is empty and the page shows a neutral line instead.
+// When no sentence fits as a lead, lead is empty and fallback, when it can, says what the skill is for, taken from the
+// first trigger rule ("When the user wants to optimize conversions…" gives "Optimize conversions…").
 const SENTENCE = /(?<=[.!?])\s+(?=[A-Z/"'(`])/;
 const ABBR = /\b(e\.g|i\.e|vs|etc|cf|approx|incl)\.$/i;
+// "The user" counts only with a verb that asks for something, so a sentence about the user's code stays prose.
+const ASKS = "(wants|asks|says|mentions|invokes|needs|types|requests|shares|is)";
 const AGENT = [
-  /^(also )?use (this skill )?(only )?(when|whenever|if)\b[^.]*\b(the user|explicitly|invokes?|invoked)\b/i,
+  new RegExp(`^(also )?use (this skill )?(only )?(when|whenever|if)\\b[^.]*\\b(the user ${ASKS}\\b|explicitly|invokes?|invoked)`, "i"),
   /^(only use|use only)\b/i,
-  /^(also )?when the user\b/i,
+  new RegExp(`^(also )?when the user ${ASKS}\\b`, "i"),
   /^(also )?trigger(s|ed)?\b/i,
   /\bmust not activate\b/i,
   /^only runs when explicitly invoked\b/i,
@@ -61,7 +64,7 @@ const AGENT = [
 const CROSSREF = /^for [^.]*,\s*(see|use)\b/i;
 export const isAgentSentence = (x: string) => AGENT.some((r) => r.test(x.trim()));
 
-function sentences(d: string): string[] {
+export function sentences(d: string): string[] {
   const out: string[] = [];
   for (const part of d.split(SENTENCE)) {
     // Rejoin a split made after an abbreviation ("e.g. React").
@@ -71,17 +74,26 @@ function sentences(d: string): string[] {
   return out;
 }
 
-export type Described = { lead: string; more: string; agent: string };
+export type Described = { lead: string; more: string; agent: string; fallback?: string };
+
+const WANTS = /^(also )?(use (this( skill)? )?)?when (the )?user (wants|asks|needs) (you )?to\s+/i;
+function purpose(rule: string | undefined): string | undefined {
+  if (!rule || !WANTS.test(rule)) return undefined;
+  const t = rule.replace(WANTS, "").split(/\s+[—–]\s+|;\s+/)[0].replace(/[\s,.:]+$/, "");
+  return t.length >= 12 ? `${t[0].toUpperCase()}${t.slice(1)}.` : undefined;
+}
 
 export function describe(d: string): Described {
   const all = sentences(d.trim());
   const agent = all.filter(isAgentSentence);
   const human = all.filter((x) => !isAgentSentence(x));
-  let i = human.findIndex((x) => !CROSSREF.test(x));
-  if (i < 0) return { lead: "", more: human.join(" "), agent: agent.join(" ") };
+  const i = human.findIndex((x) => !CROSSREF.test(x));
+  if (i < 0) return { lead: "", more: human.join(" "), agent: agent.join(" "), fallback: purpose(agent[0]) };
   let lead = human[i];
   const rest = human.filter((_, j) => j !== i);
-  if (lead.length < 30 && rest[i] && !CROSSREF.test(rest[i])) { lead = `${lead} ${rest[i]}`; rest.splice(i, 1); }
+  // A short lead takes the next sentence with it, but only the one the author wrote right after it.
+  const next = all[all.indexOf(human[i]) + 1];
+  if (lead.length < 30 && next && next === rest[i] && !CROSSREF.test(next)) { lead = `${lead} ${next}`; rest.splice(i, 1); }
   return { lead, more: rest.join(" "), agent: agent.join(" ") };
 }
 

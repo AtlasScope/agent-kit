@@ -36,7 +36,7 @@ export default async function SkillPage({ params }: { params: Promise<{ name: st
   if (!s) notFound();
   const k = getKit(s.kit)!;
   const c = s.credit;
-  const { lead, more, agent } = describe(s.description);
+  const { lead, more, agent, fallback } = describe(s.description);
   const { html, toc } = withAnchors(scrollersFocusable(demote(s.bodyHtml)));
   const folder = `${SITE.repo}/tree/main/${s.sourcePath}`;
   const files = ["SKILL.md", ...s.files];
@@ -47,7 +47,7 @@ export default async function SkillPage({ params }: { params: Promise<{ name: st
         <Crumbs items={[["Skills", "/skills"], [s.name, `/skills/${s.name}`]]} />
         <p className="sd-eyebrow"><span>Skill</span><span aria-hidden="true">·</span><Link className="lic" href={`/kits/${k.name}`}>{k.title}</Link></p>
         <h1 translate="no">{s.name}</h1>
-        <p className="lead sd-lead">{lead || `One of the ${k.name} skills.`}</p>
+        <p className="lead sd-lead">{lead || fallback || `One of the ${k.name} skills.`}</p>
         {more && <p className="sd-more">{more}</p>}
         {agent && (
           <details className="sd-agent">

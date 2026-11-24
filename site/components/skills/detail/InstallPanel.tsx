@@ -37,14 +37,15 @@ export function InstallPanel({ id, title, options }: { id: string; title: string
   // has reached the panel. The sticky head keeps Copy in view while any of the panel is, so this is "scrolled away".
   useEffect(() => {
     const w = wrap.current, head = root.current?.querySelector<HTMLElement>(".ip-head");
-    if (!w || !head || typeof IntersectionObserver === "undefined") return;
-    const top = parseFloat(getComputedStyle(head).top) || 0;
-    const io = new IntersectionObserver(
-      ([e]) => setAway(!e.isIntersecting && e.boundingClientRect.bottom <= top + 1),
-      { rootMargin: `${-Math.round(top)}px 0px 0px 0px` },
-    );
-    io.observe(w);
-    return () => io.disconnect();
+    if (!w || !head) return;
+    // Measured on every scroll and resize: the header's height changes between breakpoints.
+    let raf = 0;
+    const check = () => { raf = 0; setAway(w.getBoundingClientRect().bottom <= (parseFloat(getComputedStyle(head).top) || 0) + 1); };
+    const queue = () => { if (!raf) raf = requestAnimationFrame(check); };
+    check();
+    addEventListener("scroll", queue, { passive: true });
+    addEventListener("resize", queue);
+    return () => { cancelAnimationFrame(raf); removeEventListener("scroll", queue); removeEventListener("resize", queue); };
   }, []);
 
   useEffect(() => {
@@ -52,11 +53,22 @@ export function InstallPanel({ id, title, options }: { id: string; title: string
     if (!el) return;
     const main = () => el.querySelector<HTMLButtonElement>(".ip-copy");
     const bar = () => el.querySelector<HTMLButtonElement>(".ip-float__copy");
-    const select = () => { const p = pre.current, s = window.getSelection(); if (p && s) s.selectAllChildren(p); };
+    const select = (fromBar: boolean) => {
+      const p = pre.current, s = window.getSelection();
+      if (!p || !s) return;
+      // From the bar, the text is off screen: bring it into view so the selection the label points at can be seen.
+      if (fromBar) p.scrollIntoView({ block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      s.selectAllChildren(p);
+    };
     // CopyButton (frozen API) reports a blocked clipboard only through its label text, so watch for that wording.
     const blocked = (b: HTMLElement | null) => /blocked|select the text/i.test(b?.textContent || "");
-    const watch = new MutationObserver(() => { if (blocked(main()) || blocked(bar())) select(); });
-    watch.observe(el, { subtree: true, characterData: true, childList: true });
+    let was = false;
+    const watch = new MutationObserver(() => {
+      const m = blocked(main()), f = blocked(bar());
+      if ((m || f) && !was) select(f && !m);
+      was = m || f;
+    });
+    for (const n of el.querySelectorAll(".ip-copywrap, .ip-float")) watch.observe(n, { subtree: true, characterData: true, childList: true });
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "c" && e.key !== "C") return;
       if (e.metaKey || e.ctrlKey || e.altKey || e.repeat || e.defaultPrevented || editable(e.target)) return;

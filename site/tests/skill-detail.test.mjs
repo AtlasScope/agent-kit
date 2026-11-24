@@ -2,15 +2,16 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
-import { demote, withAnchors, describe, isAgentSentence, isReserved } from "../components/skills/detail/prose.ts";
+import { demote, withAnchors, describe, sentences, isAgentSentence, isReserved } from "../components/skills/detail/prose.ts";
 
 const { skills, kits } = createRequire(import.meta.url)("../content/generated.json");
 
-test("describing a description keeps every character, and no lead is a trigger rule", () => {
-  const norm = (t) => t.replace(/\s+/g, " ").trim().split("").sort().join("");
+test("describing a description keeps every sentence intact, and no lead is a trigger rule", () => {
+  // lead, more and agent split the description's sentences between them: each sentence once, unchanged.
+  const parts = (t) => sentences(t.trim()).filter(Boolean).sort();
   for (const x of [...skills, ...kits]) {
     const { lead, more, agent } = describe(x.description);
-    assert.equal(norm([lead, more, agent].join(" ")), norm(x.description), x.name);
+    assert.deepEqual([lead, more, agent].flatMap(parts).sort(), parts(x.description), x.name);
     assert.ok(!lead || !isAgentSentence(lead), `${x.name}: lead is a trigger rule`);
     assert.doesNotMatch(lead, /\b(the user explicitly|must not activate|invokes \/)/i, x.name);
   }
@@ -37,4 +38,19 @@ test("anchors avoid page ids, strip accents, and the lead skips abbreviations", 
   assert.deepEqual(describe("Use only when the user explicitly invokes /x. Does a thing for people. Ordinary talk must not activate it."),
     { lead: "Does a thing for people.", more: "", agent: "Use only when the user explicitly invokes /x. Ordinary talk must not activate it." });
   assert.equal(describe("When the user wants copy. For email, see emails.").lead, "");
+});
+
+test("trigger rules need a request from the user; a short lead only takes the sentence written after it", () => {
+  assert.equal(isAgentSentence("When the user's build fails, it explains the error and proposes a fix."), false);
+  assert.equal(isAgentSentence("When the user wants a review, run it."), true);
+  assert.equal(describe("Fix bugs. Use only when the user invokes /x. Covers the whole repo safely.").lead, "Fix bugs.");
+  assert.equal(describe("Fix bugs. Covers the whole repo safely.").lead, "Fix bugs. Covers the whole repo safely.");
+});
+
+test("a description that is all trigger rules still gets a purpose line", () => {
+  const cro = skills.find((s) => s.name === "cro");
+  const d = describe(cro.description);
+  assert.equal(d.lead, "");
+  assert.match(d.fallback, /^Optimize, improve, or increase conversions/);
+  assert.equal(describe("When the user wants X. For Y, see z.").fallback, undefined);
 });

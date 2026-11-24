@@ -142,7 +142,7 @@
   .sd-jump summary { display: flex; align-items: center; gap: var(--space-2); min-height: var(--tap); padding: 0 var(--space-4); font-size: var(--type-sm); font-weight: var(--weight-medium); color: var(--c-fg); cursor: pointer; }
   .sd-jump__n { font: var(--weight-regular) var(--type-micro)/1 var(--font-mono); color: var(--c-fg-3); }
   .sd-jump ol { margin: 0; padding: 0 var(--space-4) var(--space-3); list-style: none; border-top: 1px solid var(--c-line); }
-  .sd-jump a { display: flex; align-items: center; min-height: 40px; font-size: var(--type-sm); line-height: 1.35; color: var(--c-fg-2); text-decoration: none; }
+  .sd-jump a { display: flex; align-items: center; min-height: 40px; /* 44px on touch, below */ font-size: var(--type-sm); line-height: 1.35; color: var(--c-fg-2); text-decoration: none; }
   .sd-foot { grid-template-columns: minmax(0, 1fr); gap: var(--space-10); }
   .kd-row { grid-template-columns: minmax(0, 1fr) 44px; grid-template-areas: "name star" "d d" "m m"; row-gap: var(--space-1); }
 }
@@ -167,6 +167,10 @@
   .ip-copy, .ip-tab, .ip-float__copy { min-height: var(--tap); }
   .sd-filelist a { min-height: var(--tap); }
   .sd-doc__src { display: inline-flex; align-items: center; min-height: var(--tap); }
+  /* Every other control on the page gets a full touch target too (the whole-site review: target-size on /skills). */
+  .sd-head .toolbar .btn, .sd-jump a { min-height: var(--tap); }
+  .sd-eyebrow .lic { display: inline-flex; align-items: center; min-height: var(--tap); margin-block: calc((var(--tap) - 1lh) / -2); }
+  .sd-foot .lic-text summary { display: flex; align-items: center; min-height: var(--tap); }
 }
 @media (prefers-reduced-motion: reduce) {
   .ip-copy, .ip-tab, .sd-toc a, .kd-row { transition: none; }

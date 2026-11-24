@@ -36,7 +36,7 @@ export default async function KitPage({ params }: { params: Promise<{ kit: strin
   const claude = `claude plugin marketplace add ${SITE.repoSlug}\nclaude plugin install ${k.name}@agent-kit`;
   const say = kitInstallMessage(k.name);
   const codex = `codex plugin marketplace add ${SITE.repoSlug}\ncodex plugin add ${k.name}@agent-kit`;
-  const { lead, more: rest, agent } = describe(k.description);
+  const { lead, more: rest, agent, fallback } = describe(k.description);
   const more = [rest, agent].filter(Boolean).join(" ");
   const n = k.skills.length;
   // How a skill starts differs by agent, so each terminal tab names its own trigger, with a real skill as the example.
@@ -49,7 +49,7 @@ export default async function KitPage({ params }: { params: Promise<{ kit: strin
         <Crumbs items={[["Kits", "/kits"], [k.title, `/kits/${k.name}`]]} />
         <p className="sd-eyebrow"><span>Plugin</span><span aria-hidden="true">·</span><span>v{k.version}</span><span aria-hidden="true">·</span><span>{n} {n === 1 ? "skill" : "skills"}</span></p>
         <h1 translate="no">{k.title}</h1>
-        <p className="lead sd-lead">{lead || k.description}</p>
+        <p className="lead sd-lead">{lead || fallback || `The ${k.name} plugin.`}</p>
         {more && <p className="sd-more">{more}</p>}
         <dl className="sd-spec">
           <div><dt>Skills</dt><dd>{n - borrowed} written for Agent Kit{borrowed > 0 && <>, {borrowed} borrowed with credit</>}</dd></div>
@@ -65,8 +65,8 @@ export default async function KitPage({ params }: { params: Promise<{ kit: strin
         <InstallPanel id="install" title="Install this kit" options={[
           { id: "agent", label: "Your agent", text: say, copyName: `Copy the message that installs ${k.name}`,
             note: <>Paste it into your agent. Works in Claude Code and Codex: your agent runs the two commands for this kit and tells you what it installed. Cursor and other agents can only take every kit at once, so yours will ask you first. <a className="lic" href="/install">Install every kit</a>.</> },
-          { id: "claude", label: "Claude Code", text: claude, copyName: "Copy the Claude Code commands", note: <>Or run it yourself, in a terminal. Then type / and a skill’s name to run it, such as <code translate="no">/{ex}</code>.</> },
-          { id: "codex", label: "Codex", text: codex, copyName: "Copy the Codex commands", note: <>Or run it yourself, in a terminal. Then type $ and a skill’s name to run it, such as <code translate="no">${ex}</code>.</> },
+          { id: "claude", label: "Claude Code", text: claude, copyName: "Copy the Claude Code commands", note: <>Or run it yourself, in a terminal. Then type / and a skill’s name to run it{ex ? <>, such as <code translate="no">/{ex}</code></> : null}.</> },
+          { id: "codex", label: "Codex", text: codex, copyName: "Copy the Codex commands", note: <>Or run it yourself, in a terminal. Then type $ and a skill’s name to run it{ex ? <>, such as <code translate="no">${ex}</code></> : null}.</> },
         ]} />
         <p className="note">In Claude Code, <code>claude plugin update {k.name}@agent-kit</code> updates the kit and <code>claude plugin uninstall {k.name}@agent-kit</code> removes it. Installing a kit doesn’t install the companion plugins its recipes call; those are listed in the kit’s README.</p>
       </div>

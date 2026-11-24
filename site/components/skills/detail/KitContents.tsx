@@ -3,11 +3,13 @@ import { Star } from "@/components/Star";
 import { getSkill, type Skill } from "@/lib/content";
 import { describe } from "./prose";
 
+const lead = (d: string, kit: string) => { const x = describe(d); return x.lead || x.fallback || `One of the ${kit} skills.`; };
+
 function Row({ s }: { s: Skill }) {
   return (
     <li className="kd-row">
       <h4 className="kd-row__name"><Link href={`/skills/${s.name}`} translate="no">{s.name}</Link></h4>
-      <p className="kd-row__d">{describe(s.description).lead || `One of the ${s.kit} skills.`}</p>
+      <p className="kd-row__d">{lead(s.description, s.kit)}</p>
       <p className="kd-row__m">
         {s.typedOnly ? <span>Type <code translate="no">/{s.name}</code> to run</span> : <span>Starts automatically, or type <code translate="no">/{s.name}</code></span>}
         <span>{s.credit ? `By ${s.credit.author}` : "By Agent Kit"}</span>
