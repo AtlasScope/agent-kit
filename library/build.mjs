@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-// Builds the prompt library from library.json and template.html into two files:
-//   prompt-library.html  one self-contained page: upload it as a Claude artifact, or open it in
-//                        a browser or the side browser in Codex or Cursor
-//   prompt-library.md    the same entries as a plain cheat sheet you can search in an editor
+// Builds the prompt library from library.json and template.html into three files:
+//   prompt-library.html  one self-contained page sorted by problem ("goals" in library.json): open it
+//                        in a browser, the side browser in Codex or Cursor, or upload it as an artifact
+//   prompt-library.md    the same entries and order as a plain cheat sheet you can search in an editor
+//   inventory.csv        one row per entry for the editorial audit
 //
 // Usage: node library/build.mjs [--overlay <private.json>] [--out <dir>]
 //   --overlay  merges extra fields into the public data: per-entry fields under "entries",
@@ -34,6 +35,15 @@ if (overlayPath) {
     lib.entries.splice(at + 1, 0, entry);
   }
   for (const [k, v] of Object.entries(ov)) if (k !== "entries" && k !== "extraEntries") lib[k] = v;
+  // The page lists only entries named in a goal, so an added entry joins its anchor's goal, right
+  // after the anchor, unless the overlay's own goals already place it.
+  const placed = () => new Set((lib.goals || []).flatMap((g) => g[3]));
+  for (const { after, entry } of ov.extraEntries || []) {
+    if (placed().has(entry.id)) continue;
+    const goal = (lib.goals || []).find((g) => g[3].includes(after));
+    if (!goal) throw new Error(`Overlay adds ${entry.id} after ${after}, which is in no goal: list ${entry.id} in the overlay's goals`);
+    goal[3].splice(goal[3].indexOf(after) + 1, 0, entry.id);
+  }
 }
 
 const ids = new Set();
@@ -44,20 +54,27 @@ for (const e of lib.entries) {
 
 const template = fs.readFileSync(path.join(here, "template.html"), "utf8");
 if (template.split("__LIBRARY_DATA__").length !== 2) throw new Error("template.html must contain __LIBRARY_DATA__ once");
+// The page also gets the audit's "which one to pick" notes: for the usual first pick, its job and the
+// other choices; for each other choice, the first pick and when to use this one instead.
+const audit = JSON.parse(fs.readFileSync(path.join(here, "audit.json"), "utf8"));
+const choose = {};
+for (const c of audit.clusters) {
+  choose[c.primary] = { job: c.job, alts: c.alts.map((a) => a.id) };
+  for (const a of c.alts) choose[a.id] = { primary: c.primary, when: a.when };
+}
 // Escape "<" so the data can never close its <script> tag early.
-const data = JSON.stringify(lib).replace(/</g, "\\u003c");
+const data = JSON.stringify({ ...lib, choose }).replace(/</g, "\\u003c");
 const html = `<!doctype html>\n<html lang="en">\n${template.replace("__LIBRARY_DATA__", () => data)}</html>\n`;
 
-const SECTION_NAMES = { inv: "Investigations", db: "Database", think: "Thinking prompts", ecmd: "Engineering commands", dcmd: "Design commands", recipe: "Recipes", desk: "Desk only" };
-const md = ["# Prompt Library", "", `${lib.entries.length} prompts, commands and recipes for coding and design agents. Open prompt-library.html for search, stars and the prompt composer.`, ""];
-for (const [sec, name] of Object.entries(SECTION_NAMES)) {
-  const list = lib.entries.filter((e) => e.sec === sec);
-  if (!list.length) continue;
-  md.push(`## ${name}`, "");
-  let group = null;
-  for (const e of list) {
-    if (e.group && e.group !== group) { group = e.group; md.push(`### ${group}`, ""); }
-    md.push(`**${e.id} · ${e.t}**${e.why ? ` ${e.why}` : ""}`, "");
+// The cheat sheet follows the page: one section per problem, each entry with its plain line and full text.
+const md = ["# Prompt Library", "", `${lib.entries.length} prompts, commands and recipes for coding agents, sorted by what you want fixed. Open prompt-library.html to search and copy.`, ""];
+const byId = new Map(lib.entries.map((e) => [e.id, e]));
+for (const [, title, blurb, list] of lib.goals) {
+  md.push(`## ${title}`, "", blurb, "");
+  for (const e of list.map((id) => byId.get(id))) {
+    const name = (e.sec === "ecmd" || e.sec === "dcmd") && e.cmd ? e.cmd : e.t;
+    const line = e.line || e.why || e.use || "";
+    md.push(`**${e.id} · ${name}**${line ? ` ${line}` : ""}`, "");
     const text = e.sec === "ecmd" && e.cmd ? e.cmd : e.p;
     if (e.steps) md.push(e.steps.map((s) => (Array.isArray(s) ? s.join(": ") : s)).map((s, i) => `${i + 1}. ${s}`).join("\n"), "");
     else if (text) md.push("```text", text, "```", "");
@@ -73,7 +90,6 @@ const auditCols = (id) => {
   return [[...a.s].reduce((t, d) => t + +d, 0) + "/14 (" + a.s + ")", role.get(id) || "", flags, a.note || ""];
 };
 const csv = (v) => (/[",\n]/.test(String(v ?? "")) ? `"${String(v).replace(/"/g, '""')}"` : String(v ?? ""));
-const audit = JSON.parse(fs.readFileSync(path.join(here, "audit.json"), "utf8"));
 const role = new Map();
 for (const c of audit.clusters) { role.set(c.primary, `${c.job}: primary`); for (const a of c.alts) role.set(a.id, `${c.job}: alternative`); }
 const inv = [["id", "section", "family", "title", "changes", "needs", "source", "purpose", "you_get", "score", "cluster", "flags", "audit_note", "reviewed"]];

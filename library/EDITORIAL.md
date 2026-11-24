@@ -3,6 +3,24 @@
 Decisions about what the library says, newest first. Each line names the entries it touched and why.
 The full inventory is `library/dist/inventory.csv`, rebuilt by `node library/build.mjs`.
 
+## 2026-11-23 (page sorted by problem)
+
+- The page is now sorted by what people want fixed: 19 problems in `goals` in `library.json` ("Something
+  broke and I don't know why", "The screen feels cluttered, bland or amateur", "It's slow, or it costs
+  too much" and so on). Every entry sits in exactly one, best first; `check.mjs` enforces that. The
+  Markdown cheat sheet follows the same order.
+- Each entry leads with one plain line and "You get:", taken from its mode, so the reader knows whether
+  it changes anything. 40 entries got a `line` field where `why` described a situation or used jargon:
+  every database prompt and workflow, every thinking prompt, and EC04, EC15, EC21, EC26, EC27.
+- Removed from the page: the Start, Library, "Which one?" and Starred views, stars, the prompt composer,
+  the symptom finder, stage lists, the reading list and the routine schedule. Their data stays in
+  `library.json` for the site and the routers. The audit's overlap notes now show inside each entry as
+  "the usual first pick" or "pick this over X when".
+- Kept: every command reference, now listed by tool in "Every command, by tool" with each tool's
+  notes, and the full prompt text behind "Show the full prompt" on every entry.
+- Five of the six `hide` entries (UI077 to UI080, UI097) are not app work and sit in a last group, "Art,
+  posters and other extras". UI058 stays with new pages.
+
 ## 2026-11-21 (palette builder)
 
 - One design command, UI108 `/palette-builder`, written here. The color skills advise and write exact
