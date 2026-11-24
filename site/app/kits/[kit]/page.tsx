@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Crumbs } from "@/components/Crumbs";
-import { CopyButton } from "@/components/CopyButton";
+import { InstallPanel } from "@/components/skills/detail/InstallPanel";
 import { KitContents } from "@/components/skills/detail/KitContents";
 import { splitLead } from "@/components/skills/detail/prose";
 import { SITE, kitInstallMessage } from "@/lib/site";
@@ -56,23 +56,17 @@ export default async function KitPage({ params }: { params: Promise<{ kit: strin
         </dl>
       </header>
 
-      {/* Install, the same way the homepage does it: one message to paste into the agent. This is the page's one
-          bright button. The terminal commands sit beside it for doing it by hand, with quieter Copy buttons. */}
-      <section className="kitin kd-install" id="install" aria-labelledby="kitin-h">
-        <h2 id="kitin-h" className="kd-h2">Install this kit</h2>
-        <div className="kd-install__grid">
-          <div className="kd-install__main">
-            <div className="block kitin__msg"><div className="block__head"><span>Paste into your agent</span><CopyButton text={say} className="copy copy--main" name={`Copy the message that installs ${k.name}`} /></div><pre>{say}</pre></div>
-            <p className="note">Works in Claude Code and Codex: your agent runs the two commands for this kit and tells you what it installed. Cursor and other agents can only take every kit at once, so yours will ask you first. <a className="lic" href="/install">Install every kit</a>.</p>
-          </div>
-          <div className="kd-install__manual">
-            <h3 className="kitin__or">Or run it yourself</h3>
-            <div className="block sd-cmd"><div className="block__head"><span><b>Claude Code</b></span><CopyButton text={claude} name="Copy the Claude Code commands" /></div><pre translate="no">{claude}</pre></div>
-            <div className="block sd-cmd"><div className="block__head"><span><b>Codex</b></span><CopyButton text={codex} name="Copy the Codex commands" /></div><pre translate="no">{codex}</pre></div>
-          </div>
-        </div>
+      {/* Install, the same way the homepage does it: one message to paste into the agent, chosen first. The terminal
+          commands are the other two tabs. One Copy, in a bar that stays in reach, like the prompt pages. */}
+      <div className="kd-install">
+        <InstallPanel id="install" title="Install this kit" options={[
+          { id: "agent", label: "Your agent", text: say, copyName: `Copy the message that installs ${k.name}`,
+            note: <>Paste it into your agent. Works in Claude Code and Codex: your agent runs the two commands for this kit and tells you what it installed. Cursor and other agents can only take every kit at once, so yours will ask you first. <a className="lic" href="/install">Install every kit</a>.</> },
+          { id: "claude", label: "Claude Code", text: claude, copyName: "Copy the Claude Code commands", note: "Or run it yourself, in a terminal." },
+          { id: "codex", label: "Codex", text: codex, copyName: "Copy the Codex commands", note: "Or run it yourself, in a terminal." },
+        ]} />
         <p className="note">In Claude Code, <code>claude plugin update {k.name}@agent-kit</code> updates the kit and <code>claude plugin uninstall {k.name}@agent-kit</code> removes it. Installing a kit doesn’t install the companion plugins its recipes call; those are listed in the kit’s README.</p>
-      </section>
+      </div>
 
       <section className="section kd-contents" id="contents" aria-labelledby="kd-skills-h">
         <div className="kd-contents__head">

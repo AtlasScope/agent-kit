@@ -134,10 +134,11 @@ for (const size of SIZES) {
     const path = `/skills/${s.name}`;
     const { page, ctx, errors } = await open(size, path);
     await noSideScroll(page, path);
-    const copies = page.locator(".sd-install").getByRole("button");
-    await copies.nth(0).click();
+    const copy = page.locator("#install .ip-copy");
+    await copy.click();
     assert.equal(await clipboard(page), `npx skills add AtlasScope/agent-kit --skill ${s.name}`);
-    await copies.nth(1).click();
+    await page.locator("#install").getByRole("tab").nth(1).click();
+    await copy.click();
     assert.equal(await clipboard(page), `claude plugin marketplace add AtlasScope/agent-kit\nclaude plugin install ${s.kit}@agent-kit`);
     assert.deepEqual(errors, []);
     await ctx.close();

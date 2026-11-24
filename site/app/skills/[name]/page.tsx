@@ -62,8 +62,10 @@ export default async function SkillPage({ params }: { params: Promise<{ name: st
         </div>
       </header>
         <aside className="sd-rail" aria-label="Install and contents">
-          <SkillInstall s={s} />
-          {toc.length > 2 && <Toc items={toc} label="Sections of this skill" />}
+          <div className="sd-rail__in">
+            <SkillInstall s={s} />
+            {toc.length > 2 && <Toc items={toc} label="Sections of this skill" />}
+          </div>
         </aside>
         <article className="sd-doc" aria-labelledby="skill-doc">
           <div className="sd-doc__head">
