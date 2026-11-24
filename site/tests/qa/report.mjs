@@ -4,10 +4,21 @@
 import { readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
 import { parseArgs } from "node:util";
 
-const { values: args } = parseArgs({ options: { label: { type: "string" }, out: { type: "string", default: new URL("../../../.artifacts/qa", import.meta.url).pathname }, title: { type: "string" } } });
+const { values: args } = parseArgs({ options: { label: { type: "string" }, out: { type: "string", default: new URL("../../../.artifacts/qa", import.meta.url).pathname }, title: { type: "string" }, baseline: { type: "string" } } });
 const dir = `${args.out}/${args.label}`;
 const read = (f) => (existsSync(`${dir}/${f}`) ? JSON.parse(readFileSync(`${dir}/${f}`, "utf8")) : null);
 const parity = read("parity.json"), browser = read("browser.json"), webkit = read("webkit.json");
+// --baseline <label> re-marks Chromium findings as new or pre-existing against another baseline pass,
+// for when the harness changed after the original baseline ran.
+if (args.baseline && browser) {
+  const stable = (s) => String(s).replace(/\/_next\/static\/[^\s"')]+/g, "/_next/static/…").replace(/\?[^\s"')]*/g, "").replace(/\b[0-9a-f]{8,}\b/g, "…");
+  const base = JSON.parse(readFileSync(`${args.out}/${args.baseline}/browser.json`, "utf8"));
+  const seen = new Set(base.findings.map((f) => stable(f.key)));
+  for (const f of browser.findings) if (f.key) f.status = seen.has(stable(f.key)) ? "pre-existing" : "new";
+  const order0 = ["blocker", "serious", "moderate", "minor"];
+  browser.summary.counts = Object.fromEntries(["new", "pre-existing"].map((st) => [st, Object.fromEntries(order0.map((v) => [v, browser.findings.filter((f) => f.status === st && f.severity === v).length]))]));
+  browser.summary.ref = `baseline ${args.baseline}`;
+}
 const lanes = readdirSync(dir).filter((f) => /^lane-.*\.json$/.test(f)).map(read);
 const order = ["blocker", "serious", "moderate", "minor"];
 const L = [];
