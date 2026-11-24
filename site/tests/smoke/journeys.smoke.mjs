@@ -156,9 +156,37 @@ for (const size of SIZES) {
     const path = `/prompts/${p.slug}`;
     const { page, ctx, errors } = await open(size, path);
     await noSideScroll(page, path);
-    // The page's main button (related prompts further down have their own).
-    await page.locator("button.btn--solid", { hasText: "Copy prompt" }).first().click();
+    // The page's one main Copy, in the payload panel's bar (related prompts further down have their own).
+    const main = page.locator(".pd-payload button.pd-copy", { hasText: "Copy prompt" });
+    assert.equal(await main.count(), 1);
+    await main.click();
     assert.equal(await clipboard(page), composeCopy(p));
+    // The text on screen is the text that was copied.
+    assert.equal(await page.locator(".pd-text").textContent(), composeCopy(p));
+    assert.deepEqual(errors, []);
+    await ctx.close();
+  });
+
+  test(`${size.name}: a step-by-step recipe copies step 1 and each step on its own`, async () => {
+    const p = data.prompts.find((x) => x.split && x.planSteps?.filter((st) => st.copy).length >= 2);
+    assert.ok(p, "needs a step-by-step recipe with two or more copyable steps");
+    const path = `/prompts/${p.slug}`;
+    const { page, ctx, errors } = await open(size, path);
+    await noSideScroll(page, path);
+    const main = page.locator(".pd-payload button.pd-copy", { hasText: "Copy step 1" });
+    assert.equal(await main.count(), 1);
+    await main.click();
+    assert.equal(await clipboard(page), composeCopy(p));
+    const i = p.planSteps.findIndex((st, k) => k > 0 && st.copy);
+    await page.locator(`[data-step="${i}"] button.pd-stepcopy`).click();
+    assert.equal(await clipboard(page), p.planSteps[i].copy);
+    // With the clipboard blocked, that step's exact text shows beside the step, selected for Cmd/Ctrl+C.
+    await page.evaluate(() => { navigator.clipboard.writeText = () => Promise.reject(new Error("blocked")); });
+    await page.locator(`[data-step="${i}"] button.pd-stepcopy`).click();
+    const shown = page.locator(`[data-step-slot="${i}"] .pd-text`);
+    await shown.waitFor();
+    assert.equal(await shown.textContent(), p.planSteps[i].copy);
+    assert.equal(await page.evaluate(() => String(getSelection())), p.planSteps[i].copy);
     assert.deepEqual(errors, []);
     await ctx.close();
   });
@@ -182,10 +210,11 @@ for (const size of SIZES) {
     const path = `/skills/${s.name}`;
     const { page, ctx, errors } = await open(size, path);
     await noSideScroll(page, path);
-    const copies = page.locator(".cmdline").getByRole("button");
-    await copies.nth(0).click();
+    const copy = page.locator("#install .ip-copy");
+    await copy.click();
     assert.equal(await clipboard(page), `npx skills add AtlasScope/agent-kit --skill ${s.name}`);
-    await copies.nth(1).click();
+    await page.locator("#install").getByRole("tab").nth(1).click();
+    await copy.click();
     assert.equal(await clipboard(page), `claude plugin marketplace add AtlasScope/agent-kit\nclaude plugin install ${s.kit}@agent-kit`);
     assert.deepEqual(errors, []);
     await ctx.close();
