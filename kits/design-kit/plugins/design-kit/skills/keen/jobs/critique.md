@@ -17,7 +17,7 @@ If PRODUCT.md does not say what this screen is for and you cannot tell from the 
    - The screen's own source: the component file and its stylesheet. Read the notes written in them. People record decisions there ("phones: the message sits at the top, with the horizon below", "40px for a finger") that appear nowhere else.
    - What a control does when used, from the code, when you are not going to press it.
 
-   Then sort every finding into one of two kinds. A **fault** is something no note explains or that contradicts the project's own notes. A **question** is something a written decision covers: report it as "your notes say X; the cost of that is Y; is that still what you want?", never as a problem, and never as a next step. Only faults get next steps. A critique that turns up only questions says so plainly; that is a real result.
+   Then sort every finding into one of two kinds. A **fault** is something no note explains or that contradicts the project's own notes. A **question** is something a written decision covers: report it as "your notes say X; the cost of that is Y; is that still what you want?", never as a problem. A fault gets a next step. A question may get one too, as long as the step says in plain words that it changes a choice already written down and what that choice was, so the person presses it knowing. A critique that turns up only questions says so plainly; that is a real result.
 
    List the decisions you read under Details, with where each is written, so the person can see what the critique respected.
 4. **Judge it against the seven questions**, in this order. Stop collecting once you have more than you will report.
