@@ -116,3 +116,43 @@ test("the opening is a sunrise that never runs backward and ends at rest", () =>
   const farthest = score.play(cue(1e6, { time: 1e6 }), DEFAULTS).clock;
   assert.ok((DEFAULTS.drift * farthest) / 60 < 5, `the clouds turn ${((DEFAULTS.drift * farthest) / 60).toFixed(1)} degrees at most`);
 });
+
+test("the resolution governor counts slow frames, and tells slow pixels from a slow page", async () => {
+  const { governor, govern } = await import("../components/orbit/governor.ts");
+  // Frames `ms` apart for `seconds`, all steady; the cost may depend on how many pixels are drawn.
+  const run = (g, seconds, cost) => { const start = g.last || 1000, acts = []; for (let t = start; t < start + seconds * 1000;) { t += cost(g.fit); acts.push(govern(g, t, true)); } return acts; };
+
+  // A machine that draws every frame on time is left alone.
+  const fast = governor();
+  run(fast, 5, () => 16.7);
+  assert.equal(fast.fit, 1);
+
+  // A graphics chip that cannot keep up: frames 45 ms apart at full size, in proportion to the pixels. Frames that
+  // late must count (the review of #123 found they were dropped), and each step that helps leads to the next.
+  const slow = governor();
+  run(slow, 10, (fit) => 45 * fit * fit);
+  assert.ok(slow.fit < 0.8 && slow.fit >= 0.5, `stepped down to ${slow.fit.toFixed(2)}`);
+
+  // Hitches on a fast machine (a long frame now and then, from the heap or a busy page) are not slowness.
+  const hitched = governor();
+  let n = 0;
+  run(hitched, 10, () => (++n % 8 === 0 ? 100 : 16.7));
+  assert.equal(hitched.fit, 1);
+
+  // A page held to thirty frames a second whatever it draws: one step is tried, buys nothing, and is put back.
+  const held = governor();
+  run(held, 10, () => 33.3);
+  assert.equal(held.fit, 1);
+  assert.equal(held.held, true);
+
+  // Gaps the caller does not vouch for (a pause off screen, the idle pace) are not measured.
+  const paused = governor();
+  for (let t = 1000; t < 20000; t += 500) assert.equal(govern(paused, t, false), "same");
+  assert.equal(paused.fit, 1);
+
+  // Far too slow even at half size, or far too slow at any size: give up, and the page keeps its still.
+  const pixels = governor();
+  assert.ok(run(pixels, 20, (fit) => 360 * fit * fit).includes("give up"));
+  const anyway = governor();
+  assert.ok(run(anyway, 20, () => 90).includes("give up"));
+});

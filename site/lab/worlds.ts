@@ -1,12 +1,15 @@
 // The directions that were tried against the one the homepage uses. They live here, in the lab, so the homepage
-// never downloads them: open the lab with ?world=day or ?world=ink to see each, and compare with the default.
+// never downloads them: open the lab with ?world=day or ?world=ink to see each, and compare with the default. All
+// three are drawn by the same renderer, clouds, air, aurora and grade, so they compare like for like.
 //
-//   (default)  First light. A moonlit ocean world at the moment the sun clears the limb: aurora, sea glow, dawn.
+//   (default)  First light, the hybrid. A physically lit ocean world at the moment the sun breaks the horizon,
+//              moonlit weather, an aurora on the dark limb; and in the night sea, currents marbled with the ink
+//              direction's own compounding warps, glowing faintly in the site's green.
 //   day        The physically inspired one: the same planet in full daylight under Earth's own air. White cloud,
 //              blue sea, a wide sun glitter. Closest to the photograph it replaces, and to every other picture
 //              of Earth from orbit.
 //   ink        The abstract one: no sea, no land, no weather. The whole globe is a slow fluid in bands, marbled by
-//              its own turbulence and polished like cut stone.
+//              its own turbulence and polished like cut stone, here under the same sunrise and aurora.
 import type { Params } from "../components/orbit/index";
 
 export type World = { look: Partial<Params>; ground?: string; surface?: string };
@@ -15,7 +18,8 @@ const DAY: World = {
   look: {
     sunBearing: 28, sunHeight: 22, moonLight: 0, moonAir: 0, aurora: 0, airglow: 0, seaGlow: 0,
     rayleigh: 1, mie: 1, ozone: 1, mieG: 0.8, multi: 0.5, skyFill: 0.5,
-    exposure: 2, warmth: 0.25, contrast: 0.4, cover: -0.2, coldCap: 9,
+    exposure: 1.5, warmth: 0.25, contrast: 0.5, saturation: 1.1, split: 0.35, cover: -0.1, coldCap: 6,
+    dawn: 0.06, aureole: 0, bloom: 0.03,
   },
 };
 
@@ -102,9 +106,9 @@ float glitter(vec3 n, vec3 v, vec3 l, float m2){
 }
 ${INK_SURFACE}`,
   look: {
-    cover: -3, cumulus: 0, cirrus: 0, stormStrength: 0, isleX: 1500, isleY: 900, isleRadius: 900,
-    sunBearing: 24, sunHeight: 12, moonLight: 0.06, aurora: 0, airglow: 0.00002, seaGlow: 0.03,
-    rayleigh: 0.3, mie: 0.7, ozone: 0.3, multi: 0.12, exposure: 2.8, warmth: 0.45, contrast: 0.55,
+    cover: -4, cumulus: 0, cirrus: 0, stormStrength: 0, isleX: 1500, isleY: 900, isleRadius: 900,
+    moonLight: 0.1, seaGlow: 0.05,
+    rayleigh: 0.4, mie: 1.2, ozone: 0.4, multi: 0.15, exposure: 4, warmth: 0.45, contrast: 0.5,
   },
 };
 

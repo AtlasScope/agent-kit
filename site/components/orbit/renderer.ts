@@ -19,6 +19,7 @@ import { BAKE_CLOUDS, bakeSurface as surfaceShader } from "./glsl/bake";
 import { POST } from "./glsl/post";
 import { sceneShader } from "./glsl/scene";
 import { SHADE } from "./glsl/shade";
+import { govern, governor } from "./governor";
 import { CLOUD_KEYS, DEFAULTS, SURFACE_KEYS, TALL, VIEW_KEYS, WIDE } from "./params";
 import type { Params } from "./params";
 
@@ -77,6 +78,7 @@ const INK: Vec3 = [2 / 255, 3 / 255, 2 / 255];
 // Left to itself (the lab), the renderer uses the tall composition below this width or on a canvas taller than 5:4.
 // The homepage decides by media query instead: TALL_SCREEN in params.ts.
 const NARROW = 760;
+const smoothstep = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 export function createOrbit(canvas: HTMLCanvasElement, options: Options = {}): Orbit | null {
   const context = canvas.getContext("webgl2", {
@@ -181,11 +183,12 @@ void main(){ vec4 t = texture(uTex, gl_FragCoord.xy/uRes); float v = dot(t, uPic
     if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
     if (scene && scene.w === w && scene.h === h) return;
     dropSmall(scene); dropSmall(glow);
-    const target = (tw: number, th: number): Small => {
-      const tex = createTexture(gl, { w: tw, h: th, internal: gl.RGBA16F, format: gl.RGBA, type: gl.HALF_FLOAT, linear: true });
+    const target = (tw: number, th: number, mips = false): Small => {
+      const tex = createTexture(gl, { w: tw, h: th, internal: gl.RGBA16F, format: gl.RGBA, type: gl.HALF_FLOAT, linear: true, mips });
       return { tex, fb: createTarget(gl, [tex]), w: tw, h: th };
     };
-    scene = target(w, h);
+    // The scene keeps a chain of smaller copies of itself: the post pass reads them for the bloom.
+    scene = target(w, h, true);
     glow = target(Math.max(1, Math.round(w / 2)), Math.max(1, Math.round(h / 2)));
   }
 
@@ -311,13 +314,9 @@ void main(){ vec4 t = texture(uTex, gl_FragCoord.xy/uRes); float v = dot(t, uPic
   }
 
   // ---- How fast is this going? ----------------------------------------------------------------------------------
-  // The measure is the gap between frames drawn back to back: when the GPU cannot keep up, the browser delivers
-  // frames late, and the gap grows past the screen's own beat. (Timing the GPU directly sounds better and is worse:
-  // a lightly loaded GPU slows its own clock, and the timer reads the same ten milliseconds whatever it is asked
-  // to do. So that timer is kept for the lab's read-out only.) Too slow for long enough, and the renderer draws
-  // fewer pixels. It only ever steps down: a level that was too slow once is not tried again on this page. If the
-  // lowest level is still far too slow, it stops altogether and tells the page, which keeps its still.
-  let lastDraw = 0, slow = 0, hopeless = 0, gap = 16;
+  // governor.ts decides how many pixels to draw from the gaps between steady frames. (The GPU timer is read here
+  // for the lab's read-out only: a lightly loaded GPU slows its own clock, so it says little about speed.)
+  let gov = governor();
   function judge(now: number, steady: boolean) {
     if (timer && options.debug) {
       while (pending.length && gl.getQueryParameter(pending[0], gl.QUERY_RESULT_AVAILABLE)) {
@@ -326,14 +325,9 @@ void main(){ vec4 t = texture(uTex, gl_FragCoord.xy/uRes); float v = dot(t, uPic
         gl.deleteQuery(q);
       }
     }
-    if (steady && lastDraw) gap = gap * 0.85 + Math.min(now - lastDraw, 100) * 0.15;
-    lastDraw = now;
-    if (options.fixed || !steady) return;
-    slow = gap > 24 ? slow + 1 : 0;
-    if (slow > 30 && fit > 0.5) { fit = Math.max(0.5, fit * 0.8); slow = 0; gap = 16; resize(); }
-    // At half size and still under twenty frames a second: this machine is better served by the still.
-    hopeless = fit <= 0.5 && gap > 50 ? hopeless + 1 : 0;
-    if (hopeless > 40) {
+    const act = govern(gov, now, steady, options.fixed);
+    if (act === "resize") { fit = gov.fit; resize(); }
+    if (act === "give up") {
       dead = true;
       // Told after this frame has finished, since the page's answer is to dispose of the context.
       setTimeout(() => options.onError?.(new Error("orbit: too slow to draw; showing the still")), 0);
@@ -350,8 +344,9 @@ void main(){ vec4 t = texture(uTex, gl_FragCoord.xy/uRes); float v = dot(t, uPic
       return false;
     }
     const t0 = performance.now();
+    // A canvas with no size (hidden by the page's styles) has nothing to frame: laying it out would divide by zero.
+    if (!canvas.clientWidth || !canvas.clientHeight) return false;
     if (canvas.clientWidth !== cssW || canvas.clientHeight !== cssH || !map) layout();
-    if (!cssW || !cssH) return false;
     judge(t0, !!shot.steady);
 
     const sKey = JSON.stringify(SURFACE_KEYS.map((key) => params[key])) + JSON.stringify(VIEW_KEYS.map((key) => params[key]));
@@ -399,16 +394,18 @@ void main(){ vec4 t = texture(uTex, gl_FragCoord.xy/uRes); float v = dot(t, uPic
       setAir(u);
       u.f("uMulti", params.multi);
       u.v3("uSeaDeep", [0.004, 0.014, 0.036]).v3("uSeaShoal", [0.012, 0.075, 0.085]).v3("uSeaInk", [0.0, 0.07, 0.045]);
-      u.v3("uRock", [0.028, 0.03, 0.034]).v3("uRockB", [0.06, 0.058, 0.052]).v3("uSeaGlow", scale([0.05, 1, 0.62], params.seaGlow));
+      u.v3("uRock", [0.028, 0.03, 0.034]).v3("uRockB", [0.06, 0.058, 0.052]).v3("uSeaGlow", scale([0.03, 1, 0.3], params.seaGlow));
       u.v4("uSkyFill", params.skyFill, 0.3 * params.twilight, 0.5 * params.twilight, params.twilight);
       u.v3("uMoonFill", scale([0.78, 0.88, 1], params.moonLight)).f("uMoonAir", params.moonAir);
       u.f("uAirglow", params.airglow * shot.night);
-      u.v4("uCloudLook", params.cloudSigma, params.cloudRelief, params.cloudHollows, params.cloudRim).v2("uCirrusLook", 0.9, 0.5);
+      u.v4("uCloudLook", params.cloudSigma, params.cloudRelief, params.cloudHollows, params.cloudRim).v2("uCirrusLook", 0.7, 0.55);
       u.tex("uSurfA", surf!.a).tex("uSurfB", surf!.b).tex("uCloudA", cloud!.a).tex("uCloudB", cloud!.b);
       u.tex("uShade", shade!.tex).tex("uShadeMoon", shadeMoon!.tex);
       gl.bindFramebuffer(gl.FRAMEBUFFER, scene!.fb);
       gl.viewport(0, 0, scene!.w, scene!.h);
       draw(gl);
+      gl.bindTexture(gl.TEXTURE_2D, scene!.tex);
+      gl.generateMipmap(gl.TEXTURE_2D);
     }
     // The aurora: its oval runs round a magnetic pole placed from the point under the camera.
     const aurora = params.aurora * shot.night;
@@ -423,6 +420,9 @@ void main(){ vec4 t = texture(uTex, gl_FragCoord.xy/uRes); float v = dot(t, uPic
       u.v3("uCam", p.pos).v3("uRayA", basis.A).v3("uRayB", basis.B).v3("uRayC", basis.C).f("uTime", shot.time);
       u.v4("uAurora", pole[0], pole[1], pole[2], params.auroraOval * RAD).v3("uAuroraE1", e1).v3("uAuroraE2", cross(pole, e1));
       u.v4("uAuroraLook", aurora, params.auroraWidth / R_PLANET, params.auroraRays, 0);
+      // The bright curtain, a fainter one poleward of it, and a faint one toward the equator.
+      u.v2("uAuroraSheets[0]", 0, 1).v2("uAuroraSheets[1]", 4.5, 0.55).v2("uAuroraSheets[2]", -8, 0.3);
+      u.v4("uSurge", params.surgeBearing * RAD, Math.max(params.surgeWidth, 0.1) * RAD, params.surgeRest, 0);
       draw(gl);
     } else { gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT); }
     {
@@ -438,6 +438,11 @@ void main(){ vec4 t = texture(uTex, gl_FragCoord.xy/uRes); float v = dot(t, uPic
       const mean = (lightAt[0] + lightAt[1] + lightAt[2]) / 3;
       u.v3("uWhite", lightAt.map((v) => Math.pow(mean / v, 1 - params.warmth)));
       u.v3("uGlare", scale(seen, params.glare * 60)).v4("uStars", params.stars * shot.stars, params.starDensity, params.twinkle, shot.time);
+      u.v4("uBloom", params.bloom, params.bloomSpread, 0, 0).v4("uSplit", 1, 1, 1, params.split);
+      // The dawn on the limb grows as the sun nears it from below, and is full once the disc is clear.
+      const up = norm(p.pos), rise = smoothstep(-3, 0.8, shot.sunHeight);
+      const drop = Math.acos(R_PLANET / Math.hypot(p.pos[0], p.pos[1], p.pos[2]));
+      u.v3("uUp", up).v4("uDawn", params.dawn * rise, params.dawnSpread, params.aureole * smoothstep(-0.3, 0.6, shot.sunHeight), drop).v3("uDawnTint", [1, 0.9, 0.8]);
       u.v4("uGrade", params.exposure * shot.exposure, params.contrast, params.saturation, params.grain).v3("uInk", INK).f("uFade", 1);
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.viewport(0, 0, canvas.width, canvas.height);
@@ -471,7 +476,7 @@ void main(){ vec4 t = texture(uTex, gl_FragCoord.xy/uRes); float v = dot(t, uPic
       tier = TIERS[name];
       deletePass(gl, passes.scene);
       passes.scene = createPass(gl, "scene", sceneShader(tier.cloudSteps, tier.airSteps, options.debug, options.world?.surface));
-      fit = 1;
+      fit = 1; gov = governor();
       map = null;
     },
     stats: () => ({ ready: Object.values(passes).every((p) => p.linked), lost, width: canvas.width, height: canvas.height, map: map ? [map.w, map.h] : [0, 0], scale: fit, cpuMs, gpuMs, bakeMs, tier: tier.name }),

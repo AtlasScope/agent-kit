@@ -31,7 +31,8 @@ const GROUPS: [string, Row[]][] = [
   ["Motion", [["drift", -4, 4, 0.05], ["stormSpin", -30, 30, 0.5]]],
   ["Cloud light", [["cloudSigma", 0.5, 20, 0.1], ["cloudRelief", 0, 3, 0.02], ["cloudHollows", 0, 1, 0.01], ["cloudRim", 0, 2, 0.01], ["shadowSigma", 0, 6, 0.05]]],
   ["Stars", [["stars", 0, 4, 0.02], ["starDensity", 0, 1, 0.01], ["twinkle", 0, 0.5, 0.01]]],
-  ["Print", [["exposure", 0.1, 8, 0.02], ["contrast", 0, 1, 0.01], ["saturation", 0, 2, 0.01], ["grain", 0, 2, 0.01], ["glare", 0, 4, 0.02], ["warmth", 0, 1, 0.01]]],
+  ["Print", [["exposure", 0.1, 8, 0.02], ["contrast", 0, 1, 0.01], ["saturation", 0, 2, 0.01], ["grain", 0, 2, 0.01], ["glare", 0, 4, 0.02], ["warmth", 0, 1, 0.01], ["bloom", 0, 0.3, 0.005], ["bloomSpread", 0, 0.5, 0.01], ["dawn", 0, 2, 0.01], ["dawnSpread", 0, 2, 0.01], ["aureole", 0, 4, 0.02], ["split", 0, 1.5, 0.01]]],
+  ["Aurora surge", [["surgeBearing", -60, 60, 0.5], ["surgeWidth", 1, 90, 0.5], ["surgeRest", 0, 1, 0.01]]],
 ];
 const SIZES: [string, number, number][] = [["Fill", 0, 0], ["Desktop 1440 x 835", 1440, 835], ["Laptop 1280 x 655", 1280, 655], ["Full HD 1920 x 1015", 1920, 1015], ["Phone 390 x 779", 390, 779], ["Small phone 375 x 602", 375, 602], ["Tablet 820 x 1115", 820, 1115]];
 

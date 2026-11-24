@@ -114,6 +114,9 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
     const showing = (on: boolean) => {
       if (on === shown) return;
       shown = on;
+      // A scene that is ready only after the opening has begun over the still (a slow machine, or a browser that
+      // compiles shaders slowly) fades in over it instead of replacing it mid-movement.
+      if (on && intro && mark >= 0 && performance.now() - mark > 100) el.setAttribute("data-late", "");
       el.classList.toggle("is-live", on);
       setLive(on);
       if (on) go();
@@ -122,11 +125,15 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
     const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
     const onMove = (e: PointerEvent) => { mouse.tx = e.clientX / innerWidth - .5; mouse.ty = e.clientY / innerHeight - .5; };
 
-    let raf = 0, onScreen = true, drawn = 0;
+    // `paced`: the last frame was drawn at the active pace and the loop has run without a break since. Only then is
+    // the gap before the next one a fair measure of how fast this machine draws, however long that gap is: the
+    // renderer's governor needs the slow frames of a slow machine most of all. A gap that follows the idle pace, a
+    // pause off screen or in a background tab, or the end of the hand-off says nothing about speed and is not counted.
+    let raf = 0, onScreen = true, drawn = 0, paced = false;
     const t0 = performance.now();
     function frame(now: number) {
       raf = 0;
-      if (!onScreen || document.hidden) return;
+      if (!onScreen || document.hidden) { paced = false; return; }
       // Before the hold lifts the scene stays dark; after, the opening runs on its own clock.
       const opening = openingAt(now);
       if (intro && opening * 1000 >= INTRO_MS) { intro = false; finish(); }
@@ -138,11 +145,12 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
       // loop keeps turning so the scene is there again if the homepage comes back.
       const out = lv >= 1;
       if (!out && orbit && score && now - drawn >= (moving ? ACTIVE_GAP : IDLE_GAP)) {
-        const steady = moving && now - drawn < 40;
+        const steady = moving && paced;
         drawn = now;
         const shot = score.play({ opening, leave: lv, time: (now - t0) / 1000, px: mouse.x, py: mouse.y }, score.DEFAULTS);
         showing(orbit.render({ ...shot, steady }));
-      }
+        paced = moving;
+      } else if (out) paced = false;
       // Without the live scene the opening plays over the still: it rises and comes up out of the dark.
       if (!out && !shown) {
         const rise = 1 - Math.exp(-opening / 1.1), light = 1 - .8 * Math.exp(-opening / .6);

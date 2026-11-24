@@ -62,6 +62,8 @@
 .launch[data-hold] .launch__earth img { opacity: 0; }
 .launch[data-intro] .launch__gl { transition: none; }
 .launch[data-intro].is-live .launch__earth { visibility: hidden; transition: none; }
+.launch[data-intro][data-late] .launch__gl { transition: opacity .9s var(--ease-launch); }
+.launch[data-intro][data-late].is-live .launch__earth { transition: visibility 0s 1s; }
 /* The words arrive with the planet's rise, not after it: readable about a second after the scene is ready. */
 .launch[data-intro]:not([data-hold]) .launch__shade { animation: launch-fade 1s ease .1s backwards; }
 .launch[data-intro]:not([data-hold]) .launch__w > span { animation: launch-word 1s var(--ease-launch) calc(.3s + var(--i) * 60ms) backwards; }

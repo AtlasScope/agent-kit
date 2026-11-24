@@ -23,21 +23,21 @@ export type Cue = {
 // How long the page treats the opening as running (its own text arrives inside this). The scene goes on settling
 // for a few seconds more.
 export const OPENING_SECONDS = 3.4;
-// The sun starts this far below where it rests, in degrees. With the rest at 7 it starts 3.5 below the limb and
-// its edge clears the horizon about a second in.
-const SUN_RUN = 10.5;
+// The sun starts this far below where it rests, in degrees, and closes on it by e every SUN_TAU seconds. It rests
+// half a degree over the limb, so it starts three and a half below: the limb brightens first, and the disc breaks
+// the horizon about a second and a quarter in, while the headline arrives.
+const SUN_RUN = 4, SUN_TAU = 0.55;
 
 export function play(cue: Cue, params: Params): Shot {
   const t = cue.opening;
   const leave = easeInOut(cue.leave);
-  const dark = left(t - 0.1, 2.5);                        // 1 before first light, 0 once the sun is up and settled
   // A slow float, a few hundredths of a degree, so the view is never perfectly still.
   const float = { pan: 0.05 * Math.sin(cue.time / 13), tilt: 0.035 * Math.sin(cue.time / 9 + 1) };
   return {
     time: cue.time,
     // The weather drifts on, slower and slower: after some minutes it has gone as far as the baked map allows.
     clock: 300 * (1 - Math.exp(-cue.time / 300)),
-    sunHeight: params.sunHeight - SUN_RUN * dark - 4 * leave,
+    sunHeight: params.sunHeight - SUN_RUN * left(t - 0.1, SUN_TAU) - 4 * leave,
     lift: 5.5 * left(t, 1.1) + 5 * leave,
     zoom: 1 + 0.12 * left(t, 1.3),
     pan: -cue.px * 0.5 + float.pan,
