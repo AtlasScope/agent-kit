@@ -4,14 +4,14 @@
 
 This brief feeds the design-system owner and the page-family builders. It builds on the design dossier (v0.9 roadmap, site experience architecture, First Light study, PR #124 review) and does not reopen its decisions: Fable owns Home art and the Home to Install hand-off, the logo stays, green is a signal and not a wash, Orbital Neutral is the starting palette. The dossier's earlier precedent notes on Resend, Vercel and T3 Code were text-only. This pass looked at the live sites and measured them.
 
-Every claim below points to an annotated capture in [`research/img/`](research/img/). Yellow numbers on each image match the notes under it.
+Each comparison below points to an annotated capture in [`research/img/`](research/img/). Recommendations and measurements taken with `getComputedStyle` are marked as such. Yellow numbers on each image match the notes under it.
 
 ## How this was captured, and what it does not prove
 
-- Sites were opened live in the Claude desktop app's built-in browser on the founder's computer, which is Chromium on Windows. Desktop captures are at a 1024 CSS px viewport (saved at 800 px wide). Phone captures use the pane's 390 px emulation with an Android user agent.
+- Sites were opened live in a Chromium browser on Windows. Desktop captures are at a 1024 CSS px viewport (saved at 800 px wide). Phone captures use the pane's 390 px emulation with an Android user agent.
 - None of this is Safari, WebKit, a Mac or an iPhone. Font rendering, backdrop blur and scroll behaviour will differ on Apple hardware. Physical-device validation is still owed by the QA workstream.
 - The cloud container's network blocks these sites, so no Playwright runs, no Lighthouse numbers and no frame timings were collected. Type sizes, weights, tracking and colours come from `getComputedStyle` on the live pages.
-- Signed-in sessions on Resend and Vercel existed in that browser. Dashboard screens were not captured, and the account avatar is blacked out on Vercel captures.
+- Only public marketing and docs pages were captured. The account avatar is blacked out on Vercel captures.
 - Sites studied: Apple, Resend, Vercel (home, templates, docs), T3 Code, Linear, Raycast (store and an extension page), and skills.sh, the closest direct comparator. AtlasScope production was captured with the same setup as the "before" baseline.
 
 ## What AtlasScope already gets right
@@ -29,7 +29,7 @@ Keep these. Several are better than the benchmarks.
 
 | # | Problem | Evidence |
 |---|---|---|
-| 1 | Green means link, success, status light, primary fill and focus ring at once. DESIGN.md says "no accent hue"; runtime fills the hero CTA, the Copy buttons and the search focus ring with green. | `atlasscope-home-6s` 2, 4 · `atlasscope-prompts-cards` 2 · `atlasscope-search` 1 |
+| 1 | Green means link, success, status light, primary fill and focus ring at once. DESIGN.md's LED green section allows several of these (header light, Sign in outline, copied card border); the green CTA fills and focus ring go further than its "no accent hue" overview. This brief recommends narrowing the documented rule, which means updating DESIGN.md first, not treating it as a bug. | `atlasscope-home-6s` 2, 4 · `atlasscope-prompts-cards` 2 · `atlasscope-search` 1 |
 | 2 | The header carries eight elements on a phone; Sign in is the loudest. Divider, "Agent Kit", LED and green-outlined Sign in compete with the logo on desktop. | `atlasscope-mobile-prompts` 1 · `atlasscope-mobile-home-4s` 2 |
 | 3 | Content waits for choreography. Home on a phone shows no words at 4 s; a direct visit to `/install` shows no message at 2.5 s. | `atlasscope-mobile-home-4s` 1 · `atlasscope-install-2500ms` 1 |
 | 4 | `/prompts` cards are small forms: four labelled facts, two equal buttons, two alternative links, nine times. | `atlasscope-prompts` 3 · `atlasscope-prompts-cards` 1 |
@@ -56,14 +56,15 @@ What the numbers say:
 - **Display weight goes down as size goes up.** Resend, Vercel and Linear set their largest type at 400 to 510. AtlasScope's Montserrat 600 is fine for the h1 because it echoes the wordmark, but Geist section headings and card titles at 650 make every page feel loud. Recommend Geist 550 to 600 for headings and titles, 500 for UI labels.
 - **Tracking tightens with size.** Vercel goes to -6% at 64 px. AtlasScope's -3.5% on the h1 is in range; section headings can go to -2%.
 - **Secondary grey converges on about #A1A1A1 to #A3A3A3** on pure or near black. AtlasScope's #A3A6AD already matches; keep it.
-- **Nobody uses a coloured primary fill on dark.** Resend uses an outlined dark pill, Vercel a white pill, Linear a light grey pill, Raycast a light button. T3 Code's blue download button is the exception and it is their only coloured element.
+- **All but one avoid a coloured primary fill on dark.** Resend uses an outlined dark pill, Vercel a white pill, Linear a light grey pill, Raycast a light button. T3 Code's blue download button is the exception and it is their only coloured element.
 - **No benchmark puts a glow, underglow or status light in its header.**
 
 ## Patterns worth adopting, by area
 
 ### Shell and navigation
 
-- **Fewer things in the bar.** Resend, Vercel and Linear show grey 14 px links (weight 500) and one outlined or light CTA. Apple's phone bar is logo, search, bag and menu. See `resend-home-desktop` 3, `apple-mobile-home`.
+- **One primary action in the hero.** T3 Code shows one OS-detected download button with the source link set quietly below; Linear's only hero secondary is one changelog link. See `t3-hero` 1, 2, `linear-hero` 2.
+- **Fewer things in the bar.** Resend, Vercel and Linear show grey 14 px links (weight 500) and one outlined or light CTA. Apple's phone bar is logo, search, bag and menu. See `resend-home-desktop` 3, `apple-mobile-home` 1.
 - **Phone menu as a full sheet with large type.** Apple sets items at about 24 px / 600 with no icons and drills into sections with a back chevron instead of nesting accordions. See `apple-mobile-menu`, `apple-mobile-menu-drill`.
 - **Breadcrumb repeated at the top of the footer**, so the bottom of a long detail page still says where you are. See `apple-footer-breadcrumb` 1.
 - **Search field as palette trigger with a visible keycap.** See `vercel-docs-shell` 1, `raycast-store-search` 1, `skillssh-leaderboard` 2.
@@ -132,7 +133,7 @@ Linear and Vercel write a section's opening sentence in two tones: the claim in 
 
 ## The entrance tax, and the opening it leaves
 
-Four of the benchmarks hide their headline after load: T3 Code still animating at 5 s on a phone, Resend near 10% opacity at 3 s, Linear empty at 3 s on desktop. AtlasScope does the same on Home and on direct `/install`. See `t3-mobile-5s-entrance`, `resend-mobile-3s-entrance`, `linear-3s-entrance`, `atlasscope-mobile-home-4s`.
+Three of the benchmarks hide their headline after load: T3 Code still animating at 5 s on a phone, Resend near 10% opacity at 3 s, Linear empty at 3 s on desktop. AtlasScope does the same on Home and on direct `/install`. See `t3-mobile-5s-entrance`, `resend-mobile-3s-entrance`, `linear-3s-entrance`, `atlasscope-mobile-home-4s`.
 
 The opening: be the developer-tool site whose words and primary action are on screen in the first frame on every route, with motion layered on afterwards. On Home that is Fable's call, so it goes to them as a finding, not a change. On every interior page it should be a rule in the design contract: no content waits on an animation.
 
@@ -149,7 +150,7 @@ These are not things the benchmarks do. Each uses data the site already has.
 
 ## Notes for the design-system contract
 
-- **Colour roles.** Neutral primary (white pill on dark, ink on light). Green (#4BF0A8 or the current LED green, whichever passes contrast in both themes) only for a completed state: copied, tested, done step. Links neutral with an underline; hover raises contrast. Section hues stay as dots. Warm accent for starred and saved stays as DESIGN.md describes it. Focus is the existing 2 px ring in the foreground colour, with no glow.
+- **Colour roles.** Neutral primary (white pill on dark, ink on light). The LED green (#39FF88, not the mint section hue #4BF0A8, so a success state never looks like a section dot) only for a completed state: copied, tested, done step. That moves copied and done from the warm accent to green, so DESIGN.md's One Warm Accent Rule shrinks to starred, saved and selected. Links neutral with an underline; hover raises contrast. Section hues stay as dots. Focus is the existing 2 px ring in the foreground colour, with no glow.
 - **Type.** Montserrat 600 for h1 only. Geist 550 to 600 for section headings and titles, 500 for nav and buttons, 400 body at 16/1.55. Nothing read as content below 14 px; meta at 13 px. Two-tone leads for section intros.
 - **Surfaces.** Near-black ground, one raised tone, hairlines. No gradients, glows or grids on interior pages.
 - **Controls.** 40 px desktop buttons, 44 px touch, radius consistent across buttons, inputs and cards. Copy as a corner icon button in a card header.
@@ -274,6 +275,10 @@ Each capture with its numbered notes, AtlasScope first, then the benchmarks. Thi
 ### apple-footer-breadcrumb
 
 ![apple-footer-breadcrumb](research/img/apple-footer-breadcrumb.jpg)
+
+### apple-mobile-home
+
+![apple-mobile-home](research/img/apple-mobile-home.jpg)
 
 ### apple-mobile-menu
 
