@@ -434,7 +434,9 @@ function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = fal
 async function copy(text, btn, label) {
   try { await navigator.clipboard.writeText(text); }
   catch (e) {
-    const ta = h("textarea", { style: "position:fixed;left:-9999px;top:0" }); ta.value = text; document.body.append(ta); ta.select();
+    const ta = h("textarea", { style: "position:fixed;left:-9999px;top:0" }); ta.value = text;
+    // An open modal sheet makes the rest of the page inert, so the textarea must sit inside it to be selectable.
+    (document.querySelector("dialog[open]") || document.body).append(ta); ta.focus(); ta.select();
     let ok = false; try { ok = document.execCommand("copy"); } catch (_) {} ta.remove();
     if (!ok) { toast("Copy blocked here. Select the text and copy it."); return false; }
   }
