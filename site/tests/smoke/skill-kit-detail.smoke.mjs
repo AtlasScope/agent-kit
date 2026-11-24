@@ -120,3 +120,43 @@ for (const size of SIZES) for (const scheme of ["light", "dark"]) {
     }
   });
 }
+
+// A Copy stays in reach wherever the reader is on the page: the panel's own (sticky in its bar) or, once the panel
+// has scrolled away, the compact bar. Never both at once, and the bar copies the chosen way exactly.
+const copyInReach = (page) => page.evaluate(() => {
+  const head = parseFloat(getComputedStyle(document.querySelector(".ip-head")).top) || 0;
+  const shown = [...document.querySelectorAll("#install .ip-copy, #install .ip-float__copy")].filter((b) => {
+    const r = b.getBoundingClientRect();
+    if (r.top < head - 1 || r.bottom > innerHeight + 1 || !r.width) return false;
+    return b.contains(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2));
+  });
+  return shown.map((b) => b.className);
+});
+
+for (const size of SIZES) {
+  test(`${size.name}: a Copy is on screen at every scroll depth`, async () => {
+    for (const path of ["/skills/design", "/kits/design-kit"]) {
+      const { page, ctx, errors } = await open(size, "light", path);
+      for (const at of [0, 0.35, 0.7, 1]) {
+        await page.evaluate((f) => window.scrollTo(0, f * (document.documentElement.scrollHeight - innerHeight)), at);
+        await page.waitForTimeout(450);
+        const shown = await copyInReach(page);
+        if (at === 0 && !shown.length) continue; // above the panel on a phone: the reader hasn't reached install yet
+        assert.equal(shown.length, 1, `${path} at ${at * 100}%: Copy in reach (${shown.join(", ") || "none"})`);
+      }
+      // At the bottom the bar is the Copy in reach: it copies the chosen way, and C works with focus on it.
+      const bar = page.locator("#install .ip-float__copy");
+      if (await bar.isVisible()) {
+        const first = await page.locator("#install .ip-text").textContent();
+        await bar.click();
+        assert.equal(await clipboard(page), first);
+        await page.evaluate(() => navigator.clipboard.writeText("untouched"));
+        await bar.focus();
+        await page.keyboard.press("c");
+        assert.equal(await clipboard(page), first);
+      }
+      assert.deepEqual(errors, []);
+      await ctx.close();
+    }
+  });
+}

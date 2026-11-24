@@ -39,6 +39,8 @@ export default async function KitPage({ params }: { params: Promise<{ kit: strin
   const { lead, more: rest, agent } = describe(k.description);
   const more = [rest, agent].filter(Boolean).join(" ");
   const n = k.skills.length;
+  // How a skill starts differs by agent, so each terminal tab names its own trigger, with a real skill as the example.
+  const ex = k.skills.find((x) => getSkill(x)?.typedOnly) ?? k.skills[0];
   const borrowed = k.skills.filter((s) => getSkill(s)?.credit).length;
   const readme = `${SITE.repo}/blob/main/${k.readmePath}`;
   return (
@@ -63,8 +65,8 @@ export default async function KitPage({ params }: { params: Promise<{ kit: strin
         <InstallPanel id="install" title="Install this kit" options={[
           { id: "agent", label: "Your agent", text: say, copyName: `Copy the message that installs ${k.name}`,
             note: <>Paste it into your agent. Works in Claude Code and Codex: your agent runs the two commands for this kit and tells you what it installed. Cursor and other agents can only take every kit at once, so yours will ask you first. <a className="lic" href="/install">Install every kit</a>.</> },
-          { id: "claude", label: "Claude Code", text: claude, copyName: "Copy the Claude Code commands", note: "Or run it yourself, in a terminal." },
-          { id: "codex", label: "Codex", text: codex, copyName: "Copy the Codex commands", note: "Or run it yourself, in a terminal." },
+          { id: "claude", label: "Claude Code", text: claude, copyName: "Copy the Claude Code commands", note: <>Or run it yourself, in a terminal. Then type / and a skill’s name to run it, such as <code translate="no">/{ex}</code>.</> },
+          { id: "codex", label: "Codex", text: codex, copyName: "Copy the Codex commands", note: <>Or run it yourself, in a terminal. Then type $ and a skill’s name to run it, such as <code translate="no">${ex}</code>.</> },
         ]} />
         <p className="note">In Claude Code, <code>claude plugin update {k.name}@agent-kit</code> updates the kit and <code>claude plugin uninstall {k.name}@agent-kit</code> removes it. Installing a kit doesn’t install the companion plugins its recipes call; those are listed in the kit’s README.</p>
       </div>
