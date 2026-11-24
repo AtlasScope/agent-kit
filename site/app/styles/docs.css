@@ -1,24 +1,80 @@
-/* Reading pages: About, Privacy, Terms.
-   Ownership: see DESIGN-CONTRACT.md. Split from globals.css with no change in cascade order. */
+/* Reading pages: About, Privacy, Terms, the MCP server.
+   Ownership: see DESIGN-CONTRACT.md (utility lane). Existing tokens only until contract v1 lands. */
 
-/* Reading pages (About, Privacy, Terms): sections at a reading width, a short contents list beside them. */
-.doc-notice { max-width: var(--measure); padding: var(--space-sm) var(--space-md); border: 1px solid var(--color-rule-2); border-radius: var(--radius); background: var(--color-paper-2); color: var(--color-ink-2); font-size: var(--text-sm); line-height: 1.5; }
+/* An editorial column: body copy a step larger with a longer line height, section numbers hanging in the
+   margin on wide screens, and the contents list beside it. */
+.docpage { --doc-measure: 64ch; }
+.doc__pre { display: grid; gap: var(--space-lg); max-width: var(--doc-measure); }
+.doc-notice { position: relative; padding: var(--space-sm) var(--space-md) var(--space-sm) calc(var(--space-md) + 3px); border: 1px solid var(--color-rule); border-radius: var(--radius); background: var(--color-paper-2); color: var(--color-ink-2); font-size: var(--text-sm); line-height: 1.55; }
+.doc-notice::before { content: ""; position: absolute; left: -1px; top: -1px; bottom: -1px; width: 3px; border-radius: var(--radius) 0 0 var(--radius); background: var(--color-ink-2); }
 .doc-notice strong { color: var(--color-ink); font-weight: 600; }
-.doc { display: grid; grid-template-columns: minmax(0, var(--measure)) 220px; justify-content: space-between; gap: var(--space-2xl); align-items: start; }
-.doc__body { display: grid; gap: var(--space-xl); min-width: 0; }
-.doc__sec { display: grid; gap: var(--space-sm); }
-.doc__sec h2 { margin: 0; font: 600 clamp(1.25rem, 0.6vw + 1rem, 1.5rem)/1.2 var(--font-body); letter-spacing: -0.025em; }
-.doc__sec p { color: var(--color-ink-2); line-height: 1.6; text-wrap: pretty; }
-.doc__sec a { color: var(--color-ink); text-decoration-color: var(--color-rule-2); text-underline-offset: 0.2em; }
-.doc__terms { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: var(--space-sm) var(--space-lg); margin: 0; }
-.doc__terms dt { font-weight: 600; }
-.doc__terms dd { margin: 0; color: var(--color-ink-2); line-height: 1.55; }
+.doc { display: grid; grid-template-columns: minmax(0, var(--doc-measure)) 15rem; justify-content: space-between; gap: var(--space-2xl); align-items: start; }
+.doc__body { display: grid; min-width: 0; border-top: 1px solid var(--color-rule); }
+.doc__sec { display: grid; gap: var(--space-md); padding-block: var(--space-xl); border-bottom: 1px solid var(--color-rule); scroll-margin-top: calc(var(--header-h) + var(--space-sm)); }
+.doc__sec:last-child { border-bottom: 0; }
+.doc__sec h2 { position: relative; display: flex; align-items: baseline; gap: var(--space-sm); margin: 0; font: 650 clamp(1.375rem, 0.6vw + 1.1rem, 1.625rem)/1.2 var(--font-body); letter-spacing: -0.025em; }
+.doc__num { color: var(--color-muted); font: 400 0.8125rem/1 var(--font-mono); letter-spacing: 0; font-variant-numeric: tabular-nums; }
+.doc__text { display: grid; gap: var(--space-md); }
+.doc__text p, .doc__text li { color: var(--color-ink-2); font-size: 1.0625rem; line-height: 1.7; text-wrap: pretty; }
+.doc__text a { color: var(--color-ink); text-decoration-color: var(--color-rule-2); text-underline-offset: 0.2em; }
+@media (hover: hover) and (pointer: fine) { .doc__text a:hover { text-decoration-color: var(--color-ink); } }
+.doc__terms { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 0 var(--space-lg); margin: 0; border-top: 1px solid var(--color-rule); }
+.doc__terms dt, .doc__terms dd { padding-block: var(--space-sm); border-bottom: 1px solid var(--color-rule); }
+.doc__terms dt { font-weight: 600; line-height: 1.6; }
+.doc__terms dd { margin: 0; color: var(--color-ink-2); line-height: 1.6; }
+/* Wide screens: the number hangs left of the heading, so headings and body share one left edge. */
+@media (min-width: 78rem) {
+  .doc__num { position: absolute; right: calc(100% + var(--space-md)); top: 0.55em; }
+}
+
+/* On this page, beside the column. The section being read is marked. */
 .doc__toc { position: sticky; top: calc(var(--header-h) + var(--space-lg)); display: grid; gap: var(--space-xs); padding-left: var(--space-md); border-left: 1px solid var(--color-rule); font-size: var(--text-sm); }
 .doc__toc p { color: var(--color-ink); font-weight: 600; }
 .doc__toc ol { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
-.doc__toc a { display: inline-flex; align-items: center; min-height: 30px; color: var(--color-muted); text-decoration: none; }
+.doc__toc a { position: relative; display: flex; align-items: center; min-height: 30px; color: var(--color-muted); text-decoration: none; transition: color var(--dur-micro) var(--ease-out); }
+.doc__toc a[aria-current] { color: var(--color-ink); }
+.doc__toc a[aria-current]::before { content: ""; position: absolute; left: calc(-1 * var(--space-md) - 1px); top: 6px; bottom: 6px; width: 2px; border-radius: 2px; background: var(--color-ink); }
 @media (hover: hover) and (pointer: fine) { .doc__toc a:hover { color: var(--color-ink); } }
-@media (max-width: 60rem) { .doc { grid-template-columns: minmax(0, 1fr); } }
-@media (max-width: 60rem) { .doc__toc { display: none; } }
-@media (max-width: 60rem) { .doc__terms { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
-@media (max-width: 60rem) { .doc__terms dd { margin-bottom: var(--space-sm); } }
+
+/* Narrow screens: the contents list becomes a disclosure under the title. */
+.doc__minitoc { display: none; }
+@media (max-width: 60rem) {
+  .doc { grid-template-columns: minmax(0, 1fr); }
+  .doc__toc { display: none; }
+  .doc__minitoc { display: block; border-block: 1px solid var(--color-rule); }
+  .doc__minitoc summary { display: flex; align-items: center; justify-content: space-between; min-height: 48px; list-style: none; cursor: pointer; font-weight: 600; font-size: var(--text-sm); }
+  .doc__minitoc summary::-webkit-details-marker { display: none; }
+  .doc__minitoc summary::after { content: ""; width: 7px; height: 7px; margin-right: 4px; border-right: 1.5px solid var(--color-muted); border-bottom: 1.5px solid var(--color-muted); transform: rotate(45deg) translateY(-2px); transition: transform var(--dur-short) var(--ease-out); }
+  .doc__minitoc[open] summary::after { transform: rotate(-135deg) translateY(-2px); }
+  .doc__minin { margin-left: var(--space-xs); margin-right: auto; color: var(--color-muted); font: 400 0.8125rem/1 var(--font-mono); }
+  .doc__minitoc ol { display: grid; margin: 0 0 var(--space-sm); padding: 0; list-style: none; }
+  .doc__minitoc a { display: flex; align-items: center; min-height: 44px; color: var(--color-ink-2); text-decoration: none; }
+  .doc__body { border-top: 0; }
+  .doc__sec:first-child { padding-top: 0; }
+  .doc__terms { grid-template-columns: minmax(0, 1fr); }
+  .doc__terms dt { padding-bottom: 0; border-bottom: 0; }
+  .doc__terms dd { padding-top: 2px; }
+}
+@media (max-width: 40rem) {
+  .doc__sec { padding-block: var(--space-lg); }
+  .doc__text p, .doc__text li { font-size: 1rem; line-height: 1.65; }
+}
+
+/* The MCP server page: the URL leads, each client gets its own numbered section. */
+.mcp-url { display: grid; gap: var(--space-xs); }
+.mcp-url__label { color: var(--color-muted); font-size: 0.8125rem; }
+.mcp-url .cmdline { font-size: var(--text-sm); }
+.mcp-url .cmdline code { overflow-wrap: normal; white-space: nowrap; overflow-x: auto; scrollbar-width: none; }
+.doc__text .block pre { font-size: 0.8125rem; }
+.doc__text .facts { margin: 0; }
+
+/* 404: the code in small mono above the title, then the library's front doors as rows. */
+.notfound__code { color: var(--color-muted); font: 400 var(--text-sm)/1 var(--font-mono); letter-spacing: 0.08em; }
+.notfound__ways { display: grid; gap: var(--space-md); max-width: 40rem; }
+.notfound__ways ul { display: grid; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--color-rule); }
+.notfound__ways li { border-bottom: 1px solid var(--color-rule); }
+.notfound__ways a { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); min-height: 52px; font-weight: 550; text-decoration: none; }
+.notfound__ways code { color: var(--color-muted); font-size: 0.8125rem; font-weight: 400; }
+.notfound__hint kbd { display: inline-block; min-width: 1.5em; padding: 0 6px; border: 1px solid var(--color-rule-2); border-radius: 5px; color: var(--color-ink-2); font: 400 0.75rem/1.5 var(--font-mono); text-align: center; }
+@media (hover: hover) and (pointer: fine) { .notfound__ways a:hover span { text-decoration: underline; text-decoration-color: var(--color-rule-2); text-underline-offset: 0.2em; } }
+@media (pointer: coarse) { .notfound__hint { display: none; } }
