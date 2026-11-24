@@ -93,6 +93,7 @@ ${page.verdict ? `<p class="verdict">${esc(page.verdict)}</p>` : ""}
 </dl>
 ${shots ? `<h2>What it looks like</h2><div class="shots">${shots}</div>` : ""}
 ${problems ? `<h2>What was found, most important first</h2><ol class="problems">${problems}</ol>` : ""}
+${(page.also || []).length ? `<h2>Also found</h2><ul>${page.also.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>` : ""}
 ${(page.working || []).length ? `<h2>What is working</h2>${page.working.map((w) => `<p>${esc(w)}</p>`).join("")}` : ""}
 ${hasNext ? `<h2>What you can run next</h2>
 <p class="sub">Add as many as you want, in the order you want them. Nothing starts until you press Start at the bottom.</p>
@@ -144,6 +145,7 @@ button[disabled]{opacity:.5;cursor:default}
 #bar li button{min-height:32px;padding:0 8px;margin-left:8px;font-weight:500}
 #status{margin:0 auto 8px;max-width:960px;font-weight:600}#status:empty{display:none}
 body.static #bar .go{display:none}
+.copynote{border:1px solid currentColor;border-radius:8px;padding:12px 14px;margin:0 0 20px;font-weight:600}
 details{border-top:1px solid var(--line);margin-top:40px;padding-top:14px}summary{cursor:pointer;font-weight:600}
 pre{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;color:var(--soft)}`;
 
@@ -216,6 +218,7 @@ export function render(pages, { baseDir = process.cwd(), live = null } = {}) {
 <style>${STYLE}</style>
 <body${live ? "" : ' class="static"'}>
 <main>
+${live ? "" : '<p class="copynote" role="note">This is a read-only copy to keep or send. Nothing here can start work. To pick steps and start them, ask your agent to open the live page.</p>'}
 <nav class="tabs" id="tabs" role="tablist" aria-label="Pages" hidden></nav>
 <div id="book">${html.map((h) => `<section class="page">${h}</section>`).join("\n")}</div>
 </main>
@@ -301,7 +304,7 @@ async function main(argv) {
   if (!target || target.startsWith("--")) { console.error("Usage: node worksheet.mjs <folder with page-1.json> [--static out.html] [--port n] [--minutes n]"); process.exit(2); }
   const dir = path.resolve(target);
   const out = opt("static");
-  if (out) { fs.mkdirSync(path.dirname(path.resolve(out)), { recursive: true }); fs.writeFileSync(out, render(readBook(dir), { baseDir: dir })); console.log(`WROTE: ${path.resolve(out)}`); return; }
+  if (out) { fs.mkdirSync(path.dirname(path.resolve(out)), { recursive: true }); fs.writeFileSync(out, render(readBook(dir), { baseDir: dir })); console.log(`WROTE: ${path.resolve(out)}`); console.log("NOTE: this is a read-only copy with no Start. Do not hand it over as the result. Run the same command without --static and open the URL it prints."); return; }
   const chosen = await serve(dir, { port: opt("port") ? Number(opt("port")) : undefined, minutes: Number(opt("minutes")) || 30, onReady: (url) => console.log(`URL: ${url}`) });
   if (chosen === null) { console.log("NO_CHOICE"); process.exit(3); }
   for (const command of chosen) console.log(`CHOSEN: ${command}`);

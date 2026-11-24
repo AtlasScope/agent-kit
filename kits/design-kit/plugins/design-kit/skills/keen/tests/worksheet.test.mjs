@@ -74,11 +74,18 @@ test("a screenshot address cannot add attributes to the image", () => {
 test("the static book has every page, a job picker, and no start", () => {
   const html = render([page1, page2]);
   assert.match(html, /<body class="static">/);
+  assert.match(html, /read-only copy to keep or send/);
   assert.match(html, /const TOKEN = "";/);
   assert.equal(html.split("<script>")[0].split('<section class="page">').length - 1, 2);
   assert.match(html, /<select data-step="0">/);
   assert.match(html, /Add all, in this order/);
   assert.match(html, /Details for someone technical/);
+});
+
+test("smaller findings are listed and escaped", () => {
+  const html = render([{ title: "x", also: ["Two buttons share a <name>."] }]);
+  assert.match(html, /<h2>Also found<\/h2><ul><li>Two buttons share a &lt;name&gt;\.<\/li><\/ul>/);
+  assert.ok(!render([{ title: "x" }]).includes("Also found"));
 });
 
 test("a page with no next steps says there is nothing to do", () => {
@@ -93,6 +100,14 @@ test("readBook returns pages in number order and ignores other files", () => {
   fs.writeFileSync(path.join(dir, "page-2.json"), JSON.stringify(page2));
   fs.writeFileSync(path.join(dir, "session.json"), "{}");
   assert.deepEqual(readBook(dir).map((p) => p.title), [page1.title, page2.title, "ten"]);
+});
+
+test("the live page has no read-only note", async () => {
+  const { url, chosen } = start(book(page1), { minutes: 0.002 });
+  const html = await (await fetch(await url)).text();
+  assert.ok(!html.includes("read-only copy"));
+  assert.match(html, /id="start"|class="go"/);
+  await chosen;
 });
 
 test("the server needs the key and reports the picks in the person's order", async () => {
