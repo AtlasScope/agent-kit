@@ -97,7 +97,7 @@ Choose the alternatives from what you saw on the screen, not from a fixed list: 
 ## Rules for every job
 
 1. **Look at the real screen.** Open it in a browser or simulator and take screenshots. If the live product will not open or sits behind a sign-in, look for a way to run it on this computer with sample data (the README and the project's agent instructions usually say how) before giving up. If you cannot run it at all, say so in the first line, work from the code, and say at the end that nothing was seen.
-2. **Read the project's own rules.** AGENTS.md or CLAUDE.md, PRODUCT.md and DESIGN.md come before your taste, and so do the notes written in the code of the screen you are working on. Read those notes before you judge or change it. The person outranks their own notes: when they ask for a change, or start a step from the worksheet, that is the decision, even if an older note says otherwise. Say in one line which note you are changing, make the change, and update the note so the code and its notes still agree. Stop only when the request rests on something that turned out not to be true (the thing you said was broken is not broken): say so, and offer what is actually worth doing instead. Where the project has a colour, size or spacing value, use it. Keen never authorizes a commit, merge or deploy.
+2. **Read the project's own rules.** AGENTS.md or CLAUDE.md, PRODUCT.md and DESIGN.md come before your taste (in a long file, read the general rules and search for the screen's name; you do not need every section), and so do the notes written in the code of the screen you are working on. Read those notes before you judge or change it. The person outranks their own notes: when they ask for a change, or start a step from the worksheet, that is the decision, even if an older note says otherwise. Say in one line which note you are changing, make the change, and update the note so the code and its notes still agree. Stop only when the request rests on something that turned out not to be true (the thing you said was broken is not broken): say so, and offer what is actually worth doing instead. Where the project has a colour, size or spacing value, use it. Keen never authorizes a commit, merge or deploy.
 3. **Ask once, then go.** If something must be decided by the person, ask every such question together before you start, then finish without stopping. A job that only reports asks at most one question. A job that edits says what it will do in five lines or fewer and starts, unless the session-start note says ask before edits is on, in which case it waits for a yes.
 4. **Stay inside the target.** Change the screen or component they named. List anything you noticed elsewhere at the end. Do not fix it.
 5. **Never remove something a person can do.** Hiding, moving or merging a control is design work. Deleting a capability needs a yes first.
@@ -110,6 +110,9 @@ Every job ends with this, in this order.
 ```text
 What happened: <one or two sentences>
 What it means: <what is different for the people using the product>
+
+<What the job found or changed, in the form its own file asks for: a critique's problems, an audit's table, an edit's before and after. Leave this out when the two lines above say it all.>
+
 What you need to do: <"Nothing", or "Pick a next step" followed by the next steps below>
 Proof: <what to look at: the page, the screenshots, the numbers>
 
@@ -121,26 +124,28 @@ Not checked: <what you could not see or test>
 
 Leave out nothing from "Not checked". A report that claims more than was tested is worse than a short one.
 
+A short report is a good report. When a screen does its job, say so and list only what you found. Do not stretch one small finding to the length of a page in trouble.
+
 ### Writing the report
 
-The reader runs the product and may never have opened its code. Write for them, then check the draft against these before sending it. If the kit's `fix-writing` skill is installed, apply its rules to the report as well.
+The reader runs the product and may never have opened its code. Write for them, then check the draft against these before sending it. If a skill named `fix-writing` appears in this tool's list of skills, apply its rules to the report as well.
 
-- **No commands, file names, code or settings names above the Details line.** Say what you did in ordinary words: "I ran the product on this computer with its built-in sample data", not the command that did it. The command goes under Details.
+- **No commands, file names, code or settings names above the Details line**, with one exception: the commands offered as next steps. Say what you did in ordinary words: "I ran the product on this computer with its built-in sample data", not the command that did it. The command goes under Details.
 - **Use the words on the screen.** Call things what the product calls them ("the Needs you list"), not what the code calls them.
-- **A number comes with what it means.** "61 of 95 buttons are smaller than a fingertip can hit reliably" before "under 44 points".
+- **A number comes with what it means, and with what it is a number of.** "61 of 95 buttons are smaller than a fingertip can hit reliably" before "under 44 points". Say which things they are when that changes how much it matters: twelve footer links a few points short is not the same finding as the main button being too small.
 - **When a technical term has to appear, teach it once, in one sentence, the first time.** "Contrast is how much the text stands out from what is behind it; 4.5 to 1 is the level the accessibility standard asks for." After that, use it freely. Never stack two unexplained terms in one sentence.
 - **Details are for the person who wants them.** Keep them complete and exact, and put them where they can be skipped: collapsed if the page can collapse, last if it cannot.
 - **Short.** If a sentence would survive being cut, cut it.
 
 ### Next steps
 
-When there is something to do next, do not hand over one command as a line of text. Offer up to three next steps, ranked for this screen from what you found, most valuable first.
+When there is something to do next, do not hand over one command as a line of text. Offer up to three next steps, chosen for this screen from what you found, and list them in the order they should run.
 
-For each: the command, one plain line on what it will do, and one on why it ranks where it does. The first is marked as the suggestion.
+For each: the command, one plain line on what it will do, and one on why it ranks where it does. Mark the most valuable one as the suggestion. If it is not first in the list, say in one line what has to come before it and why.
 
 When two or more belong together, say in one line why they run in the order listed. The order that wastes the least work is: remove (`distill`), arrange (`layout`), reword (`words`), then style (`type`, `colour`, `bolder` or `quieter`), then make it hold up (`harden`, `adapt` or `native`, `optimize`), and `polish` last, because every earlier job changes what there is to polish. `extract` runs after the look is settled. Running several still means one job at a time, with a report after each.
 
-Look past Keen too. When what you found is not a design problem (a slow screen, a number that looks wrong, pages that duplicate each other), offer the Agent Kit command that handles it as a next step, in the same list, if that command is installed.
+Look past Keen too. When what you found is not a design problem (a slow screen, a number that looks wrong, pages that duplicate each other), offer the Agent Kit command that handles it as a next step, in the same list, if it appears in this tool's list of commands: `/motion` for movement, `/engineer` for speed and code problems, `/database` for wrong or slow data.
 
 The person never has to type any of this. The worksheet below turns each next step into something they pick and start.
 
@@ -154,7 +159,7 @@ A job that changes nothing visible and has no next step reports in text only.
 
 ### The book
 
-Keep one folder per piece of work at `.artifacts/keen/<target>/` in the primary checkout, creating `.artifacts/` with a `.gitignore` holding `*` if the project has none. Each finished job writes the next `page-<n>.json` there, with its screenshots beside it.
+Keep one folder per piece of work at `.artifacts/keen/<target>/` in the primary checkout (in a git worktree, that is the folder above the one `git rev-parse --path-format=absolute --git-common-dir` prints), creating `.artifacts/` with a `.gitignore` holding `*` if the project has none. Each finished job writes the next `page-<n>.json` there, with its screenshots beside it.
 
 ```json
 {
@@ -234,7 +239,17 @@ These tools change quickly. If the tool you are in has a better built-in way to 
 
 `node <skill-dir>/scripts/measure.mjs` prints a script. Run what it prints inside the open page, using the tool's way of running JavaScript in a page. It returns how much each piece of text stands out from its background, which controls are too small to press, which have no name for a screen reader, the heading outline, any sideways scrolling, and how many different text sizes, colours and corner shapes are in use. It reads the page and changes nothing.
 
-Any job that states a number uses this script to get it. A number that was not measured is not reported. Text over a picture or gradient cannot be measured this way: the script counts those, and you look at each one.
+Three things change its answers, so do them every time:
+
+- **Measure before taking a full-page screenshot.** Some browser tools reset the page when they take one.
+- **At phone sizes, make the browser act as a touch device**, not only a narrow window. Many sites enlarge their buttons for touch, and the result says which mode it measured in (`touch`).
+- **Scroll the part you care about into view.** Text is checked against what is really stacked under it on screen, which is how a photo placed behind the words is noticed. Text further down the page is checked against its own background colours only.
+
+If the project's development tools draw a badge or toolbar over the page, hide it or leave it out of the findings.
+
+Capture both the first screen and the whole page. Pin a problem on whichever shows it.
+
+Any job that states a number uses this script to get it. A number that was not measured is not reported. Text over a photo, a video or a drawing cannot be measured this way. The script lists each such piece of text under `overPictureNotMeasured`, and you look at every one at its worst point. A plain gradient is measured against each of its colours.
 
 Before and after are captured at the same sizes: 390 wide for a phone and 1440 wide for a desktop, unless the job says otherwise.
 
