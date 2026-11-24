@@ -112,6 +112,15 @@ for (const size of SIZES) for (const scheme of ["light", "dark"]) {
       await page.getByRole("tab", { name: "Codex" }).click();
       await page.getByRole("button", { name: "Copy the Codex commands" }).click();
       assert.equal(await clipboard(page), `codex plugin marketplace add ${SITE.repoSlug}\ncodex plugin add ${k.name}@agent-kit`);
+      // How a skill starts stays on one line, and a row's meta takes at most one line on desktop, two on a phone.
+      const lines = await page.locator(".kd-row__m").evaluateAll((ms) => ms.map((m) => {
+        const lh = parseFloat(getComputedStyle(m).lineHeight), start = m.firstElementChild;
+        return [m.closest(".kd-row").querySelector(".kd-row__name").textContent, Math.round(start.getBoundingClientRect().height / lh), Math.round(m.getBoundingClientRect().height / lh)];
+      }));
+      for (const [name, start, all] of lines) {
+        assert.equal(start, 1, `${k.name}/${name}: how it starts wraps`);
+        assert.ok(all <= (size.isMobile ? 2 : 1), `${k.name}/${name}: meta takes ${all} lines`);
+      }
       // Every skill in the kit is listed once, linked to its page.
       const links = await page.locator(".kd-row__name a").evaluateAll((as) => as.map((a) => a.getAttribute("href")));
       assert.deepEqual([...links].sort(), k.skills.map((n) => `/skills/${n}`).sort());
@@ -124,8 +133,8 @@ for (const size of SIZES) for (const scheme of ["light", "dark"]) {
 // A Copy stays in reach wherever the reader is on the page: the panel's own (sticky in its bar) or, once the panel
 // has scrolled away, the compact bar. Never both at once, and the bar copies the chosen way exactly.
 const copyInReach = (page) => page.evaluate(() => {
-  const head = parseFloat(getComputedStyle(document.querySelector(".ip-head")).top) || 0;
-  const shown = [...document.querySelectorAll("#install .ip-copy, #install .ip-float__copy")].filter((b) => {
+  const head = document.querySelector(".top").getBoundingClientRect().bottom; // the line FloatingCopy measures against
+  const shown = [...document.querySelectorAll("#install .ip-copy, #install .fcopy__copy")].filter((b) => {
     const r = b.getBoundingClientRect();
     if (r.top < head - 1 || r.bottom > innerHeight + 1 || !r.width) return false;
     return b.contains(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2));
@@ -147,7 +156,7 @@ for (const size of SIZES) {
       // Pixel by pixel through the hand-off, where the panel's Copy slides under the header: never zero, never two.
       await page.emulateMedia({ reducedMotion: "reduce" });
       const handoff = await page.evaluate(() => {
-        const w = document.querySelector("#install .ip-copywrap"), head = parseFloat(getComputedStyle(document.querySelector(".ip-head")).top);
+        const w = document.querySelector("#install .ip-copywrap"), head = document.querySelector(".top").getBoundingClientRect().bottom;
         return scrollY + w.getBoundingClientRect().top - head;
       });
       for (let dy = -40; dy <= 120; dy += 4) {
@@ -159,7 +168,7 @@ for (const size of SIZES) {
       await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
       await page.waitForTimeout(300);
       // At the bottom the bar is the Copy in reach: it copies the chosen way, and C works with focus on it.
-      const bar = page.locator("#install .ip-float__copy");
+      const bar = page.locator("#install .fcopy__copy");
       if (await bar.isVisible()) {
         const first = await page.locator("#install .ip-text").textContent();
         await bar.click();
