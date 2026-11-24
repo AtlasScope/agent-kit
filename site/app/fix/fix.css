@@ -1,5 +1,5 @@
 /* Fix a problem (app/fix/**): the symptom picker and the ordered route on each symptom page.
-   Ownership: Start/Learn/Fix lane. Tokens only; the route marker diameter and line width are literal (no token). */
+   Ownership: Start/Learn/Fix lane. Tokens only. The route itself is the shared PromptRows (library.css). */
 
 /* Filter */
 .fixfind { position: relative; display: grid; gap: var(--space-2); max-width: 36rem; }
@@ -27,17 +27,10 @@
 /* Symptom page: the route beside related help */
 .fix-page__body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 20rem); gap: var(--space-16); align-items: start; }
 .fix-page__aside { display: grid; gap: var(--space-10); }
-.fix-page__aside .pgrid { grid-template-columns: minmax(0, 1fr); }
 .fix-page__aside .section > h2 { font-size: 1.0625rem; }
-@media (max-width: 64rem) { .fix-page__body { grid-template-columns: minmax(0, 1fr); } }
+/* The shared prompt rows need about 56rem; below 80rem the related help moves under the route. */
+@media (max-width: 80rem) { .fix-page__body { grid-template-columns: minmax(0, 1fr); } }
 
-.route { display: grid; gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
-.route__step { position: relative; display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: var(--space-4); }
-.route__step:not(:last-child)::before { content: ""; position: absolute; left: 13.5px; top: 36px; bottom: calc(-1 * var(--space-4) - 4px); width: 1px; background: var(--c-edge); }
-.route__n { display: grid; place-items: center; width: 28px; height: 28px; margin-top: var(--space-4); border: 1px solid var(--c-edge); border-radius: 50%; background: var(--c-canvas); font: 500 0.8125rem/1 var(--font-mono); font-variant-numeric: tabular-nums; color: var(--c-fg-3); }
-.route__step:first-child .route__n { border-color: var(--c-fg); background: var(--c-fg); color: var(--c-canvas); }
-.route .pcard { box-shadow: none; }
-@media (max-width: 40rem) { .route__step { grid-template-columns: 22px minmax(0, 1fr); gap: var(--space-3); } .route__n { width: 22px; height: 22px; font-size: 0.75rem; } .route__step:not(:last-child)::before { left: 10.5px; top: 42px; } }
 
 .others ul { display: grid; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--c-line); }
 .others li { border-bottom: 1px solid var(--c-line); }
