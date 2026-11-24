@@ -96,8 +96,9 @@ Smoke files in `site/tests/smoke/` run in parallel, and each starts its own `nex
 | 3997 | `library.smoke.mjs` |
 | 3996 | `browse.smoke.mjs` |
 | 3995 | `guides.smoke.mjs` |
-| 3994 | The smoke file added in #136 |
+| 3994 | `account.smoke.mjs` |
 | 3993 | `design-system.smoke.mjs` |
+| 3992 | `skill-kit-detail.smoke.mjs` |
 
 ## Frozen APIs
 
