@@ -9,7 +9,7 @@
 //   node wide-color.mjs --accent=#39FF88 --danger=#DC2626
 //   node wide-color.mjs --css app/globals.css          custom properties written as hex, grouped by the rule they sit in
 //   options: --amount 0.9   --selector ':root' (for --name=#hex tokens)   --json
-// Prints a table and a ready `@media (color-gamut: p3)` block. Node 18+, no packages, reads only the files named.
+// Prints a table and a ready `@media (color-gamut: p3) { @supports (color: oklch(0 0 0)) { … } }` block. Node 18+, no packages, reads only the files named.
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import { HEX, hexRgb, toOklch, oklabLinear } from "./palette.mjs";
@@ -71,8 +71,10 @@ export function block(rows, selector = ":root") {
     groups.get(s).push(`    ${r.name}: ${r.oklch}; /* ${r.hex} */`);
   }
   if (!groups.size) return "";
-  const body = [...groups].map(([s, lines]) => `  ${s} {\n${lines.join("\n")}\n  }`).join("\n");
-  return `@media (color-gamut: p3) {\n${body}\n}`;
+  const body = [...groups].map(([s, lines]) => `    ${s} {\n${lines.map((l) => "  " + l).join("\n")}\n    }`).join("\n");
+  // @supports: a P3 browser without OKLCH would still store the value in an unregistered custom property, and every
+  // declaration using it would then be invalid, losing the hex. Behind @supports such a browser keeps the hex.
+  return `@media (color-gamut: p3) {\n  @supports (color: oklch(0 0 0)) {\n${body}\n  }\n}`;
 }
 
 function main(argv) {
@@ -92,7 +94,7 @@ function main(argv) {
     console.error("usage: node wide-color.mjs [#hex ...] [--name=#hex ...] [--css file] [--amount 0.9] [--selector :root] [--json]");
     process.exit(2);
   }
-  const rows = items.map((t) => ({ name: t.name, ...widen(t.hex, amount) }));
+  const rows = items.map((t) => ({ name: t.name, selector: t.selector, ...widen(t.hex, amount) }));
   if (json) { console.log(JSON.stringify(rows, null, 2)); return; }
   for (const r of rows) {
     const label = (r.name ? `${r.name} ` : "") + r.hex;

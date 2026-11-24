@@ -207,6 +207,13 @@ test("wide color keeps lightness and hue, lifts saturated colours toward the P3 
   const tokens = W.hexTokens(":root { --a: #39ff88; --b: #fff } .dark { --a: #f00; }");
   assert.deepEqual(tokens.map((t) => [t.name, t.hex, t.selector]), [["--a", "#39FF88", ":root"], ["--b", "#FFFFFF", ":root"], ["--a", "#FF0000", ".dark"]]);
   const css = W.block(tokens.map((t) => ({ ...t, ...W.widen(t.hex) })));
-  assert.match(css, /^@media \(color-gamut: p3\) \{\n  :root \{\n    --a: oklch\(88\.1% 0\.245 151\.2\);/);
-  assert.match(css, /\.dark \{\n    --a: oklch\(62\.8% 0\.285 29\.2\)/);
+  assert.match(css, /^@media \(color-gamut: p3\) \{\n  @supports \(color: oklch\(0 0 0\)\) \{\n    :root \{\n      --a: oklch\(88\.1% 0\.245 151\.2\);/);
+  assert.match(css, /\.dark \{\n      --a: oklch\(62\.8% 0\.285 29\.2\)/);
+});
+
+test("wide color --css keeps each token under the rule it came from", async (t) => {
+  const { execFileSync } = await import("node:child_process");
+  const dir = folder(t, { "tokens.css": ":root { --a: #39ff88; }\n.dark { --a: #f00; }\n" });
+  const out = execFileSync(process.execPath, [new URL("../scripts/wide-color.mjs", import.meta.url).pathname, "--css", path.join(dir, "tokens.css")], { encoding: "utf8" });
+  assert.match(out, /:root \{\n\s+--a: oklch\(88\.1% 0\.245 151\.2\);[^}]*\}\n\s+\.dark \{\n\s+--a: oklch\(62\.8% 0\.285 29\.2\)/);
 });

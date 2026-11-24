@@ -11,7 +11,7 @@ This is the default whenever you write or change color tokens for a web project.
 | Standard sRGB screen, any browser | The hex. It does not match `@media (color-gamut: p3)`, so the wide values are never read. |
 | Mac, iPhone, iPad (Safari, Chrome, Edge) | The OKLCH values: same hue and lightness, more saturation. |
 | Windows wide-gamut or QHD/4K panel, Chrome or Edge | The OKLCH values only when Windows reports the wide range: HDR on, or Windows color management (Auto Color Management, or a calibrated wide-gamut profile) turned on for that display. Otherwise the browser reports sRGB and the page shows the hex. |
-| Older browsers without OKLCH (before Safari 15.4, Chrome 111, Firefox 113) | The hex. They drop the `oklch()` line as unreadable and keep the one before it. |
+| Older browsers without OKLCH (before Safari 15.4, Chrome 111, Firefox 113) | The hex. The overrides sit behind `@supports (color: oklch(0 0 0))`, so these browsers never read them, even on a P3 screen. |
 
 Nothing gets worse on any screen. The worst case is the page looking the way it did before.
 
@@ -32,9 +32,13 @@ Nothing gets worse on any screen. The worst case is the page looking the way it 
    :root { --accent: #2563EB; --danger: #DC2626; }
 
    @media (color-gamut: p3) {
-     :root { --accent: oklch(54.6% 0.251 262.9); --danger: oklch(57.7% 0.253 27.3); }
+     @supports (color: oklch(0 0 0)) {
+       :root { --accent: oklch(54.6% 0.251 262.9); --danger: oklch(57.7% 0.253 27.3); }
+     }
    }
    ```
+
+   Keep the `@supports` wrapper. A custom property accepts any value, so a P3 browser without OKLCH (Safari before 15.4) would store the `oklch()` text, and every `color: var(--accent)` would then be invalid and fall back to the inherited or initial color, not the hex.
 
    A theme that sets its own hex (a dark theme under `prefers-color-scheme`, a `.dark` class) needs its own wide line in the same place: nest the media query the same way, or repeat the theme selector inside the P3 block. The script groups `--css` output by the rule each token sits in; a token inside another media query comes back under that rule's selector only, so nest its line by hand.
 4. **Derive tints and glows from the token.** A hardcoded `rgba(37, 99, 235, .3)` never picks up the wide value. Write `color-mix(in oklab, var(--accent) 30%, transparent)` instead, for glows, selection, hover fills, rings, gradients and shadows. Search the CSS for `rgba(` and for hex values that repeat a token.
