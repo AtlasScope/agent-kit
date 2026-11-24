@@ -6,7 +6,7 @@ import { PromptCards } from "@/components/Cards";
 import { SaveMenu } from "@/components/SaveMenu";
 import { SkillInstall } from "@/components/skills/detail/SkillInstall";
 import { Toc } from "@/components/skills/detail/Toc";
-import { demote, withAnchors, splitLead, scrollersFocusable } from "@/components/skills/detail/prose";
+import { demote, withAnchors, describe, scrollersFocusable } from "@/components/skills/detail/prose";
 import { SITE, authEnabled } from "@/lib/site";
 import { skills, getSkill, getKit } from "@/lib/content";
 import "@/components/skills/detail/skill-kit.css";
@@ -36,7 +36,7 @@ export default async function SkillPage({ params }: { params: Promise<{ name: st
   if (!s) notFound();
   const k = getKit(s.kit)!;
   const c = s.credit;
-  const [lead, more] = splitLead(s.description);
+  const { lead, more, agent } = describe(s.description);
   const { html, toc } = withAnchors(scrollersFocusable(demote(s.bodyHtml)));
   const folder = `${SITE.repo}/tree/main/${s.sourcePath}`;
   const files = ["SKILL.md", ...s.files];
@@ -47,10 +47,16 @@ export default async function SkillPage({ params }: { params: Promise<{ name: st
         <Crumbs items={[["Skills", "/skills"], [s.name, `/skills/${s.name}`]]} />
         <p className="sd-eyebrow"><span>Skill</span><span aria-hidden="true">·</span><Link className="lic" href={`/kits/${k.name}`}>{k.title}</Link></p>
         <h1 translate="no">{s.name}</h1>
-        <p className="lead sd-lead">{lead}</p>
+        <p className="lead sd-lead">{lead || `One of the ${k.name} skills.`}</p>
         {more && <p className="sd-more">{more}</p>}
+        {agent && (
+          <details className="sd-agent">
+            <summary>When an agent uses it</summary>
+            <p>{agent}</p>
+          </details>
+        )}
         <dl className="sd-spec">
-          <div><dt>Runs</dt><dd>{s.typedOnly ? "Only when you type it" : "When your agent sees it fits, or when you type it"}</dd></div>
+          <div><dt>Runs</dt><dd>{s.typedOnly ? <>Type <code translate="no">/{s.name}</code> to run</> : <>Starts automatically, or type <code translate="no">/{s.name}</code></>}</dd></div>
           <div><dt>Works in</dt><dd>Any agent with <code>npx skills</code>; Claude Code and Codex as part of {k.name}</dd></div>
           <div><dt>Source</dt><dd>{c ? <>By {c.author}, from <a className="lic" href={c.url}>{c.repo}</a></> : "Written for Agent Kit"}</dd></div>
           <div><dt>License</dt><dd>{c ? c.license : "MIT"}</dd></div>

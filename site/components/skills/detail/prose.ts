@@ -39,18 +39,50 @@ export function withAnchors(html: string): { html: string; toc: TocItem[] } {
   return { html: out, toc };
 }
 
-// Splits a description into its first sentence and the rest, keeping every character of the original. A boundary is
-// [.!?] then whitespace then a capital, slash, quote or bracket; abbreviations don't count, and a first sentence under
-// 30 characters takes the next one with it.
-const ABBR = /\b(e\.g|i\.e|vs|etc|cf|approx|incl|e\.x)\.$/i;
-export function splitLead(d: string): [string, string] {
-  const re = /[.!?](\s+)(?=[A-Z/"(])/g;
-  for (let m = re.exec(d); m; m = re.exec(d)) {
-    const lead = d.slice(0, m.index + 1);
-    if (ABBR.test(lead) || lead.length < 30) continue;
-    return [lead, d.slice(m.index + 1 + m[1].length)];
+// Skill descriptions are written for the agent that loads them, and many carry trigger rules ("Use only when the
+// user explicitly invokes /keen", "Also trigger when…"). Those make a poor page lead. describe() sorts the
+// description's sentences, keeping every one and their order within each group:
+//   lead   the first sentence written for a person (a short one takes the next with it),
+//   more   the rest of those sentences,
+//   agent  the trigger rules, shown on the page behind a disclosure.
+// When no sentence fits as a lead, lead is empty and the page shows a neutral line instead.
+const SENTENCE = /(?<=[.!?])\s+(?=[A-Z/"'(`])/;
+const ABBR = /\b(e\.g|i\.e|vs|etc|cf|approx|incl)\.$/i;
+const AGENT = [
+  /^(also )?use (this skill )?(only )?(when|whenever|if)\b[^.]*\b(the user|explicitly|invokes?|invoked)\b/i,
+  /^(only use|use only)\b/i,
+  /^(also )?when the user\b/i,
+  /^(also )?trigger(s|ed)?\b/i,
+  /\bmust not activate\b/i,
+  /^only runs when explicitly invoked\b/i,
+  /^called by\b/i,
+  /^(never|don't|do not) (use|invoke|trigger)\b/i,
+];
+const CROSSREF = /^for [^.]*,\s*(see|use)\b/i;
+export const isAgentSentence = (x: string) => AGENT.some((r) => r.test(x.trim()));
+
+function sentences(d: string): string[] {
+  const out: string[] = [];
+  for (const part of d.split(SENTENCE)) {
+    // Rejoin a split made after an abbreviation ("e.g. React").
+    if (out.length && ABBR.test(out[out.length - 1])) out[out.length - 1] += ` ${part}`;
+    else out.push(part);
   }
-  return [d, ""];
+  return out;
+}
+
+export type Described = { lead: string; more: string; agent: string };
+
+export function describe(d: string): Described {
+  const all = sentences(d.trim());
+  const agent = all.filter(isAgentSentence);
+  const human = all.filter((x) => !isAgentSentence(x));
+  let i = human.findIndex((x) => !CROSSREF.test(x));
+  if (i < 0) return { lead: "", more: human.join(" "), agent: agent.join(" ") };
+  let lead = human[i];
+  const rest = human.filter((_, j) => j !== i);
+  if (lead.length < 30 && rest[i] && !CROSSREF.test(rest[i])) { lead = `${lead} ${rest[i]}`; rest.splice(i, 1); }
+  return { lead, more: rest.join(" "), agent: agent.join(" ") };
 }
 
 // Code blocks and tables can scroll sideways; a tab stop lets keyboard users scroll them too (WCAG 2.1.1).

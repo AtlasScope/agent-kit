@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Crumbs } from "@/components/Crumbs";
 import { InstallPanel } from "@/components/skills/detail/InstallPanel";
 import { KitContents } from "@/components/skills/detail/KitContents";
-import { splitLead } from "@/components/skills/detail/prose";
+import { describe } from "@/components/skills/detail/prose";
 import { SITE, kitInstallMessage } from "@/lib/site";
 import { kits, getKit, getSkill } from "@/lib/content";
 import "@/components/skills/detail/skill-kit.css";
@@ -36,7 +36,8 @@ export default async function KitPage({ params }: { params: Promise<{ kit: strin
   const claude = `claude plugin marketplace add ${SITE.repoSlug}\nclaude plugin install ${k.name}@agent-kit`;
   const say = kitInstallMessage(k.name);
   const codex = `codex plugin marketplace add ${SITE.repoSlug}\ncodex plugin add ${k.name}@agent-kit`;
-  const [lead, more] = splitLead(k.description);
+  const { lead, more: rest, agent } = describe(k.description);
+  const more = [rest, agent].filter(Boolean).join(" ");
   const n = k.skills.length;
   const borrowed = k.skills.filter((s) => getSkill(s)?.credit).length;
   const readme = `${SITE.repo}/blob/main/${k.readmePath}`;
@@ -46,7 +47,7 @@ export default async function KitPage({ params }: { params: Promise<{ kit: strin
         <Crumbs items={[["Kits", "/kits"], [k.title, `/kits/${k.name}`]]} />
         <p className="sd-eyebrow"><span>Plugin</span><span aria-hidden="true">·</span><span>v{k.version}</span><span aria-hidden="true">·</span><span>{n} {n === 1 ? "skill" : "skills"}</span></p>
         <h1 translate="no">{k.title}</h1>
-        <p className="lead sd-lead">{lead}</p>
+        <p className="lead sd-lead">{lead || k.description}</p>
         {more && <p className="sd-more">{more}</p>}
         <dl className="sd-spec">
           <div><dt>Skills</dt><dd>{n - borrowed} written for Agent Kit{borrowed > 0 && <>, {borrowed} borrowed with credit</>}</dd></div>

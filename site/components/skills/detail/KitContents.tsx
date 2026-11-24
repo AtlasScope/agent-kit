@@ -1,15 +1,15 @@
 import Link from "next/link";
 import { Star } from "@/components/Star";
 import { getSkill, type Skill } from "@/lib/content";
-import { splitLead } from "./prose";
+import { describe } from "./prose";
 
 function Row({ s }: { s: Skill }) {
   return (
     <li className="kd-row">
       <h4 className="kd-row__name"><Link href={`/skills/${s.name}`} translate="no">{s.name}</Link></h4>
-      <p className="kd-row__d">{splitLead(s.description)[0]}</p>
+      <p className="kd-row__d">{describe(s.description).lead || `One of the ${s.kit} skills.`}</p>
       <p className="kd-row__m">
-        {s.typedOnly ? <span>Type it to run</span> : <span>Agent can pick it</span>}
+        {s.typedOnly ? <span>Type <code translate="no">/{s.name}</code> to run</span> : <span>Starts automatically, or type <code translate="no">/{s.name}</code></span>}
         <span>{s.credit ? `By ${s.credit.author}` : "By Agent Kit"}</span>
       </p>
       <div className="kd-row__star"><Star kind="skill" refId={s.name} title={s.name} /></div>
