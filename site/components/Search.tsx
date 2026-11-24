@@ -24,25 +24,10 @@ type Group = { label: string; items: Entry[] };
 
 let indexPromise: Promise<Entry[]> | null = null;
 let loaded: Entry[] | null = null;
-// A Copy text that 404s means this tab's index may predate a deploy that removed or renamed the result. The next
-// open then fetches the index once more past the browser cache (which also replaces the cached copy), at most once
-// per page so a text that stays missing can't cause repeated downloads. The index in hand stays in use meanwhile,
-// and if that fetch fails. Loads are numbered and only a newer one can replace `loaded`.
-let refetch = false, refetched = false, seq = 0, applied = 0;
-function staleIndex(): boolean {
-  if (refetched) return false;
-  refetch = true;
-  return true;
-}
-function loadIndex(): Promise<Entry[]> {
-  const reload = refetch && !refetched;
-  if (indexPromise && !reload) return indexPromise;
-  if (reload) { refetch = false; refetched = true; }
-  const n = ++seq;
-  const mine: Promise<Entry[]> = fetch("/search-index.v2.json", reload ? { cache: "reload" } : undefined)
-    .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-    .then((e: Entry[]) => { if (n > applied) { applied = n; loaded = e; } return loaded ?? e; });
-  indexPromise = mine;
+function loadIndex() {
+  indexPromise ??= fetch("/search-index.v2.json").then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+    .then((e: Entry[]) => (loaded = e));
+  const mine = indexPromise;
   mine.catch(() => { if (indexPromise === mine) indexPromise = null; });
   return mine;
 }
@@ -60,7 +45,8 @@ function textWithin(url: string, ms: number): Promise<string> {
   return fetch(url, { signal: c.signal }).then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status))))).finally(() => clearTimeout(t));
 }
 const isGone = (err: unknown) => err instanceof Error && err.message === "404";
-const CHANGED = "This result may have changed since the page loaded. Close and reopen search to refresh the list.";
+// A 404 means the result changed in a deploy after this page loaded its index (browsers keep it 5 minutes).
+const CHANGED = "This result changed in an update. Reload the page for the latest list.";
 function copyText(e: Entry): Promise<string> {
   if (e.copy?.text !== undefined) return Promise.resolve(e.copy.text);
   const k = copyUrl(e);
@@ -116,12 +102,11 @@ export function Search() {
   const failed = useRef(false);
   const lastTry = useRef(0);
   const warm = useCallback(() => {
-    if (loaded) { setEntries(loaded); setStatus("ready"); if (!refetch) return; }
-    else if (failed.current && Date.now() - lastTry.current < 15000) return;
+    if (loaded) { setEntries(loaded); setStatus("ready"); return; }
+    if (failed.current && Date.now() - lastTry.current < 15000) return;
     lastTry.current = Date.now();
-    if (!failed.current && !loaded) setStatus("loading");
-    loadIndex().then((e) => { failed.current = false; setEntries(e); setStatus("ready"); },
-      () => { if (!loaded) { failed.current = true; setStatus("error"); } });
+    if (!failed.current) setStatus("loading");
+    loadIndex().then((e) => { failed.current = false; setEntries(e); setStatus("ready"); }, () => { failed.current = true; setStatus("error"); });
   }, []);
 
   // Opens synchronously inside the click or key event, so iOS Safari raises the keyboard for the field.
@@ -243,7 +228,7 @@ export function Search() {
     let live = true;
     const e = active;
     const t = setTimeout(() => copyText(e).then((text) => { if (live) setPayload({ key: k, text }); },
-      (err) => { if (live) setPayload({ key: k, text: null, gone: isGone(err) && staleIndex() }); }), 120);
+      (err) => { if (live) setPayload({ key: k, text: null, gone: isGone(err) }); }), 120);
     const w = setTimeout(() => setWaiting(true), 400);
     return () => { live = false; clearTimeout(t); clearTimeout(w); };
   }, [open, wide, active]);
@@ -300,11 +285,7 @@ export function Search() {
       clearTimeout(slow);
       // The text arrived but the browser refused the late write; it is cached now, so a second press writes it at once.
       if (late && !loadFailed && navigator.clipboard && err instanceof DOMException && err.name === "NotAllowedError") say("The text is ready now. Press Copy again.");
-      else if (isGone(loadFailed) && staleIndex()) {
-        // Where the preview shows this result its note says it; elsewhere the toast does.
-        setPayload({ key: k, text: null, gone: true });
-        if (!(wide && active === e)) say(CHANGED);
-      }
+      else if (isGone(loadFailed)) say(CHANGED);
       else say(loadFailed ? "Couldn’t load the text to copy. Open the page and copy from there." : "Copy was blocked. Open the page and copy from there.");
     }
   };
