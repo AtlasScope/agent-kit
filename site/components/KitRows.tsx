@@ -33,9 +33,9 @@ export function KitRows({ level = 3 }: { level?: 2 | 3 }) {
             <div className="kit__body">
               <p className="kit__line">{g.line}</p>
               <p className="kit__by">By {nameList(by)}</p>
-              <ul className="kit__skills" aria-label={`Skills in ${name}`} translate="no">
-                {shown.map((s) => <li key={s}><Link href={`/skills/${s}`}>{s}</Link></li>)}
-                {more > 0 && <li><Link className="kit__more" href={`/kits/${name}`} aria-label={`All ${k.skills.length} skills in ${name}`}>+{more} more</Link></li>}
+              <ul className="kit__skills" aria-label={`Skills in ${name}`}>
+                {shown.map((s) => <li key={s}><Link href={`/skills/${s}`} translate="no">{s}</Link></li>)}
+                {more > 0 && <li><Link className="kit__more" href={`/kits/${name}`} aria-label={`+${more} more: all ${k.skills.length} skills in ${name}`}>+{more} more</Link></li>}
               </ul>
             </div>
             <div className="kit__start">
