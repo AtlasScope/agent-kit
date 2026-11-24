@@ -249,7 +249,8 @@ export function Search() {
     if (e.href !== path) router.push(e.href);
   };
   // A sticky message (progress) stays until the next one replaces it.
-  const say = (msg: string, sticky = false) => { clearTimeout(toastTimer.current); setToast(msg); if (!sticky) toastTimer.current = setTimeout(() => setToast(""), 2400); };
+  const slowTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const say = (msg: string, sticky = false) => { clearTimeout(toastTimer.current); clearTimeout(slowTimer.current); setToast(msg); if (!sticky) toastTimer.current = setTimeout(() => setToast(""), 2400); };
   // A text already fetched is written at once. Otherwise the clipboard is handed a promise of it (ClipboardItem),
   // which keeps the user's gesture valid in Safari while the text loads; browsers without that wait, then write.
   const copy = async (e: Entry) => {
@@ -262,8 +263,8 @@ export function Search() {
       else {
         text = copyText(e);
         // Phones have no preview, so say something if the text takes a moment.
-        slow = setTimeout(() => say("Copying…", true), 300);
-        const s = slow;
+        // Shared, so a later message (another copy's) cancels it.
+        const s = slow = slowTimer.current = setTimeout(() => say("Copying…", true), 300);
         text.finally(() => clearTimeout(s)).catch(() => {});
         text.then((t) => setPayload((p) => (p?.key === k ? { key: k, text: t } : p)), () => {});
         try {
@@ -369,7 +370,7 @@ export function Search() {
               {active.summary && <p className="cmdk__ps">{active.summary}</p>}
               {active.copy && typeof shown?.text === "string" && <pre className="cmdk__payload" data-long={shown.text.length > 360 || undefined} aria-label={`${active.copy.label.replace(/^Copy /, "")} text`}>{shown.text}</pre>}
               {active.copy && !shown && waiting && <p className="cmdk__ps">Loading the text…</p>}
-              <p className="cmdk__ps cmdk__pnote" aria-live="polite">{active.copy && shown?.text === null ? ("gone" in shown && shown.gone ? CHANGED : "The text didn’t load. Copy will try again.") : ""}</p>
+              <p className="cmdk__ps cmdk__pnote">{active.copy && shown?.text === null ? ("gone" in shown && shown.gone ? CHANGED : "The text didn’t load. Copy will try again.") : ""}</p>
               <div className="cmdk__actions">
                 <button type="button" className="cmdk__btn cmdk__btn--main" onClick={() => go(active)}>Open<kbd aria-hidden="true">↵</kbd></button>
                 {active.copy && <button type="button" className="cmdk__btn" onClick={() => copy(active)}>{active.copy.label}<kbd aria-hidden="true">{mod}↵</kbd></button>}

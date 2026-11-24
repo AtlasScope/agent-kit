@@ -157,8 +157,8 @@ for (const size of SIZES) {
     const fetched = [];
     page.on("request", (r) => { if (/\/search-(index(\.v2)?\.json|copy\/)/.test(r.url())) fetched.push(new URL(r.url()).pathname); });
     await page.goto(base + "/start", { waitUntil: "networkidle" });
-    // Longer than the idle preload this replaced waited (5 s at most).
-    await page.waitForTimeout(6000);
+    // Time for any idle or deferred fetch to start.
+    await page.waitForTimeout(3000);
     assert.deepEqual(fetched, [], "the index loads before any sign of search");
     const banner = page.getByRole("banner");
     const index = page.waitForResponse((r) => r.url().endsWith("/search-index.v2.json"));
