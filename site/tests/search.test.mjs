@@ -65,7 +65,7 @@ for (const [name, set] of [["plain", PLAIN], ["vague", VAGUE]]) {
 }
 
 test("exact ids, commands and skill names still come first", () => {
-  for (const [q, want] of [["PG01", "can-we-independently-prove-these-numbers"], ["/design", "design"], ["ux-writing", "s:ux-writing"], ["impeccable polish", "impeccable-polish"], ["tdd", "s:tdd"]]) {
+  for (const [q, want] of [["PG02", "find-data-that-is-internally-consistent-but-wrong"], ["/design", "design"], ["ux-writing", "s:ux-writing"], ["impeccable polish", "impeccable-polish"], ["tdd", "s:tdd"]]) {
     assert.equal(key(search(q, 1)[0]), want, q);
   }
 });

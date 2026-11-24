@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getPrompt, getPromptById, getSkill, copyText, MODES, type Prompt } from "@/lib/content";
+import { getPrompt, getPromptById, getSkill, copyText, copyLabel, whatOf, whenOf, MODES, type Prompt } from "@/lib/content";
 import { CHANGES, type Start } from "@/lib/starts";
 import { KITS } from "@/lib/site";
 import { CopyButton } from "./CopyButton";
@@ -11,7 +11,6 @@ const KIT_NAME = new RegExp(`\\b(${KITS.join("|")})\\b`);
 const withKitLinks = (text: string) =>
   text.split(KIT_NAME).map((part, i) => (i % 2 ? <Link key={i} href={`/kits/${part}`}>{part}</Link> : part));
 
-const copyLabel = (p: Prompt) => (p.steps ? "Copy recipe" : p.sec === "ecmd" ? "Copy command" : "Copy prompt");
 
 // One card per prompt: title and star, id and what it changes, one line on what it finds, then Copy and Details.
 export function PromptCard({ p, best }: { p: Prompt; best?: boolean }) {
@@ -22,11 +21,13 @@ export function PromptCard({ p, best }: { p: Prompt; best?: boolean }) {
         <h3 className="pcard__t"><Link className="stretch" href={`/prompts/${p.slug}`}>{p.t}</Link></h3>
         <Star kind="prompt" refId={p.id} title={p.t} />
       </div>
-      {(p.why || p.use) && <p className="pcard__d">{p.why || p.use}</p>}
+      {whatOf(p) && <p className="pcard__d">{whatOf(p)}</p>}
+      {whenOf(p) && <p className="pcard__w"><b>Use it when:</b> {whenOf(p)}</p>}
       <div className="pcard__foot">
         <p className="pcard__m">
           <code className="pid">{p.id}</code>
           {best && <span className="best">Best first</span>}
+          {p.fresh && <span className="best">New</span>}
           {p.sec === "dcmd" && <span>By {p.group}</span>}
           {mode && <span className={(p.mode && p.mode !== "read") || p.dmode === "Changes code" ? "warn" : undefined}>{mode}</span>}
         </p>

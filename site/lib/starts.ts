@@ -51,7 +51,7 @@ export const STARTS: Start[] = [
   {
     slug: "check-database-data",
     job: "Check that database numbers are right",
-    pick: "DBR01",
+    pick: "RDBR01",
     useWhen: "A figure looks wrong, or you need proof before you trust it.",
     youGet: "Figures rebuilt from their sources, each disagreement explained, and how much data it affects.",
     requires: "The repository and read-only access to the database.",
@@ -120,7 +120,7 @@ export const STARTS: Start[] = [
     requires: "Claude Code. It’s built in.",
     changes: "no",
     alts: [
-      { id: "PG17", when: "The change includes a database migration or new permissions." },
+      { id: "G02", when: "The change includes a database migration or new permissions." },
       { id: "RC07", when: "It's a user interface change and you want a browser check too." },
     ],
   },
