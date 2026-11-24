@@ -13,7 +13,7 @@ export default function NotFound() {
       </div>
       <nav className="notfound__ways" aria-label="Places to go">
         <ul>{WAYS.map(([t, href]) => <li key={href}><Link href={href}><span>{t}</span><code translate="no">{href}</code></Link></li>)}</ul>
-        <p className="note notfound__hint">Or press <kbd>/</kbd> to search prompts and skills.</p>
+        <p className="note notfound__hint">Or press <kbd className="kbd">/</kbd> to search prompts and skills.</p>
       </nav>
     </main>
   );

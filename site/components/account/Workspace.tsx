@@ -28,7 +28,7 @@ export function Workspace({ rail, newCollection, boot, children }: { rail: RailE
     if (!w) return;
     const list = idKey.split(" ");
 
-    const apply = (focus: boolean) => {
+    const apply = (focus: boolean | "panel") => {
       const { sel, view, fromHash } = pick(list);
       const was = w.getAttribute("data-sel");
       w.setAttribute("data-sel", sel);
@@ -38,6 +38,7 @@ export function Workspace({ rail, newCollection, boot, children }: { rail: RailE
       });
       if (fromHash) { try { localStorage.setItem(KEY, sel); } catch {} }
       if (!focus) return;
+      if (focus === "panel") { document.getElementById(`col-${sel}`)?.focus({ preventScroll: true }); return; }
       const narrow = window.matchMedia(NARROW).matches;
       // On phones the panel replaces the rail, so focus follows it; going back returns focus to the row.
       if (narrow && view === "detail") document.getElementById(`col-${sel}`)?.focus({ preventScroll: true });
@@ -45,18 +46,20 @@ export function Workspace({ rail, newCollection, boot, children }: { rail: RailE
       if (narrow) window.scrollTo({ top: 0 });
     };
 
-    // A collection that just appeared was just created here: open it.
+    let landing = false; // the next hashchange opens a just-created collection: focus its heading on any screen
+    const onHash = () => { apply(landing ? "panel" : true); landing = false; };
+    window.addEventListener("hashchange", onHash);
+
+    // A collection that just appeared was just created here: open it (through the hash, so Back works).
     const before = prev.current;
     prev.current = list;
     const added = before ? list.filter((id) => !before.includes(id)) : [];
-    if (added.length === 1) { location.hash = added[0]; return; }
-    // The open collection was deleted: drop its hash so the rail's first one opens.
     const h = decodeURIComponent(location.hash.slice(1));
-    if (before && h && h !== "all" && !list.includes(h)) history.replaceState(null, "", location.pathname + location.search);
-
-    apply(false);
-    const onHash = () => apply(true);
-    window.addEventListener("hashchange", onHash);
+    const removed = Boolean(before && h && h !== "all" && !list.includes(h));
+    if (added.length === 1) { landing = true; location.hash = added[0]; }
+    // The open collection was deleted: drop its hash so the remembered or first one opens, and move focus there.
+    else if (removed) history.replaceState(null, "", location.pathname + location.search);
+    apply(removed ? "panel" : false);
     return () => window.removeEventListener("hashchange", onHash);
   }, [idKey]);
 
