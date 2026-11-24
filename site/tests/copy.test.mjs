@@ -3,7 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { composeCopy, copyFormat, ISO_READ_RULE, MODE_RULE, RECIPE_FALLBACK } from "../lib/copy.ts";
+import { composeCopy, copyFormat, ISO_READ_RULE, MODE_RULE, RECIPE_FALLBACK, PLAIN_REPORT, STOP_LEAD } from "../lib/copy.ts";
 
 const data = JSON.parse(fs.readFileSync(new URL("../content/generated.json", import.meta.url), "utf8"));
 const byId = new Map(data.prompts.map((p) => [p.id, p]));
@@ -30,9 +30,26 @@ test("a recipe says what to do when a step's plugin is missing, once", () => {
   assert.equal(composeCopy({ ...e, p: out }), out);
 });
 
-test("an investigation carries mode, evidence and the trap", () => {
-  const e = { sec: "inv", t: "T", p: "Find the slow query.", mode: "repro", ev: "The query and its plan", blind: "Agents blame the ORM" };
-  assert.equal(composeCopy(e), `Find the slow query.\n\n${MODE_RULE.repro}\nGive me: The query and its plan.\nWatch for: Agents blame the ORM.`);
+test("an investigation carries mode, evidence, the trap, when to stop and a plain-English report", () => {
+  const e = { sec: "inv", t: "T", p: "Find the slow query.", mode: "repro", ev: "The query and its plan", blind: "Agents blame the ORM", skip: "Pages that load in under a second" };
+  assert.equal(composeCopy(e), `Find the slow query.\n\n${MODE_RULE.repro}\nGive me: The query and its plan.\nWatch for: Agents blame the ORM.\n${STOP_LEAD} Pages that load in under a second.\n${PLAIN_REPORT}`);
+});
+
+test("every listed investigation says when to stop and asks for a plain-English report", () => {
+  const inv = data.prompts.filter((p) => !p.replacedBy && copyFormat(p) === "investigation" && !p.flow && p.skip);
+  assert.ok(inv.length > 50);
+  for (const p of inv) { const out = composeCopy(p); assert.ok(out.includes(STOP_LEAD) && out.endsWith(PLAIN_REPORT), `${p.id} loses its stop rule or report line`); }
+});
+
+test("a recipe run step by step gives every prompt step its own full copy", () => {
+  const split = data.prompts.filter((p) => p.sec === "plan" && p.split);
+  assert.ok(split.length > 5);
+  const bySlug = new Map(data.prompts.map((p) => [p.slug, p]));
+  for (const r of split) for (const s of r.planSteps) if (s.kind === "prompt") {
+    const e = bySlug.get(s.slug);
+    assert.equal(s.copy, composeCopy(e), `${r.id} step ${s.label} copies something other than the prompt itself`);
+  }
+  for (const r of data.prompts.filter((p) => p.sec === "plan" && !p.split)) assert.ok(/read-only/i.test(composeCopy(r)), `${r.id} copies without its read-only rule`);
 });
 
 test("missing optional fields add nothing", () => {

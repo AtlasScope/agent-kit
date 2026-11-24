@@ -24,7 +24,7 @@ for (const [txt, ids] of [...lib.symptoms, ...(lib.dbSymptoms || [])]) for (cons
 const keenSkill = fs.readFileSync(path.join(here, "../kits/design-kit/plugins/design-kit/skills/keen/SKILL.md"), "utf8");
 const keenJobs = new Set([...keenSkill.matchAll(/^\| `([a-z]+)` \|/gm)].map((m) => "K:" + m[1]));
 const keenGroups = new Set([...keenSkill.matchAll(/^\*\*(.+)\*\*$/gm)].map((m) => "K:" + m[1]));
-const known = (id) => BY.has(id) || keenJobs.has(id);
+const known = (id) => BY.has(id) || keenJobs.has(id) || (lib.v3?.recipes || []).some((r) => r.id === id);
 const inArea = new Map();
 for (const a of lib.areas || []) {
   if (!a.key || !a.title || !a.blurb || !a.groups?.length) fail(`Area "${a.title || a.key}" needs a key, title, blurb and groups`);
@@ -47,7 +47,19 @@ for (const [id, cmd] of Object.entries(lib.closest || {})) {
   if (inArea.has(id)) fail(`${id} is in an area and also names a closest Agent Kit job; only Other tools entries do`);
   if (!knownCmds.has(cmd)) fail(`${id} names ${cmd} as its Agent Kit job, which is not a command in the library or Keen`);
 }
-for (const [id, same] of Object.entries(lib.notShown || {})) if (!BY.has(id) || !BY.has(same)) fail(`notShown ${id} -> ${same} names a missing entry`);
+// A hidden entry points at what replaces it on the page: another entry or one of the page's recipes.
+const pageRecipes = new Set((lib.v3?.recipes || []).map((r) => r.id));
+for (const [id, same] of Object.entries(lib.notShown || {})) if (!BY.has(id) || !(BY.has(same) || pageRecipes.has(same))) fail(`notShown ${id} -> ${same} names a missing entry`);
+// The page's categories, skill groups and recipes name real things, each prompt in one category.
+const V3 = lib.v3;
+if (V3) {
+  const inCat = new Map();
+  for (const c of V3.promptCats) for (const id of c.ids) { if (!BY.has(id)) fail(`Prompt category "${c.title}" names missing ${id}`); if (inCat.has(id)) fail(`${id} is in two prompt categories`); inCat.set(id, c.title); }
+  for (const g of V3.skillGroups) for (const id of g.ids) if (!BY.has(id)) fail(`Skill group "${g.title}" names missing ${id}`);
+  for (const g of V3.recipeGroups) for (const id of g.ids) if (!pageRecipes.has(id) && !BY.has(id)) fail(`Recipe group "${g.title}" names missing ${id}`);
+  for (const r of V3.recipes) for (const [ref] of r.steps) if (/^[A-Z]+\d+$/.test(ref) && !BY.has(ref)) fail(`Recipe "${r.t}" names missing step ${ref}`); else if (ref.startsWith("K:") && !keenJobs.has(ref)) fail(`Recipe "${r.t}" names Keen job ${ref}, which Keen does not have`);
+  for (const id of Object.keys(V3.when)) if (!BY.has(id) && !pageRecipes.has(id)) fail(`A "Use it when" line names missing ${id}`);
+}
 for (const id of Object.keys(lib.tried || {})) if (!known(id)) fail(`tried names missing ${id}`);
 
 // The database section: PG00 to PG17 in order, each complete, plus workflows whose steps resolve.
