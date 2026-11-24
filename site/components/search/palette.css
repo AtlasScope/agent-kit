@@ -1,0 +1,157 @@
+/* Search: the header button and the command palette (components/Search.tsx). Uses the site's semantic tokens
+   only, so it follows light and dark and whatever the shared design system sets them to. The palette sits in the
+   top layer, portalled to <body>, so it takes the page's theme rather than the always-dark header's. */
+
+/* The header button looks like the field it replaced; .nav .search, its icon and .kbd keep their globals.css layout. */
+.nav .search .search__trigger {
+  display: flex; align-items: center; width: 100%; min-height: 40px; padding: 0 56px 0 36px;
+  border: 1px solid var(--color-rule-2); border-radius: 10px; background: var(--color-paper-2);
+  color: var(--color-muted); font: inherit; font-size: 0.9375rem; text-align: left; cursor: text;
+  transition: border-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+}
+.nav .search .search__trigger span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+@media (hover: hover) and (pointer: fine) { .nav .search .search__trigger:hover { border-color: var(--color-ink-2); color: var(--color-ink-2); } }
+.nav .search .search__trigger:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.nav .search .kbd { letter-spacing: .02em; }
+
+/* The dialog. */
+.cmdk {
+  --cmdk-w: min(760px, calc(100vw - 32px));
+  position: fixed; inset: 0; width: 100%; max-width: none; height: 100%; max-height: none; margin: 0; padding: 0;
+  border: 0; background: transparent; color: var(--color-ink); overflow: hidden;
+}
+.cmdk[open] { display: block; }
+.cmdk::backdrop { background: color-mix(in oklab, var(--color-paper) 55%, rgb(0 0 0 / .35)); }
+.cmdk__panel {
+  position: absolute; left: 50%; top: min(12vh, 120px); width: var(--cmdk-w); transform: translateX(-50%);
+  display: flex; flex-direction: column; max-height: min(620px, calc(100dvh - min(12vh, 120px) - 24px));
+  background: var(--color-paper-2); border: 1px solid var(--color-rule); border-radius: 14px; box-shadow: var(--lift-hi);
+  overflow: hidden;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cmdk[open] .cmdk__panel { animation: cmdk-in 180ms var(--ease-out); }
+  .cmdk[open]::backdrop { animation: cmdk-fade 180ms var(--ease-out); }
+}
+@keyframes cmdk-in { from { opacity: 0; transform: translateX(-50%) translateY(-6px) scale(.985); } }
+@keyframes cmdk-fade { from { opacity: 0; } }
+
+.cmdk__bar { position: relative; display: flex; align-items: center; gap: 10px; padding: 0 14px 0 16px; border-bottom: 1px solid var(--color-rule); }
+.cmdk__bar > .i { flex: none; width: 18px; height: 18px; color: var(--color-muted); }
+.cmdk__input {
+  flex: 1; min-width: 0; height: 56px; padding: 0; border: 0; background: none; color: var(--color-ink);
+  font: inherit; font-size: 1.0625rem; letter-spacing: -0.005em; outline: none; -webkit-appearance: none; appearance: none;
+}
+.cmdk__input::placeholder { color: var(--color-muted); }
+/* The field is the dialog's only text box and holds the caret whenever the dialog is open, so it draws no ring. */
+.cmdk .cmdk__input:focus, .cmdk .cmdk__input:focus-visible { outline: none; box-shadow: none; }
+.cmdk__input::-webkit-search-cancel-button { display: none; }
+.cmdk kbd {
+  display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border: 1px solid var(--color-rule);
+  border-radius: 5px; background: var(--color-paper); color: var(--color-muted); font: 500 11px/1 var(--font-body);
+}
+.cmdk__esc { flex: none; }
+.cmdk__cancel { display: none; }
+
+.cmdk__scopes { display: flex; gap: 4px; padding: 8px 12px; border-bottom: 1px solid var(--color-rule); overflow-x: auto; scrollbar-width: none; }
+.cmdk__scopes::-webkit-scrollbar { display: none; }
+.cmdk__scope {
+  flex: none; min-height: 28px; padding: 0 10px; border: 1px solid transparent; border-radius: 999px; background: none;
+  color: var(--color-muted); font: inherit; font-size: 0.8125rem; font-weight: 500; cursor: pointer;
+  transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) { .cmdk__scope:hover { color: var(--color-ink); } }
+.cmdk__scope[aria-pressed="true"] { background: var(--color-paper-3); border-color: var(--color-rule); color: var(--color-ink); }
+.cmdk button:focus-visible, .cmdk a:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+.cmdk__body { display: grid; grid-template-columns: minmax(0, 1fr); min-height: 0; flex: 1; }
+.cmdk__list { min-height: 120px; overflow-y: auto; overscroll-behavior: contain; padding: 6px; scroll-padding: 34px 0 6px; }
+.cmdk__group + .cmdk__group { margin-top: 6px; }
+.cmdk__label { position: sticky; top: -6px; z-index: 1; padding: 8px 10px 4px; background: var(--color-paper-2); color: var(--color-muted); font-size: 0.75rem; font-weight: 500; }
+.cmdk__opt {
+  display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; align-items: baseline; gap: 2px 10px;
+  padding: 9px 10px; border-radius: 8px; color: inherit; text-decoration: none; cursor: pointer;
+}
+.cmdk__opt[aria-selected="true"] { background: var(--color-paper-3); }
+.cmdk__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--tone, var(--color-rule-2)); align-self: center; }
+.cmdk__opt[data-kind="skill"] .cmdk__dot, .cmdk__dot[data-kind="skill"] { background: transparent; box-shadow: inset 0 0 0 1.5px var(--color-ink-2); }
+.cmdk__opt[data-kind="kit"] .cmdk__dot, .cmdk__dot[data-kind="kit"] { border-radius: 2px; background: var(--color-ink-2); }
+.cmdk__opt[data-kind="page"] .cmdk__dot, .cmdk__dot[data-kind="page"],
+.cmdk__opt[data-kind="guide"] .cmdk__dot, .cmdk__dot[data-kind="guide"] { background: var(--color-muted); }
+.cmdk__opt[data-kind="fix"] .cmdk__dot, .cmdk__dot[data-kind="fix"] { background: var(--color-warm); }
+.cmdk__t { font-weight: 550; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.cmdk__t mark { background: none; color: inherit; text-decoration: underline; text-decoration-color: var(--color-accent); text-decoration-thickness: 2px; text-underline-offset: 0.18em; }
+.cmdk__k { color: var(--color-muted); font-size: 0.75rem; }
+.cmdk__d { grid-column: 2 / -1; color: var(--color-muted); font-size: 0.8125rem; line-height: 1.4; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+.cmdk__note { margin: 0; padding: 18px 12px; color: var(--color-muted); font-size: var(--text-sm); }
+.cmdk__note p { margin: 0 0 6px; }
+.cmdk__link { padding: 0; border: 0; background: none; color: var(--color-link); font: inherit; text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
+
+.cmdk__preview { display: none; }
+.cmdk__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px; padding: 0 14px; border-top: 1px solid var(--color-rule); font-size: 0.75rem; color: var(--color-muted); }
+.cmdk__keys { display: flex; gap: 14px; margin: 0; }
+.cmdk__keys span { display: inline-flex; align-items: center; gap: 3px; }
+.cmdk__keys kbd { min-width: 18px; height: 18px; font-size: 10.5px; }
+.cmdk__toast { margin: 0; color: var(--color-accent-text); font-weight: 500; text-align: right; }
+
+/* Wide enough for a preview of the highlighted result: its text, what Copy sends, and both actions. */
+@media (min-width: 900px) {
+  .cmdk { --cmdk-w: min(940px, calc(100vw - 64px)); }
+  .cmdk__panel { height: min(560px, calc(100dvh - min(12vh, 120px) - 24px)); }
+  .cmdk__body { grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr); }
+  .cmdk__preview {
+    display: flex; flex-direction: column; gap: 10px; min-height: 0; padding: 18px 20px; border-left: 1px solid var(--color-rule);
+    background: color-mix(in oklab, var(--color-paper-2), var(--color-paper) 40%); overflow: hidden;
+  }
+  .cmdk__meta { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--color-muted); font-size: 0.75rem; }
+  .cmdk__ph { margin: 0; font-size: 1.125rem; line-height: 1.3; letter-spacing: -0.01em; font-weight: 600; overflow-wrap: anywhere; }
+  .cmdk__ps { flex: none; margin: 0; color: var(--color-ink-2); font-size: var(--text-sm); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .cmdk__payload {
+    position: relative; flex: 0 1 auto; min-height: 0; margin: 2px 0 0; padding: 12px 14px; overflow: hidden;
+    border: 1px solid var(--color-rule); border-radius: 10px; background: var(--color-paper);
+    font: 12.5px/1.55 var(--font-mono); color: var(--color-ink-2); white-space: pre-wrap; overflow-wrap: anywhere;
+    max-height: 100%;
+  }
+  /* Only a long payload fades at the bottom; a one-line command shows whole. */
+  .cmdk__payload[data-long] {
+    -webkit-mask-image: linear-gradient(#000 calc(100% - 40px), transparent); mask-image: linear-gradient(#000 calc(100% - 40px), transparent);
+  }
+  .cmdk__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 4px; }
+  .cmdk__btn {
+    display: inline-flex; align-items: center; gap: 8px; min-height: 34px; padding: 0 8px 0 12px; border: 1px solid var(--color-rule-2);
+    border-radius: 8px; background: var(--color-paper-2); color: var(--color-ink); font: inherit; font-size: 0.8125rem; font-weight: 500; cursor: pointer;
+    transition: background-color var(--dur-micro) var(--ease-out);
+  }
+  .cmdk__btn--main { background: var(--color-ink); border-color: var(--color-ink); color: var(--color-paper); }
+  .cmdk__btn--main kbd { background: transparent; border-color: color-mix(in oklab, var(--color-paper) 35%, transparent); color: inherit; }
+  @media (hover: hover) and (pointer: fine) {
+    .cmdk__btn:hover { background: var(--color-paper-3); }
+    .cmdk__btn--main:hover { background: var(--color-ink-2); }
+  }
+}
+
+/* Phones and touch-first tablets: a full-screen sheet with Cancel, sized to the visible viewport so results stay
+   above the keyboard. 16px input text stops iOS zooming the page. */
+@media (max-width: 640px), (pointer: coarse) and (max-width: 900px) {
+  .cmdk__panel {
+    inset: 0; left: 0; top: 0; width: 100%; height: 100dvh; max-height: none; transform: none; border: 0; border-radius: 0;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left); box-shadow: none; background: var(--color-paper);
+  }
+  @media (prefers-reduced-motion: no-preference) { .cmdk[open] .cmdk__panel { animation: cmdk-sheet 200ms var(--ease-out); } }
+  .cmdk__label { background: var(--color-paper); }
+  .cmdk__bar { padding: 0 6px 0 16px; }
+  .cmdk__input { height: 52px; font-size: 1rem; }
+  .cmdk .cmdk__esc, .cmdk__foot .cmdk__keys { display: none; }
+  .cmdk__cancel { display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px; border: 0; background: none; color: var(--color-link); font: inherit; font-weight: 500; cursor: pointer; }
+  .cmdk__scope { min-height: 32px; padding: 0 12px; }
+  .cmdk__opt { padding: 11px 10px; }
+  .cmdk__d { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .cmdk__foot { min-height: 0; padding: 0 16px env(safe-area-inset-bottom); border: 0; }
+  .cmdk__toast:not(:empty) { padding: 10px 0; }
+}
+@keyframes cmdk-sheet { from { opacity: 0; transform: translateY(8px); } }
+
+@media (forced-colors: active) {
+  .cmdk__opt[aria-selected="true"] { outline: 2px solid Highlight; }
+  .cmdk__panel { border: 1px solid CanvasText; }
+}
