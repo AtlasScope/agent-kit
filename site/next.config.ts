@@ -39,7 +39,7 @@ const config: NextConfig = {
     return {
       beforeFiles: [
         { source: "/index.md", destination: "/md/index" },
-        { source: "/:section(prompts|skills|kits|fix).md", destination: "/md/:section" },
+        { source: "/:section(prompts|skills|kits|fix|install).md", destination: "/md/:section" },
         { source: "/:section(prompts|skills|kits|fix)/:slug.md", destination: "/md/:section/:slug" },
       ],
     };

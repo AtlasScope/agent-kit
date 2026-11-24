@@ -34,10 +34,11 @@
 .launch__eg > span[aria-hidden] { color: rgba(255,255,255,.5); }
 .launch__to { display: inline-flex; align-items: center; gap: 8px; }
 .launch__eg .launch__pick { color: #fff; text-decoration: underline; text-decoration-color: rgba(255,255,255,.35); text-underline-offset: .25em; }
-/* What Install does, under it: on a computer it copies the command; on a phone it only opens the page. */
+/* What Install does, under it: it copies one message to paste into any agent, on every device. */
 .launch__note { margin: -14px 0 0; font-size: 0.8125rem; line-height: 1.45; color: rgba(255,255,255,.7); text-shadow: 0 1px 10px rgba(3,4,9,.9); }
-.launch__note-phone { display: none; }
-@media (hover: none) and (pointer: coarse) { .launch__note-desk { display: none; } .launch__note-phone { display: inline; } }
+/* The three agents named in the sentence each carry their mark, in the text colour and at the text's size. */
+.launch__agent { white-space: nowrap; color: #fff; }
+.launch__agent .i { width: .95em; height: .95em; margin-right: .3em; vertical-align: -.12em; }
 /* More real requests (HERO.more). Hidden except on a tall phone, where the screen has room for them above the horizon. */
 .launch__more { display: none; }
 .launch__cta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; margin-top: 6px; }

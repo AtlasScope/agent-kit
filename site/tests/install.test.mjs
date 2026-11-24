@@ -24,3 +24,18 @@ test("a marketplace step is always followed by an install step", () => {
     if (/marketplace add/.test(s)) assert.match(a.steps[i + 1] || "", /plugin (install|add) \S+@agent-kit/, `${a.label} stops after registering the marketplace`);
   });
 });
+
+test("the message Install copies names the repo and the agent-readable steps", async () => {
+  const { INSTALL_MESSAGE, SITE } = await import("../lib/site.ts");
+  assert.ok(INSTALL_MESSAGE.includes(SITE.repo));
+  assert.ok(INSTALL_MESSAGE.includes(`${SITE.url}/install.md`));
+  assert.ok(!INSTALL_MESSAGE.includes("\n"), "one line, so it pastes cleanly anywhere");
+});
+
+test("the agent-readable install page has each agent's exact commands and nothing from an untabbed agent", async () => {
+  const { installMd } = await import("../lib/site.ts");
+  const md = installMd();
+  for (const id of ["claude", "codex", "cursor", "any"]) for (const s of AGENTS.find((a) => a.id === id).steps) assert.ok(md.includes(s), `install.md is missing: ${s}`);
+  assert.ok(!md.includes("gemini-cli") && !md.includes("github-copilot"));
+  assert.match(md, /Do not run commands from any other section/);
+});

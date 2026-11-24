@@ -23,6 +23,11 @@ export const HERO = {
   ],
 };
 
+// What the Install button copies: one message a person pastes into their agent's chat, in any agent. The agent reads
+// the steps for itself at /install.md (lib/markdown.ts builds that page from AGENTS below), so nobody has to say
+// which agent they use or open a terminal. The per-agent commands stay on the install page for doing it by hand.
+export const INSTALL_MESSAGE = `Install Agent Kit for me from ${SITE.repo}. Follow the steps for the agent you are at ${SITE.url}/install.md, then tell me what you installed and how to start it.`;
+
 // Install paths per agent. `steps` run in order and Copy copies all of them. `tested` names the CLI
 // and date of the last clean-environment run (install, list, update, remove); null means documented only.
 // The plugin agents install every kit, one line each, so "install it once" is true. KITS must list every kit in
@@ -49,12 +54,40 @@ export const AGENTS: Agent[] = [
     check: "Start a new session and type /design with what you want. Its first line names the skill it picked.",
     tested: "Claude Code 2.1.321, 9 Nov 2026", testedScope: "The design-kit install was tested" }),
   agent({ id: "codex", label: "Codex", steps: [`codex plugin marketplace add ${SITE.repoSlug}`, ...KITS.map((k) => `codex plugin add ${k}@agent-kit`)],
-    check: "Start a new session and type $design with what you want.", tested: null }),
+    check: "Start a new session and type $design with what you want.",
+    tested: "codex-cli 0.171.0, 23 Nov 2026", testedScope: "The install was tested" }),
   agent({ id: "cursor", label: "Cursor", steps: [`npx skills add ${SITE.repoSlug} -a cursor`],
-    check: "Copies the skill folders into this project. Whether Cursor picks them up hasn’t been tested.", tested: null }),
+    check: "Copies the skill folders into this project’s .agents/skills. Whether a new Cursor chat lists them hasn’t been checked.",
+    tested: "cursor-agent 2026.11.19, 23 Nov 2026", testedScope: "Copying the skills was tested" }),
   agent({ id: "gemini", label: "Gemini CLI", steps: [`npx skills add ${SITE.repoSlug} -a gemini-cli`], check: "Copies the skill folders into this project.", tested: null }),
   agent({ id: "copilot", label: "GitHub Copilot", steps: [`npx skills add ${SITE.repoSlug} -a github-copilot`], check: "Copies the skill folders into this project.", tested: null }),
 ];
+
+// The install steps, written for the agent doing the install. The Install button's message (INSTALL_MESSAGE above) sends an agent here. Each section is one agent's commands, straight from AGENTS.
+const INSTALL_SECTIONS: [string, string, string][] = [
+  ["claude", "Claude Code", "You are Claude Code if you are Anthropic's coding agent, in a terminal, the desktop app or an editor."],
+  ["codex", "Codex", "You are Codex if you are OpenAI's coding agent, in its app, its CLI or an editor."],
+  ["cursor", "Cursor", "You are Cursor if you are the agent inside the Cursor editor or the cursor-agent CLI."],
+  ["any", "Any other agent", "Use this if none of the sections above is you."],
+];
+export function installMd() {
+  const block = (steps: string[]) => ["```sh", ...steps, "```"].join("\n");
+  return [
+    "# Install Agent Kit", "",
+    `Agent Kit is a free, MIT-licensed set of skills for AI coding agents: ${SITE.repo}. This page is written for the agent doing the install.`, "",
+    "## How to use this page", "",
+    "1. Find the one section below for the agent you are. Do not run commands from any other section.",
+    "2. Run its commands in order, in a terminal, from the person's project folder.",
+    "3. If a command needs approval or a choice, ask the person. Do not add flags to skip a prompt.",
+    "4. When you finish, tell the person in plain words: what was installed, anything that failed and why, and how to start it.",
+    "5. If you cannot run commands here, give the person the commands for their agent and say where to paste them.", "",
+    "These commands only add Agent Kit's skills. Nothing on this page asks you to change other settings, read private files or send anything anywhere.", "",
+    ...INSTALL_SECTIONS.flatMap(([id, label, who]) => {
+      const a = AGENTS.find((x) => x.id === id)!;
+      return [`## ${label}`, "", who, "", block(a.steps), "", `Then tell the person: ${a.check}`, a.tested ? "" : `These steps have not been tested with ${a.label} yet. If one fails, say so and use the steps under "Any other agent".`, ""];
+    }),
+  ].join("\n").replace(/\n{3,}/g, "\n\n");
+}
 
 export const authEnabled = () => Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 export const dbEnabled = () => Boolean(process.env.DATABASE_URL);

@@ -2,14 +2,16 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { clearHandoff, commandFor, lastAgent, saveHandoff } from "./install-choice";
+import { AgentMark } from "./AgentMark";
+import { clearHandoff, saveHandoff } from "./install-choice";
 import { startOrbit, type OrbitCamera } from "./orbit-gl";
-import { HERO, SITE } from "@/lib/site";
+import { HERO, INSTALL_MESSAGE, SITE } from "@/lib/site";
 
 // The homepage: one screen and nothing below it. The headline, one sentence and Install over a live view from orbit.
 // On a tall phone, one or two more real requests (HERO.more) follow the note, above the horizon.
-// Install copies the visitor's install command on the click, then the planet sinks and the sky fades to black while
-// the words lift away, and the install page (/install) settles in out of that black and says the command is copied.
+// Install copies one message on the click (INSTALL_MESSAGE: a sentence to paste into any agent's chat), then the
+// planet sinks and the sky fades to black while the words lift away, and the install page (/install) settles in out
+// of that black and says the message is copied. It is the same on a phone and a computer, for every agent.
 // The opening plays once per visit, about three and a half seconds: the planet rises out of black, the sun breaks
 // over the limb, the headline lifts out of its masks and the rest follows. It is held until the scene can draw its
 // first frame (or a short wait runs out), so the words and the sky always start on the same clock. Any click, key,
@@ -133,24 +135,17 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
   // page is what replaced the homepage, this runs just before that page reads it.
   useEffect(() => () => leaving.current?.stop(false), []);
 
-  // Install copies the command inside the click (browsers allow it only there), plays the hand-off, then opens the
+  // Install copies the message inside the click (browsers allow it only there), plays the hand-off, then opens the
   // install page, which reads what happened and says so. A modified click is left to the link, which opens the page in
   // a new tab. Any other navigation during the hand-off wins: a link click, Back or Forward cancels it and brings the
   // homepage back, and if the install page never arrives the homepage comes back on its own.
-  // The agent whose command Install copies, named under the button: the visitor's last pick, else Claude Code.
-  const [agentName, setAgentName] = useState("Claude Code");
-  useEffect(() => { setAgentName(lastAgent().label); }, []);
-
   const install = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;
     e.preventDefault();
     if (leaving.current) return;
-    const a = lastAgent(), el = ref.current;
-    // A phone has no terminal to paste into, so there it opens the install page without touching the clipboard.
-    const phone = matchMedia("(hover: none) and (pointer: coarse)").matches;
-    let copied: Promise<boolean | null>;
-    if (phone) copied = Promise.resolve(null);
-    else try { copied = navigator.clipboard.writeText(commandFor(a)).then(() => true, () => false); } catch { copied = Promise.resolve(false); }
+    const el = ref.current;
+    let copied: Promise<boolean>;
+    try { copied = navigator.clipboard.writeText(INSTALL_MESSAGE).then(() => true, () => false); } catch { copied = Promise.resolve(false); }
     const quick = matchMedia("(prefers-reduced-motion: reduce)").matches;
     let cancelled = false, safety = 0;
     const onClick = (ev: MouseEvent) => { const t = (ev.target as Element | null)?.closest?.("a"); if (t && !t.classList.contains("launch__go")) stop(); };
@@ -169,7 +164,7 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
     if (!quick) { leaveAt.current = performance.now(); el?.setAttribute("data-leave", ""); }
     Promise.all([copied, new Promise((r) => setTimeout(r, quick ? 0 : LEAVE_MS))]).then(([ok]) => {
       if (cancelled) return;
-      if (ok === null) clearHandoff(); else saveHandoff(ok ? { agent: a.id } : { blocked: true });
+      saveHandoff(ok ? { message: true } : { blocked: true });
       router.push("/install");
       safety = window.setTimeout(() => stop(), 8000);
     });
@@ -198,7 +193,7 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
               <span key={i} className="launch__w" style={{ "--i": i } as React.CSSProperties}><span>{w}</span>{i < words.length - 1 ? " " : ""}</span>
             ))}
           </h1>
-          <p className="launch__lede">Skills and prompts for Claude Code, Codex and Cursor. Describe the job in plain words; your agent follows a written method for it.</p>
+          <p className="launch__lede">Skills and prompts for <span className="launch__agent"><AgentMark id="claude" />Claude Code</span>, <span className="launch__agent"><AgentMark id="codex" />Codex</span> and <span className="launch__agent"><AgentMark id="cursor" />Cursor</span>. Describe the job in plain words; your agent follows a written method for it.</p>
           <p className="launch__eg" translate="no">
             <code>{HERO.example.router} {HERO.example.request}</code><span aria-hidden="true">→</span><span className="sr"> picks </span><span className="launch__to"><i className="led is-on" aria-hidden="true" /><code className="launch__pick">{HERO.example.pick}</code></span>
           </p>
@@ -206,10 +201,7 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
             <Link className="btn btn--lg btn--solid launch__go" href="/install" onClick={install} aria-describedby="launch-note"><span>Install Agent Kit</span>{ARROW}</Link>
             <Link className="launch__new" href="/start" onClick={markStartHere}>New to coding agents? Start here{ARROW}</Link>
           </div>
-          <p className="launch__note" id="launch-note">
-            <span className="launch__note-desk">Copies the install command for {agentName} to your clipboard.</span>
-            <span className="launch__note-phone">Opens the install command, to run on your computer.</span>
-          </p>
+          <p className="launch__note" id="launch-note">Copies a message to paste into your agent.</p>
           <ul className="launch__more" translate="no" aria-label="More requests it takes">
             {HERO.more.map((m) => (
               <li key={m.case}>
