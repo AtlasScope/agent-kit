@@ -183,7 +183,8 @@ for (const size of SIZES) {
     await opt.hover();
     await box.press(`${mod}+Enter`);
     await page.getByRole("status").filter({ hasText: "removed in an update" }).waitFor();
-    const fresh = page.waitForRequest((r) => /\/search-index\.json\?r=/.test(r.url()));
+    // The palette keeps a loaded index for the page's life, so a second request means it dropped the stale one.
+    const fresh = page.waitForRequest((r) => r.url().endsWith("/search-index.json"));
     await box.press("Escape"); await box.press("Escape");
     await box.waitFor({ state: "hidden" });
     await page.keyboard.press(`${mod}+k`);

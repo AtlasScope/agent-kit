@@ -74,8 +74,8 @@ function entries(): Entry[] {
 }
 
 export function paletteIndex(): Entry[] {
-  // `v` is a short hash of the text: it goes in the text's URL, so a browser never pairs a fresh index with a text
-  // it cached before the text changed.
+  // `v` is a short hash of the text. It is only a cache key (the route ignores it): a changed text gets a new URL,
+  // so a browser never serves a text it cached before the change.
   return entries().map((e) => (e.copy?.text !== undefined
     ? { ...e, copy: { label: e.copy.label, done: e.copy.done, v: createHash("sha1").update(e.copy.text).digest("hex").slice(0, 8) } } : e));
 }

@@ -25,16 +25,18 @@ type Group = { label: string; items: Entry[] };
 let indexPromise: Promise<Entry[]> | null = null;
 let loaded: Entry[] | null = null;
 // The browser may keep the index for an hour. If a deploy in that time removed a result, its Copy text is gone
-// (404). The palette then says so and drops the index and its cached texts, and the next open fetches a fresh index
-// with a query no cache has seen. `gen` stops a fetch from before the drop refilling either cache.
-let stale = false, gen = 0;
+// (404). The palette then says so and drops the index and its cached texts, and the next open fetches the index
+// past the browser cache, which also replaces the cached copy for later pages. `gen` stops an index load from before
+// the drop taking effect, `textGen` a text fetch from before it refilling the text cache.
+let stale = false, gen = 0, textGen = 0;
 function dropIndex() {
-  if (stale && !indexPromise) return;
-  loaded = null; indexPromise = null; stale = true; gen++; texts.clear(); known.clear();
+  texts.clear(); known.clear(); textGen++;
+  if (stale) return;   // a fresh index is already on its way, or will be fetched on the next open
+  loaded = null; indexPromise = null; stale = true; gen++;
 }
 function loadIndex() {
   const g = gen;
-  indexPromise ??= fetch(stale ? `/search-index.json?r=${Date.now()}` : "/search-index.json").then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+  indexPromise ??= fetch("/search-index.json", stale ? { cache: "reload" } : undefined).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
     .then((e: Entry[]) => { if (g === gen) { stale = false; loaded = e; } return e; });
   const mine = indexPromise;
   indexPromise.catch(() => { if (indexPromise === mine) indexPromise = null; });
@@ -52,8 +54,8 @@ function copyText(e: Entry): Promise<string> {
   const k = copyUrl(e);
   let p = texts.get(k);
   if (!p) {
-    const g = gen;
-    p = fetch(k).then((r) => (r.ok ? r.text() : Promise.reject(new Error(r.status === 404 ? "gone" : String(r.status))))).then((t) => { if (g === gen) known.set(k, t); return t; });
+    const g = textGen;
+    p = fetch(k).then((r) => (r.ok ? r.text() : Promise.reject(new Error(r.status === 404 ? "gone" : String(r.status))))).then((t) => { if (g === textGen) known.set(k, t); return t; });
     const mine = p;
     p.catch(() => { if (texts.get(k) === mine) texts.delete(k); });
     texts.set(k, p);
@@ -205,15 +207,23 @@ export function Search() {
   const active = items[Math.min(cur, items.length - 1)];
 
   useEffect(() => { setCur(0); list.current?.scrollTo({ top: 0 }); }, [q, scope]);
-  // The selected result's Copy text is fetched once the selection rests for a moment (so holding an arrow key
-  // doesn't request every result it passes). The wide preview shows it, and Copy then writes it at once.
+  // On wide screens the preview shows the selected result's Copy text. It is fetched once the selection rests for a
+  // moment, so holding an arrow key doesn't request every result it passes. Phones have no preview and fetch a text
+  // only when it is copied.
   // `text: null` means the fetch failed (Copy tries again and, if it succeeds, fills the preview); `gone` that the
   // result no longer exists. `waiting` turns on after 400 ms without the text (a timer, so reduced motion shows it).
   const [payload, setPayload] = useState<{ key: string; text: string | null; gone?: boolean } | null>(null);
   const [waiting, setWaiting] = useState(false);
+  const [wide, setWide] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    const mq = matchMedia("(min-width: 900px)"), on = () => setWide(mq.matches);
+    on(); mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, [open]);
   useEffect(() => {
     setWaiting(false);
-    if (!open || !active?.copy) return;
+    if (!open || !wide || !active?.copy) return;
     const k = copyUrl(active), have = knownText(active);
     if (have !== undefined) { setPayload({ key: k, text: have }); return; }
     // Coming back to a text that failed: it shows as loading again while it retries.
@@ -224,7 +234,7 @@ export function Search() {
       (err) => { if (!live) return; const g = gone(err); if (g) dropIndex(); setPayload({ key: k, text: null, gone: g }); }), 120);
     const w = setTimeout(() => setWaiting(true), 400);
     return () => { live = false; clearTimeout(t); clearTimeout(w); };
-  }, [open, active]);
+  }, [open, wide, active]);
   const shown = active?.copy && payload?.key === copyUrl(active) ? payload : undefined;
   useEffect(() => {
     if (!active) return;
