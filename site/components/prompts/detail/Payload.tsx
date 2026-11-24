@@ -24,11 +24,16 @@ type Props = {
   steps?: (string | null)[];
 };
 
-type Fallback = { text: string; name: string; n: number; slot?: HTMLElement | null };
+type Fallback = { text: string; name: string; n: number; slot?: HTMLElement | null; dock?: boolean };
 
 // Fields where C is typing, never the shortcut.
 const typing = (el: EventTarget | null) =>
   el instanceof HTMLElement && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
+// Text selected inside the panel (a selection elsewhere on the page doesn't change what C does here).
+const selectedIn = (panel: HTMLElement | null) => {
+  const sel = window.getSelection();
+  return !!panel && !!sel && !sel.isCollapsed && !!sel.toString() && (panel.contains(sel.anchorNode) || panel.contains(sel.focusNode));
+};
 const keyboardFocus = (el: Element) => { try { return el.matches(":focus-visible"); } catch { return false; } };
 
 // The exact text a prompt copies, with the one Copy that matters in a header that stays in reach while you read.
@@ -55,7 +60,7 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
   const [keys, setKeys] = useState(false); // keyboard focus is in the panel, where C copies
   const [selected, setSelected] = useState(false); // the visitor has text selected, so C stands aside
   useEffect(() => {
-    const on = () => setSelected(!!window.getSelection()?.toString());
+    const on = () => setSelected(selectedIn(root.current));
     document.addEventListener("selectionchange", on);
     return () => document.removeEventListener("selectionchange", on);
   }, []);
@@ -78,7 +83,7 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
       const what = copyLabel.replace(/^Copy\s+/i, "");
       return { text, name: inline ? `${label} text` : `${what[0].toUpperCase()}${what.slice(1)} text`, n: Date.now() };
     };
-    const onBlocked = (btn: Element) => { const f = textFor(btn); if (f) setFallback(f); };
+    const onBlocked = (btn: Element) => { const f = textFor(btn); if (f) setFallback({ ...f, dock: !!dock?.contains(btn) }); };
     const isCopy = (el: Element | null) => el?.closest(".pd-copy, .pd-stepcopy, .fcopy__copy") ?? null;
 
     const watch = new MutationObserver((records) => {
@@ -92,8 +97,7 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
         }
         const btn = isCopy(el);
         if (!btn || r.oldValue !== null) continue; // only an attribute turning on
-        // FloatingCopy recovers its own blocked press when it has the text as its target (inline prompts).
-        if (r.attributeName === "data-blocked") { if (!(inline && dock?.contains(btn))) onBlocked(btn); }
+        if (r.attributeName === "data-blocked") onBlocked(btn);
         else if (!inline) {
           // A later copy worked: hide the fallback, handing focus back to the button if it was in the text.
           if (pre.current?.contains(document.activeElement)) {
@@ -118,7 +122,9 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
     let top = Math.max(head.current?.getBoundingClientRect().bottom ?? 0, header), bottom = innerHeight;
     const d = dockWrap.current?.querySelector<HTMLElement>(".fcopy");
     if (d?.hasAttribute("data-on")) { const dr = d.getBoundingClientRect(); if (dr.top < innerHeight / 2) top = Math.max(top, dr.bottom); else bottom = dr.top; }
-    if (r.top < top || r.top + 24 > bottom) { // 24px: at least the first line
+    // A block from the floating bar: FloatingCopy has started its own smooth scroll toward the anchor, so always scroll
+    // here. An instant scroll replaces that one, and the text's first lines end up in view either way.
+    if (fallback.dock || r.top < top || r.top + 24 > bottom) { // 24px: at least the first line
       if (fallback.slot) pre.current.scrollIntoView({ block: "center" });
       else root.current?.scrollIntoView({ block: "start" });
     }
@@ -146,6 +152,7 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
   }, []);
 
   const onKey = (e: ReactKeyboardEvent) => {
+    if (!keys && !/^(Meta|Control|Alt|Shift)$/.test(e.key) && !cDoesNothing(e.target)) setKeys(true); // focus came by mouse or script, and the reader is on the keyboard now
     if (e.key !== "c" && e.key !== "C") return;
     if (e.metaKey || e.ctrlKey || e.altKey || e.repeat || e.nativeEvent.isComposing) return;
     if (cDoesNothing(e.target) || selecting()) return;
@@ -155,9 +162,9 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
   // On a step (its Copy, its link, its text showing beside it) C would copy step 1 instead, so it does nothing there.
   const cDoesNothing = (t: EventTarget | null) =>
     typing(t) || (!!fallback?.slot && t === pre.current) || (t instanceof Element && !!t.closest("[data-step], [data-step-slot], .pd-steps"));
-  // Text the visitor has selected anywhere on the page is theirs to copy with Cmd/Ctrl+C: C leaves it alone, and the
+  // Text the visitor has selected in the panel is theirs to copy with Cmd/Ctrl+C: C leaves it alone, and the
   // hint hides while it is there (this includes the text a blocked copy selects, where Cmd/Ctrl+C is the next step).
-  const selecting = () => !!window.getSelection()?.toString();
+  const selecting = () => selectedIn(root.current);
   const onFocus = (e: ReactFocusEvent) => setKeys(!cDoesNothing(e.target) && keyboardFocus(e.target));
   const onBlur = (e: ReactFocusEvent) => { if (!root.current?.contains(e.relatedTarget as Node | null)) setKeys(false); };
 
@@ -197,7 +204,7 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
         <span ref={anchor} className="pd-anchor" aria-hidden="true" />
       </section>
       <div ref={dockWrap} className="pd-dockwrap">
-        <FloatingCopy anchor={anchor} target={inline ? pre : undefined} text={text} title={title ?? label} detail={title ? label : undefined} label={copyLabel} name={`${copyLabel}: ${title ?? label}`} />
+        <FloatingCopy anchor={anchor} text={text} title={title ?? label} detail={title ? label : undefined} label={copyLabel} name={`${copyLabel}: ${title ?? label}`} />
       </div>
     </>
   );
