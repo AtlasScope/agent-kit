@@ -37,21 +37,14 @@ export function InstallPanel({ id, title, options }: { id: string; title: string
     if (!el) return;
     const main = () => el.querySelector<HTMLButtonElement>(".ip-copy");
     const bar = () => el.querySelector<HTMLButtonElement>(".fcopy__copy");
-    const select = (fromBar: boolean) => {
-      const p = pre.current, s = window.getSelection();
-      if (!p || !s) return;
-      // From the bar, the text is off screen: bring it into view so the selection the label points at can be seen.
-      if (fromBar) p.scrollIntoView({ block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
-      s.selectAllChildren(p);
-    };
     // CopyButton sets data-blocked while the clipboard refuses; select the text then, so Cmd/Ctrl+C finishes the job.
-    const watch = new MutationObserver((records) => {
-      for (const r of records) {
-        const b = r.target as HTMLElement;
-        if (r.type === "attributes" && b.hasAttribute("data-blocked")) select(b === bar());
-      }
+    // The bar's Copy is handled by FloatingCopy itself (it scrolls the text into view and selects it).
+    const watch = new MutationObserver(() => {
+      const p = pre.current, s = window.getSelection();
+      if (p && s && main()?.hasAttribute("data-blocked")) s.selectAllChildren(p);
     });
-    for (const n of el.querySelectorAll(".ip-copywrap, .fcopy")) watch.observe(n, { subtree: true, attributes: true, attributeFilter: ["data-blocked"] });
+    const w = el.querySelector(".ip-copywrap");
+    if (w) watch.observe(w, { subtree: true, attributes: true, attributeFilter: ["data-blocked"] });
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "c" && e.key !== "C") return;
       if (e.metaKey || e.ctrlKey || e.altKey || e.repeat || e.defaultPrevented || editable(e.target)) return;
@@ -100,7 +93,7 @@ export function InstallPanel({ id, title, options }: { id: string; title: string
         <pre ref={pre} className="ip-text" tabIndex={0} translate="no">{o.text}</pre>
         {o.note && <p className="ip-note">{o.note}</p>}
       </div>
-      <FloatingCopy anchor={wrap} text={o.text} title={title} detail={options.length > 1 ? o.label : undefined} name={o.copyName} />
+      <FloatingCopy anchor={wrap} target={pre} text={o.text} title={title} detail={options.length > 1 ? o.label : undefined} name={o.copyName} />
     </section>
   );
 }
