@@ -81,6 +81,12 @@ test("the static book has every page, a job picker, and no start", () => {
   assert.match(html, /Details for someone technical/);
 });
 
+test("smaller findings are listed and escaped", () => {
+  const html = render([{ title: "x", also: ["Two buttons share a <name>."] }]);
+  assert.match(html, /<h2>Also found<\/h2><ul><li>Two buttons share a &lt;name&gt;\.<\/li><\/ul>/);
+  assert.ok(!render([{ title: "x" }]).includes("Also found"));
+});
+
 test("a page with no next steps says there is nothing to do", () => {
   const html = render([{ title: "Keen polish", report: { happened: "Tidied.", means: "Looks finished." } }]);
   assert.match(html, /Nothing\./);

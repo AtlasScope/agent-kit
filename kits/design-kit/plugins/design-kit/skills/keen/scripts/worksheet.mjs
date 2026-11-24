@@ -93,6 +93,7 @@ ${page.verdict ? `<p class="verdict">${esc(page.verdict)}</p>` : ""}
 </dl>
 ${shots ? `<h2>What it looks like</h2><div class="shots">${shots}</div>` : ""}
 ${problems ? `<h2>What was found, most important first</h2><ol class="problems">${problems}</ol>` : ""}
+${(page.also || []).length ? `<h2>Also found</h2><ul>${page.also.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>` : ""}
 ${(page.working || []).length ? `<h2>What is working</h2>${page.working.map((w) => `<p>${esc(w)}</p>`).join("")}` : ""}
 ${hasNext ? `<h2>What you can run next</h2>
 <p class="sub">Add as many as you want, in the order you want them. Nothing starts until you press Start at the bottom.</p>

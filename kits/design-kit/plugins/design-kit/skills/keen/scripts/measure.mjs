@@ -93,10 +93,17 @@ export function measurePage(helpers) {
     const colour = rgba(s.backgroundColor);
     if (s.backgroundImage === "none") return colour[3] > 0 ? [colour] : "clear";
     if (/url\(/.test(s.backgroundImage)) return "picture";
-    // A gradient: the text has to pass against every colour in it.
+    // A gradient: the text has to pass against every colour in it, including
+    // the ones it passes through between the colours it names.
     const stops = (s.backgroundImage.match(STOP) || []).map(rgba);
-    if (!stops.length) return "picture";
-    return stops;
+    if (!stops.length || stops.length > 6) return "picture";
+    const through = [];
+    stops.forEach((stop, i) => {
+      through.push(stop);
+      const next = stops[i + 1];
+      if (next) for (let t = 1; t < 8; t += 1) through.push(stop.map((v, k) => v + ((next[k] - v) * t) / 8));
+    });
+    return through;
   };
   // Every colour that could sit behind an element, or null when a picture does.
   // It looks at what is really stacked under the middle of the text, so a photo
@@ -127,7 +134,7 @@ export function measurePage(helpers) {
     }
     bases = [[255, 255, 255]];
     for (const layer of layers.reverse()) bases = bases.flatMap((base) => layer.map((c) => over(c, base)));
-    return bases.slice(0, 64);
+    return bases.length > 512 ? null : bases;
   };
   // The lowest contrast of a colour against every colour that could be behind it.
   const worst = (colourText, bases) => Math.min(...bases.map((base) => contrast(over(rgba(colourText), base), base)));
@@ -156,7 +163,8 @@ export function measurePage(helpers) {
   };
   for (const el of all) {
     const s = getComputedStyle(el);
-    const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+    // Marks with no letter or number in them, such as the slash between breadcrumbs, are decoration.
+    const own = [...el.childNodes].some((n) => n.nodeType === 3 && /[\p{L}\p{N}]/u.test(n.textContent));
     if (own && !squeezed(el)) {
       const px = parseFloat(s.fontSize);
       sizes.set(px, (sizes.get(px) || 0) + 1);
@@ -168,7 +176,12 @@ export function measurePage(helpers) {
     for (const part of ["::before", "::after"]) {
       const ps = getComputedStyle(el, part);
       const made = /^"(.*)"$/.exec(ps.content || "");
-      if (made && made[1].trim() && ps.display !== "none") check(el, made[1].slice(0, 60), ps, "added by the stylesheet");
+      if (!made || !made[1].trim() || ps.display === "none") continue;
+      // With a background of its own, what is behind it cannot be worked out from here.
+      if (rgba(ps.backgroundColor)[3] > 0 || ps.backgroundImage !== "none") {
+        textUnmeasured += 1;
+        if (overPictures.length < LIMIT) overPictures.push({ text: made[1].slice(0, 60), at: where(el) });
+      } else check(el, made[1].slice(0, 60), ps, "added by the stylesheet");
     }
     // The grey hint inside an empty field.
     if (el.matches("input, textarea") && el.getAttribute("placeholder") && !el.value) check(el, el.getAttribute("placeholder").slice(0, 60), getComputedStyle(el, "::placeholder"), "hint inside a field");
@@ -177,10 +190,14 @@ export function measurePage(helpers) {
   const controls = all.filter((el) => el.matches('a[href], button, input:not([type="hidden"]), select, textarea, summary, [role="button"], [role="link"], [role="tab"], [role="checkbox"], [role="switch"], [tabindex]:not([tabindex="-1"])'));
   // A link inside a sentence may be as small as its line (WCAG 2.5.8).
   const inSentence = (el) => {
-    if (!el.matches("a, [role='link']") || !/^inline/.test(getComputedStyle(el).display)) return false;
+    if (!el.matches("a, [role='link']") || getComputedStyle(el).display !== "inline") return false;
     let block = el.parentElement;
-    while (block && /^inline/.test(getComputedStyle(block).display)) block = block.parentElement;
-    return Boolean(block) && words(block).length > words(el).length + 8;
+    while (block && getComputedStyle(block).display === "inline") block = block.parentElement;
+    if (!block) return false;
+    // It is a sentence only if there are words around the links, not just other links.
+    const copy = block.cloneNode(true);
+    copy.querySelectorAll("a, button, [role='link'], [role='button']").forEach((n) => n.remove());
+    return (copy.textContent || "").replace(/[\s,.;:·|/()&-]+/g, " ").trim().length > 8;
   };
   const centre = (r) => [r.left + r.width / 2, r.top + r.height / 2];
   const boxes = controls.map((el) => ({ el, r: el.getBoundingClientRect(), sentence: inSentence(el) }));
@@ -192,7 +209,7 @@ export function measurePage(helpers) {
       const small = other.r.width < 24 || other.r.height < 24;
       if (small) {
         const [ox, oy] = centre(other.r);
-        return Math.hypot(cx - ox, cy - oy) < 24;
+        if (Math.hypot(cx - ox, cy - oy) < 24) return true;
       }
       const nx = Math.max(other.r.left, Math.min(cx, other.r.right));
       const ny = Math.max(other.r.top, Math.min(cy, other.r.bottom));

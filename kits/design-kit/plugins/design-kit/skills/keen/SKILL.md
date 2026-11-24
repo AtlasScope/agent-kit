@@ -170,6 +170,7 @@ Keep one folder per piece of work at `.artifacts/keen/<target>/` in the primary 
   "report": { "happened": "...", "means": "..." },
   "shots": [{ "src": "today-phone.jpg", "caption": "Phone, first screen.", "pins": [{ "n": 1, "x": 50, "y": 89 }] }],
   "problems": [{ "title": "Your day is not on the first screen", "body": "Plain words. Blank line between paragraphs." }],
+  "also": ["A smaller finding, in one line."],
   "working": ["One thing to keep."],
   "steps": [
     {
