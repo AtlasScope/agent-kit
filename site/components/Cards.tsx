@@ -56,20 +56,25 @@ export const firstSentence = (d: string) => {
   return cut > 20 ? s.slice(0, cut).replace(/[,:]$/, "") + "." : s;
 };
 
+// Skills as rows: name and Star, kit and author, then the first sentence of what it does. Used on the skills index,
+// kit pages, Fix pages and prompt pages.
 export function SkillCards({ names, kit = true }: { names: string[]; kit?: boolean }) {
+  const list = names.map((n) => getSkill(n)).filter((s): s is NonNullable<ReturnType<typeof getSkill>> => Boolean(s));
   return (
-    <div className="pgrid">
-      {names.map((n) => getSkill(n)).filter(Boolean).map((s) => (
-        <article key={s!.name} className="pcard" data-kit={s!.kit}>
-          <div className="pcard__top">
-            <h3 className="pcard__t"><Link className="stretch" href={`/skills/${s!.name}`}>{s!.name}</Link></h3>
-            <Star kind="skill" refId={s!.name} title={s!.name} />
-          </div>
-          <p className="pcard__m">{kit && <span>{s!.kit}</span>}<span>{s!.credit ? `By ${s!.credit.author}` : "By Agent Kit"}</span></p>
-          <p className="pcard__d">{firstSentence(s!.description)}</p>
-        </article>
+    <ul className="srows">
+      {list.map((s) => (
+        <li key={s.name}>
+          <article className="srow" data-kit={s.kit}>
+            <div className="srow__top">
+              <h3 className="srow__t"><Link className="stretch" href={`/skills/${s.name}`} translate="no">{s.name}</Link></h3>
+              <Star kind="skill" refId={s.name} title={s.name} />
+            </div>
+            <p className="srow__m">{kit && <span>{s.kit}</span>}<span>{s.credit ? `By ${s.credit.author}` : "By Agent Kit"}</span></p>
+            <p className="srow__d">{firstSentence(s.description)}</p>
+          </article>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }
 

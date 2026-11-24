@@ -40,7 +40,8 @@ export function AreaPage({ a }: { a: Area }) {
           </ul>
         </nav>
       )}
-      <section className="section" aria-label={`${a.title} prompts`}>
+      <section className="section" aria-labelledby="h-list">
+        <h2 id="h-list" className="sr">{a.title} prompts</h2>
         <div className="lib__bar">
           {options.length > 1 ? (
             <Suspense fallback={count}><AreaFilter listId="area-list" options={options} total={list.length} /></Suspense>
