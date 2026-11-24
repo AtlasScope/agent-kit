@@ -41,7 +41,7 @@ export default async function KitPage({ params }: { params: Promise<{ kit: strin
   const borrowed = k.skills.filter((s) => getSkill(s)?.credit).length;
   const readme = `${SITE.repo}/blob/main/${k.readmePath}`;
   return (
-    <main className="page kd">
+    <main className="page">
       <header className="sd-head">
         <Crumbs items={[["Kits", "/kits"], [k.title, `/kits/${k.name}`]]} />
         <p className="sd-eyebrow"><span>Plugin</span><span aria-hidden="true">·</span><span>v{k.version}</span><span aria-hidden="true">·</span><span>{n} {n === 1 ? "skill" : "skills"}</span></p>

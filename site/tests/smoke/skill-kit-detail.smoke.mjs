@@ -62,16 +62,19 @@ for (const size of SIZES) for (const scheme of ["light", "dark"]) {
       await page.getByRole("button", { name: `Copy the command that installs ${name}` }).click();
       assert.equal(await clipboard(page), `npx skills add AtlasScope/agent-kit --skill ${name}`);
       assert.equal(await page.locator("#install .ip-text").textContent(), `npx skills add AtlasScope/agent-kit --skill ${name}`, "shown as copied");
-      await page.getByRole("tab", { name: `All of ${s.kit}` }).click();
+      await page.getByRole("tab", { name: "Whole kit" }).click();
       await page.getByRole("button", { name: `Copy the Claude Code commands that install ${s.kit}` }).click();
       assert.equal(await clipboard(page), `claude plugin marketplace add ${SITE.repoSlug}\nclaude plugin install ${s.kit}@agent-kit`);
       assert.equal(await page.locator("#install .ip-text").textContent(), `claude plugin marketplace add ${SITE.repoSlug}\nclaude plugin install ${s.kit}@agent-kit`, "shown as copied");
-      // Arrow keys move between the tabs; C copies the chosen way from anywhere on the page.
-      await page.getByRole("tab", { name: `All of ${s.kit}` }).press("ArrowLeft");
+      // Arrow keys move between the tabs; C copies the chosen way while focus is in the panel, and not elsewhere.
+      await page.getByRole("tab", { name: "Whole kit" }).press("ArrowLeft");
       assert.equal(await page.getByRole("tab", { name: "This skill" }).getAttribute("aria-selected"), "true");
-      await page.locator("h1").click();
       await page.keyboard.press("c");
       assert.equal(await clipboard(page), `npx skills add AtlasScope/agent-kit --skill ${name}`);
+      await page.evaluate(() => navigator.clipboard.writeText("untouched"));
+      await page.locator(".sd-doc__src").focus();
+      await page.keyboard.press("c");
+      assert.equal(await clipboard(page), "untouched", "C outside the panel does nothing");
       assert.deepEqual(errors, []);
       await ctx.close();
     }

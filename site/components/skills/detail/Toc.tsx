@@ -14,6 +14,8 @@ export function Toc({ items, label }: { items: TocItem[]; label: string }) {
       // The current section is the last heading that has passed the top third of the screen.
       let last: string | null = null;
       for (const el of els) if (el.getBoundingClientRect().top < window.innerHeight * 0.33) last = el.id;
+      // At the very bottom the last sections can't reach the top third; the last one is then the one being read.
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 1) last = els[els.length - 1].id;
       setCurrent(last);
     };
     const onScroll = () => { if (!frame) frame = requestAnimationFrame(update); };
