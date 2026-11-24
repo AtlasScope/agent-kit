@@ -62,7 +62,7 @@ export function Payload({ label, meta, text, copyLabel, actions, children }: Pro
         <div className="pd-payload__acts">
           {actions}
           <span className="pd-copywrap">
-            <CopyButton className="btn pd-copy" text={text} label={copyLabel} icon />
+            <CopyButton className="btn btn--primary pd-copy" text={text} label={copyLabel} icon />
             <kbd className="pd-key" aria-hidden="true" title="Press C to copy">C</kbd>
           </span>
         </div>
