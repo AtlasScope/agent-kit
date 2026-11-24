@@ -81,6 +81,7 @@ export function PromptPage({ p }: { p: Prompt }) {
                       <span className="pd-steps__d">{st.note}</span>
                     </span>
                     {st.copy ? <span className="pd-stepcopywrap" data-step={i}><CopyButton className="btn btn--sm pd-stepcopy" text={st.copy} label="Copy" name={`Copy step ${i + 1}: ${st.label}`} icon /></span> : <span />}
+                    <div className="pd-stepslot" data-step-slot={i} />
                   </li>
                 ))}
               </ol>

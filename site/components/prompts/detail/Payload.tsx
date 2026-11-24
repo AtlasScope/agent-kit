@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { CopyButton } from "@/components/CopyButton";
 
 type Props = {
@@ -17,11 +18,12 @@ type Props = {
   /** The page title, repeated in the dock so its Copy says what it copies. */
   title?: string;
   /** Exact texts of per-step Copy buttons in `children`, by index. Each such button sits inside an element with
-   *  `data-step={index}`, so a blocked step copy can show and select the text it would have copied. */
+   *  `data-step={index}`, and its row holds an empty `data-step-slot={index}` element, so a blocked step copy can
+   *  show and select the text it would have copied right beside that step. */
   steps?: (string | null)[];
 };
 
-type Fallback = { text: string; name: string; n: number };
+type Fallback = { text: string; name: string; n: number; slot?: HTMLElement | null };
 
 const BLOCKED = /blocked/i;
 const editable = (el: EventTarget | null) =>
@@ -56,7 +58,7 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
       if (step && steps) {
         const i = Number(step.dataset.step);
         const t = steps[i];
-        return t ? { text: t, name: `Step ${i + 1} text`, n: Date.now() } : null;
+        return t ? { text: t, name: `Step ${i + 1} text`, n: Date.now(), slot: panel.querySelector<HTMLElement>(`[data-step-slot="${i}"]`) } : null;
       }
       // The main Copy: name the text by what the button says it copies ("Copy step 1" -> "Step 1 text").
       const what = copyLabel.replace(/^Copy\s+/i, "");
@@ -79,26 +81,34 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
     });
     // A press while the label already says "blocked" changes nothing in the DOM if it is blocked again, so check
     // once the clipboard call has had time to settle. A success turns the label to "Copied" first and is skipped.
+    const timers = new Set<ReturnType<typeof setTimeout>>();
     const onClick = (e: MouseEvent) => {
       const btn = isCopy(e.target as Element);
       if (!btn || !BLOCKED.test(btn.textContent || "")) return;
-      setTimeout(() => { if (BLOCKED.test(btn.textContent || "") && !btn.hasAttribute("data-copied")) onBlocked(btn); }, 400);
+      const t = setTimeout(() => { timers.delete(t); if (BLOCKED.test(btn.textContent || "") && !btn.hasAttribute("data-copied")) onBlocked(btn); }, 400);
+      timers.add(t);
     };
     for (const el of [panel, dock.current]) {
       if (!el) continue;
       watch.observe(el, { subtree: true, characterData: true, childList: true, attributes: true, attributeFilter: ["data-copied"] });
       el.addEventListener("click", onClick, true);
     }
-    return () => { watch.disconnect(); for (const el of [panel, dock.current]) el?.removeEventListener("click", onClick, true); };
+    return () => {
+      watch.disconnect(); timers.forEach(clearTimeout);
+      for (const el of [panel, dock.current]) el?.removeEventListener("click", onClick, true);
+    };
   }, [text, label, copyLabel, steps, inline]);
 
-  // After the fallback renders: bring the panel's top under the header (so the sticky bar doesn't cover the first
-  // lines), focus the text and select it.
+  // After the fallback renders: make sure its first lines are on screen and not under the sticky bar (the panel's top
+  // for the main text, the text itself beside a step), then focus and select it.
   useEffect(() => {
     if (!fallback || !pre.current) return;
     const r = pre.current.getBoundingClientRect();
     const barBottom = head.current?.getBoundingClientRect().bottom ?? 0;
-    if (r.top < barBottom || r.top > innerHeight) root.current?.scrollIntoView({ block: "start" });
+    if (r.top < barBottom || r.top > innerHeight) {
+      if (fallback.slot) pre.current.scrollIntoView({ block: "center" });
+      else root.current?.scrollIntoView({ block: "start" });
+    }
     pre.current.focus({ preventScroll: true });
     window.getSelection()?.selectAllChildren(pre.current);
   }, [fallback]);
@@ -114,7 +124,8 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
       // The bar sticks at --header-h, so measure against that same number, with 2px of tolerance for zoom rounding.
       const top = Math.floor(parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-h")) || 0);
       const steps = Array.from({ length: 51 }, (_, i) => i / 50);
-      seen = new IntersectionObserver(([e]) => setDocked(e.boundingClientRect.height - e.intersectionRect.height > 2), { rootMargin: `-${top}px 0px 0px 0px`, threshold: steps });
+      // Several crossings can queue between frames on a fast scroll; the last entry is the current state.
+      seen = new IntersectionObserver((es) => { const e = es[es.length - 1]; setDocked(e.boundingClientRect.height - e.intersectionRect.height > 2); }, { rootMargin: `-${top}px 0px 0px 0px`, threshold: steps });
       seen.observe(bar);
     };
     build();
@@ -126,6 +137,7 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
     if (e.key !== "c" && e.key !== "C") return;
     if (e.metaKey || e.ctrlKey || e.altKey || e.repeat || e.nativeEvent.isComposing) return;
     if (e.target !== pre.current && e.target !== main.current && editable(e.target)) return;
+    if (fallback?.slot && e.target === pre.current) return; // a step's text is showing: C would copy step 1 instead
     if (String(window.getSelection() || "").length) return;
     e.preventDefault();
     main.current?.click();
@@ -159,7 +171,11 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
             </span>
           </div>
         </div>
-        {inline ? block : <>{block && <div className="pd-fallback">{block}</div>}{children}</>}
+        {inline ? block : <>
+          {block && !fallback?.slot && <div className="pd-fallback">{block}</div>}
+          {children}
+          {block && fallback?.slot && createPortal(<div className="pd-fallback pd-fallback--step">{block}</div>, fallback.slot)}
+        </>}
       </section>
       <div ref={dock} className="pd-dock" data-on={docked || undefined} inert={!docked} aria-hidden={!docked || undefined}>
         {title && <span className="pd-dock__t">{title}</span>}

@@ -119,6 +119,22 @@ for (const size of SIZES) {
     await ctx.close();
   });
 
+  test(`${size.name}: a step-by-step recipe copies step 1 and each step on its own`, async () => {
+    const p = data.prompts.find((x) => x.split && x.planSteps?.filter((st) => st.copy).length >= 2);
+    const path = `/prompts/${p.slug}`;
+    const { page, ctx, errors } = await open(size, path);
+    await noSideScroll(page, path);
+    const main = page.locator(".pd-payload button.pd-copy", { hasText: "Copy step 1" });
+    assert.equal(await main.count(), 1);
+    await main.click();
+    assert.equal(await clipboard(page), composeCopy(p));
+    const i = p.planSteps.findIndex((st, k) => k > 0 && st.copy);
+    await page.locator(`[data-step="${i}"] button.pd-stepcopy`).click();
+    assert.equal(await clipboard(page), p.planSteps[i].copy);
+    assert.deepEqual(errors, []);
+    await ctx.close();
+  });
+
   test(`${size.name}: the prompt hub leads with best starting points that copy`, async () => {
     const { page, ctx, errors } = await open(size, "/prompts");
     await noSideScroll(page, "/prompts");

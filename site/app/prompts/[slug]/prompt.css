@@ -68,6 +68,10 @@
 .pd-gnote { margin: 0; }
 /* A blocked clipboard on a split recipe shows the exact text above the steps, selected. */
 .pd-fallback { border-bottom: 1px solid var(--c-line); }
+/* Beside a step, the slot takes no room until it holds the text, which then spans the row under that step. */
+.pd-stepslot { display: contents; }
+.pd-fallback--step { grid-column: 1 / -1; border: 1px solid var(--c-line); border-radius: var(--radius-md); background: var(--c-canvas); }
+.pd-fallback--step .pd-text { padding: var(--space-4); border-radius: var(--radius-md); }
 
 /* Facts: grouped by the question they answer. Hairlines between groups, no box. */
 .pd-aside { display: grid; gap: 0; min-width: 0; }
