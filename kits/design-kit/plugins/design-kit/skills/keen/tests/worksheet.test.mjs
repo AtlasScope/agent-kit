@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { addPage, bookDir, commandFor, commands, optionsOf, readBook, render, serve } from "../scripts/worksheet.mjs";
+import { tooLong, LIMITS, addPage, bookDir, commandFor, commands, optionsOf, readBook, render, serve } from "../scripts/worksheet.mjs";
 
 const page1 = {
   tab: "Critique",
@@ -71,8 +71,8 @@ test("the page has every page of the book, a job picker, Keen's own header and n
   const html = render([page1, page2]);
   assert.equal(html.split("<script>")[0].split('<section class="page">').length - 1, 2);
   assert.match(html, /<select data-step="0">/);
-  assert.match(html, /Add all, in this order/);
-  assert.match(html, /Details for someone technical/);
+  assert.match(html, /Add all \d, in this order/);
+  assert.match(html, /<span>Details<\/span>/);
   assert.match(html, />AtlasScope<\/span><span class="tool">Keen<\/span>/);
   assert.match(render([{ title: "x", area: "Engineer <x>" }]), /<span class="tool">Engineer &lt;x&gt;<\/span>/);
   assert.match(html, /id="start">Start<\/button>/);
@@ -81,7 +81,7 @@ test("the page has every page of the book, a job picker, Keen's own header and n
 
 test("smaller findings are listed and escaped", () => {
   const html = render([{ title: "x", also: ["Two buttons share a <name>."] }]);
-  assert.match(html, /<h2>Also found<\/h2><ul><li>Two buttons share a &lt;name&gt;\.<\/li><\/ul>/);
+  assert.match(html, /Also found \(1\)<\/span><\/summary><div class="body"><ul><li>Two buttons share a &lt;name&gt;\.<\/li><\/ul>/);
   assert.ok(!render([{ title: "x" }]).includes("Also found"));
 });
 
@@ -182,4 +182,15 @@ test("a wait that nobody answers is told to ask again, and a stop ends it", asyn
   await new Promise((r) => setTimeout(r, 10));
   await post(s, "/stop");
   assert.deepEqual(await waiting, { stopped: true });
+});
+
+test("a page with too many words is refused, and the refusal names each part to shorten", () => {
+  const long = "word ".repeat(LIMITS.verdict + 1).trim();
+  assert.deepEqual(tooLong({ title: "x", verdict: "Short and true." }), []);
+  const found = tooLong({ title: "x", verdict: long, problems: [{ title: "a" }, { title: "b" }, { title: "c" }, { title: "d" }], steps: [{ label: "ok", why: long + " more words here to go over", command: "/keen polish" }] });
+  assert.equal(found.length, 3);
+  assert.match(found[0], /^verdict is 17 words; 16 at most\./);
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "keen-long-"));
+  assert.throws(() => addPage(dir, { title: "x", verdict: long }), /too many words[\s\S]*verdict is 17 words/);
+  assert.equal(readBook(dir).length, 0);
 });
