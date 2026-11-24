@@ -130,3 +130,4 @@ body:has(main.home) .foot { display: none; }
 @media (max-width: 23rem) { :root:has(.home) .wordmark .wordmark__name { display: none; } }
 @media (max-width: 86rem) { :root:has(.home) .links a { padding-inline: 9px; } }
 @media (max-width: 40rem) { :root:has(.home) .nav__gh { display: inline-flex; } }
+@media (pointer: coarse) { :root:has(.home) .nav .search .search__trigger { min-height: 44px; } :root:has(.home) .links a { min-height: 40px; } }

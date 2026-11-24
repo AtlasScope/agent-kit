@@ -19,7 +19,7 @@ Taken for the redesign, from the founder's brief, the dossier (v0.9) and the ben
 | Phone menu | Fills the screen: section links large, then Kits, Learn, Connect your agent, GitHub, About, then a full-width Install. GitHub leaves the bar under 40rem. |
 | Type | Montserrat 600 for page titles only. Geist for everything else; section headings 600 (was 650). Geist Mono for payloads, commands and ids. |
 | Section hues | Kept, as small flat dots (no gloss). |
-| Home and the quiet stage | The dark stage covers Home and `/install` only. It keeps main's palette and button look, including the green main action, until Fable's track decides. `/start` follows the system light or dark like every other interior page. |
+| Home and the quiet stage | The dark stage covers Home and `/install` only. It keeps main's palette and button look, including the green main action, until Fable's track decides. Over Home only, the header also keeps main's look (the light after the product name, the lit bottom line, the outlined field, GitHub in the bar on phones); the Header row below applies everywhere else. `/start` follows the system light or dark like every other interior page. |
 | First frame | Interior pages show real content in the first viewport: title, one line, then the thing itself. No hero blocks on interior pages. |
 
 ## Tokens
@@ -97,6 +97,7 @@ Smoke files in `site/tests/smoke/` run in parallel, and each starts its own `nex
 | 3996 | `browse.smoke.mjs` |
 | 3995 | `guides.smoke.mjs` |
 | 3994 | The smoke file added in #136 |
+| 3993 | `design-system.smoke.mjs` |
 
 ## Frozen APIs
 
@@ -116,7 +117,7 @@ The homepage artwork, renderer and composition (`components/orbit/`, `components
 ## Rules for page families
 
 1. Use tokens, never raw values. Colours come from `--c-*` (or, in older CSS, the `--color-*` aliases). Sizes from `--type-*`, spacing from `--space-N`, radii from `--radius-*`, durations from `--dur-*`. A raw hex or pixel value in a page file needs a comment saying why.
-2. Use primitives before writing new controls: `.btn` (`--primary`, default, `--ghost`, `--danger`, `--sm`, `--lg`), `.iconbtn`, `.input`, `.chip`, `.tag`, `.kbd`, `.block` (code with a head and Copy), `.cmdline`, `.menu__pop`, `.led`, and `FloatingCopy` (`components/ui/FloatingCopy.tsx`: `FloatingCopy({ anchor, text, title, detail?, name?, label? })`, a fixed Copy bar that shows once `anchor` scrolls behind the header; under the header on a computer, along the bottom on a phone; inert while hidden; styled by `.fcopy`). If a primitive is missing, ask for it.
+2. Use primitives before writing new controls: `.btn` (`--primary`, default, `--ghost`, `--danger`, `--sm`, `--lg`), `.iconbtn`, `.input`, `.chip`, `.tag`, `.kbd`, `.block` (code with a head and Copy), `.cmdline`, `.menu__pop`, `.led`, and `FloatingCopy` (`components/ui/FloatingCopy.tsx`: `FloatingCopy({ anchor, end?, text, title, detail?, name?, label? })`, a fixed Copy bar that shows at the first pixel `anchor` slides under the header and hides again once `end` does; under the header on a computer, along the bottom on a phone; inert while hidden; a blocked clipboard scrolls `anchor` back into view; styled by `.fcopy`. Render `anchor` and `end` with the bar, since their refs are read on mount). If a primitive is missing, ask for it.
 3. Colour means something. Green (`--c-signal`) only for a state that is true now: copied, tested, finished, current. Never a fill, a wash, a border glow or a large text colour. Amber (`--c-warm`) for what the visitor kept or chose. Red only for destructive actions and errors. The main action is neutral (ink on light, white on dark).
 4. Hairlines before shadows, flat before glass. No gradients, glows, neon edges or decorative blur on interior pages.
 5. One `h1` per page in the display face; `h2`/`h3` in the body face at the token sizes.

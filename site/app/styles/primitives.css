@@ -130,7 +130,7 @@
 
 /* Floating copy bar (components/ui/FloatingCopy.tsx): under the header on a computer, along the bottom on a phone. */
 .fcopy { position: fixed; z-index: 20; top: calc(var(--header-h) + var(--space-2));
-  right: max(var(--gutter), env(safe-area-inset-right), calc((100vw - var(--container)) / 2 + var(--gutter)));
+  right: max(var(--gutter), env(safe-area-inset-right), calc((100% - var(--container)) / 2 + var(--gutter)));
   display: flex; align-items: center; gap: var(--space-3); max-width: min(28rem, calc(100vw - 2 * var(--gutter)));
   padding: var(--space-1) var(--space-1) var(--space-1) var(--space-4); border: 1px solid var(--c-line); border-radius: var(--radius-lg);
   background: var(--c-raised); box-shadow: var(--shadow-3); visibility: hidden; opacity: 0;
