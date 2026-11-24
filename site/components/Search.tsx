@@ -24,8 +24,14 @@ type Group = { label: string; items: Entry[] };
 
 let indexPromise: Promise<Entry[]> | null = null;
 let loaded: Entry[] | null = null;
+// Set when a Copy text 404s: this tab's index may predate a deploy that removed or renamed the result. The next
+// open then fetches the index again past the browser cache, which also replaces the cached copy.
+let refetch = false;
+function staleIndex() { refetch = true; loaded = null; indexPromise = null; }
 function loadIndex() {
-  indexPromise ??= fetch("/search-index.v2.json").then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+  const reload = refetch;
+  refetch = false;
+  indexPromise ??= fetch("/search-index.v2.json", reload ? { cache: "reload" } : undefined).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
     .then((e: Entry[]) => (loaded = e));
   const mine = indexPromise;
   indexPromise.catch(() => { if (indexPromise === mine) indexPromise = null; });
@@ -239,7 +245,8 @@ export function Search() {
     setQ(""); setScope("all");
     if (e.href !== path) router.push(e.href);
   };
-  const say = (msg: string) => { clearTimeout(toastTimer.current); setToast(msg); toastTimer.current = setTimeout(() => setToast(""), 2400); };
+  // A sticky message (progress) stays until the next one replaces it.
+  const say = (msg: string, sticky = false) => { clearTimeout(toastTimer.current); setToast(msg); if (!sticky) toastTimer.current = setTimeout(() => setToast(""), 2400); };
   // A text already fetched is written at once. Otherwise the clipboard is handed a promise of it (ClipboardItem),
   // which keeps the user's gesture valid in Safari while the text loads; browsers without that wait, then write.
   const copy = async (e: Entry) => {
@@ -252,7 +259,7 @@ export function Search() {
       else {
         text = copyText(e);
         // Phones have no preview, so say something if the text takes a moment.
-        const slow = setTimeout(() => say("Copying…"), 300);
+        const slow = setTimeout(() => say("Copying…", true), 300);
         text.finally(() => clearTimeout(slow)).catch(() => {});
         text.then((t) => setPayload((p) => (p?.key === k ? { key: k, text: t } : p)), () => {});
         try {
@@ -273,6 +280,7 @@ export function Search() {
       const loadFailed = text ? await text.then(() => null, (err: unknown) => err ?? true) : null;
       // The text arrived but the browser refused the late write; it is cached now, so a second press writes it at once.
       if (late && !loadFailed && navigator.clipboard && err instanceof DOMException && err.name === "NotAllowedError") say("The text is ready now. Press Copy again.");
+      else if (loadFailed instanceof Error && loadFailed.message === "404") { staleIndex(); say("This result may have changed since the page loaded. Close and reopen search to refresh the list."); }
       else say(loadFailed ? "Couldn’t load the text to copy. Open the page and copy from there." : "Copy was blocked. Open the page and copy from there.");
     }
   };

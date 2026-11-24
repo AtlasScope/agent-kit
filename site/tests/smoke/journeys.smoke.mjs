@@ -169,7 +169,7 @@ for (const size of SIZES) {
     await ctx.close();
   });
 
-  test(`${size.name}: a Copy text that fails to load says so`, async () => {
+  test(`${size.name}: a Copy text that is gone says so, and the next open refreshes the index`, async () => {
     const { page, ctx, errors } = await open(size, "/skills");
     const mod = process.platform === "darwin" ? "Meta" : "Control";
     await page.getByRole("banner").locator(".kbd", { hasText: "K" }).waitFor({ state: "attached" });
@@ -181,7 +181,13 @@ for (const size of SIZES) {
     await opt.waitFor();
     await opt.hover();
     await box.press(`${mod}+Enter`);
-    await page.getByRole("status").filter({ hasText: "Couldn’t load the text" }).waitFor();
+    await page.getByRole("status").filter({ hasText: "may have changed" }).waitFor();
+    // The next open fetches the index again, past the cache.
+    const again = page.waitForRequest((r) => r.url().endsWith("/search-index.v2.json"));
+    await box.press("Escape"); await box.press("Escape");
+    await box.waitFor({ state: "hidden" });
+    await page.keyboard.press(`${mod}+k`);
+    await again;
     assert.deepEqual(errors, []);
     await ctx.close();
   });
