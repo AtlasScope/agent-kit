@@ -15,7 +15,7 @@ export function AgentSupport({ only }: { only?: "plugin" }) {
             <li key={a.id} title={note}>
               <i className={a.tested ? "led is-on" : "led"} aria-hidden="true" />
               <span>{a.label}</span>
-              <span className="sr">({a.tested ? "install tested" : "not yet tested"})</span>
+              <span className="sr">({a.tested ? (a.scope ?? "install tested") : "not yet tested"})</span>
             </li>
           );
         })}

@@ -1,4 +1,4 @@
-import { skills, kits, getKit } from "@/lib/content";
+import { skills, getKit } from "@/lib/content";
 import { firstSentence } from "@/components/Cards";
 import { AGENTS, KITS, KIT_GUIDE } from "@/lib/site";
 
@@ -21,10 +21,11 @@ export const browseSkills: BrowseSkill[] = skills.map((s) => ({
 }));
 
 // Kits in catalog order (KITS), which is also the order of the install commands.
-export const browseKits: BrowseKit[] = KITS.map((name) => {
-  const k = getKit(name)!;
-  return { name, title: k.title, version: k.version, line: KIT_GUIDE[name]?.line ?? "", count: k.skills.length };
-}).filter((k) => kits.some((x) => x.name === k.name));
+// A name in KITS with no kit in the catalog is left out instead of crashing the page.
+export const browseKits: BrowseKit[] = KITS.flatMap((name) => {
+  const k = getKit(name);
+  return k ? [{ name, title: k.title, version: k.version, line: KIT_GUIDE[name]?.line ?? "", count: k.skills.length }] : [];
+});
 
 // Authors of one kit's skills, Agent Kit first, then by how many skills each wrote.
 export function kitAuthors(kit: string) {

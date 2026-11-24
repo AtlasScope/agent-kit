@@ -108,7 +108,7 @@
 }
 @media (pointer: coarse) {
   .sb__input { min-height: var(--tap); font-size: 1rem; } /* 16px stops iOS Safari zooming the page on focus. */
-  .sb__seg button, .sb__rail a { min-height: var(--tap); }
+  .sb__seg button, .sb__rail a, .sb__clear { min-height: var(--tap); }
 }
 @media (hover: hover) and (pointer: fine) {
   .sk:has(.stretch:hover) { background: var(--c-surface); }

@@ -29,12 +29,16 @@ export function SkillBrowser({ skills, kits }: { skills: BrowseSkill[]; kits: Br
     const fq = u.get("q"); const fw = u.get("from"); const fb = u.get("by");
     if (fq) setQ(fq);
     if (fw === "original" || fw === "borrowed") setWho(fw);
-    if (fb === "author" && !location.hash) setBy("author");
-    ready.current = true;
+    // A kit anchor (/skills#motion-kit) needs the kit grouping; an author anchor (#by-…, which the rail adds) does not.
+    const hash = decodeURIComponent(location.hash.slice(1));
+    if (fb === "author" && !kits.some((k) => k.name === hash)) setBy("author");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Mirror the view into the URL. Skip the first run: it sees the defaults before the state read above lands,
+  // and writing them would strip the shared parameters.
   useEffect(() => {
-    if (!ready.current) return;
+    if (!ready.current) { ready.current = true; return; }
     const u = new URL(location.href);
     const set = (k: string, v: string | null) => (v ? u.searchParams.set(k, v) : u.searchParams.delete(k));
     set("q", q.trim() || null); set("from", who === "all" ? null : who); set("by", by === "kit" ? null : by);
@@ -52,9 +56,17 @@ export function SkillBrowser({ skills, kits }: { skills: BrowseSkill[]; kits: Br
     if (by === "kit") return kits.map((k) => ({ id: k.name, title: k.name, kit: k, items: shown.filter((s) => s.kit === k.name) }));
     const m = new Map<string, BrowseSkill[]>();
     for (const s of shown) m.set(s.author, [...(m.get(s.author) ?? []), s]);
+    const used = new Set<string>();
     return [...m.entries()]
       .sort((a, b) => (a[0] === AGENT_KIT ? -1 : b[0] === AGENT_KIT ? 1 : b[1].length - a[1].length || a[0].localeCompare(b[0])))
-      .map(([author, items]) => ({ id: `by-${slug(author)}`, title: author, items }));
+      .map(([author, items]) => {
+        // Names that slug the same (or to nothing, like a non-Latin name) still get distinct ids and keys.
+        const base = `by-${slug(author) || "author"}`;
+        let id = base;
+        for (let i = 2; used.has(id); i++) id = `${base}-${i}`;
+        used.add(id);
+        return { id, title: author, items };
+      });
   }, [by, kits, shown]);
   const visible = groups.filter((g) => g.items.length > 0);
 
@@ -128,7 +140,7 @@ export function SkillBrowser({ skills, kits }: { skills: BrowseSkill[]; kits: Br
         <div className="sb__groups">
           {visible.length === 0 && (
             <div className="sb__empty">
-              <p>No skill matches “{q.trim()}”{who !== "all" && <> among {who === "borrowed" ? "borrowed" : "Agent Kit"} skills</>}.</p>
+              <p>{terms.length > 0 ? <>No skill matches “{q.trim()}”</> : <>No skills</>}{who !== "all" && <> among {who === "borrowed" ? "borrowed" : "Agent Kit"} skills</>}.</p>
               <p className="ink2">Try a job, like “animation” or “bug”, or <button type="button" className="sb__clear" onClick={reset}>clear the filter</button>.</p>
             </div>
           )}
