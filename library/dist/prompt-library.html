@@ -529,7 +529,7 @@ function card(e, opts = {}) {
     h("div", { class: "c-head" }, h("button", { type: "button", class: "c-title" + (isCode(e) ? " code" : ""), onclick: () => openSheet(e.id) }, e.t), star(e.id, e.t)),
     meta,
     d ? h("p", { class: "c-desc" }, d) : null,
-    e.sec === "recipe" ? h("ol", { class: "c-steps", "aria-label": "Steps" }, e.steps.map(([c]) => h("li", {}, c.replace(/\s*<[^>]*>/g, "")))) : null,
+    e.sec === "recipe" ? h("ol", { class: "c-steps", "aria-label": "Steps" }, e.steps.map(([c]) => h("li", {}, c.split(/\s*<[^>]*>/).join("")))) : null,
     e.flow ? h("ol", { class: "c-steps", "aria-label": "Steps" }, e.flow.filter(s => s[1].length).map(([l, ids]) => h("li", {}, l + ": " + ids.join(" or ")))) : null,
     h("div", { class: "c-acts" }, copyBtn(copyLabel(e), copyText(e), { soft: true, id: e.id, toast: "Copied “" + e.t + "”", aria: copyLabel(e) + ": " + e.t }), h("button", { type: "button", class: "details", tabindex: "-1", onclick: () => openSheet(e.id) }, "Details")));
 }
