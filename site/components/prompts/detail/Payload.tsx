@@ -29,7 +29,7 @@ type Fallback = { text: string; name: string; n: number; slot?: HTMLElement | nu
 // Fields where C is typing, never the shortcut.
 const typing = (el: EventTarget | null) =>
   el instanceof HTMLElement && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
-const keyboardFocus = (el: Element) => { try { return el.matches(":focus-visible"); } catch { return true; } };
+const keyboardFocus = (el: Element) => { try { return el.matches(":focus-visible"); } catch { return false; } };
 
 // The exact text a prompt copies, with the one Copy that matters in a header that stays in reach while you read.
 // Copy itself is the shared CopyButton (frozen API). This panel adds, around it:
@@ -53,6 +53,12 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
   const anchor = useRef<HTMLSpanElement>(null);
   const [fallback, setFallback] = useState<Fallback | null>(null);
   const [keys, setKeys] = useState(false); // keyboard focus is in the panel, where C copies
+  const [selected, setSelected] = useState(false); // the visitor has text selected, so C stands aside
+  useEffect(() => {
+    const on = () => setSelected(!!window.getSelection()?.toString());
+    document.addEventListener("selectionchange", on);
+    return () => document.removeEventListener("selectionchange", on);
+  }, []);
   const inline = !children; // the exact text is the panel body
 
   // Blocked presses: watch CopyButton's data-blocked and data-copied on the panel's buttons and the floating bar's.
@@ -77,9 +83,17 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
 
     const watch = new MutationObserver((records) => {
       for (const r of records) {
-        const btn = isCopy(r.target as Element);
+        const el = r.target as Element;
+        if (el === dock) {
+          // The floating bar hid while it held focus (a mouse press keeps focus there; FloatingCopy only stays up for
+          // keyboard focus): it turns inert, so hand focus to the panel's own Copy instead of dropping it to the page.
+          if (!dock.hasAttribute("data-on") && dock.contains(document.activeElement)) main.current?.focus({ preventScroll: true });
+          continue;
+        }
+        const btn = isCopy(el);
         if (!btn || r.oldValue !== null) continue; // only an attribute turning on
-        if (r.attributeName === "data-blocked") onBlocked(btn);
+        // FloatingCopy recovers its own blocked press when it has the text as its target (inline prompts).
+        if (r.attributeName === "data-blocked") { if (!(inline && dock?.contains(btn))) onBlocked(btn); }
         else if (!inline) {
           // A later copy worked: hide the fallback, handing focus back to the button if it was in the text.
           if (pre.current?.contains(document.activeElement)) {
@@ -91,7 +105,7 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
       }
     });
     // CopyButton resets to its plain label at the start of every press, so a repeat block turns data-blocked on again.
-    for (const el of [panel, dock]) if (el) watch.observe(el, { subtree: true, attributes: true, attributeOldValue: true, attributeFilter: ["data-blocked", "data-copied"] });
+    for (const el of [panel, dock]) if (el) watch.observe(el, { subtree: true, attributes: true, attributeOldValue: true, attributeFilter: ["data-blocked", "data-copied", "data-on"] });
     return () => watch.disconnect();
   }, [text, label, copyLabel, steps, inline]);
 
@@ -134,12 +148,16 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
   const onKey = (e: ReactKeyboardEvent) => {
     if (e.key !== "c" && e.key !== "C") return;
     if (e.metaKey || e.ctrlKey || e.altKey || e.repeat || e.nativeEvent.isComposing) return;
-    if (cDoesNothing(e.target)) return;
+    if (cDoesNothing(e.target) || selecting()) return;
     e.preventDefault();
     main.current?.click();
   };
-  // A step's text showing beside its step: C there would copy step 1 instead, so it does nothing.
-  const cDoesNothing = (t: EventTarget | null) => typing(t) || (!!fallback?.slot && t === pre.current);
+  // On a step (its Copy, its link, its text showing beside it) C would copy step 1 instead, so it does nothing there.
+  const cDoesNothing = (t: EventTarget | null) =>
+    typing(t) || (!!fallback?.slot && t === pre.current) || (t instanceof Element && !!t.closest("[data-step], [data-step-slot], .pd-steps"));
+  // Text the visitor has selected anywhere on the page is theirs to copy with Cmd/Ctrl+C: C leaves it alone, and the
+  // hint hides while it is there (this includes the text a blocked copy selects, where Cmd/Ctrl+C is the next step).
+  const selecting = () => !!window.getSelection()?.toString();
   const onFocus = (e: ReactFocusEvent) => setKeys(!cDoesNothing(e.target) && keyboardFocus(e.target));
   const onBlur = (e: ReactFocusEvent) => { if (!root.current?.contains(e.relatedTarget as Node | null)) setKeys(false); };
 
@@ -160,7 +178,7 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
 
   return (
     <>
-      <section ref={root} className="pd-payload" aria-label={label} data-keys={keys || undefined} onKeyDown={onKey} onFocus={onFocus} onBlur={onBlur}>
+      <section ref={root} className="pd-payload" aria-label={label} data-keys={(keys && !selected) || undefined} onKeyDown={onKey} onFocus={onFocus} onBlur={onBlur}>
         <div ref={head} className="pd-payload__head">
           <p className="pd-payload__meta"><span className="pd-payload__label">{label}</span>{meta}</p>
           <div className="pd-payload__acts">
