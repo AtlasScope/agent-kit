@@ -32,7 +32,12 @@ const removed = new Set<string>();
 function dropIndex(e: Entry) { removed.add(keyOf(e)); loaded = null; indexPromise = null; stale = true; gen++; texts.clear(); known.clear(); }
 function loadIndex() {
   indexPromise ??= fetch(stale ? `/search-index.json?r=${Date.now()}` : "/search-index.json").then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-    .then((e: Entry[]) => { stale = false; return (loaded = removed.size ? e.filter((x) => !removed.has(keyOf(x))) : e); });
+    .then((e: Entry[]) => {
+      // A cache that hasn't caught up may still list a removed result; leave it out of this load only.
+      const fresh = removed.size ? e.filter((x) => !removed.has(keyOf(x))) : e;
+      stale = false; removed.clear();
+      return (loaded = fresh);
+    });
   indexPromise.catch(() => { indexPromise = null; });
   return indexPromise;
 }
@@ -49,7 +54,8 @@ function copyText(e: Entry): Promise<string> {
   if (!p) {
     const g = gen;
     p = fetch(k).then((r) => (r.ok ? r.text() : Promise.reject(new Error(r.status === 404 ? "gone" : String(r.status))))).then((t) => { if (g === gen) known.set(k, t); return t; });
-    p.catch(() => texts.delete(k));
+    const mine = p;
+    p.catch(() => { if (texts.get(k) === mine) texts.delete(k); });
     texts.set(k, p);
   }
   return p;
@@ -201,9 +207,10 @@ export function Search() {
   useEffect(() => { setCur(0); list.current?.scrollTo({ top: 0 }); }, [q, scope]);
   // The preview (wide screens only) shows what Copy sends. It is fetched once the selection rests for a moment,
   // so holding an arrow key doesn't request every result it passes.
-  // `text: null` means the fetch failed (Copy tries again and, if it succeeds, fills the preview); `gone` means the
-  // result no longer exists.
-  const [payload, setPayload] = useState<{ key: string; text: string | null; gone?: boolean } | null>(null);
+  // `text: null` means the fetch failed (Copy tries again and, if it succeeds, fills the preview). `waitFor` names
+  // the text that has taken over 400 ms, which then says it is loading (a timer, not CSS, so reduced motion shows it).
+  const [payload, setPayload] = useState<{ key: string; text: string | null } | null>(null);
+  const [waitFor, setWaitFor] = useState("");
   const [wide, setWide] = useState(false);
   useEffect(() => {
     if (!open) return;
@@ -215,9 +222,14 @@ export function Search() {
     if (!open || !wide || !active?.copy) return;
     const k = copyUrl(active), have = knownText(active);
     if (have !== undefined) { setPayload({ key: k, text: have }); return; }
+    // Coming back to a text that failed: it shows as loading again while it retries.
+    setPayload((p) => (p?.key === k ? null : p));
     let live = true;
-    const t = setTimeout(() => copyText(active).then((text) => { if (live) setPayload({ key: k, text }); }, (err) => { if (live) setPayload({ key: k, text: null, gone: gone(err) }); }), 120);
-    return () => { live = false; clearTimeout(t); };
+    const e = active;
+    const t = setTimeout(() => copyText(e).then((text) => { if (live) setPayload({ key: k, text }); },
+      (err) => { if (!live) return; if (gone(err)) refresh(e); else setPayload({ key: k, text: null }); }), 120);
+    const w = setTimeout(() => setWaitFor(k), 400);
+    return () => { live = false; clearTimeout(t); clearTimeout(w); };
   }, [open, wide, active]);
   const shown = active?.copy && payload?.key === copyUrl(active) ? payload : undefined;
   useEffect(() => {
@@ -347,9 +359,8 @@ export function Search() {
               <h2 className="cmdk__ph" translate={active.kind === "skill" || active.kind === "kit" ? "no" : undefined}>{active.title}</h2>
               {active.summary && <p className="cmdk__ps">{active.summary}</p>}
               {active.copy && typeof shown?.text === "string" && <pre className="cmdk__payload" data-long={shown.text.length > 360 || undefined} aria-label={`${active.copy.label.replace(/^Copy /, "")} text`}>{shown.text}</pre>}
-              {active.copy && shown?.text === null && !shown.gone && <p className="cmdk__ps">The text didn’t load. Copy will try again.</p>}
-              {active.copy && !shown && <p className="cmdk__ps cmdk__wait">Loading the text…</p>}
-              {active.copy && shown?.gone && <p className="cmdk__ps">This result was removed in an update. Press Copy to refresh the list.</p>}
+              {active.copy && shown?.text === null && <p className="cmdk__ps">The text didn’t load. Copy will try again.</p>}
+              {active.copy && !shown && waitFor === copyUrl(active) && <p className="cmdk__ps">Loading the text…</p>}
               <div className="cmdk__actions">
                 <button type="button" className="cmdk__btn cmdk__btn--main" onClick={() => go(active)}>Open<kbd aria-hidden="true">↵</kbd></button>
                 {active.copy && <button type="button" className="cmdk__btn" onClick={() => copy(active)}>{active.copy.label}<kbd aria-hidden="true">{mod}↵</kbd></button>}

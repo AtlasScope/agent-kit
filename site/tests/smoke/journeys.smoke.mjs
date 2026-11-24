@@ -174,13 +174,13 @@ for (const size of SIZES) {
     await page.getByRole("banner").locator(".kbd", { hasText: "K" }).waitFor({ state: "attached" });
     await page.keyboard.press(`${process.platform === "darwin" ? "Meta" : "Control"}+k`);
     const box = page.getByRole("combobox", { name: "Search the library" });
-    await box.fill("tdd");
-    await page.locator('#search-results a[role="option"][href="/skills/tdd"]').first().waitFor();
-    // As if a deploy had removed it: its Copy text is gone, and the fresh index no longer lists it.
+    // As if a deploy had removed it: its Copy text is gone. On a wide screen the preview finds that out; on a
+    // phone, Copy does.
     await page.route("**/search-copy/skill/tdd*", (r) => r.fulfill({ status: 404, body: "" }));
     const fresh = page.waitForRequest((r) => /\/search-index\.json\?r=/.test(r.url()));
-    await page.locator('#search-results a[role="option"][href="/skills/tdd"]').first().hover();
-    await box.press(`${process.platform === "darwin" ? "Meta" : "Control"}+Enter`);
+    await box.fill("tdd");
+    await page.locator('#search-results a[role="option"][href="/skills/tdd"]').first().waitFor();
+    if (size.name === "phone") { await page.locator('#search-results a[role="option"][href="/skills/tdd"]').first().hover(); await box.press("Control+Enter"); }
     await fresh;
     await page.getByRole("status").filter({ hasText: "The list is up to date" }).waitFor();
     assert.equal(await page.locator('#search-results a[role="option"][href="/skills/tdd"]').count(), 0, "the removed result leaves the list");
