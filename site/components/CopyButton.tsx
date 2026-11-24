@@ -27,6 +27,8 @@ export function CopyButton({ text, label = "Copy", className = "copy", icon = fa
       data-blocked={state === BLOCKED || undefined}
       aria-label={name}
       onClick={async () => {
+        // Each press starts fresh, so a repeat result re-announces and a page watching the attributes sees it again.
+        if (state !== label) { clearTimeout(timer.current); setState(label); }
         try { await navigator.clipboard.writeText(text); show("Copied", 1600); }
         catch { show(BLOCKED, 5000); }
       }}

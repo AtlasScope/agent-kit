@@ -9,8 +9,10 @@ const TABBABLE = 'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"
 // `anchor` is the element whose top edge marks "scrolled away", usually the panel's own Copy button or its row: the bar
 // shows at the first pixel the anchor slides under the header, so one of the two Copy buttons can always be pressed.
 // `end` (optional) is where the bar stops being relevant: once its bottom edge is behind the header too, the bar hides.
-// `target` (optional) is the element holding the text. If the clipboard refuses, the page scrolls it (or the anchor)
-// back into view, selects its text so Cmd/Ctrl+C finishes the job, and moves focus there before the bar hides.
+// `target` (optional) is the element holding the text. If the clipboard refuses a press of the bar's Copy, the page
+// scrolls the target (or the anchor) back into view, selects the target's text so Cmd/Ctrl+C finishes the job, and
+// moves focus there (to the anchor's first control, or the anchor, without a target). The bar stays up while its
+// "Copy blocked" message shows, so the message is seen and announced.
 // Render all refs in the same commit as the bar (they are read on mount). Pass `name` so the two Copy buttons are told
 // apart by a screen reader, for example "Copy the install command".
 // The bar is inert while hidden so it takes no focus. Styles: .fcopy in app/styles/primitives.css.
@@ -19,7 +21,11 @@ export function FloatingCopy({ anchor, end, target, text, title, detail, name, l
   text: string; title: string; detail?: string; name?: string; label?: string;
 }) {
   const [away, setAway] = useState(false);
+  const [held, setHeld] = useState(false);
   const bar = useRef<HTMLDivElement>(null);
+  // True while focus is in the bar, or was until the bar went inert under it (a blur with nowhere to go).
+  const focused = useRef(false);
+  const shown = away || held;
   useEffect(() => {
     const el = anchor.current;
     if (!el) return;
@@ -39,38 +45,48 @@ export function FloatingCopy({ anchor, end, target, text, title, detail, name, l
     addEventListener("resize", queue);
     return () => { cancelAnimationFrame(raf); removeEventListener("scroll", queue); removeEventListener("resize", queue); };
   }, [anchor, end]);
-  // A blocked clipboard (CopyButton's documented data-blocked): bring the text back, select it and focus it. Watched on
-  // the attribute and re-checked after each press, because a repeat block leaves the attribute set and fires no mutation.
+  // Where focus goes after a block: the target, else the anchor's first control, else the anchor. A tabindex added
+  // here is removed again when focus leaves.
+  const land = () => {
+    const t = target?.current, a = anchor.current;
+    const el = t || (a?.matches(TABBABLE) ? a : a?.querySelector<HTMLElement>(TABBABLE)) || a;
+    if (!el) return null;
+    if (!el.matches(TABBABLE) && !el.hasAttribute("tabindex")) {
+      el.tabIndex = -1;
+      el.addEventListener("blur", () => el.removeAttribute("tabindex"), { once: true });
+    }
+    return el;
+  };
+  // CopyButton's documented data-blocked, set afresh on each press: recover only for a block this bar's press caused.
   useEffect(() => {
     const b = bar.current?.querySelector("button");
     if (!b) return;
-    // One recovery per press: the attribute change handles a fresh block, the timer a repeat one, never both.
-    let pending = false;
-    const recover = () => {
-      if (!pending || !b.hasAttribute("data-blocked")) return;
-      pending = false;
-      const t = target?.current, a = anchor.current;
-      const el = t || a;
-      if (!el) return;
-      el.scrollIntoView({ block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
-      if (t) {
-        if (!t.hasAttribute("tabindex")) t.tabIndex = -1;
-        t.focus({ preventScroll: true });
-        const range = document.createRange(); range.selectNodeContents(t);
-        const sel = getSelection(); sel?.removeAllRanges(); sel?.addRange(range);
-      } else {
-        (a?.matches(TABBABLE) ? a : a?.querySelector<HTMLElement>(TABBABLE))?.focus({ preventScroll: true });
-      }
-    };
-    const watch = new MutationObserver(recover);
-    watch.observe(b, { attributes: true, attributeFilter: ["data-blocked"] });
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const press = () => { pending = true; clearTimeout(timer); timer = setTimeout(recover, 150); };
+    let pressed = false;
+    const press = () => { pressed = true; };
+    const watch = new MutationObserver(() => {
+      const blocked = b.hasAttribute("data-blocked");
+      setHeld(blocked);
+      if (b.hasAttribute("data-copied")) pressed = false;
+      if (!blocked || !pressed) return;
+      pressed = false;
+      const t = target?.current;
+      (t || anchor.current)?.scrollIntoView({ block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      land()?.focus({ preventScroll: true });
+      if (t) { const r = document.createRange(); r.selectNodeContents(t); const sel = getSelection(); sel?.removeAllRanges(); sel?.addRange(r); }
+    });
+    watch.observe(b, { attributes: true, attributeFilter: ["data-blocked", "data-copied"] });
     b.addEventListener("click", press);
-    return () => { watch.disconnect(); clearTimeout(timer); b.removeEventListener("click", press); };
+    return () => { watch.disconnect(); b.removeEventListener("click", press); };
   }, [anchor, target]);
+  // If the bar is about to hide while it holds focus, hand focus to the panel instead of letting it drop to the page.
+  useEffect(() => {
+    if (shown || !focused.current) return;
+    focused.current = false;
+    if (!document.activeElement || document.activeElement === document.body || bar.current?.contains(document.activeElement)) land()?.focus({ preventScroll: true });
+  }, [shown]);
   return (
-    <div className="fcopy" ref={bar} data-on={away || undefined} inert={!away}>
+    <div className="fcopy" ref={bar} data-on={shown || undefined} inert={!shown}
+      onFocus={() => { focused.current = true; }} onBlur={(e) => { if (e.relatedTarget) focused.current = false; }}>
       <span className="fcopy__label">
         <span className="fcopy__title">{title}</span>
         {detail && <span className="fcopy__detail">{detail}</span>}
