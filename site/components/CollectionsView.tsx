@@ -157,7 +157,7 @@ function ItemGroup({ title, items, c, actions }: { title: string; items: Resolve
   ));
   return (
     <section className="cgroup" aria-labelledby={hid}>
-      <H id={hid}>{title} <span className="cgroup__n">{items.length}</span></H>
+      <H id={hid}>{title} <span className="cgroup__n">{slugs.length || skills.length}</span></H>
       {slugs.length > 0
         ? <PromptRows as={rowH} slugs={slugs} action={remove && ((p) => remove("prompt", storedRef.get(p.id) ?? p.id, p.t))} />
         : <SkillCards as={rowH} names={skills.map((i) => i.ref)} action={remove && ((sk) => remove("skill", sk.name, sk.name))} />}
