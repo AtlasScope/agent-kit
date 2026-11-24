@@ -62,7 +62,7 @@ test("desktop: the rail opens collections, Back returns, and the last one opened
   assert.equal(await page.locator(`[data-for="${STARRED}"]`).getAttribute("aria-current"), "true");
 
   await page.locator(`[data-for="${DESIGN}"]`).click();
-  await page.waitForURL(`**#${DESIGN}`);
+  await page.locator(`#ws[data-sel="${DESIGN}"]`).waitFor({ state: "attached" });
   assert.equal(await openPanel(page).getAttribute("data-col"), DESIGN);
   assert.equal(await page.locator(`[data-for="${DESIGN}"]`).getAttribute("aria-current"), "true");
   assert.equal(await page.locator(`[data-for="${STARRED}"]`).getAttribute("aria-current"), null);
@@ -88,7 +88,7 @@ test("desktop: a prompt copies the same payload as its page, the install command
   assert.equal(await page.evaluate(() => navigator.clipboard.readText()), "npx skills add AtlasScope/agent-kit --skill diagnosing-bugs");
 
   await page.locator(`[data-for="${EMPTY}"]`).click();
-  await page.waitForURL(`**#${EMPTY}`);
+  await page.locator(`#ws[data-sel="${EMPTY}"]`).waitFor({ state: "attached" });
   await openPanel(page).getByRole("link", { name: "Browse prompts" }).waitFor();
   await ctx.close();
 });
@@ -98,7 +98,7 @@ test("phone: the rail is the first screen, a collection replaces it, and All col
   assert.ok(await page.locator(".ws__rail").isVisible(), "rail shows first");
   assert.equal(await openPanel(page).count(), 0, "no collection open on the first screen");
   await page.locator(`[data-for="${DESIGN}"]`).tap();
-  await page.waitForURL(`**#${DESIGN}`);
+  await page.locator(`#ws[data-view="detail"][data-sel="${DESIGN}"]`).waitFor({ state: "attached" });
   assert.ok(!(await page.locator(".ws__rail").isVisible()), "rail gives way");
   assert.equal(await openPanel(page).getAttribute("data-col"), DESIGN);
   assert.equal(await page.evaluate(() => document.activeElement?.id), `col-${DESIGN}`, "focus moves to the collection's heading");
@@ -121,8 +121,10 @@ test("desktop: New collection creates one and opens it; Remove takes an item out
   assert.ok(page.url().endsWith(`#${id}`), "the new collection is in the URL");
 
   await page.locator(`[data-for="${DESIGN}"]`).click();
+  await page.locator(`#ws[data-sel="${DESIGN}"]`).waitFor({ state: "attached" });
   const before = await openPanel(page).locator(".citem").count();
-  await openPanel(page).getByRole("button", { name: /Remove ux-heuristics/ }).click();
+  // Pop's trigger is a <summary>, which has no button role in Chromium's accessibility tree; find it by its label.
+  await openPanel(page).locator('summary[aria-label^="Remove ux-heuristics"]').click();
   await openPanel(page).getByRole("button", { name: "Remove", exact: true }).click();
   await page.waitForFunction((n) => document.querySelectorAll(".ws__panel[data-col$='0002'] .citem").length === n - 1, before, { timeout: 10000 });
 

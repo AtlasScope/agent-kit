@@ -35,7 +35,7 @@ export default function McpSetup() {
       crumb="MCP server"
       title="Use Agent Kit from your agent"
       lead="Add one URL and your agent can search the library and pull any prompt or skill into the conversation, without cloning the repo or installing a plugin."
-      intro={<div className="mcp-url"><div className="cmdline"><code>{url}</code><CopyButton text={url} /></div></div>}
+      intro={<div className="mcp-url"><div className="cmdline"><code tabIndex={0} translate="no">{url}</code><CopyButton text={url} /></div></div>}
       sections={[
         ...CLIENTS.map(([label, how, cfg]) => ({
           id: slug(label), title: label,

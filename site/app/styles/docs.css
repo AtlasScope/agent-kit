@@ -77,3 +77,4 @@
 .notfound__ways code { color: var(--c-fg-3); font-size: var(--type-xs); font-weight: 400; }
 @media (hover: hover) and (pointer: fine) { .notfound__ways a:hover span { text-decoration: underline; text-decoration-color: var(--c-edge); text-underline-offset: 0.2em; } }
 @media (pointer: coarse) { .notfound__hint { display: none; } }
+@media (max-width: 40rem) { .mcp-url .cmdline { font-size: var(--type-xs); } }
