@@ -33,14 +33,15 @@ export function InstallPanel({ id, title, options }: { id: string; title: string
   const wrap = useRef<HTMLSpanElement>(null);
   const o = options[sel];
 
-  // The bar shows only while the panel's Copy is above the visible area (past the header), never before the reader
-  // has reached the panel. The sticky head keeps Copy in view while any of the panel is, so this is "scrolled away".
+  // The bar shows once the panel's Copy starts to slide under the header, never before the reader has reached the
+  // panel. The sticky head keeps Copy in view while most of the panel is, so this is "scrolling away"; showing it at
+  // the first pixel means there is no stretch where neither Copy can be pressed.
   useEffect(() => {
     const w = wrap.current, head = root.current?.querySelector<HTMLElement>(".ip-head");
     if (!w || !head) return;
     // Measured on every scroll and resize: the header's height changes between breakpoints.
     let raf = 0;
-    const check = () => { raf = 0; setAway(w.getBoundingClientRect().bottom <= (parseFloat(getComputedStyle(head).top) || 0) + 1); };
+    const check = () => { raf = 0; setAway(w.getBoundingClientRect().top < (parseFloat(getComputedStyle(head).top) || 0) - 1); };
     const queue = () => { if (!raf) raf = requestAnimationFrame(check); };
     check();
     addEventListener("scroll", queue, { passive: true });

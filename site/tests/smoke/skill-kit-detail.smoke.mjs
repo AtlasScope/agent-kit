@@ -144,6 +144,20 @@ for (const size of SIZES) {
         if (at === 0 && !shown.length) continue; // above the panel on a phone: the reader hasn't reached install yet
         assert.equal(shown.length, 1, `${path} at ${at * 100}%: Copy in reach (${shown.join(", ") || "none"})`);
       }
+      // Pixel by pixel through the hand-off, where the panel's Copy slides under the header: never zero, never two.
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      const handoff = await page.evaluate(() => {
+        const w = document.querySelector("#install .ip-copywrap"), head = parseFloat(getComputedStyle(document.querySelector(".ip-head")).top);
+        return scrollY + w.getBoundingClientRect().top - head;
+      });
+      for (let dy = -40; dy <= 120; dy += 4) {
+        await page.evaluate((y) => window.scrollTo(0, y), Math.max(0, handoff + dy));
+        await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+        const shown = await copyInReach(page);
+        assert.equal(shown.length, 1, `${path} at hand-off ${dy}px: Copy in reach (${shown.join(", ") || "none"})`);
+      }
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+      await page.waitForTimeout(300);
       // At the bottom the bar is the Copy in reach: it copies the chosen way, and C works with focus on it.
       const bar = page.locator("#install .ip-float__copy");
       if (await bar.isVisible()) {
