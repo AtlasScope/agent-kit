@@ -1,6 +1,7 @@
 import { skills, getKit } from "@/lib/content";
 import { firstSentence } from "@/components/Cards";
 import { AGENTS, KITS, KIT_GUIDE } from "@/lib/site";
+import { commandFor } from "@/lib/skill-command";
 
 // The small, serialisable view of the catalog that the skills browser needs. Built on the server from
 // content/generated.json, so the client gets names and one line each, never the SKILL.md bodies.
@@ -8,14 +9,6 @@ export type BrowseSkill = { name: string; kit: string; line: string; text: strin
 export type BrowseKit = { name: string; title: string; version: string; line: string; count: number };
 
 export const AGENT_KIT = "Agent Kit";
-
-// What a person types to run a skill. A kit whose KIT_GUIDE commands are namespaced
-// (/experience-architecture:diagnose) namespaces every one of its skills, including ones KIT_GUIDE
-// doesn't list (/experience-architecture:verify); every other skill runs as /<name>.
-function commandFor(kit: string, name: string) {
-  const namespaced = KIT_GUIDE[kit]?.type.some((t) => t.startsWith(`/${kit}:`));
-  return namespaced ? `/${kit}:${name}` : `/${name}`;
-}
 
 export const browseSkills: BrowseSkill[] = skills.map((s) => ({
   name: s.name,

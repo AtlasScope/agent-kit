@@ -121,6 +121,10 @@ for (const size of SIZES) for (const scheme of ["light", "dark"]) {
         assert.equal(start, 1, `${k.name}/${name}: how it starts wraps`);
         assert.ok(all <= (size.isMobile ? 2 : 1), `${k.name}/${name}: meta takes ${all} lines`);
       }
+      // Rows give the command a person types in Claude Code after installing the kit: /kit:name for a namespaced kit.
+      const prefix = k.name === "experience-architecture" ? "/experience-architecture:" : "/";
+      const cmds = await page.locator(".kd-row__m code").allTextContents();
+      assert.deepEqual(cmds.sort(), k.skills.map((n) => `${prefix}${n}`).sort(), `${k.name}: row commands`);
       // Every skill in the kit is listed once, linked to its page.
       const links = await page.locator(".kd-row__name a").evaluateAll((as) => as.map((a) => a.getAttribute("href")));
       assert.deepEqual([...links].sort(), k.skills.map((n) => `/skills/${n}`).sort());
