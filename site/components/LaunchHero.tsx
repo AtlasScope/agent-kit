@@ -7,6 +7,7 @@ import { startOrbit, type OrbitCamera } from "./orbit-gl";
 import { HERO, SITE } from "@/lib/site";
 
 // The homepage: one screen and nothing below it. The headline, one sentence and Install over a live view from orbit.
+// On a tall phone, one or two more real requests (HERO.more) follow the note, above the horizon.
 // Install copies the visitor's install command on the click, then the planet sinks and the sky fades to black while
 // the words lift away, and the install page (/install) settles in out of that black and says the command is copied.
 // The opening plays once per visit, about three and a half seconds: the planet rises out of black, the sun breaks
@@ -209,6 +210,13 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
             <span className="launch__note-desk">Copies the install command for {agentName} to your clipboard.</span>
             <span className="launch__note-phone">Opens the install command, to run on your computer.</span>
           </p>
+          <ul className="launch__more" translate="no" aria-label="More requests it takes">
+            {HERO.more.map((m) => (
+              <li key={m.case}>
+                <code>{m.router} {m.request}</code><span aria-hidden="true">→</span><span className="sr"> picks </span><span className="launch__to"><i className="led is-on" aria-hidden="true" /><span className="launch__pick">{m.label}</span></span>
+              </li>
+            ))}
+          </ul>
         </div>
         <ul className="launch__legal" aria-label="About this site">
           <li><Link href="/about">About</Link></li>

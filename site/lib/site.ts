@@ -14,6 +14,13 @@ export const HERO = {
   // One real request and the skill its router picks, shown under the sentence. tests/hero.test.mjs checks it is a
   // routing case in tests/routing/cases.json whose first pick is this skill, and that the router's own row says so.
   example: { router: "/design", request: "why does my dashboard look like a school project", pick: "refactoring-ui", case: "DS31" },
+  // Two more real requests, one for each other router, shown under Install on a tall phone where the screen has room.
+  // `pick` is what the routing case expects first: a skill, or a library prompt id shown by its title (`label`).
+  // tests/hero.test.mjs holds each one to its routing case, the same as the example above.
+  more: [
+    { router: "/engineer", request: "I want to build the export feature test-first", pick: "/tdd", label: "tdd", case: "EN06" },
+    { router: "/database", request: "the database bill doubled and CPU is high", pick: "PG13", label: "Find the true sources of database waste", case: "DB04" },
+  ],
 };
 
 // Install paths per agent. `steps` run in order and Copy copies all of them. `tested` names the CLI
