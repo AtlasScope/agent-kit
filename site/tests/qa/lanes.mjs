@@ -1,6 +1,6 @@
 // Interaction checks written for one redesign lane's new behaviour, run in Chromium (Apple device
 // emulation) and in WebKitGTK where the behaviour can be driven without real input events.
-//   node tests/qa/lanes.mjs --lane search|browse|detail --target http://localhost:4003 [--label w3] [--webkit]
+//   node tests/qa/lanes.mjs --lane search|browse|detail|skilldetail --target http://localhost:4003 [--label w3] [--webkit]
 // Results go to <out>/<label>/lane-<lane>.json. Each check records pass or a finding with severity.
 import { chromium } from "playwright";
 import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
@@ -234,8 +234,17 @@ async function detail() {
         await page.evaluate(() => { window.__qaCopies = []; document.activeElement?.blur?.(); });
         await page.keyboard.press("c");
         await page.waitForTimeout(200);
-        const c2 = await copies(page);
-        c2.includes(want) ? pass("c-key", where) : fail("c-key", where, "serious", `pressing C copied ${c2.length ? "something else" : "nothing"}`);
+        let c2 = await copies(page), scope = "page";
+        if (!c2.includes(want)) {
+          // The shortcut may be scoped to the copy panel (WCAG 2.1.4); try with focus on the panel's text.
+          const focused = await page.evaluate(() => { const t = [...document.querySelectorAll("pre[tabindex], section [tabindex='0']")].find((e) => e.getBoundingClientRect().width > 0); t?.focus(); return !!t; });
+          if (focused) { await page.keyboard.press("c"); await page.waitForTimeout(200); c2 = await copies(page); scope = "panel"; }
+        }
+        c2.includes(want) ? pass("c-key", where, scope === "panel" ? "works with focus in the copy panel only" : "works from anywhere on the page") : fail("c-key", where, "serious", `pressing C copied ${c2.length ? "something else" : "nothing"}, from the page or the panel`);
+        if (scope === "panel" && c2.includes(want)) {
+          const hint = await page.evaluate(() => [...document.querySelectorAll("kbd")].some((k) => /^c$/i.test(k.textContent.trim()) && k.getBoundingClientRect().width > 0));
+          if (hint) fail("c-hint-truthful", where, "moderate", "a C key hint shows beside Copy at rest, but C only works once focus is inside the panel's text; pressing C after Tab to the Copy button does nothing");
+        }
         await page.keyboard.press("/");
         await page.waitForTimeout(200);
         await page.evaluate(() => { window.__qaCopies = []; });
@@ -301,6 +310,14 @@ async function detail() {
               document.dispatchEvent(new KeyboardEvent("keydown", { key: "c", bubbles: true, cancelable: true }));
               await new Promise((r) => setTimeout(r, 300));
               res.ckey = window.__qaCopies.slice();
+              if (!res.ckey.length) {
+                // Scoped to the panel: send C to the panel's focusable text instead.
+                const t = [...document.querySelectorAll("pre[tabindex], section [tabindex='0']")].find((e) => e.getBoundingClientRect().width > 0);
+                t?.focus();
+                t?.dispatchEvent(new KeyboardEvent("keydown", { key: "c", bubbles: true, cancelable: true }));
+                await new Promise((r) => setTimeout(r, 300));
+                res.ckey = window.__qaCopies.slice();
+              }
             }
             return res;
           }, deny);
@@ -312,6 +329,120 @@ async function detail() {
           });
         }
       }
+    }
+    await d.quit();
+  }
+}
+
+// ------------------------------------------------------------------------------------------- W7
+// Skill and kit detail: every install tab copies exactly the text it shows, the known commands are among them,
+// tabs work from the keyboard, Copy stays in reach, C works in the panel, and a refused copy selects the text.
+async function skilldetail() {
+  const borrowed = data.skills.find((x) => x.author && x.author !== "AtlasScope" && x.name !== "design") || data.skills[1];
+  const pages = [{ path: "/skills/design", skill: data.skills.find((x) => x.name === "design") }, { path: `/skills/${borrowed.name}`, skill: borrowed }, { path: "/kits/design-kit" }];
+  const norm = (t) => t.replace(/\s+/g, " ").trim();
+  for (const pg of pages) {
+    for (const d of ["macbook", "iphone"]) {
+      const where = `${d}${pg.path}`;
+      const { ctx, page, errors } = await open(d, pg.path);
+      const tabs = page.locator('[role="tablist"] [role="tab"]');
+      const n = await tabs.count();
+      const seen = [];
+      for (let i = 0; i < Math.max(n, 1); i++) {
+        if (n) { await tabs.nth(i).click(); await page.waitForTimeout(150); }
+        const panel = await page.evaluate(() => {
+          const pnl = document.querySelector('[role="tabpanel"]') || document.querySelector("section pre")?.closest("section");
+          const pre = pnl?.querySelector("pre");
+          return { text: pre?.textContent ?? null, tab: document.querySelector('[role="tab"][aria-selected="true"]')?.textContent?.trim() || "" };
+        });
+        const k = (await copies(page)).length;
+        const btn = page.locator('section:has([role="tablist"]) button, section:has(pre) button').filter({ hasText: /copy/i }).first();
+        const named = page.getByRole("button", { name: /^copy/i }).first();
+        await ((await btn.count()) ? btn : named).click().catch(() => {});
+        await page.waitForTimeout(200);
+        const got = (await copies(page)).slice(k)[0];
+        if (!got) fail("tab-copy", `${where} [${panel.tab}]`, "serious", "Copy put nothing on the clipboard");
+        else if (panel.text != null && got !== panel.text) fail("tab-copy-bytes", `${where} [${panel.tab}]`, "blocker", `copied text differs from the text shown (${got.length} vs ${panel.text.length} chars)`);
+        else pass("tab-copy-bytes", `${where} [${panel.tab}]`);
+        if (got) seen.push(got);
+      }
+      if (pg.skill) {
+        const want = [`npx skills add AtlasScope/agent-kit --skill ${pg.skill.name}`, `claude plugin marketplace add AtlasScope/agent-kit\nclaude plugin install ${pg.skill.kit}@agent-kit`];
+        for (const w of want) seen.includes(w) ? pass("known-command", where, w.split("\n")[0]) : fail("known-command", where, "blocker", `no tab copies ${JSON.stringify(w)}`);
+      }
+      if (n > 1 && d === "macbook") {
+        await tabs.nth(0).click();
+        await page.keyboard.press("ArrowRight");
+        const r = await page.evaluate(() => ({ sel: document.querySelector('[role="tab"][aria-selected="true"]')?.textContent?.trim(), foc: document.activeElement?.getAttribute("role") }));
+        const second = (await tabs.nth(1).textContent()).trim();
+        (r.sel === second && r.foc === "tab") ? pass("tabs-arrow-keys", where) : fail("tabs-arrow-keys", where, "serious", `ArrowRight left ${JSON.stringify(r)}`);
+        // C with focus in the panel.
+        await page.evaluate(() => { window.__qaCopies = []; document.querySelector('[role="tabpanel"] pre, section pre[tabindex]')?.focus(); });
+        await page.keyboard.press("c");
+        await page.waitForTimeout(200);
+        (await copies(page)).length ? pass("c-key-in-panel", where) : fail("c-key-in-panel", where, "moderate", "C with focus on the install text copied nothing");
+      }
+      const sticky = await page.evaluate(async () => {
+        const out = [];
+        for (const f of [0.35, 0.7, 1]) {
+          scrollTo(0, (document.documentElement.scrollHeight - innerHeight) * f);
+          await new Promise((r) => setTimeout(r, 250));
+          out.push([...document.querySelectorAll("button")].filter((b) => /^copy/i.test((b.getAttribute("aria-label") || b.textContent || "").trim())).some((b) => { const r = b.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight && r.width > 0; }));
+        }
+        scrollTo(0, 0);
+        return { out, tall: document.documentElement.scrollHeight > innerHeight * 1.5 };
+      });
+      if (sticky.tall) sticky.out.every(Boolean) ? pass("install-in-reach", where) : fail("install-in-reach", where, "moderate", `a Copy button is on screen at 35/70/100% scroll: ${sticky.out.join("/")}`);
+      await page.screenshot({ path: `${dir}/shots-lane/${pg.path.replace(/\W+/g, "_")}--${d}.png` });
+      errors.length ? fail("js-errors", where, "serious", errors.join(" | ")) : pass("js-errors", where);
+      await ctx.close();
+      // Refused clipboard selects the shown text.
+      const den = await open(d, pg.path, { deny: true });
+      await den.page.getByRole("button", { name: /^copy/i }).first().click().catch(() => {});
+      await den.page.waitForTimeout(400);
+      const r = await den.page.evaluate(() => ({ sel: String(getSelection()), pre: document.querySelector('[role="tabpanel"] pre, section pre')?.textContent || "" }));
+      (r.sel && norm(r.sel) === norm(r.pre)) ? pass("denied-selects-text", `${where}/denied`) : fail("denied-selects-text", `${where}/denied`, "serious", `selection after a refused copy: ${r.sel.length} chars, shown text ${r.pre.length}`);
+      await den.ctx.close();
+    }
+  }
+  if (args.webkit) {
+    const d = driver();
+    for (const pg of pages) for (const [devId, w, h] of [["macbook", 1440, 900], ["iphone", 393, 852]]) for (const deny of [false, true]) {
+      const where = `webkit/${devId}${pg.path}${deny ? "/denied" : ""}`;
+      await wk(d, where, { url: base + pg.path, width: w, height: h, init: `(${clipboardRecorder})(${deny})` }, async () => {
+        const r = await d.call(async (deny) => {
+          const out = { tabs: [], sticky: [] };
+          const tabs = [...document.querySelectorAll('[role="tablist"] [role="tab"]')];
+          for (const t of (tabs.length ? tabs : [null])) {
+            t?.click();
+            await new Promise((r) => setTimeout(r, 200));
+            const btn = [...document.querySelectorAll("button")].find((b) => /^copy/i.test((b.getAttribute("aria-label") || b.textContent || "").trim()) && b.closest("section")?.querySelector("pre"));
+            const pre = btn?.closest("section")?.querySelector("pre");
+            const n = window.__qaCopies.length;
+            btn?.click();
+            await new Promise((r) => setTimeout(r, 300));
+            out.tabs.push({ tab: t?.textContent?.trim() || "", shown: pre?.textContent ?? null, got: window.__qaCopies[n] ?? null, sel: String(getSelection()) });
+            getSelection().removeAllRanges();
+          }
+          for (const f of [0.35, 0.7, 1]) {
+            scrollTo(0, (document.documentElement.scrollHeight - innerHeight) * f);
+            await new Promise((r) => setTimeout(r, 250));
+            out.sticky.push([...document.querySelectorAll("button")].filter((b) => /^copy/i.test((b.getAttribute("aria-label") || b.textContent || "").trim())).some((b) => { const r = b.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight && r.width > 0; }));
+          }
+          out.tall = document.documentElement.scrollHeight > innerHeight * 1.5;
+          out.side = document.documentElement.scrollWidth - innerWidth;
+          return out;
+        }, deny);
+        for (const t of r.tabs) {
+          if (!t.got) fail("webkit-tab-copy", `${where} [${t.tab}]`, "serious", "Copy put nothing on the clipboard");
+          else if (t.shown != null && t.got !== t.shown) fail("webkit-tab-copy-bytes", `${where} [${t.tab}]`, "blocker", "copied text differs from the text shown");
+          else pass("webkit-tab-copy-bytes", `${where} [${t.tab}]`);
+          if (deny) (t.sel && norm(t.sel) === norm(t.shown || "")) ? pass("webkit-denied-selects-text", `${where} [${t.tab}]`) : fail("webkit-denied-selects-text", `${where} [${t.tab}]`, "serious", `selection ${t.sel.length} chars`);
+        }
+        if (!deny && r.tall) r.sticky.every(Boolean) ? pass("webkit-install-in-reach", where) : fail("webkit-install-in-reach", where, "moderate", `Copy on screen at 35/70/100%: ${r.sticky.join("/")}`);
+        if (r.side > 1) fail("webkit-side-scroll", where, "serious", `side scroll ${r.side}px`);
+        if (!deny) await d.send({ cmd: "shot", path: `${dir}/shots-lane/${pg.path.replace(/\W+/g, "_")}--webkit-${devId}.png`, full: false });
+      });
     }
     await d.quit();
   }
@@ -432,7 +563,7 @@ async function axeOpen(devId, scheme, setup) {
 }
 
 // Results are written even if a check throws, so a partial run still leaves evidence.
-try { await ({ search, detail, browse })[args.lane](); }
+try { await ({ search, detail, browse, skilldetail })[args.lane](); }
 catch (e) { fail("harness", "run", "serious", `lane run stopped early: ${String(e.message || e).split("\n")[0]}`); }
 finally {
   await browser.close();
