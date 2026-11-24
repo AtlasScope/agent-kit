@@ -15,7 +15,7 @@
 /* Pressed toggles are something the visitor chose: the warm accent. */
 .btn[aria-pressed="true"] { background: var(--c-warm-soft); border-color: var(--c-warm); }
 @media (hover: hover) and (pointer: fine) { .btn:hover { background: var(--c-raised); border-color: var(--c-edge); } }
-@media (hover: hover) and (pointer: fine) { .btn--primary:hover, .btn--solid:hover, .hub .welcome .btn--solid:hover { background: var(--c-primary-hover); border-color: transparent; } }
+@media (hover: hover) and (pointer: fine) { .btn--primary:hover, .btn--solid:hover { background: var(--c-primary-hover); border-color: transparent; } }
 @media (hover: hover) and (pointer: fine) { .btn--ghost:hover { background: var(--c-fill); border-color: transparent; } }
 @media (hover: hover) and (pointer: fine) { .btn--danger:hover { background: color-mix(in oklab, var(--c-danger), #000 10%); } }
 /* Copy. Stable width so the label change never moves the row; green only once the copy worked. */

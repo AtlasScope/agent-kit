@@ -59,7 +59,7 @@ The older `--color-*`, `--space-xs…2xl`, `--text-*`, `--lift*`, `--led*` and `
 | `guide.css` | Start and Learn guides, welcome offer | W8 |
 | `reading.css` | About, Privacy, Terms | W10 accounts and utility pages |
 | `account.css` | Sign in, Collections | W10 |
-| `quiet.css` | The dark stage behind `/install`. Its `/start` rules go when W8 moves `/start` to light and dark | W9 install |
+| `quiet.css` | The dark stage behind `/install` | W9 install |
 | `overrides.css` | The 10 grouped rules whose selectors span several lanes' files. Loads last so they keep winning as they did in the single file | Coordinator |
 
 A rule in `overrides.css` belongs to the coordinator. To change one, ask; the coordinator may move it into your file once the screenshot gate shows no change.
@@ -95,6 +95,7 @@ Smoke files in `site/tests/smoke/` run in parallel, and each starts its own `nex
 | 3999 | `journeys.smoke.mjs` |
 | 3998 | `install.smoke.mjs` |
 | 3997 | `library.smoke.mjs` |
+| 3996 | `browse.smoke.mjs` |
 | 3994 | The smoke file added in #136 |
 
 ## Frozen APIs
