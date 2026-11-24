@@ -56,15 +56,18 @@
    without darkening the planet. */
 .hero { --halo: 0 0 1px oklch(0% 0 0 / .5), 0 1px 10px oklch(0% 0 0 / .85), 0 0 22px oklch(0% 0 0 / .6); }
 .hero__note { margin: 0; font-size: .8125rem; line-height: 1.4; letter-spacing: -0.003em; color: oklch(100% 0 0 / .66); text-shadow: var(--halo); }
-.hero__new { display: inline-flex; align-items: center; gap: 4px; min-height: var(--tap); margin-top: clamp(6px, 1.4svh, 14px); color: oklch(100% 0 0 / .8); text-shadow: var(--halo);
+.hero__new { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: 4px; min-height: var(--tap); margin-top: clamp(6px, 1.4svh, 14px); color: #fff; text-shadow: var(--halo);
   font-size: .9375rem; letter-spacing: -0.006em; text-decoration: none; transition: color var(--dur-fast) var(--ease-out); }
+/* On a short phone the planet's edge can pass behind the link: a small pool of shade of its own keeps it readable. */
+.hero__new::before { content: ""; position: absolute; z-index: -1; inset: -4px -28px; pointer-events: none;
+  background: radial-gradient(50% 50% at 50% 50%, oklch(0% 0 0 / .6), oklch(0% 0 0 / 0)); }
 .hero__new svg { width: 15px; height: 15px; transition: transform var(--dur-slow) var(--ease-out); }
 .hero__foot { position: relative; isolation: isolate; display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 20px; margin: 0; padding: 0 0 14px; list-style: none; font-size: .8125rem; letter-spacing: 0; }
 /* A soft pool of shade only behind the row of links, not a band across the picture. */
-.hero__foot::before { content: ""; position: absolute; z-index: -1; inset: -18px -48px -6px; pointer-events: none;
-  background: radial-gradient(50% 60% at 50% 60%, oklch(0% 0 0 / .55), oklch(0% 0 0 / 0) 100%); }
-.hero__foot a { display: inline-flex; align-items: center; min-height: 32px; color: oklch(100% 0 0 / .78); text-shadow: var(--halo); text-decoration: none; transition: color var(--dur-fast) var(--ease-out); }
-@media (hover: hover) and (pointer: fine) { .hero__new:hover, .hero__foot a:hover { color: #fff; } .hero__new:hover svg { transform: translateX(3px); } }
+.hero__foot::before { content: ""; position: absolute; z-index: -1; inset: -18px -48px 0; pointer-events: none;
+  background: radial-gradient(50% 60% at 50% 60%, oklch(0% 0 0 / .68), oklch(0% 0 0 / 0) 100%); }
+.hero__foot a { display: inline-flex; align-items: center; min-height: 32px; color: oklch(100% 0 0 / .9); text-shadow: var(--halo); text-decoration: none; transition: color var(--dur-fast) var(--ease-out); }
+@media (hover: hover) and (pointer: fine) { .hero__foot a:hover { color: #fff; } .hero__new:hover { text-decoration: underline; text-decoration-color: oklch(100% 0 0 / .4); text-underline-offset: .25em; } .hero__new:hover svg { transform: translateX(3px); } }
 @media (pointer: coarse) { .hero__foot { gap: 0 8px; } .hero__foot a { min-height: var(--tap); padding-inline: 6px; } }
 
 /* ---- Install Agent Kit: the signature object. ----

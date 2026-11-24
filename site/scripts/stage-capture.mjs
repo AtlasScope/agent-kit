@@ -19,9 +19,11 @@ const SIZES = {
 };
 const browser = await launch();
 const live = (page) => page.waitForFunction(() => document.querySelector(".stage")?.classList.contains("is-live"), null, { timeout: 60000 });
-const open = async (size, url, extra = {}) => {
+const planet = [];
+const open = async (size, url, extra = {}, onRequest) => {
   const context = await browser.newContext({ ...SIZES[size], permissions: ["clipboard-read", "clipboard-write"], ...extra });
   const page = await context.newPage();
+  if (onRequest) page.on("request", onRequest);
   page.on("console", (m) => { if (m.type() === "error") console.log("console error:", m.text().slice(0, 600)); });
   page.on("pageerror", (e) => console.log("page error:", e.message.slice(0, 600)));
   await page.goto(base + url, { waitUntil: "load" });
@@ -55,7 +57,9 @@ try {
   if (want("stills")) for (const size of Object.keys(SIZES)) {
     for (const [name, url] of [["home", "/"], ["install", "/install"]]) {
       const { context, page } = await open(size, url);
-      await live(page); await page.waitForTimeout(2500);
+      // The install page never starts the planet on a direct visit; the homepage waits for it.
+      if (name === "home") await live(page);
+      await page.waitForTimeout(2500);
       await page.screenshot({ path: out(`${name}-${size}.png`) });
       if (name === "install") {
         await page.locator(".inst__manual > summary").first().click(); await page.waitForTimeout(400);
@@ -127,11 +131,15 @@ try {
     await page.waitForTimeout(2500);
     say(new URL(page.url()).pathname.startsWith("/prompts"), "a link to another section during the move wins: " + new URL(page.url()).pathname);
     await context.close();
-    // 4. A direct visit to /install: no move plays, no copied claim, and the receded pose is what shows.
-    ({ context, page } = await open("desktop", "/install"));
-    await page.waitForTimeout(600);
+    // 4. A direct visit to /install: no move plays, no copied claim, and the planet's code and maps are never asked
+    // for; going on to the homepage starts the planet there.
+    ({ context, page } = await open("desktop", "/install", {}, (req) => planet.push(req.url())));
+    await page.waitForTimeout(3000);
+    say(planet.filter((u) => u.includes("/horizon/earth/")).length === 0, `direct /install: no planet maps requested (${planet.filter((u) => u.includes("/horizon/earth")).length})`);
     say(!(await page.locator(".stage").getAttribute("data-shift")) && await page.locator(".inst[data-arrived]").count() === 0, "direct /install: no move, no arrival");
     say(await page.locator(".inst__copy--main", { hasText: "Copied" }).count() === 0, "direct /install: makes no claim about the clipboard");
+    await page.locator(".wordmark").click(); await live(page);
+    say(new URL(page.url()).pathname === "/" && await page.locator("main.home h1").isVisible(), "from a direct /install, the homepage starts the planet and shows its headline");
     await context.close();
     // 5. Reduced motion: no copy layer, no live scene, the right still for each page.
     ({ context, page } = await open("desktop", "/", { reducedMotion: "reduce" }));

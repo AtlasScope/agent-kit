@@ -132,7 +132,9 @@ export function Stage({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // The live scene. Its code and maps are megabytes, so nothing is asked for until the page itself has loaded.
+  // The live scene. Its code and maps are megabytes, so nothing is asked for until the page itself has loaded, and
+  // only while the homepage is the page showing: the settled install page shows no planet, so a visit that starts
+  // there loads none of it unless the visitor goes on to the homepage. The homepage's still covers until it is ready.
   useEffect(() => {
     const el = root.current, cv = canvas.current;
     if (!el || !cv || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -156,13 +158,25 @@ export function Stage({ children }: { children: React.ReactNode }) {
       }
       raf = requestAnimationFrame(frame);
     };
-    kick.current = () => { if (!raf && stage && !document.hidden) { last = 0; raf = requestAnimationFrame(frame); } };
-    const loaded = new Promise<void>((done) => { if (document.readyState === "complete") done(); else addEventListener("load", () => done(), { once: true }); });
-    loaded.then(() => import("../horizon")).then((m) => {
-      if (gone) return;
-      try { stage = m.createStage(cv, { direction: m.DIRECTIONS[VIEW], tall: () => matchMedia(TALL).matches, meter: METER, onError: () => {} }); } catch { stage = null; }
-      kick.current();
-    }, () => {});
+    let booted = false;
+    const boot = () => {
+      if (booted) return;
+      booted = true;
+      const loaded = new Promise<void>((done) => { if (document.readyState === "complete") done(); else addEventListener("load", () => done(), { once: true }); });
+      loaded.then(() => import("../horizon")).then((m) => {
+        if (gone) return;
+        try { stage = m.createStage(cv, { direction: m.DIRECTIONS[VIEW], tall: () => matchMedia(TALL).matches, meter: METER, onError: () => {} }); } catch { stage = null; }
+        // Started late (on the way back from Install): begin at the pose the page is in now, so the scene fades in
+        // over the matching still instead of replaying a move that has already finished.
+        const c = cam.current; c.at = c.to; c.v = 0;
+        kick.current();
+      }, () => {});
+    };
+    kick.current = () => {
+      if (!stage) { if (cam.current.to < 1) boot(); return; }
+      if (!raf && !document.hidden) { last = 0; raf = requestAnimationFrame(frame); }
+    };
+    if (cam.current.to < 1) boot();
     const onVisible = () => kick.current();
     document.addEventListener("visibilitychange", onVisible);
     return () => { gone = true; cancelAnimationFrame(raf); document.removeEventListener("visibilitychange", onVisible); kick.current = () => {}; stage?.dispose(); };
