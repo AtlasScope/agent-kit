@@ -2,7 +2,7 @@ import "server-only";
 import { createHash } from "node:crypto";
 import { listed, skills, kits, fixes, areas, copyText, copyLabel, kindLabel, whatOf, skillInstall } from "./content";
 import { promptDoc, skillDoc } from "./search";
-import { INSTALL_MESSAGE, kitInstallMessage } from "./site";
+import { INSTALL_MESSAGE, kitInstallMessage, authEnabled } from "./site";
 import { STEPS } from "./start";
 import { LESSONS } from "./lessons";
 import type { Entry } from "./search";
@@ -13,12 +13,13 @@ const lc = (...xs: unknown[]) => xs.flat(2).filter(Boolean).join(" ").toLowerCas
 const PAGES: { ref: string; title: string; href: string; summary: string; aka: string }[] = [
   { ref: "install", title: "Install Agent Kit", href: "/install", summary: "One message to paste into any agent, or the commands for each agent by hand.", aka: "setup add plugin marketplace npx get started download" },
   { ref: "start", title: "Start", href: "/start", summary: "A step-by-step first project with a coding agent, from nothing to a working app.", aka: "beginner tutorial guide new first time onboarding" },
-  { ref: "learn", title: "Learn", href: "/learn", summary: "Five short lessons on asking a coding agent for good work.", aka: "lessons tutorial guide course" },
+  { ref: "learn", title: "Learn", href: "/learn", summary: `${LESSONS.length} short lessons on asking a coding agent for good work.`, aka: "lessons tutorial guide course" },
   { ref: "prompts", title: "Prompts", href: "/prompts", summary: "The prompt library: commands, investigations, recipes and ways of working.", aka: "library browse all" },
   { ref: "skills", title: "Skills", href: "/skills", summary: "Every skill, grouped by kit, with its source and license.", aka: "library browse all" },
   { ref: "kits", title: "Kits", href: "/kits", summary: "The plugins that bundle the skills, each installable on its own.", aka: "plugins bundles packages" },
   { ref: "fix", title: "Fix a problem", href: "/fix", summary: "Pick the symptom you see and get the prompts to try first, in order.", aka: "symptom broken debug troubleshoot" },
-  { ref: "collections", title: "Collections", href: "/collections", summary: "Prompts and skills you saved, in your own lists.", aka: "saved starred favorites bookmarks account" },
+  // Saved lists live on the account page, which exists only when sign-in is configured (see the filter below).
+  { ref: "collections", title: "Collections", href: "/account", summary: "Prompts and skills you saved, in your own lists.", aka: "saved starred favorites bookmarks account" },
   { ref: "mcp-setup", title: "Use the library from your agent", href: "/mcp-setup", summary: "Connect the MCP server so your agent can search and fetch prompts itself.", aka: "mcp server connect" },
   { ref: "about", title: "About", href: "/about", summary: "Who makes Agent Kit, where the skills come from, and the credits.", aka: "credits authors license atlasscope" },
 ];
@@ -32,7 +33,7 @@ let texts: Map<string, string> | null = null;
 function entries(): Entry[] {
   if (built) return built;
   const out: Entry[] = [];
-  for (const p of PAGES) out.push({
+  for (const p of PAGES.filter((x) => x.ref !== "collections" || authEnabled())) out.push({
     kind: "page", ref: p.ref, title: p.title, summary: p.summary, href: p.href, meta: "Page",
     fields: [[lc(p.ref), 60], [lc(p.title), 40], [lc(p.aka), 25], [lc(p.summary), 10]],
     ...(p.ref === "install" ? { copy: { label: "Copy install message", text: INSTALL_MESSAGE, done: "Install message copied" } } : {}),
