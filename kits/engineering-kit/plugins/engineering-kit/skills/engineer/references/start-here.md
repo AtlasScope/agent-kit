@@ -99,7 +99,7 @@ I want the professional-grade version of this task, not a larger version. Look a
 Use it when an agent's plan sounds right and you can't see why it might be wrong.
 
 ```text
-Assume the proposed solution is wrong. Find the strongest evidence against it before recommending we proceed.
+Before we go ahead, try to prove the proposed solution wrong. Write down the claims it depends on, then look for evidence against each one in the code, the data, the logs or the documentation, and run the cheapest test that could break it. Report which claims held, which failed and which you could not check. If one failed, say what that changes and propose the smallest adjustment. Recommend going ahead only if nothing you found argues against it.
 ```
 
 ### M03 Root cause first
@@ -107,7 +107,7 @@ Assume the proposed solution is wrong. Find the strongest evidence against it be
 Use it the second time the same kind of bug shows up.
 
 ```text
-Don't fix the visible symptom yet. Work backward through the system until you can explain why it occurred and what other behavior shares that cause.
+Don't fix the visible symptom yet. Reproduce it, then work backward through the code and data until you can say in one or two sentences why it happens, pointing to the exact lines or records involved. Then look for every other place the same cause shows up or could show up. Report the cause, the evidence that proves it and the other places it affects. Propose one fix that removes the cause everywhere it applies, and a check that would fail if it came back.
 ```
 
 ### M04 Simpler first
@@ -115,7 +115,7 @@ Don't fix the visible symptom yet. Work backward through the system until you ca
 Use it when the proposed fix adds a new setting, table or service.
 
 ```text
-Solve this by making the existing system simpler. First determine whether we can remove a layer, rule, dependency, or special case rather than add something.
+Before adding anything, try to solve this by removing something. Look for a layer, rule, setting, dependency, special case or duplicate path that could go, and check whether the problem disappears or gets easier once it does. Only if nothing can be removed, propose the smallest addition that works and say why each new piece is needed. Compare the options by how much there will be to understand and maintain afterwards, not by how much code is written today.
 ```
 
 ### M05 Let the expert decide
@@ -123,7 +123,7 @@ Solve this by making the existing system simpler. First determine whether we can
 Use it when an agent keeps asking you technical questions you can't judge.
 
 ```text
-Treat the technical decisions as yours to make. Apply established engineering standards, investigate uncertainties, and escalate only genuine product or risk decisions.
+Treat the technical decisions as yours. Make them the way a senior engineer on this codebase would: follow the project's existing conventions first, then established standards and primary documentation, and investigate when you are unsure instead of asking me. Bring me only decisions about what the product should do, who it affects, what it costs, or a risk I would have to accept, each with your recommendation and what it would cost to change later. List the technical choices you made, one line each, so I can review them if I want.
 ```
 
 ### M06 Check it independently
@@ -131,7 +131,7 @@ Treat the technical decisions as yours to make. Apply established engineering st
 Use it before you accept 'tests pass' as proof that something works.
 
 ```text
-Design a way to prove your solution works that doesn't depend on the assumptions, code, or tests you just created.
+Prove your solution works in a way that does not rely on the code or tests you just wrote. Choose a check that would fail if the fix were wrong: use the product the way a person would (click through it, call the real endpoint, read the real data), compare against an independent source, or write the test from the requirement before looking at your implementation. Run it, show the result, and say plainly what it does not cover.
 ```
 
 ### M07 Spec without the interview
@@ -179,7 +179,7 @@ Go past the first answer. For each claim you make, check the original evidence (
 Use it as a cleanup pass on each pull request, or on a schedule for overdue maintenance. It pushes the agent to merge duplicated code, put core logic in one place and cut lines. Shared by Chris (@_khrus) on X on 7 Nov 2026; the idea is John Ousterhout's, from A Philosophy of Software Design, and Matt Pocock pointed him to it. /improve-codebase-architecture is the longer version: a scan, a report and an interview.
 
 ```text
-Deepen modules and simplify interfaces.
+Do a cleanup pass on the code this change touched. Find logic that lives in more than one place, modules whose callers have to know too much to use them, and thin pass-through layers that add nothing. Merge the duplicates, put the core logic behind one clear entry point, and make each interface smaller than the work it hides. Keep behaviour identical: run the existing tests before and after, and leave alone anything you could not prove safe. Report what you merged, moved or removed in plain words first, with files underneath.
 ```
 
 ## Wrapping an investigation prompt

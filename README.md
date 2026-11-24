@@ -97,7 +97,7 @@ You can also connect your agent to the read-only MCP server at `https://www.atla
 
 ## Prompt library
 
-[`library/dist/prompt-library.html`](library/dist/prompt-library.html) is a single self-contained HTML page with all 254 prompts, commands, and recipes, a symptom finder, a prompt composer, and browser-local stars. You can:
+[`library/dist/prompt-library.html`](library/dist/prompt-library.html) is a single self-contained HTML page. It opens on "What's wrong?", a short list of plain problems that each point to up to three things to try, and sorts everything else into the kit's areas (Design with Keen, Motion, Bugs and speed, Data and so on). Copying a prompt gives the agent everything it needs, including what it may change and what to bring back. Commands written by other people sit on an Other tools page that names the Agent Kit job doing the same work. You can:
 
 - Open it in a browser or in the side browser in Codex or Cursor.
 - Upload it as a Claude artifact.

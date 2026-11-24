@@ -19,6 +19,37 @@ for (const e of E) { if (seen.has(e.id)) fail(`Duplicate ID ${e.id}`); seen.add(
 for (const e of E) for (const r of e.rel || []) if (!BY.has(r)) fail(`${e.id} links to missing ${r}`);
 for (const [txt, ids] of [...lib.symptoms, ...(lib.dbSymptoms || [])]) for (const id of ids) if (!BY.has(id)) fail(`Symptom "${txt}" names missing ${id}`);
 
+// The page's structure: areas list each entry at most once, the front door and the "Agent Kit job"
+// names point at real things, and Keen's groups exist in Keen's own job list.
+const keenSkill = fs.readFileSync(path.join(here, "../kits/design-kit/plugins/design-kit/skills/keen/SKILL.md"), "utf8");
+const keenJobs = new Set([...keenSkill.matchAll(/^\| `([a-z]+)` \|/gm)].map((m) => "K:" + m[1]));
+const keenGroups = new Set([...keenSkill.matchAll(/^\*\*(.+)\*\*$/gm)].map((m) => "K:" + m[1]));
+const known = (id) => BY.has(id) || keenJobs.has(id);
+const inArea = new Map();
+for (const a of lib.areas || []) {
+  if (!a.key || !a.title || !a.blurb || !a.groups?.length) fail(`Area "${a.title || a.key}" needs a key, title, blurb and groups`);
+  for (const [title, ref] of a.groups) {
+    if (typeof ref === "string") { if (!keenGroups.has(ref)) fail(`Area "${a.title}" group "${title}" names Keen group ${ref}, which Keen's SKILL.md does not have`); continue; }
+    for (const id of ref) {
+      if (!BY.has(id)) fail(`Area "${a.title}" names missing ${id}`);
+      if (inArea.has(id)) fail(`${id} is in two areas: "${inArea.get(id)}" and "${a.title}"`);
+      inArea.set(id, a.title);
+    }
+  }
+}
+for (const [txt, ids] of lib.front || []) {
+  if (ids.length > 3) fail(`Front door "${txt}" lists ${ids.length} entries; three at most`);
+  for (const id of ids) if (!known(id)) fail(`Front door "${txt}" names missing ${id}`);
+}
+const knownCmds = new Set([...E.map((e) => e.cmd).filter(Boolean), ...[...keenJobs].map((k) => "/keen " + k.slice(2)), "/keen"]);
+for (const [id, cmd] of Object.entries(lib.closest || {})) {
+  if (!BY.has(id)) fail(`closest names missing ${id}`);
+  if (inArea.has(id)) fail(`${id} is in an area and also names a closest Agent Kit job; only Other tools entries do`);
+  if (!knownCmds.has(cmd)) fail(`${id} names ${cmd} as its Agent Kit job, which is not a command in the library or Keen`);
+}
+for (const [id, same] of Object.entries(lib.notShown || {})) if (!BY.has(id) || !BY.has(same)) fail(`notShown ${id} -> ${same} names a missing entry`);
+for (const id of Object.keys(lib.tried || {})) if (!known(id)) fail(`tried names missing ${id}`);
+
 // The database section: PG00 to PG17 in order, each complete, plus workflows whose steps resolve.
 const db = E.filter((e) => e.sec === "db");
 const pg = db.filter((e) => !e.flow).map((e) => e.id);

@@ -3,6 +3,31 @@
 Decisions about what the library says, newest first. Each line names the entries it touched and why.
 The full inventory is `library/dist/inventory.csv`, rebuilt by `node library/build.mjs`.
 
+## 2026-11-23 (areas, Keen and a complete Copy)
+
+- The page is organised the way the kit is: a front door ("What's wrong?", 13 plain problems, three
+  things to try each) and ten areas that match the kit's commands. `areas` and `front` in
+  `library.json` hold the structure; `check.mjs` checks every reference and that no entry sits in two
+  areas.
+- Keen's 21 jobs are on the page, read at build time from Keen's own SKILL.md and job files, so the
+  page and Keen's menu cannot disagree. Each one can also be copied as full instructions for an agent
+  without Agent Kit.
+- Commands written by other people that Agent Kit has a job for, and the recipes built from them,
+  moved to an Other tools page. `closest` names the Agent Kit job that does the same work for each.
+  Borrowed engineering, security and writing tools stay in their areas until their replacements exist.
+- Copy now hands over everything: for an investigation or database prompt, the prompt plus what it may
+  change, what to bring back, when to stop, and a report that starts in plain English. Before, the
+  copied text of all 56 investigations left these out although every card said "Changes nothing".
+- Removed: the Which one? page, stars and recent copies, and the prompt builder. Their data stays in
+  `library.json` for the site and the routers.
+- "Tried on a real project" marks an entry only where a run is recorded: `tried` in `library.json`
+  (Keen critique and audit, run on three screens of the Agent Kit website) or a private `runs` list.
+- Thinking prompts M02 to M06 and M12 were rewritten to ask for evidence and a concrete result
+  (M12 was five words). The /engineer reference that ships them changed, so engineering-kit is 1.6.2.
+- Plain one-line descriptions (`line`) for the database prompts and workflows, the thinking prompts and
+  seven engineering commands whose descriptions leaned on jargon. The routers still read `why`.
+- UI029 and UI031 are the same commands as EC31 and EC32, so the page shows them once (`notShown`).
+
 ## 2026-11-21 (palette builder)
 
 - One design command, UI108 `/palette-builder`, written here. The color skills advise and write exact
