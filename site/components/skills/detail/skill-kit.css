@@ -45,18 +45,6 @@
 .ip:focus-within .ip-key { visibility: visible; } /* the hint only means something while C would work */
 .ip-body { display: grid; gap: var(--space-2); padding: var(--space-4); }
 .ip-text { margin: 0; white-space: pre-wrap; overflow-wrap: break-word; font: var(--weight-regular) var(--type-xs)/var(--lh-code) var(--font-mono); color: var(--c-fg); }
-/* The bar that keeps Copy in reach after the panel scrolls away. Under the header on wide screens, at the bottom on
-   phones (below). Hidden with visibility, so it leaves the tab order and the accessibility tree while off. */
-.ip-float { position: fixed; z-index: 20; top: calc(var(--header-h) + var(--space-2)); right: max(var(--gutter), env(safe-area-inset-right), calc((100vw - var(--container)) / 2 + var(--gutter))); /* lines up with the header's right edge */ display: flex; align-items: center; gap: var(--space-3); max-width: min(28rem, calc(100vw - 2 * var(--gutter))); padding: var(--space-1) var(--space-1) var(--space-1) var(--space-4); border: 1px solid var(--c-line); border-radius: var(--radius-lg); background: var(--c-raised); box-shadow: var(--shadow-2); visibility: hidden; opacity: 0; transform: translateY(calc(-1 * var(--space-2))); transition: opacity var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out), visibility 0s linear var(--dur-base); }
-.ip-float[data-on] { visibility: visible; opacity: 1; transform: none; transition-delay: 0s; }
-.ip-float__label { display: grid; min-width: 0; line-height: 1.25; }
-.ip-float__title { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font: var(--weight-semibold) var(--type-xs)/1.25 var(--font-body); color: var(--c-fg); }
-.ip-float__way { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: var(--type-micro); color: var(--c-fg-3); }
-.ip-float__copy { flex: none; min-width: 6.5rem; min-height: var(--control-h-sm); border-color: transparent; background: var(--c-primary); color: var(--c-on-primary); font-weight: var(--weight-semibold); }
-.ip-float__copy .i { width: 16px; height: 16px; }
-.ip-float__copy[data-copied] .i { display: none; }
-.ip-float__copy[data-copied]::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--c-signal-bright); }
-@media (hover: hover) and (pointer: fine) { .ip-float__copy:hover { background: var(--c-primary-hover); } }
 .ip-note { margin: 0; font-size: var(--type-xs); line-height: var(--lh-xs); color: var(--c-fg-3); text-wrap: pretty; }
 .ip-note code { font: var(--weight-regular) var(--type-micro)/1.4 var(--font-mono); color: var(--c-fg-2); }
 
@@ -158,13 +146,8 @@
   .ip-copywrap { order: 4; flex: 1 0 100%; }
   .ip-copy { flex: 1; }
   .ip-body { padding: var(--space-4) var(--gutter); }
-  /* On a phone the bar sits at the bottom, in thumb reach, clear of the home indicator. */
-  .ip-float { top: auto; left: 0; right: 0; bottom: 0; max-width: none; padding: var(--space-2) max(var(--gutter), env(safe-area-inset-right)) calc(var(--space-2) + env(safe-area-inset-bottom)) max(var(--gutter), env(safe-area-inset-left)); border-width: 1px 0 0; border-radius: 0; transform: translateY(var(--space-2)); }
-  .ip-float__label { flex: 1; }
-  body:has(.ip-float[data-on]) { padding-bottom: calc(var(--tap) + 2 * var(--space-2) + env(safe-area-inset-bottom)); } /* keeps the page's last lines clear of the bar */
 }
 @media (pointer: coarse) {
-  .ip-copy, .ip-tab, .ip-float__copy { min-height: var(--tap); }
   .sd-filelist a { min-height: var(--tap); }
   .sd-doc__src { display: inline-flex; align-items: center; min-height: var(--tap); }
   /* Every other control on the page gets a full touch target too (the whole-site review: target-size on /skills). */
@@ -174,7 +157,6 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .ip-copy, .ip-tab, .sd-toc a, .kd-row { transition: none; }
-  .ip-float, .ip-float[data-on] { transform: none; transition: none; }
 }
 
 /* The description's trigger rules, written for the agent, kept on the page behind a disclosure. */

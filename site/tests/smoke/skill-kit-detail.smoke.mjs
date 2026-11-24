@@ -125,7 +125,7 @@ for (const size of SIZES) for (const scheme of ["light", "dark"]) {
 // has scrolled away, the compact bar. Never both at once, and the bar copies the chosen way exactly.
 const copyInReach = (page) => page.evaluate(() => {
   const head = parseFloat(getComputedStyle(document.querySelector(".ip-head")).top) || 0;
-  const shown = [...document.querySelectorAll("#install .ip-copy, #install .ip-float__copy")].filter((b) => {
+  const shown = [...document.querySelectorAll("#install .ip-copy, #install .fcopy__copy")].filter((b) => {
     const r = b.getBoundingClientRect();
     if (r.top < head - 1 || r.bottom > innerHeight + 1 || !r.width) return false;
     return b.contains(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2));
@@ -159,7 +159,7 @@ for (const size of SIZES) {
       await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
       await page.waitForTimeout(300);
       // At the bottom the bar is the Copy in reach: it copies the chosen way, and C works with focus on it.
-      const bar = page.locator("#install .ip-float__copy");
+      const bar = page.locator("#install .fcopy__copy");
       if (await bar.isVisible()) {
         const first = await page.locator("#install .ip-text").textContent();
         await bar.click();

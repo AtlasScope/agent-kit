@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { CopyButton } from "@/components/CopyButton";
+import { FloatingCopy } from "@/components/ui/FloatingCopy";
 
 export type InstallOption = {
   id: string;
@@ -21,39 +22,21 @@ const editable = (el: EventTarget | null) =>
 // a choice of how to install, and the one Copy, which sticks under the header while the page scrolls; below it the
 // exact text for the chosen way. C copies while focus is inside the panel (a single-key shortcut only works there,
 // WCAG 2.1.4). If the clipboard is blocked, the text is selected so Cmd/Ctrl+C finishes the job.
-// Once the panel has scrolled away above the header, a compact bar with the same Copy stays in reach for the rest of
-// the page (fixed under the header on wide screens, at the bottom on phones); it hides again when the panel's own
-// Copy is back in view.
+// Once the panel's Copy has scrolled away under the header, the shared FloatingCopy bar keeps the same Copy in reach
+// for the rest of the page; it hides again when the panel's own Copy is back in view.
 export function InstallPanel({ id, title, options }: { id: string; title: string; options: InstallOption[] }) {
   const [sel, setSel] = useState(0);
-  const [away, setAway] = useState(false);
   const root = useRef<HTMLElement>(null);
   const pre = useRef<HTMLPreElement>(null);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   const wrap = useRef<HTMLSpanElement>(null);
   const o = options[sel];
 
-  // The bar shows once the panel's Copy starts to slide under the header, never before the reader has reached the
-  // panel. The sticky head keeps Copy in view while most of the panel is, so this is "scrolling away"; showing it at
-  // the first pixel means there is no stretch where neither Copy can be pressed.
-  useEffect(() => {
-    const w = wrap.current, head = root.current?.querySelector<HTMLElement>(".ip-head");
-    if (!w || !head) return;
-    // Measured on every scroll and resize: the header's height changes between breakpoints.
-    let raf = 0;
-    const check = () => { raf = 0; setAway(w.getBoundingClientRect().top < (parseFloat(getComputedStyle(head).top) || 0) - 1); };
-    const queue = () => { if (!raf) raf = requestAnimationFrame(check); };
-    check();
-    addEventListener("scroll", queue, { passive: true });
-    addEventListener("resize", queue);
-    return () => { cancelAnimationFrame(raf); removeEventListener("scroll", queue); removeEventListener("resize", queue); };
-  }, []);
-
   useEffect(() => {
     const el = root.current;
     if (!el) return;
     const main = () => el.querySelector<HTMLButtonElement>(".ip-copy");
-    const bar = () => el.querySelector<HTMLButtonElement>(".ip-float__copy");
+    const bar = () => el.querySelector<HTMLButtonElement>(".fcopy__copy");
     const select = (fromBar: boolean) => {
       const p = pre.current, s = window.getSelection();
       if (!p || !s) return;
@@ -61,20 +44,19 @@ export function InstallPanel({ id, title, options }: { id: string; title: string
       if (fromBar) p.scrollIntoView({ block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
       s.selectAllChildren(p);
     };
-    // CopyButton (frozen API) reports a blocked clipboard only through its label text, so watch for that wording.
-    const blocked = (b: HTMLElement | null) => /blocked|select the text/i.test(b?.textContent || "");
-    let was = false;
-    const watch = new MutationObserver(() => {
-      const m = blocked(main()), f = blocked(bar());
-      if ((m || f) && !was) select(f && !m);
-      was = m || f;
+    // CopyButton sets data-blocked while the clipboard refuses; select the text then, so Cmd/Ctrl+C finishes the job.
+    const watch = new MutationObserver((records) => {
+      for (const r of records) {
+        const b = r.target as HTMLElement;
+        if (r.type === "attributes" && b.hasAttribute("data-blocked")) select(b === bar());
+      }
     });
-    for (const n of el.querySelectorAll(".ip-copywrap, .ip-float")) watch.observe(n, { subtree: true, characterData: true, childList: true });
+    for (const n of el.querySelectorAll(".ip-copywrap, .fcopy")) watch.observe(n, { subtree: true, attributes: true, attributeFilter: ["data-blocked"] });
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "c" && e.key !== "C") return;
       if (e.metaKey || e.ctrlKey || e.altKey || e.repeat || e.defaultPrevented || editable(e.target)) return;
       if (String(window.getSelection() || "").length) return;
-      const b = e.target instanceof Element && e.target.closest(".ip-float") ? bar() : main();
+      const b = e.target instanceof Element && e.target.closest(".fcopy") ? bar() : main();
       if (!b) return;
       e.preventDefault();
       b.click();
@@ -118,13 +100,7 @@ export function InstallPanel({ id, title, options }: { id: string; title: string
         <pre ref={pre} className="ip-text" tabIndex={0} translate="no">{o.text}</pre>
         {o.note && <p className="ip-note">{o.note}</p>}
       </div>
-      <div className="ip-float" data-on={away || undefined} inert={!away}>
-        <span className="ip-float__label">
-          <span className="ip-float__title">{title}</span>
-          {options.length > 1 && <span className="ip-float__way">{o.label}</span>}
-        </span>
-        <CopyButton key={o.id} className="btn ip-float__copy" text={o.text} name={o.copyName} icon />
-      </div>
+      <FloatingCopy anchor={wrap} text={o.text} title={title} detail={options.length > 1 ? o.label : undefined} name={o.copyName} />
     </section>
   );
 }
