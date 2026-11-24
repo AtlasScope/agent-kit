@@ -34,7 +34,7 @@ test("render escapes text and keeps script-closing text out of the page's script
   assert.match(html, /Second &lt;b&gt;paragraph&lt;\/b&gt;\./);
   assert.ok(!html.includes("<script>alert(1)"), "a command must not be able to open a script tag");
   assert.match(html, /\\u003c\/script>\\u003cscript>alert\(1\)/);
-  assert.equal(html.match(/<script>/g).length, 1);
+  assert.equal(html.toLowerCase().split("<script").length - 1, 1, "the page has exactly one script tag, in any letter case");
 });
 
 test("a static page offers copy only", () => {
