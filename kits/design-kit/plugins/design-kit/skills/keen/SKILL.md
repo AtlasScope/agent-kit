@@ -151,7 +151,7 @@ The person never has to type any of this. The Keen page below turns each next st
 
 ## The Keen page
 
-Every job that has something to show or a next step ends on the Keen page: one live page the person keeps open beside the conversation. Each finished job adds a page to it. A page holds the report, the screenshots with each problem marked, and what can run next. The person reads, picks one or several next steps in the order they want, and presses Start. You hear about it, do the work, add the next page, and their open page turns to it by itself.
+Every job that has something to show or a next step ends on the Keen page: one live page the person keeps open beside the conversation. Each finished job adds a page to it. A page holds one headline, the screenshots with each problem marked, and what can run next; the rest opens on request. The person reads, picks one or several next steps in the order they want, and presses Start. You hear about it, do the work, add the next page, and their open page turns to it by itself.
 
 The page is served by a small program that comes with this skill and stays running while the work goes on. It looks the same in every project and every tool: the AtlasScope page, dark, with the AtlasScope mark in its header and a tag naming the tool (Keen), set entirely by the program. Every area of the kit will use this same page. Do not restyle it or wrap it in anything. It always tells the person the truth about you: whether you are listening, what you are working on, and what they have started that is waiting its turn.
 
@@ -203,12 +203,13 @@ Rules:
   "title": "Keen critique: Today",
   "subtitle": "Looked at with sample data. Nothing was changed.",
   "verdict": "One honest sentence about this screen.",
-  "stats": [{ "value": "3", "label": "problems that get in a visitor's way" }, { "value": "8 of 95", "label": "pieces of text that are hard to read" }],
+  "stats": [{ "value": "8 of 95", "label": "pieces of text hard to read" }],
   "report": { "happened": "...", "means": "..." },
   "shots": [{ "src": "today-phone.jpg", "caption": "Phone, first screen.", "pins": [{ "n": 1, "x": 50, "y": 89 }] }],
   "problems": [{ "title": "Your day is not on the first screen", "body": "Plain words. Blank line between paragraphs." }],
   "also": ["A smaller finding, in one line."],
   "working": ["One thing to keep."],
+  "terms": [{ "term": "Contrast", "means": "How much text stands out from what is behind it. Low contrast is why some visitors cannot read a line." }],
   "steps": [
     {
       "label": "Make the Needs you list shorter",
@@ -228,14 +229,26 @@ Rules:
 }
 ```
 
-- **The page is looked at before it is read.** It opens on the title, the verdict, the numbers and the screenshots. Write for that:
-  - `verdict`: one sentence, 25 words at most.
-  - The verdict is the page's headline: the first thing read on a small laptop. It must be the takeaway by itself.
-  - `report.todo`: one short line, shown right under the headline.
-  - `stats`: optional, at most four small facts shown as a quiet row. Measured numbers only, and say what each is a number of. Leave them out when the verdict already says it.
-  - `report.happened` and `report.means`: two sentences each at most.
-  - A problem's `body`: the first paragraph is what shows, so make it the whole point in 40 words or fewer. Later paragraphs sit behind "More".
-  - Every page that judges or changes a screen has at least one screenshot. A page with no picture is a wall of words.
+- **The page is glanced at, not read.** It opens on one headline, one line saying what to do, the screenshots and the next steps. Everything else is a row the person opens if they want it. Write the way you would tell a friend across a desk: short, plain, in your own voice. "The Install button is below the fold on a phone", not "The primary call to action is not visible within the initial viewport".
+- **The program counts words and refuses a long page.** `add` prints each part that is over and adds nothing. Cut the part; do not move the words somewhere else on the page. The most each part holds:
+
+  | Part | At most |
+  |---|---|
+  | `verdict` (the headline: the whole takeaway by itself) | 16 words |
+  | `report.todo` (shown under the headline as "Your move") | 12 words |
+  | `subtitle` | 14 words |
+  | `stats` | 3, each label 6 words. Measured numbers only. Leave them out when the headline says it |
+  | `problems` | 3. Title 9 words, body 45 |
+  | `also`, `working` | 5 and 3 lines, 16 words each |
+  | `steps` | 3. Label 8 words, why 18 |
+  | `report.happened`, `report.means` | 30 words each |
+  | `notChecked` | 40 words |
+  | `terms` | 3, each meaning 25 words |
+
+- A problem's title is the finding, said as a fact about the screen ("Copy does nothing on a phone"). Only the first problem is open when the page loads, so the titles alone must tell the story.
+- `terms` teaches. When the page has to use a word the person may not know (contrast, tap target, layout shift), add it with one sentence saying what it is and why it matters to their visitors: `"terms": [{ "term": "Contrast", "means": "..." }]`. Then use the word freely.
+- Every page that judges or changes a screen has at least one screenshot, with each problem pinned on it. The picture does the explaining; the words only name what to look at.
+- `details` has no limit and is the only place for commands, file names and exact values.
 - `tab` is the two or three words on the page's tab: the job and, after an edit, what changed.
 - `steps` are the ranked next steps, up to three. Give a step `options` when more than one job could do it, best first; the person sees a job picker on that step. A step with one way to do it has just `command`.
 - `menu` is every other job that could run on this screen, so the person is never limited to your ranking. List Keen's other jobs, and any other installed Agent Kit command the findings point to.

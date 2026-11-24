@@ -69,25 +69,56 @@ function stepCard(step, index) {
   const options = optionsOf(step);
   if (!options.length) return "";
   const picker = options.length > 1
-    ? `<label class="pick">Job <select data-step="${index}">${options.map((o, i) => `<option value="${i}">${esc(o.label)}${i === 0 ? " (suggested here)" : ""}</option>`).join("")}</select></label>`
+    ? `<label class="pick">How <select data-step="${index}">${options.map((o, i) => `<option value="${i}">${esc(o.label)}</option>`).join("")}</select></label>`
     : "";
   return `<section class="step${step.suggested ? " suggested" : ""}" data-step-card="${index}">
-  <h3>${esc(step.label)}${step.suggested ? ' <span class="tag">Suggested</span>' : ""}</h3>
+  <h3>${esc(step.label)}${step.suggested ? ' <span class="tag">Start here</span>' : ""}</h3>
   ${para(step.why)}
   ${picker}
   <p class="why" data-why="${index}">${esc(options.length > 1 ? options[0].why : "")}</p>
   <p class="cmd" data-cmd="${index}">${esc(options[0].command)}</p>
-  <div class="acts"><button type="button" class="add" data-add="${index}" aria-pressed="false">Add to my run</button><button type="button" data-copy-step="${index}">Copy</button></div>
+  <div class="acts"><button type="button" class="add" data-add="${index}" aria-pressed="false">Add</button><button type="button" data-copy-step="${index}">Copy command</button></div>
 </section>`;
 }
 
-// A long piece of text shows its first paragraph; the rest opens on request, so a page is looked at before it is read.
-const lead = (v) => {
-  const parts = String(v ?? "").split(/\n{2,}/).map((s) => s.trim()).filter(Boolean);
-  if (!parts.length) return "";
-  const rest = parts.slice(1);
-  return `<p>${esc(parts[0])}</p>${rest.length ? `<details class="more"><summary>More</summary>${rest.map((s) => `<p>${esc(s)}</p>`).join("")}</details>` : ""}`;
-};
+// The most words each part of a page may hold. A page is glanced at on a small laptop beside a conversation,
+// so the program refuses a long one and says which parts to cut: the writer shortens it, not the reader.
+export const LIMITS = { verdict: 16, todo: 12, subtitle: 14, statLabel: 6, problemTitle: 9, problemBody: 45, line: 16, stepLabel: 8, why: 18, order: 20, happened: 30, means: 30, notChecked: 40, termMeans: 25 };
+export const COUNTS = { stats: 3, problems: 3, also: 5, working: 3, steps: 3, terms: 3 };
+const words = (v) => String(v ?? "").trim().split(/\s+/).filter(Boolean).length;
+
+/** Every part of a page that is too long, as plain sentences. Empty when the page is short enough. */
+export function tooLong(page) {
+  const out = [];
+  const check = (name, value, max) => { const n = words(value); if (n > max) out.push(`${name} is ${n} words; ${max} at most.`); };
+  const count = (name, list, max) => { if (Array.isArray(list) && list.length > max) out.push(`${name} has ${list.length} items; ${max} at most. Keep the ones that matter most.`); };
+  const r = page.report || {};
+  check("verdict", page.verdict, LIMITS.verdict);
+  check("report.todo", r.todo, LIMITS.todo);
+  check("subtitle", page.subtitle, LIMITS.subtitle);
+  check("report.happened", r.happened, LIMITS.happened);
+  check("report.means", r.means, LIMITS.means);
+  check("order", page.order, LIMITS.order);
+  check("notChecked", page.notChecked, LIMITS.notChecked);
+  for (const [key, max] of Object.entries(COUNTS)) count(key, page[key], max);
+  (page.stats || []).forEach((s, i) => check(`stats[${i}].label`, s?.label, LIMITS.statLabel));
+  (page.problems || []).forEach((p, i) => { check(`problems[${i}].title`, p?.title, LIMITS.problemTitle); check(`problems[${i}].body`, p?.body, LIMITS.problemBody); });
+  (page.also || []).forEach((w, i) => check(`also[${i}]`, w, LIMITS.line));
+  (page.working || []).forEach((w, i) => check(`working[${i}]`, w, LIMITS.line));
+  (page.terms || []).forEach((t, i) => check(`terms[${i}].means`, t?.means, LIMITS.termMeans));
+  (page.steps || []).forEach((s, i) => {
+    check(`steps[${i}].label`, s?.label, LIMITS.stepLabel);
+    check(`steps[${i}].why`, s?.why, LIMITS.why);
+    (s?.options || []).forEach((o, j) => { check(`steps[${i}].options[${j}].label`, o?.label, LIMITS.stepLabel); check(`steps[${i}].options[${j}].why`, o?.why, LIMITS.why); });
+  });
+  (page.menu || []).forEach((m, i) => check(`menu[${i}].why`, m?.why, LIMITS.why));
+  return out;
+}
+
+// One line that opens when pressed. Everything past the headline, the picture and the next steps is one of these,
+// so the page shows its point and the reader chooses what to read.
+const row = (title, inner, { n = "", open = false, quiet = false } = {}) => `<details class="row${quiet ? " quiet" : ""}"${open ? " open" : ""}><summary>${n ? `<span class="num">${esc(n)}</span>` : ""}<span>${esc(title)}</span></summary><div class="body">${inner}</div></details>`;
+const list = (items, cls = "") => `<ul${cls ? ` class="${cls}"` : ""}>${items.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>`;
 
 /** One page as an HTML fragment. */
 export function renderPage(page, { baseDir = process.cwd() } = {}) {
@@ -96,34 +127,37 @@ export function renderPage(page, { baseDir = process.cwd() } = {}) {
   const menu = (page.menu || []).filter((m) => m.command);
   const figure = (s) => `<figure><div class="frame"><img src="${esc(image(s.src, baseDir))}" alt="${esc(s.alt || s.caption || "Screenshot")}">${(s.pins || []).map((p) => `<span class="pin" style="left:${Number(p.x) || 0}%;top:${Number(p.y) || 0}%">${esc(p.n)}</span>`).join("")}</div><figcaption>${esc(s.caption)}</figcaption></figure>`;
   const shots = (page.shots || []).map(figure).join("\n");
-  const problems = (page.problems || []).map((p) => `<li><h3>${esc(p.title)}</h3>${lead(p.body)}</li>`).join("\n");
+  const problems = (page.problems || []).map((p, i) => row(p.title, para(p.body), { n: i + 1, open: i === 0 })).join("\n");
   const hasNext = steps || menu.length;
   const todo = r.todo || (hasNext ? "Pick what to run next." : "Nothing.");
-  const chips = (page.stats || []).slice(0, 4).map((s) => `<span class="chip"><b>${esc(s.value)}</b> ${esc(s.label)}</span>`).join("");
+  const chips = (page.stats || []).slice(0, COUNTS.stats).map((s) => `<span class="chip"><b>${esc(s.value)}</b> ${esc(s.label)}</span>`).join("");
+  const also = page.also || [], working = page.working || [], terms = (page.terms || []).filter((t) => t?.term && t?.means);
+  const story = [r.happened, r.means].filter((v) => String(v ?? "").trim());
+  const more = [
+    story.length ? row("What happened", story.map((v) => `<p>${esc(v)}</p>`).join(""), { quiet: true }) : "",
+    also.length ? row(`Also found (${also.length})`, list(also), { quiet: true }) : "",
+    working.length ? row(`Working well (${working.length})`, list(working, "ticks"), { quiet: true }) : "",
+    terms.length ? row("Words used here", `<dl>${terms.map((t) => `<dt>${esc(t.term)}</dt><dd>${esc(t.means)}</dd>`).join("")}</dl>`, { quiet: true }) : "",
+    page.notChecked ? row("Not checked", para(page.notChecked), { quiet: true }) : "",
+    page.details ? row("Details", `<pre>${esc(page.details)}</pre>`, { quiet: true }) : "",
+  ].filter(Boolean).join("\n");
   return `<header class="hero">
 <p class="eyebrow">${esc(page.title || page.tab || "Report")}</p>
 <h1>${esc(page.verdict || page.title || "Report")}</h1>
-<p class="next"><b>What you need to do</b> ${esc(todo)}</p>
+<p class="next"><b>Your move</b> ${esc(todo)}</p>
 ${chips ? `<p class="chips">${chips}</p>` : ""}
 ${page.subtitle ? `<p class="sub">${esc(page.subtitle)}</p>` : ""}
 </header>
-${shots ? `<section class="sec" aria-label="What it looks like"><div class="gallery">${shots}</div></section>` : ""}
-<section class="trio">
-<div class="card"><h2>What happened</h2><p>${esc(r.happened)}</p></div>
-<div class="card"><h2>What it means</h2><p>${esc(r.means)}</p></div>
-</section>
-${problems ? `<section class="sec"><p class="label">What was found, most important first</p><ol class="problems">${problems}</ol></section>` : ""}
-${(page.also || []).length || (page.working || []).length ? `<section class="sec pair">
-${(page.also || []).length ? `<div><h2>Also found</h2><ul>${page.also.map((w) => `<li>${esc(w)}</li>`).join("")}</ul></div>` : ""}
-${(page.working || []).length ? `<div><h2>What is working</h2><ul class="ticks">${page.working.map((w) => `<li>${esc(w)}</li>`).join("")}</ul></div>` : ""}
-</section>` : ""}
-${hasNext ? `<section class="sec"><p class="label">What you can run next</p>
-<p class="sub">Add as many as you want, in the order you want. Nothing starts until you press Start.</p>
+<div class="split${shots ? " has-shots" : ""}"><div class="main">
+${problems ? `<section class="sec"><p class="label">Found</p><div class="rows">${problems}</div></section>` : ""}
+${hasNext ? `<section class="sec"><p class="label">Next</p>
 <div class="steps">${steps}
-${steps && (page.steps || []).length > 1 ? `<section class="step all"><h3>Or take them all</h3>${para(page.order || "They run in the order listed, with a report after each.")}<div class="acts"><button type="button" data-all>Add all, in this order</button></div></section>` : ""}
-${menu.length ? `<section class="step other"><h3>Something else</h3><p>Every job Keen can run on this screen.</p><label class="pick">Job <select data-menu>${menu.map((m, i) => `<option value="${i}">${esc(m.label)}</option>`).join("")}</select></label><p class="why" data-menu-why>${esc(menu[0].why || "")}</p><p class="cmd" data-menu-cmd>${esc(menu[0].command)}</p><div class="acts"><button type="button" class="add" data-add-menu>Add to my run</button><button type="button" data-copy-menu>Copy</button></div></section>` : ""}</div></section>` : ""}
-${page.notChecked ? `<section class="sec"><p class="label">Not checked</p>${para(page.notChecked)}</section>` : ""}
-${page.details ? `<details class="tech"><summary>Details for someone technical</summary><pre>${esc(page.details)}</pre></details>` : ""}`;
+${menu.length ? `<section class="step other"><h3>Something else</h3><label class="pick">Job <select data-menu>${menu.map((m, i) => `<option value="${i}">${esc(m.label)}</option>`).join("")}</select></label><p class="why" data-menu-why>${esc(menu[0].why || "")}</p><p class="cmd" data-menu-cmd>${esc(menu[0].command)}</p><div class="acts"><button type="button" class="add" data-add-menu>Add</button><button type="button" data-copy-menu>Copy command</button></div></section>` : ""}</div>
+${steps && (page.steps || []).length > 1 ? `<p class="allrow"><button type="button" data-all>Add all ${(page.steps || []).length}, in this order</button>${page.order ? `<span>${esc(page.order)}</span>` : ""}</p>` : ""}</section>` : ""}
+</div>
+${shots ? `<aside class="look" aria-label="What it looks like"><div class="gallery">${shots}</div></aside>` : ""}
+</div>
+${more ? `<section class="sec"><p class="label">More</p><div class="rows">${more}</div></section>` : ""}`;
 }
 
 // The AtlasScope page. One shell for every area of the kit: the header says AtlasScope, and a small tag names the
@@ -163,11 +197,13 @@ h2{font-size:15px;font-weight:600;letter-spacing:-0.005em;margin:0 0 8px}h3{font
 p{margin:0 0 10px;max-width:66ch}.sub,figcaption,.why{color:var(--soft)}.sub{font-size:15px}
 ul{margin:0;padding-left:18px;max-width:60ch;color:var(--soft)}li{margin:0 0 6px}
 .ticks{list-style:none;padding:0}.ticks li{padding-left:22px;position:relative}.ticks li::before{content:"";position:absolute;left:2px;top:.5em;width:9px;height:5px;border-left:2px solid var(--green);border-bottom:2px solid var(--green);transform:rotate(-45deg)}
-.sec{margin-top:64px}
+.sec{margin-top:40px}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card);margin-bottom:24px}
 .stat{padding:22px 20px;box-shadow:1px 0 0 var(--line),0 1px 0 var(--line)}.stat b{display:block;font-size:clamp(30px,4vw,44px);line-height:1;font-weight:600;letter-spacing:-0.04em}.stat span{display:block;margin-top:10px;font-size:13.5px;color:var(--soft);line-height:1.35}
 .gallery{display:flex;gap:16px;overflow-x:auto;padding:28px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,#0d0d0d,#050505);scroll-snap-type:x proximity;align-items:flex-start}
-.sec:has(.gallery){margin-top:0}
+.split .main>.sec:first-child{margin-top:8px}
+.look{margin-top:32px}
+@media (min-width:900px){.split.has-shots{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,38%);gap:28px;align-items:start}.look{margin-top:8px;position:sticky;top:72px}.split.has-shots .gallery{padding:16px;max-height:calc(100vh - 190px);overflow-y:auto}.split.has-shots .steps{grid-template-columns:1fr}}
 figure{margin:0;flex:0 0 auto;width:min(300px,72vw);scroll-snap-align:start}
 .gallery figure:only-child{width:min(560px,100%);margin:0 auto}
 .frame{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line2);box-shadow:0 30px 60px -20px rgba(0,0,0,.9)}
@@ -191,12 +227,12 @@ ol.problems p{color:var(--soft);font-size:15px}
 .step p{font-size:15px;color:var(--soft)}
 .step .acts{margin-top:auto;padding-top:12px}
 .step.suggested{border-color:rgba(0,220,130,.55);background:linear-gradient(180deg,rgba(0,220,130,.07),transparent 60%),var(--card)}
-.step.all,.step.other{background:transparent;border-style:dashed}
+.step.other{background:transparent;border-style:dashed}
 .step.picked{border-color:var(--green);box-shadow:inset 0 0 0 1px var(--green)}
 .tag{display:inline-block;font:500 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;background:var(--green);color:var(--on-green);border-radius:999px;padding:4px 9px;margin-left:8px;vertical-align:2px}
 .pick{display:flex;align-items:center;gap:10px;font-weight:500;font-size:14px;color:var(--soft);margin:8px 0}
 select{font:inherit;font-size:15px;min-height:44px;max-width:100%;flex:1 1 auto;min-width:0;padding:0 12px;border-radius:10px;border:1px solid var(--line2);background:var(--card2);color:var(--ink)}
-.cmd{font:12.5px/1.5 var(--mono);color:var(--dim)!important;overflow-wrap:anywhere}
+.cmd{display:none}
 .acts{display:flex;gap:8px;flex-wrap:wrap}
 button{font:inherit;font-size:14.5px;font-weight:500;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--line2);background:var(--card2);color:var(--ink);cursor:pointer;transition:background .15s,border-color .15s}
 button:hover{background:#1a1a1a;border-color:rgba(255,255,255,.3)}
@@ -213,9 +249,21 @@ button[disabled]{opacity:.4;cursor:default;box-shadow:none}
 #bar li button{min-height:28px;padding:0 8px;margin-left:8px;font-size:12.5px}
 #status,#held{margin:0 0 8px;font-size:14px;font-weight:500;max-width:none}#status:empty,#held:empty{display:none}
 #held{color:var(--soft)}
-.tech{border-top:1px solid var(--line);margin-top:64px;padding-top:18px}
+.rows{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
+.row+.row{border-top:1px solid var(--line)}
+.row summary{display:flex;align-items:center;gap:12px;min-height:56px;padding:10px 18px;cursor:pointer;font-weight:600;font-size:16px;letter-spacing:-0.01em;list-style:none}
+.row summary::-webkit-details-marker{display:none}
+.row summary::after{content:"";margin-left:auto;flex:none;width:7px;height:7px;border-right:1.5px solid var(--soft);border-bottom:1.5px solid var(--soft);transform:rotate(45deg)}
+.row[open] summary::after{transform:rotate(225deg)}
+.row summary:hover{background:rgba(255,255,255,.03)}
+.row .body{padding:0 18px 14px;color:var(--soft);font-size:15px}.row .body p:last-child{margin-bottom:0}
+.row:has(.num) .body{padding-left:56px}
+.row.quiet summary{font-weight:500;font-size:15px;color:var(--soft);min-height:48px}
+.num{flex:none;width:26px;height:26px;border-radius:50%;background:var(--mark);color:#fff;font:600 13px/26px var(--sans);text-align:center}
+dl{margin:0}dt{color:var(--ink);font-weight:600}dd{margin:0 0 10px}
+.allrow{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:14px 0 0;max-width:none;color:var(--soft);font-size:14px}
 pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12.5px/1.6 var(--mono);color:var(--soft);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0 0}
-@media (max-width:820px){.trio{grid-template-columns:1fr}.hero{padding:20px 0 18px}.sec{margin-top:48px}.gallery{padding:16px;border-radius:14px}main{padding-bottom:230px}}
+@media (max-width:820px){.trio{grid-template-columns:1fr}.hero{padding:20px 0 18px}.sec{margin-top:32px}.gallery{padding:16px;border-radius:14px}main{padding-bottom:230px}}
 @media (max-width:560px){.top .in{flex-wrap:wrap;padding:8px 16px;gap:8px}nav.tabs{order:3;flex-basis:100%;margin:0 -4px}main{padding-left:16px;padding-right:16px}.state{max-width:60vw}#bar{padding:10px 10px 10px 14px}#copyall[disabled]{display:none}}`;
 
 // The page's own script. It reads everything it needs from DATA and never builds markup from text.
@@ -238,7 +286,7 @@ function draw(){
   queueEl.textContent="";
   queue.forEach((pick,n)=>{const li=document.createElement("li");li.textContent=optionOf(current,pick).label;const x=document.createElement("button");x.type="button";x.textContent="Remove";x.setAttribute("aria-label","Remove "+optionOf(current,pick).label);x.addEventListener("click",()=>{queue.splice(n,1);draw()});li.appendChild(x);queueEl.appendChild(li)});
   const page=book.children[current];
-  page.querySelectorAll("[data-step-card]").forEach((card)=>{const i=Number(card.dataset.stepCard),on=queue.some((q)=>q[0]==="s"&&q[1]===i);card.classList.toggle("picked",on);const b=card.querySelector("[data-add]");b.setAttribute("aria-pressed",String(on));b.textContent=on?"Added. Remove":"Add to my run"});
+  page.querySelectorAll("[data-step-card]").forEach((card)=>{const i=Number(card.dataset.stepCard),on=queue.some((q)=>q[0]==="s"&&q[1]===i);card.classList.toggle("picked",on);const b=card.querySelector("[data-add]");b.setAttribute("aria-pressed",String(on));b.textContent=on?"Added. Remove":"Add"});
   const n=queue.length,working=live.working.length>0,direct=live.listening&&!working;
   hint.hidden=n>0;
   hint.textContent=working?"Add more if you want. It waits its turn.":direct?"Pick a step above, then press Start.":"Pick a step above. Start keeps it for your agent.";
@@ -339,6 +387,8 @@ export function bookDir(name, { cwd = process.cwd(), env = process.env } = {}) {
 export function addPage(dir, page, { baseDir = process.cwd() } = {}) {
   if (!page || typeof page !== "object" || !String(page.title || "").trim()) throw new Error("A page needs at least a title.");
   const stored = { ...page, shots: (page.shots || []).map((s) => ({ ...s, src: image(s.src, baseDir) })) };
+  const long = tooLong(page);
+  if (long.length) throw new Error(`This page has too many words. Shorten these and add it again:\n- ${long.join("\n- ")}`);
   renderPage(stored); // fail now, with a clear message, on anything the page cannot show
   fs.mkdirSync(dir, { recursive: true });
   const n = readBook(dir).length + 1;
