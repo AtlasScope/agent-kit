@@ -100,7 +100,10 @@ export function LaunchHero({ headline, blur, art }: { headline: string; blur: st
     // The scene's code arrives on its own, after the words: the page never waits on it.
     let orbit: Orbit | null = null, score: typeof import("./orbit") | null = null, sky: Visit, gone = false;
     let stage: ReturnType<typeof import("./horizon").createStage> | null = null;
-    if (art) import("./horizon").then((module) => {
+    // The maps are megabytes; they are not asked for until the page itself has finished loading, so they never
+    // compete with the words, the fonts or the still.
+    const settled = new Promise<void>((done) => { if (document.readyState === "complete") done(); else addEventListener("load", () => done(), { once: true }); });
+    if (art) settled.then(() => import("./horizon")).then((module) => {
       if (gone) return;
       const asked = new URLSearchParams(location.search);
       try {
@@ -170,7 +173,10 @@ export function LaunchHero({ headline, blur, art }: { headline: string; blur: st
       } else if (!out && stage && now - drawn >= IDLE_GAP - 4) {
         // The horizon scene never rests, but it moves slowly: thirty frames a second carry it.
         drawn = now;
-        showing(stage.frame({ now, opening, leave: lv, px: mouse.x, py: mouse.y }));
+        // A scene that breaks (a map that will not load, a graphics context the browser takes back) is put away and
+        // the still it began from is the picture again.
+        if (stage.broken()) { stage.dispose(); stage = null; showing(false); }
+        else showing(stage.frame({ now, opening, leave: lv, px: mouse.x, py: mouse.y }));
       } else if (out) paced = false;
       // Without the live scene the opening plays over the still: it rises and comes up out of the dark.
       if (!out && !shown) {
@@ -286,6 +292,8 @@ export function LaunchHero({ headline, blur, art }: { headline: string; blur: st
             <Link className="launch__new" href="/start" onClick={markStartHere}>New to coding agents? Start here{ARROW}</Link>
           </div>
           <p className="launch__note" id="launch-note">Copies a message to paste into your agent.</p>
+          {/* On the horizon pages a phone keeps one example and a way to the rest, and leaves the planet clear. */}
+          {art && <Link className="launch__examples" href="/prompts">More examples{ARROW}</Link>}
           <ul className="launch__more" translate="no" aria-label="More requests it takes">
             {HERO.more.map((m) => (
               <li key={m.case}>
@@ -299,6 +307,7 @@ export function LaunchHero({ headline, blur, art }: { headline: string; blur: st
           <li><Link href="/privacy">Privacy</Link></li>
           <li><Link href="/terms">Terms</Link></li>
           <li><a href={`${SITE.repo}/blob/main/CREDITS.md`}>Credits</a></li>
+          {art && <li><Link href="/horizon/about">About this view</Link></li>}
         </ul>
       </div>
     </section>

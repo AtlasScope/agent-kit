@@ -18,13 +18,13 @@ out vec4 o;
 uniform vec2 uRes;
 uniform vec3 uCam, uRight, uUp, uFwd, uSun, uMoon;
 uniform float uTan, uExposure, uTime, uP3, uSteps;
-uniform sampler2D uT, uMS, uCloud, uColor, uNight, uCloudHi;
+uniform sampler2D uT, uMS, uCloud, uColor, uNight, uCloudHi, uTop;
 uniform vec4 uRegion;    // the sharper cloud map's place on the globe: west edge, north edge, width, height, in map units; no width means none
-uniform vec4 uHas;      // cloud, colour, night lights, unused
+uniform vec4 uHas;      // cloud, colour, night lights, cloud-top heights
 uniform vec4 uCloudLook; // optical depth scale, relief, height km, weather clock (seconds, as a fraction of the equator per metre a second)
 uniform vec4 uGrade;    // contrast power, saturation, P3 stretch, sun glare
-uniform vec4 uNightLook;
-uniform vec3 uWhite;    // white balance: what the camera calls neutral // city lights, airglow, moonlight, stars
+uniform vec4 uNightLook; // city lights, airglow, moonlight, stars
+uniform vec3 uWhite;    // white balance: what the camera calls neutral
 
 const float PI = 3.14159265359;
 const float RG = ${f(AIR.ground)}, RT = ${f(AIR.top)};
@@ -64,7 +64,9 @@ float sunSeen(float r, float mu) {
 vec3 sunAt(float r, float mu) { return transmit(r, mu) * sunSeen(r, mu); }
 vec3 bounced(float r, float mu) {
   vec2 x = vec2(mu * 0.5 + 0.5, (r - RG) / (RT - RG));
-  return texture(uMS, (clamp(x, 0.0, 1.0) * (MSS - 1.0) + 0.5) / MSS).rgb;
+  // The table still holds a little light where the sun is far below the horizon, which a night exposure five
+  // hundred times a day's would turn into a brown glow over the land. Twilight ends with the sun 18 degrees down.
+  return texture(uMS, (clamp(x, 0.0, 1.0) * (MSS - 1.0) + 0.5) / MSS).rgb * smoothstep(-0.31, -0.1, mu);
 }
 
 // Longitude and latitude to a map position. The derivatives are taken from whichever of two unwrappings has no
@@ -91,6 +93,11 @@ vec2 cloudUV(vec3 n) {
   float lat = asin(clamp(n.z, -1.0, 1.0));
   return vec2(atan(n.y, n.x) / (2.0 * PI) + 0.5 - uCloudLook.w * wind(lat) / max(cos(lat), 0.25), 0.5 - lat / PI);
 }
+// 1 well inside the regional maps' box, falling to 0 over the outer 4% of it, so the region has no visible edge.
+float inRegion(vec2 r) {
+  vec2 e = smoothstep(vec2(0.0), vec2(0.04), r) * (1.0 - smoothstep(vec2(0.96), vec2(1.0), r));
+  return e.x * e.y;
+}
 // Cloud at a place: the global map, and inside the region a direction flies over, a sharper one laid over it.
 float cloudAt(vec3 n, vec3 nx, vec3 ny) {
   vec2 uv = cloudUV(n), dx = cloudUV(nx) - uv, dy = cloudUV(ny) - uv;
@@ -99,11 +106,33 @@ float cloudAt(vec3 n, vec3 nx, vec3 ny) {
   float c = textureGrad(uCloud, uv, dx, dy).r;
   if (uRegion.z > 0.0) {
     vec2 r = vec2(fract(uv.x - uRegion.x), uv.y - uRegion.y) / uRegion.zw;
-    float w = smoothstep(0.0, 0.04, r.x) * smoothstep(1.0, 0.96, r.x) * smoothstep(0.0, 0.04, r.y) * smoothstep(1.0, 0.96, r.y);
+    float w = inRegion(r);
     if (w > 0.0) c = mix(c, textureGrad(uCloudHi, r, dx / uRegion.zw, dy / uRegion.zw).r, w);
   }
   return c;
 }
+// How high the cloud tops stand at a place, in kilometres: NASA's retrieved cloud-top height where the region has a
+// map of it, and one flat level elsewhere. The map is read at a blur set once a pixel (gLod), since it is sampled
+// many times along a ray.
+float gLod = 0.0;
+float topAt(vec3 n) {
+  if (uHas.w < 0.5 || uRegion.z <= 0.0) return uCloudLook.z;
+  vec2 uv = cloudUV(n), r = vec2(fract(uv.x - uRegion.x), uv.y - uRegion.y) / uRegion.zw;
+  float w = inRegion(r);
+  return w > 0.0 ? mix(uCloudLook.z, textureLod(uTop, r, gLod).r * 12.75, w) : uCloudLook.z;
+}
+
+// The glitter a light makes on the sea: its image mirrored by waves into a wide soft patch (Cox and Munk's spread of
+// wave slopes as one GGX lobe). The same for the sun by day and the moon by night.
+float glitter(vec3 n, vec3 rd, vec3 l, float nl) {
+  vec3 h = normalize(l - rd);
+  float nh = max(dot(n, h), 0.0), nv = max(dot(n, -rd), 1e-3), a2 = 0.02;
+  float spread = a2 / (PI * pow(nh * nh * (a2 - 1.0) + 1.0, 2.0));
+  float fresnel = 0.02 + 0.98 * pow(1.0 - max(dot(h, -rd), 0.0), 5.0);
+  return spread * fresnel * nl / (4.0 * nv * nl + 0.05) * 0.25;
+}
+// Moonlight as a camera at night renders it: a little cooler than the sun's.
+const vec3 MOON = vec3(0.84, 0.93, 1.06);
 
 float hash(vec3 p) { p = fract(p * vec3(443.897, 441.423, 437.195)); p += dot(p, p.yzx + 19.19); return fract((p.x + p.y) * p.z); }
 
@@ -205,12 +234,35 @@ void main() {
     vec3 nx = sx.x > 0.0 ? normalize(ro + rdx * sx.x) : n, ny = sy.x > 0.0 ? normalize(ro + rdy * sy.x) : n;
     float mu = dot(n, uSun), muMoon = dot(n, uMoon);
     vec3 sun = sunAt(RG + 0.01, mu) * SUN, moon = sunAt(RG + 0.01, muMoon) * SUN * uNightLook.z;
-    vec3 sky = bounced(RG + 0.5, mu) * SUN * 0.35 + bounced(RG + 0.5, muMoon) * SUN * uNightLook.z * 0.35;
+    vec3 skySun = bounced(RG + 0.5, mu) * SUN * 0.35, skyMoon = MOON * bounced(RG + 0.5, muMoon) * SUN * uNightLook.z * 0.35, sky = skySun + skyMoon;
 
     // The clouds sit on a shell above the ground; the view ray meets them before it meets the sea.
-    float height = uCloudLook.z, RC = RG + height;
-    vec3 pc = ro + rd * sphere(ro, rd, RC).x, nc = normalize(pc);
-    float cloud = 0.0, towardSun = 0.0, shadow = 0.0, massHere = 0.0, massSun = 0.0;
+    float height = uCloudLook.z;
+    vec3 pc = ro + rd * sphere(ro, rd, RG + height).x;
+    bool lifted = uHas.w > 0.5 && uRegion.z > 0.0;
+    if (lifted) {
+      // Where the heights are known the clouds are a surface with real relief, and the view ray is walked down
+      // through the 13 km they can occupy until it first passes under that surface. Seen at a slant, a high front
+      // then stands in front of the low deck behind it, as it does through a spacecraft window.
+      vec2 fine = cloudUV(n), fx = cloudUV(nx) - fine, fy = cloudUV(ny) - fine;
+      fx.x -= floor(fx.x + 0.5); fy.x -= floor(fy.x + 0.5);
+      vec2 size = vec2(textureSize(uTop, 0)) / uRegion.zw;
+      gLod = max(0.5 * log2(max(dot(fx * size, fx * size), dot(fy * size, fy * size))), 0.0) + 0.5;
+      float tA = max(sphere(ro, rd, RG + 13.0).x, 0.0), tB = solid.x, tHit = tB;
+      float before = tA, gap = 13.0 - topAt(normalize(ro + rd * tA));
+      for (int i = 1; i <= 16; i++) {
+        float t = mix(tA, tB, float(i) / 16.0);
+        vec3 q = ro + rd * t;
+        float d = length(q) - RG - topAt(normalize(q));
+        if (d <= 0.0) { tHit = mix(before, t, gap / max(gap - d, 1e-4)); break; }
+        before = t; gap = d;
+      }
+      pc = ro + rd * tHit;
+      height = max(length(pc) - RG, 0.0);
+    }
+    float RC = RG + height;
+    vec3 nc = normalize(pc);
+    float cloud = 0.0, towardSun = 0.0, shadow = 0.0, massHere = 0.0, massSun = 0.0, shaded = 0.0, slope = 1.0;
     if (uHas.x > 0.5) {
       vec3 east = normalize(cross(vec3(0.0, 0.0, 1.0), nc)), north = cross(nc, east);
       vec3 ncx = normalize(nc + (nx - n)), ncy = normalize(nc + (ny - n));
@@ -229,8 +281,39 @@ void main() {
       massSun = cloudAt(nb, normalize(nb + (nx - n)), normalize(nb + (ny - n)));
       gBlur = 1.0;
       // The shadow the clouds throw on the ground: the map read where the ray to the sun crosses the cloud shell.
-      vec3 above = normalize(p + uSun * (height / max(mu, 0.06)));
+      // The cloud that shades a spot stands at its own height, so a high cloud's shadow falls far from it and a
+      // low deck's lies almost under it.
+      vec3 above = normalize(p + uSun * (uCloudLook.z / max(mu, 0.06)));
+      if (lifted) above = normalize(p + uSun * (topAt(above) / max(mu, 0.06)));
       shadow = cloudAt(above, normalize(above + (nx - n)), normalize(above + (ny - n)));
+      if (lifted) {
+        // Shadows cloud throws on cloud. From this spot the sun's ray is followed over the neighbouring tops until
+        // it has climbed clear of the highest they can be; where a top stands above the ray, this spot is in its
+        // shade. The planet's curve lifts the ray too, which is what lets a low sun still reach over a far deck.
+        vec3 toSun = normalize(sunFlat + nc * 1e-6);
+        float muS = dot(uSun, nc), rise = muS / max(sqrt(1.0 - muS * muS), 1e-3), bend = 0.5 / RG;
+        float reachKm = min((-rise + sqrt(rise * rise + 4.0 * bend * max(13.0 - height, 0.0))) / (2.0 * bend), 500.0);
+        float lit = 1.0;
+        for (int k = 1; k <= 8; k++) {
+          float f = float(k) / 8.0, d = reachKm * f * f;
+          vec3 q = normalize(nc + toSun * (d / RG));
+          float over = topAt(q) - (height + d * rise + d * d * bend);
+          if (over > 0.0) {
+            gBlur = 2.0 + 5.0 * f;
+            float c = cloudAt(q, normalize(q + (ncx - nc)), normalize(q + (ncy - nc)));
+            float thick = 0.15 * pow(c, 3.0) * uCloudLook.x;
+            lit = min(lit, 1.0 - thick / (2.0 + thick) * smoothstep(0.0, 0.3 + 0.015 * d, over));
+          }
+        }
+        gBlur = 1.0;
+        shaded = 1.0 - lit;
+        // A top that leans toward the sun is brighter than one that leans away: the surface's own slope, from the
+        // heights a few kilometres to the east and north.
+        float span = 6.0 / RG;
+        vec2 lean = (vec2(topAt(normalize(nc + east * span)), topAt(normalize(nc + north * span))) - topAt(nc)) / 6.0;
+        vec3 face = normalize(nc - east * lean.x - north * lean.y);
+        slope = clamp(1.0 + (dot(face, uSun) - muS) / max(muS + 0.3, 0.3), 0.55, 1.45);
+      }
     }
     float viewCos = max(dot(nc, -rd), 0.05);
     // Seen at a slant a cloud is a longer path, so decks thicken toward the limb as they do from orbit.
@@ -241,36 +324,48 @@ void main() {
     float cover = albedoCloud;
     float shade = 1.0 - 0.8 * (0.15 * depthShadow / (2.0 + 0.15 * depthShadow)) * smoothstep(0.0, 0.1, mu);
 
+    // Cloud shades the moonlit ground too (read straight overhead: the moon's own slant is not followed).
+    float shadeMoon = 1.0 - 0.7 * albedoCloud;
     vec3 base = vec3(0.012, 0.03, 0.065);
     float water = 1.0;
     if (uHas.y > 0.5) {
       vec3 tex = readMap(uColor, n, 0.0, nx, ny).rgb;
       // The sea in the Blue Marble is a flat dark blue; anything brighter or less blue is land or ice.
-      water = smoothstep(0.035, 0.012, max(tex.r, tex.g)) * smoothstep(0.0, 0.01, tex.b - tex.r);
+      water = (1.0 - smoothstep(0.012, 0.035, max(tex.r, tex.g))) * smoothstep(0.0, 0.01, tex.b - tex.r);
       base = mix(tex, mix(base, tex, 0.35), water);
     }
-    vec3 ground = base * (sun * max(mu, 0.0) * shade + sky) / PI;
-    // The sea's glitter: sunlight mirrored by waves, a wide soft patch (Cox and Munk's slope spread as one GGX lobe).
-    vec3 half_ = normalize(uSun - rd);
-    float nh = max(dot(n, half_), 0.0), nv = max(dot(n, -rd), 1e-3), nl = max(mu, 0.0), a2 = 0.02;
-    float dist = a2 / (PI * pow(nh * nh * (a2 - 1.0) + 1.0, 2.0));
-    float fres = 0.02 + 0.98 * pow(1.0 - max(dot(half_, -rd), 0.0), 5.0);
-    ground += water * sun * shade * dist * fres * nl / (4.0 * nv * nl + 0.05) * 0.25;
-    ground += water * sky * (0.02 + 0.98 * pow(1.0 - nv, 5.0)) / PI * 0.5;
+    vec3 ground = base * (sun * max(mu, 0.0) * shade + skySun) / PI;
+    float nv = max(dot(n, -rd), 1e-3);
+    ground += water * sun * shade * glitter(n, rd, uSun, max(mu, 0.0));
+    // By moonlight colour drains from the land, as it does for the eye and for film: what is left is tone. Land
+    // stays a mid grey, the sea goes nearly black except where it mirrors the moon, and cloud is the brightest thing.
+    float tone = dot(base, vec3(0.3, 0.55, 0.15));
+    vec3 moonlit = mix(base, vec3(tone), 0.7) * mix(1.0, 0.45, water) * (MOON * moon * max(muMoon, 0.0) + skyMoon) / PI;
+    moonlit += water * MOON * moon * glitter(n, rd, uMoon, max(muMoon, 0.0));
+    ground += water * skySun * (0.02 + 0.98 * pow(1.0 - nv, 5.0)) / PI * 0.5;
 
     float muC = dot(nc, uSun);
-    vec3 sunC = sunAt(RC, muC) * SUN, moonC = sunAt(RC, dot(nc, uMoon)) * SUN * uNightLook.z;
-    float relief = clamp(1.0 + uCloudLook.y * ((cloud - towardSun) * 2.2 + (massHere - massSun) * 2.6), 0.35, 1.5);
+    // For colour, a top counts as standing only part of the way from the one level the look was balanced at to its
+    // own height: low decks sit a little deeper in the haze and high cloud a little clearer of it, without the low
+    // ones turning the cream of a sunset at midday. The timing of sunrise on a cloud uses its true height.
+    float airHeight = mix(uCloudLook.z, height, 0.4);
+    vec3 sunC = transmit(RG + airHeight, muC) * sunSeen(RC, muC) * SUN, moonC = sunAt(RC, dot(nc, uMoon)) * SUN * uNightLook.z;
+    // Where real heights do the modelling, the guessed relief of whole cloud masses steps back.
+    float relief = clamp(1.0 + uCloudLook.y * ((cloud - towardSun) * 2.2 + (massHere - massSun) * (lifted ? 0.9 : 2.6)), 0.35, 1.5);
+    relief *= slope * (1.0 - 0.85 * shaded);
     // Light wraps a little round a cloud's shoulder, so the terminator on a cloud deck is soft, as it is in life.
     float wrap = clamp((muC + 0.12) / 1.12, 0.0, 1.0);
-    vec3 cloudLight = (sunC * wrap * relief + moonC * clamp(dot(nc, uMoon), 0.0, 1.0) + sky * 1.4) / PI;
+    vec3 cloudLight = (sunC * wrap * relief + MOON * moonC * clamp(dot(nc, uMoon), 0.0, 1.0) * mix(1.0, relief, 0.6) + sky * 1.4) / PI;
     // Cloud tops stand above most of the air, so the path back to the camera reddens them less than the sea.
-    vec3 lift = pow(max(through, vec3(1e-6)), vec3(exp(-height / HR) - 1.0));
-    behind = mix(ground + base * moon * max(muMoon, 0.0) / PI, cloudLight * min(lift, vec3(8.0)), cover);
+    vec3 lift = pow(max(through, vec3(1e-6)), vec3(exp(-airHeight / HR) - 1.0));
+    behind = mix(ground + moonlit * shadeMoon, cloudLight * min(lift, vec3(8.0)), cover);
+    // The haze the march gathered lies mostly in the lowest few kilometres. A high top stands above more of it than
+    // a low one, so it is seen through less blue: it sits nearer the eye.
+    if (lifted) light *= mix(1.0, clamp(exp(-(airHeight - uCloudLook.z) / HR), 0.6, 1.3), cover);
 
     if (uHas.z > 0.5) {
       vec3 lamps = readMap(uNight, n, 0.0, nx, ny).rrr;
-      float dark = smoothstep(0.04, -0.12, mu);
+      float dark = 1.0 - smoothstep(-0.12, 0.04, mu);
       behind += lamps * lamps * vec3(1.0, 0.6, 0.28) * uNightLook.x * dark * (1.0 - cover * 0.92);
     }
   } else {
@@ -278,10 +373,10 @@ void main() {
     // The sun's disc, darker toward its edge, and a restrained glare round it.
     float angle = acos(clamp(cosSun, -1.0, 1.0));
     float limb = sqrt(max(1.0 - pow(angle / SUN_R, 2.0), 0.0));
-    behind += SUN * 9000.0 * smoothstep(SUN_R, SUN_R * 0.96, angle) * (0.4 + 0.6 * limb);
+    behind += SUN * 9000.0 * (1.0 - smoothstep(SUN_R * 0.96, SUN_R, angle)) * (0.4 + 0.6 * limb);
     // Glare is the lens's doing, so it is there only while the camera itself can see the sun.
     float camR = length(ro);
-    behind += SUN * uGrade.w * sunSeen(camR, dot(ro, uSun) / camR) * (0.00002 / (angle * angle + 0.00002) + 0.0000012 / (pow(angle, 3.0) + 0.00002));
+    behind += SUN * uGrade.w * sunSeen(camR, dot(ro, uSun) / camR) * (0.00002 / (angle * angle + 0.00002) * exp(-angle * 9.0) + 0.0000012 / (pow(angle, 3.0) + 0.00002));
   }
   vec3 colour = light + through * behind;
 

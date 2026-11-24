@@ -11,7 +11,10 @@ if (q.has("bare")) document.body.classList.add("bare");
 const canvas = document.getElementById("c") as HTMLCanvasElement;
 // ?dir=day plays a direction exactly as the website does (components/horizon/stage.ts); ?t= holds it at a moment.
 if (q.has("dir")) {
-  const stage = createStage(canvas, { direction: DIRECTIONS[q.get("dir")!], tall: () => (q.has("tall") ? q.get("tall") === "1" : innerHeight > innerWidth * 1.25), base: "/public/horizon", cloud: q.get("cloud") || undefined, rate: q.has("rate") ? Number(q.get("rate")) : undefined, onError: (e: Error) => console.warn(e.message) });
+  // Any number of the look (components/horizon/renderer.ts) can be overridden: &cloudTops=0 turns the measured heights off.
+  const tune: Record<string, number> = {};
+  for (const key of Object.keys(LOOK)) if (q.has(key)) tune[key] = Number(q.get(key));
+  const stage = createStage(canvas, { direction: DIRECTIONS[q.get("dir")!], tall: () => (q.has("tall") ? q.get("tall") === "1" : innerHeight > innerWidth * 1.25), base: "/public/horizon", cloud: q.get("cloud") || undefined, rate: q.has("rate") ? Number(q.get("rate")) : undefined, tune, meter: q.has("meter") ? Number(q.get("meter")) : undefined, startAt: q.has("at") ? Date.parse(q.get("at")!) : undefined, onError: (e: Error) => console.warn(e.message) });
   let fixed: number | null = q.has("t") ? Number(q.get("t")) : null;
   const begin = performance.now();
   // The stage's clock starts at its first drawn frame, so a held moment is measured from one drawn at zero.

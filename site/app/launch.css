@@ -138,11 +138,16 @@
   .launch__legal { font-size: 0.875rem; }
 }
 
-/* The experimental horizon scenes (/horizon/...): on a phone the planet fills the lower third, where the note and
-   the extra requests sit, so the shade deepens at the foot to hold their contrast over sunlit cloud. */
+/* The experimental horizon scenes (/horizon/...): on a phone the planet fills the lower third. The words end above
+   it, so the shade is only what the words need and a thin band behind the links at the foot. */
 @media (max-width: 760px) {
-  .launch--art .launch__shade { background: linear-gradient(to bottom, rgba(2,3,2,.6) 0%, rgba(2,3,2,.4) 50%, rgba(2,3,2,.1) 62%, rgba(2,3,2,0) 68%), linear-gradient(to top, rgba(2,3,2,.72) 0%, rgba(2,3,2,.6) 24%, rgba(2,3,2,.42) 34%, rgba(2,3,2,0) 46%); }
+  .launch--art .launch__shade { background: linear-gradient(to bottom, rgba(2,3,2,.6) 0%, rgba(2,3,2,.4) 44%, rgba(2,3,2,.1) 56%, rgba(2,3,2,0) 62%), linear-gradient(to top, rgba(2,3,2,.55), rgba(2,3,2,0) 72px); }
+  /* The planet is left clear: the extra requests give way to one link to the library. */
+  .launch--art .launch__more { display: none; }
+  .launch--art .launch__examples { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin-top: -6px; color: rgba(255,255,255,.86); font-size: var(--text-sm); text-decoration: none; text-shadow: 0 1px 14px rgba(2,3,2,.9); }
+  .launch--art .launch__examples .i { width: 15px; height: 15px; }
 }
+.launch__examples { display: none; }
 /* Their stills are cut wide (2.4:1) and tall (4:5) and fitted by height from the centre, exactly as the live canvas
    frames the scene, so one lies on the other. The live scene fades in over the still. */
 .launch--art .launch__earth { background: #000; }

@@ -6,6 +6,7 @@ Checked 24 November 2026. The files in `public/horizon/earth/` are derivatives m
 |---|---|---|---|
 | `clouds.jpg` | VIIRS (NOAA-20) Corrected Reflectance, True Color, 22 November 2026, eight 4096-pixel requests to the GIBS WMS | `gibs.earthdata.nasa.gov` | NASA Earthdata data-use guidance: data are released under Creative Commons Zero. GIBS asks for an acknowledgement. |
 | `clouds.jpg`, where that day has no data or the ground is snow | Blue Marble cloud composite, `cloud_combined_2048.jpg` | `assets.science.nasa.gov` | NASA media guidelines: generally not copyrighted in the United States; credit NASA; no implied endorsement. |
+| `tops-pacific.jpg` | VIIRS (NOAA-20) cloud-top height, daytime, 22 November 2026: the GIBS layer `VIIRS_NOAA20_Cloud_Top_Height_Day` (a rendering of the CLDPROP_L2_VIIRS_NOAA20 product), two WMS requests as PNG at 6,827 by 2,822 pixels across the box 2 to 64 south, 145 east to 65 west, with the layer's colour key `colormaps/v1.3/MODIS_VIIRS_Cloud_Top_Height.xml` | `gibs.earthdata.nasa.gov` | As the cloud imagery: Creative Commons Zero, acknowledgement asked. |
 | `colour.jpg` | Blue Marble Next Generation with topography and bathymetry, December 2004, `world.topo.bathy.200412.3x21600x10800.jpg` | `assets.science.nasa.gov` | As above; credit "NASA Earth Observatory". |
 | `night.jpg` | Black Marble 2016, `BlackMarble_2016_3km.jpg` | `assets.science.nasa.gov` | As above; credit NASA Earth Observatory. |
 

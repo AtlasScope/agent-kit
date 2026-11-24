@@ -17,7 +17,7 @@ await mkdir(out, { recursive: true });
 const SHAPES = { wide: { width: 1920, height: 800, tall: 0 }, tall: { width: 780, height: 975, tall: 1 } };
 const lab = await startLab(4320), browser = await launch();
 try {
-  for (const direction of ["day", "dawn", "night"]) for (const [shape, size] of Object.entries(SHAPES)) {
+  for (const direction of ["day", "afternoon", "sunrise", "dawn", "night"]) for (const [shape, size] of Object.entries(SHAPES)) {
     const page = await browser.newPage({ viewport: { width: size.width, height: size.height }, deviceScaleFactor: 2 });
     await page.goto(`${lab.base}/lab/horizon.html?bare&dir=${direction}&t=0&tall=${size.tall}`);
     await page.waitForFunction(() => window.lab?.horizon.ready(), null, { timeout: 60000 });

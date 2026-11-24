@@ -14,7 +14,9 @@ try {
     const errors = [];
     page.on("pageerror", (e) => { if (e.message !== "stage mode") errors.push(e.message); });
     await page.goto(`${lab.base}/lab/horizon.html?bare&${query.includes("t=") ? "" : "t=0&"}${query}`);
-    await page.waitForFunction(() => document.getElementById("error").textContent || window.lab?.horizon.ready(), null, { timeout: 60000 });
+    // A scene that never becomes ready (a shader that will not compile, say) is reported, not waited on for ever.
+    try { await page.waitForFunction(() => document.getElementById("error").textContent || window.lab?.horizon.ready(), null, { timeout: 60000 }); }
+    catch { console.log(name, "never became ready:", errors.join(" | ").slice(0, 3000)); await page.close(); continue; }
     await page.waitForTimeout(900);
     const broken = await page.evaluate(() => document.getElementById("error").textContent);
     console.log(name, broken || "", errors.join(" | ").slice(0, 1500));

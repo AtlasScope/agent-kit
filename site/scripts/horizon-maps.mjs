@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Makes the planet's maps for the horizon scene from NASA originals kept outside the repository.
-//   node scripts/horizon-maps.mjs <folder with the originals> [day, e.g. 20261122]
+//   node scripts/horizon-maps.mjs <folder with the originals> [day, e.g. 20261122] [--surface: stop after colour.jpg and night.jpg]
 // Originals (see components/horizon/SOURCES.md for where each comes from and its terms):
 //   bmng/world.topo.bathy.200412.3x21600x10800.jpg   Blue Marble Next Generation, surface colour
 //   night/BlackMarble_2016_3km.jpg                   Black Marble, city lights
@@ -20,7 +20,8 @@ import sharp from "sharp";
 sharp.cache(false);
 const site = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 // With no folder given, the originals are looked for in the repository's ignored scratch folder.
-const [source = path.join(site, "..", ".artifacts", "horizon", "source"), day = "20261122"] = process.argv.slice(2);
+const [source = path.join(site, "..", ".artifacts", "horizon", "source"), day = "20261122"] = process.argv.slice(2).filter((arg) => !arg.startsWith("--"));
+const surfaceOnly = process.argv.includes("--surface");
 const out = path.join(site, "public", "horizon", "earth");
 await mkdir(out, { recursive: true });
 const big = { limitInputPixels: false };
@@ -28,8 +29,17 @@ const W = 16384, H = 8192, TILE = 4096;
 
 const bmng = path.join(source, "bmng", "world.topo.bathy.200412.3x21600x10800.jpg");
 await sharp(bmng, big).resize(8192, 4096, { kernel: "lanczos3" }).jpeg({ quality: 88, mozjpeg: true }).toFile(path.join(out, "colour.jpg"));
-await sharp(path.join(source, "night", "BlackMarble_2016_3km.jpg"), big).resize(8192, 4096, { kernel: "lanczos3" }).jpeg({ quality: 84, mozjpeg: true }).toFile(path.join(out, "night.jpg"));
+// The Black Marble picture is drawn for the eye: its land is a dim blue-grey so the continents can be made out. Only
+// the lamps are wanted here, and they are white to amber where the land tint is blue, so a pixel's lamp light is how
+// far its red and green stand above its blue. Without this the whole of a continent glows faintly at night.
+{
+  const { data, info } = await sharp(path.join(source, "night", "BlackMarble_2016_3km.jpg"), big).resize(8192, 4096, { kernel: "lanczos3" }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const lamps = Buffer.alloc(info.width * info.height);
+  for (let i = 0; i < lamps.length; i++) lamps[i] = Math.round(Math.min(255, Math.max(0, (Math.max(data[i * 3], data[i * 3 + 1]) - 0.62 * data[i * 3 + 2]) / 0.38)));
+  await sharp(lamps, { raw: { width: info.width, height: info.height, channels: 1 } }).jpeg({ quality: 84, mozjpeg: true }).toFile(path.join(out, "night.jpg"));
+}
 console.log("colour.jpg, night.jpg");
+if (surfaceOnly) process.exit(0);
 
 const ground = await sharp(bmng, big).resize(W, H, { kernel: "cubic" }).removeAlpha().raw().toBuffer();
 const filler = await sharp(path.join(source, "cloud2k", "cloud_combined_2048.jpg")).resize(W, H, { kernel: "cubic" }).greyscale().raw().toBuffer();
