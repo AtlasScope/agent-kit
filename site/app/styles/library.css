@@ -136,11 +136,11 @@
 .prow__m { grid-area: meta; display: grid; justify-items: start; gap: 6px; margin: 4px 0 0; color: var(--c-fg-3); font-size: var(--type-xs); line-height: 1.3; }
 .prow__a { grid-area: act; display: flex; align-items: center; gap: 4px; position: relative; z-index: 1; }
 .prow__a .btn { flex: none; }
-/* Long lists skip rendering rows far down the page. The first eight always render: a placeholder height on a row in
-   the first screen gets replaced a frame later and shifts the rows under it (CLS). Rows with a caller action may open
-   popovers, which paint containment would clip. */
-.prows > li:nth-child(n+9) > .prow:not(.prow--action) { content-visibility: auto; contain-intrinsic-size: auto 150px; }
-.srows > li:nth-child(n+9) > .srow:not(.srow--action) { content-visibility: auto; contain-intrinsic-size: auto 110px; }
+/* Long lists skip rendering rows far down the page. The first eight shown prompt rows (fifteen skill rows, which can
+   run three across) always render: a placeholder height on a row in the first screen gets replaced a frame later and
+   shifts the rows under it (CLS). Rows with a caller action may open popovers, which paint containment would clip. */
+.prows > li:nth-child(n+9 of :not([hidden])) > .prow:not(.prow--action) { content-visibility: auto; contain-intrinsic-size: auto 150px; }
+.srows > li:nth-child(n+16 of :not([hidden])) > .srow:not(.srow--action) { content-visibility: auto; contain-intrinsic-size: auto 110px; }
 .pid { font: var(--weight-semibold) var(--type-micro)/1 var(--font-mono); padding: 4px 6px; border-radius: var(--radius-xs); color: var(--c-fg-2); background: var(--c-fill); border: 1px solid var(--c-line); }
 .best { color: var(--c-fg); font-weight: var(--weight-semibold); }
 /* "Changes code" and similar: a marked, brighter label, not the danger colour (the Danger Only Rule). */

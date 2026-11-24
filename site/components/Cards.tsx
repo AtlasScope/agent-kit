@@ -20,7 +20,7 @@ export type RowHeading = "h3" | "h4";
 // The one prompt row, used wherever the site lists prompts: area pages, Fix, prompt and skill detail, collections.
 // Id, title and what it finds, when to use it, what it changes, then Star and Copy. The title link stretches over the
 // row; Star and Copy sit above it. `n` numbers the row (ordered lists such as Fix); `best` marks it Best first.
-// `action` adds one control after Copy (collections use it for Remove); it sits above the row link.
+// `action` adds one control after Copy (for example Remove, in collections); it sits above the row link.
 // Put rows in PromptRows, or in a <ul className="prows"> / <ol className="prows prows--ranked"> of <li>s.
 export function PromptRow({ p, n, best, action, as: H = "h3" }: { p: Prompt; n?: number; best?: boolean; action?: ReactNode; as?: RowHeading }) {
   const mode = modeOf(p);
@@ -78,7 +78,7 @@ export const firstSentence = (d: string) => {
 };
 
 // One skill row: name and Star, kit and author, then the first sentence of what it does. `action` adds one control
-// after Star (collections use it for Remove). Put rows in SkillCards, or in a <ul className="srows"> of <li>s.
+// after Star (for example Remove, in collections). Put rows in SkillCards, or in a <ul className="srows"> of <li>s.
 export function SkillRow({ s, kit = true, action, as: H = "h3" }: { s: Skill; kit?: boolean; action?: ReactNode; as?: RowHeading }) {
   return (
     <article className={action ? "srow srow--action" : "srow"} data-kit={s.kit}>
