@@ -91,13 +91,15 @@ export const runningAnimations = () =>
     return { name: a.animationName || a.transitionProperty || a.constructor.name, target: t ? t.tagName.toLowerCase() + (t.className && typeof t.className === "string" ? "." + t.className.trim().split(/\s+/)[0] : "") : "?", infinite: timing.iterations === Infinity, duration: timing.duration };
   }).slice(0, 10) : [];
 
-// Describes what has focus and whether focus visibly changes it. The focused element's outline,
+// Describes what has focus and whether focus visibly changes it (on the element or a close ancestor). The focused element's outline,
 // box-shadow, border colour and background are compared with the same element unfocused; an outline
 // or any of those changing counts as a visible focus indicator.
 export const focusInfo = () => {
   const el = document.activeElement;
   if (!el || el === document.body) return { tag: "body" };
-  const look = () => { const cs = getComputedStyle(el); return [cs.outlineStyle !== "none" && parseFloat(cs.outlineWidth) > 0 ? cs.outlineColor + cs.outlineWidth : "", cs.boxShadow, cs.borderColor, cs.backgroundColor, cs.textDecorationLine, cs.color].join("|"); };
+  // The element and up to three ancestors, since a card can show focus with :focus-within on its wrapper.
+  const chain = [el, el.parentElement, el.parentElement?.parentElement, el.parentElement?.parentElement?.parentElement].filter(Boolean);
+  const look = () => chain.map((n) => { const cs = getComputedStyle(n); return [cs.outlineStyle !== "none" && parseFloat(cs.outlineWidth) > 0 ? cs.outlineColor + cs.outlineWidth : "", cs.boxShadow, cs.borderColor, cs.backgroundColor, cs.textDecorationLine, cs.color].join("|"); }).join("||");
   const focused = look();
   const cs = getComputedStyle(el);
   const hasOutline = cs.outlineStyle !== "none" && parseFloat(cs.outlineWidth) > 0;

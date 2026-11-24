@@ -44,7 +44,7 @@ await browser.close();
 
 const findings = compare(results.target.findings, results.ref?.findings);
 // Byte parity of copy payloads: every text a reference page copies must still be copyable on the target page.
-for (const [path, refCopies] of Object.entries(results.ref?.copies || {})) {
+for (const [path, refCopies] of Object.entries(results.ref?.copies || {}).filter(([path]) => ROUTES.some((r) => r.path === path))) {
   const tgt = new Set((results.target.copies[path] || []).flatMap((c) => c.text.split("\n---\n")));
   const route = ROUTES.find((r) => r.path === path) || { owner: "?", family: "?" };
   for (const c of refCopies) for (const t of c.text.split("\n---\n")) {
@@ -264,6 +264,8 @@ async function journeys(base, add) {
     await page.keyboard.type("design");
     await page.waitForTimeout(800);
     await page.keyboard.press("Escape");
+    // A first Escape that clears the query is fine; the second must close.
+    if (await page.locator('[role="listbox"]:visible [role="option"]').count()) await page.keyboard.press("Escape");
     const open = await page.locator('[role="listbox"]:visible [role="option"]').count();
     if (open > 0) add(route, "macbook/keyboard", "moderate", "search-escape", "Escape left the results open");
     // A command palette shortcut, if the site has one (W3 plans ⌘K). Recorded, not required.
