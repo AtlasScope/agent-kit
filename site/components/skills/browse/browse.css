@@ -1,0 +1,198 @@
+/* Skills and kits browsing: /skills and /kits. Owned by the skills-browsing lane (DESIGN-CONTRACT.md).
+   Same row language as the prompt library (library.css .prows, .rail, .afilter): full-width hairlines,
+   a surface fill under the row the pointer is on, a sticky one-line rail, neutral pressed states.
+   Tokens only. Hover only on fine pointers; targets reach --tap on coarse ones. */
+
+/* Page head with the agent-support note beside it on wide screens, below it on narrow ones. */
+.browse-head { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-6); align-items: end; }
+@media (min-width: 64rem) { .browse-head { grid-template-columns: minmax(0, 1fr) minmax(0, 22rem); gap: var(--space-10); } }
+
+/* Agent support: which agents have an install path; a lit LED where an install was tested. */
+.agents { display: grid; gap: var(--space-2); padding-top: var(--space-3); border-top: 1px solid var(--c-line); font-size: var(--type-sm); }
+.agents__h, .kit__label { margin: 0; font-size: var(--type-micro); line-height: var(--lh-micro); font-weight: var(--weight-semibold); letter-spacing: 0.04em; text-transform: uppercase; color: var(--c-fg-3); }
+.agents__list { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); margin: 0; padding: 0; list-style: none; color: var(--c-fg); }
+.agents__list li { display: inline-flex; align-items: center; gap: 7px; font-weight: var(--weight-medium); }
+.agents__key { margin: 0; display: flex; align-items: center; gap: 6px; font-size: var(--type-xs); color: var(--c-fg-3); }
+
+/* ---------- Skills browser ---------- */
+.sb { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); min-width: 0; }
+
+.sb__bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
+.sb__find { position: relative; flex: 1 1 18rem; min-width: 0; }
+.sb__glass { position: absolute; left: 12px; top: 50%; width: 16px; height: 16px; translate: 0 -50%; fill: none; stroke: var(--c-fg-3); stroke-width: 1.5; stroke-linecap: round; pointer-events: none; }
+.sb__input {
+  width: 100%; min-height: var(--control-h); padding: 0 12px 0 36px;
+  border: 1px solid var(--c-edge); border-radius: var(--radius-md); background: var(--c-surface); box-shadow: var(--shadow-1);
+  color: var(--c-fg); font: var(--weight-regular) var(--type-body)/1 var(--font-body);
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+.sb__input::placeholder { color: var(--c-fg-4); }
+.sb__input::-webkit-search-cancel-button { cursor: pointer; }
+.sb__input:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 2px; }
+
+/* Segmented switches, matching the prompt library's area filter: a neutral fill marks the pressed one. */
+.sb__seg { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--c-line); border-radius: var(--radius-md); background: var(--c-surface); }
+.sb__seg button {
+  display: inline-flex; align-items: center; gap: 6px; min-height: var(--control-h-sm); padding: 0 10px;
+  border: 0; border-radius: 8px; background: none; color: var(--c-fg-3);
+  font: var(--weight-medium) var(--type-xs)/1 var(--font-body); white-space: nowrap; cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.sb__seg button[aria-pressed="true"] { background: var(--c-fill); color: var(--c-fg); }
+.sb__n { color: var(--c-fg-3); font: var(--weight-regular) var(--type-micro)/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+
+.sb__count { display: flex; align-items: center; gap: var(--space-3); min-height: 28px; margin: 0; font-size: var(--type-xs); color: var(--c-fg-3); font-variant-numeric: tabular-nums; }
+.sb__clear { padding: 0; border: 0; background: none; color: var(--c-fg); font: inherit; font-weight: var(--weight-medium); text-decoration: underline; text-decoration-color: var(--c-line-2); text-underline-offset: 0.2em; cursor: pointer; }
+
+/* The rail: sticky under the header, one line, scrolls sideways when it doesn't fit. Same as the prompt library's. */
+.sb__rail { position: sticky; top: var(--header-h); z-index: 5; background: var(--c-canvas); border-bottom: 1px solid var(--c-line); }
+.sb__rail ul { display: flex; gap: 2px; margin: 0; padding: var(--space-2) 0; list-style: none; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; }
+.sb__rail ul::-webkit-scrollbar { display: none; }
+.sb__rail a {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 var(--space-3); border-radius: 8px;
+  color: var(--c-fg-3); font: var(--weight-medium) var(--type-sm)/1 var(--font-body); text-decoration: none; white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+}
+.sb__rail a[aria-current] { color: var(--c-fg); background: var(--c-fill); }
+
+.sb__body { min-width: 0; }
+.sb__groups { display: grid; gap: var(--space-12); min-width: 0; padding-top: var(--space-4); }
+.sb__empty { display: grid; gap: 6px; padding: var(--space-10) 0; font-size: var(--type-body); }
+.sb__empty p { margin: 0; }
+
+/* One group: a kit or an author. The heading clears the header and the rail when jumped to. */
+.sg { display: grid; gap: var(--space-4); scroll-margin-top: calc(var(--header-h) + 64px); }
+.sg__head { display: grid; gap: 6px; }
+.sg__title { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-3); }
+.sg__title h2 { margin: 0; font: var(--weight-semibold) var(--type-h2)/var(--lh-h2) var(--font-body); letter-spacing: var(--tr-h2); }
+.sg__n, .sg__v { font-size: var(--type-xs); color: var(--c-fg-3); font-variant-numeric: tabular-nums; }
+.sg__v { font-family: var(--font-mono); font-size: var(--type-micro); }
+.sg__head p { margin: 0; max-width: 68ch; color: var(--c-fg-3); font-size: var(--type-body); line-height: var(--lh-body); text-wrap: pretty; }
+
+/* Skill rows: an index, not a card grid. Name, one line, who wrote it, how it starts, star. */
+.sk-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--c-line); }
+.sk {
+  position: relative; display: grid; align-items: baseline;
+  grid-template-columns: minmax(10rem, 14rem) minmax(0, 1fr) 11rem 32px;
+  grid-template-areas: "name d m star"; column-gap: var(--space-4);
+  padding: var(--space-4) var(--space-3); margin-inline: calc(var(--space-3) * -1); border-radius: var(--radius-md);
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+/* Hairline inset to the text, so the hover fill can reach past it without the line sticking out of the column. */
+.sk::after { content: ""; position: absolute; left: var(--space-3); right: var(--space-3); bottom: 0; border-bottom: 1px solid var(--c-line); pointer-events: none; }
+.sk__name { grid-area: name; margin: 0; font: var(--weight-semibold) var(--type-h3)/var(--lh-h3) var(--font-body); letter-spacing: var(--tr-h3); overflow-wrap: anywhere; }
+.sk__name a { color: var(--c-fg); text-decoration: none; }
+.sk__name a.stretch::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.sk__name a:focus-visible { outline: none; }
+.sk:has(.stretch:focus-visible) { background: var(--c-surface); outline: 2px solid var(--c-focus); outline-offset: -2px; }
+.sk__d { grid-area: d; margin: 0; color: var(--c-fg-2); font-size: var(--type-body); line-height: var(--lh-body); text-wrap: pretty; }
+.sk__m { grid-area: m; margin: 0; display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: var(--type-xs); line-height: var(--lh-xs); color: var(--c-fg-3); }
+.sk__own { color: var(--c-fg-2); }
+.sk__auto { display: inline-flex; align-items: center; gap: 6px; }
+.sk__auto::before { content: ""; width: 5px; height: 5px; border-radius: 50%; border: 1px solid currentColor; }
+.sk__star { grid-area: star; position: relative; z-index: 1; align-self: center; justify-self: end; }
+.sk .star { margin: -6px 0; }
+
+@media (max-width: 78rem) {
+  .sk { grid-template-columns: minmax(9rem, 12rem) minmax(0, 1fr) 32px; grid-template-areas: "name d star" ". m star"; row-gap: var(--space-1); }
+}
+@media (max-width: 40rem) {
+  .sk { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name star" "d d" "m m"; row-gap: var(--space-1); padding: var(--space-4) 0; margin-inline: 0; border-radius: 0; }
+  .sk::after { left: 0; right: 0; }
+  .sb__bar { gap: var(--space-2); }
+  .sb__find { flex-basis: 100%; }
+  .sb__seg { flex: 1 1 auto; }
+  .sb__seg button { flex: 1 1 auto; justify-content: center; padding: 0 8px; }
+  .sb__groups { gap: var(--space-10); }
+  .sb__rail ul { margin-inline: calc(var(--gutter) * -1); padding-inline: var(--gutter); }
+}
+@media (pointer: coarse) {
+  .sb__input { min-height: var(--tap); font-size: 1rem; } /* 16px stops iOS Safari zooming the page on focus. */
+  .sb__seg button, .sb__rail a { min-height: var(--tap); }
+}
+@media (hover: hover) and (pointer: fine) {
+  .sk:has(.stretch:hover) { background: var(--c-surface); }
+  .sk:has(.stretch:hover)::after, .sk:has(+ .sk .stretch:hover)::after { border-color: transparent; }
+  .sk:has(.stretch:hover) .sk__name a { text-decoration: underline; text-decoration-color: var(--c-line-2); text-underline-offset: 0.2em; }
+  .sb__seg button:not([aria-pressed="true"]):hover, .sb__rail a:hover { color: var(--c-fg); }
+  .sb__input:hover { border-color: var(--c-fg-3); }
+}
+
+/* ---------- Kits ---------- */
+.kits { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--c-line); }
+.kit {
+  position: relative; display: grid; gap: var(--space-4) var(--space-10);
+  grid-template-columns: minmax(0, 14rem) minmax(0, 1fr) minmax(0, 21rem); grid-template-areas: "id body start";
+  padding: var(--space-6) var(--space-3); margin-inline: calc(var(--space-3) * -1); border-radius: var(--radius-lg);
+  scroll-margin-top: calc(var(--header-h) + var(--space-4));
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.kit::after { content: ""; position: absolute; left: var(--space-3); right: var(--space-3); bottom: 0; border-bottom: 1px solid var(--c-line); pointer-events: none; }
+.kit__id { grid-area: id; display: grid; align-content: start; gap: 6px; }
+.kit__i { font: var(--weight-medium) var(--type-micro)/1 var(--font-mono); color: var(--c-fg-3); font-variant-numeric: tabular-nums; }
+.kit__name { margin: 0; font: var(--weight-semibold) var(--type-h2)/var(--lh-h2) var(--font-body); letter-spacing: var(--tr-h2); overflow-wrap: anywhere; }
+.kit__name a { color: var(--c-fg); text-decoration: none; }
+.kit__name a.stretch::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.kit__name a:focus-visible { outline: none; }
+.kit:has(.stretch:focus-visible) { background: var(--c-surface); outline: 2px solid var(--c-focus); outline-offset: -2px; }
+.kit__m { margin: 0; display: flex; align-items: baseline; gap: var(--space-3); font-size: var(--type-xs); color: var(--c-fg-3); font-variant-numeric: tabular-nums; }
+.kit__m span + span { font-family: var(--font-mono); font-size: var(--type-micro); }
+
+.kit__body { grid-area: body; display: grid; align-content: start; gap: var(--space-2); min-width: 0; }
+.kit__line { margin: 0; max-width: 60ch; font-size: var(--type-lead); line-height: var(--lh-lead); color: var(--c-fg-2); text-wrap: pretty; }
+.kit__by { margin: 0; font-size: var(--type-xs); color: var(--c-fg-3); }
+.kit__skills { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 0; padding: 0; list-style: none; justify-self: start; }
+.kit__skills a {
+  display: inline-flex; align-items: center; min-height: 28px; padding: 0 9px;
+  border: 1px solid var(--c-line); border-radius: var(--radius-sm); background: var(--c-surface);
+  color: var(--c-fg-2); font: var(--weight-medium) var(--type-xs)/1 var(--font-body); text-decoration: none;
+  transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.kit__skills .kit__more { border-style: dashed; color: var(--c-fg-3); }
+
+.kit__start { grid-area: start; position: relative; z-index: 1; display: grid; align-content: start; gap: var(--space-2); }
+.kit__type { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.kit__cmd {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); width: 100%; min-height: var(--control-h-sm); padding: 0 12px;
+  border: 1px solid var(--c-edge); border-radius: var(--radius-sm); background: var(--c-surface); box-shadow: var(--shadow-1);
+  color: var(--c-fg); font: var(--weight-medium) var(--type-code)/var(--lh-code) var(--font-mono); text-align: left; overflow-wrap: anywhere; cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+}
+/* A quiet copy mark on the right; once the command is on the clipboard it becomes the green state dot. */
+.kit__cmd::after { content: ""; flex: none; width: 11px; height: 11px; border: 1.5px solid var(--c-fg-3); border-radius: 3px; box-shadow: 2px -2px 0 -0.5px var(--c-surface), 2px -2px 0 1px var(--c-fg-3); }
+.kit__cmd[data-copied]::after { width: 7px; height: 7px; border: 0; border-radius: 50%; background: var(--c-signal); box-shadow: none; }
+.kit__cmd:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 2px; }
+
+@media (max-width: 64rem) {
+  .kit { grid-template-columns: minmax(0, 13rem) minmax(0, 1fr); grid-template-areas: "id body" "id start"; }
+}
+@media (max-width: 40rem) {
+  .kit { grid-template-columns: minmax(0, 1fr); grid-template-areas: "id" "body" "start"; gap: var(--space-3); padding: var(--space-6) 0; margin-inline: 0; border-radius: 0; }
+  .kit::after { left: 0; right: 0; }
+  .kit__id { grid-template-columns: auto minmax(0, 1fr); column-gap: var(--space-3); align-items: baseline; }
+  .kit__i { grid-row: 1; }
+  .kit__m { grid-column: 2; }
+  .kit__line { font-size: var(--type-body); line-height: var(--lh-body); }
+}
+@media (pointer: coarse) {
+  .kit__cmd, .kit__skills a { min-height: var(--tap); }
+  .kit__skills a { padding: 0 12px; }
+}
+@media (hover: hover) and (pointer: fine) {
+  .kit:has(.kit__name .stretch:hover) { background: var(--c-surface); }
+  .kit:has(.kit__name .stretch:hover)::after, .kit:has(+ .kit .kit__name .stretch:hover)::after { border-color: transparent; }
+  .kit:has(.kit__name .stretch:hover) .kit__name a { text-decoration: underline; text-decoration-color: var(--c-line-2); text-underline-offset: 0.2em; }
+  .kit__skills a:hover { border-color: var(--c-line-2); color: var(--c-fg); }
+  .kit__cmd:hover { border-color: var(--c-fg-3); }
+}
+
+/* Phones: the agent note shrinks to one run of text, so the filter and the first rows reach the first screen.
+   Each agent still says whether its install was tested, in text for screen readers and the LED for sight. */
+@media (max-width: 40rem) {
+  .agents { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-3); padding-top: var(--space-2); font-size: var(--type-xs); }
+  .agents__h { font-size: var(--type-xs); letter-spacing: 0; text-transform: none; font-weight: var(--weight-regular); }
+  .agents__key { display: none; }
+  .agents__list { gap: var(--space-1) var(--space-3); color: var(--c-fg-2); }
+  .agents__list li { font-weight: var(--weight-regular); }
+  .browse-head { gap: var(--space-4); }
+}
