@@ -26,7 +26,7 @@ The main hero headline ("Give your coding agent better instructions.") was chose
 
 - **Five plugins, 65 skills.** `design-kit` (39 skills), `motion-kit` (1), `engineering-kit` (17), `experience-architecture` (4), and `working-style` (4). Sixteen skills are original to Agent Kit; 49 are borrowed at pinned commits from 10 authors and credited in `CREDITS.md` and each kit's `THIRD_PARTY.md`.
 - **Prompt library.** 255 entries in `library/library.json` (56 investigations, 23 database prompts and workflows, 12 thinking prompts, 35 engineering commands, 106 design commands, 23 design recipes), audited in `library/audit.json` and compiled to `library/dist/prompt-library.html` and `prompt-library.md`.
-- **Public website (`site/`).** Live Next.js App Router site on Vercel (`https://www.atlasscope.dev`) with a one-screen orbit hero and WebGL scene, `/install`, `/start` (8-step beginner guide) and `/learn` (5 lessons), `/prompts`, `/skills`, `/kits`, `/fix`, `/about`, draft `/privacy` and `/terms`, `.md` twins, `llms.txt`, Clerk sign-in + Neon collections, Vercel Web Analytics, and a read-only `/mcp` server.
+- **Public website (`site/`).** Live Next.js App Router site on Vercel (`https://www.atlasscope.dev`) with a one-screen orbit hero whose scene is drawn from code, `/install`, `/start` (8-step beginner guide) and `/learn` (5 lessons), `/prompts`, `/skills`, `/kits`, `/fix`, `/about`, draft `/privacy` and `/terms`, `.md` twins, `llms.txt`, Clerk sign-in + Neon collections, Vercel Web Analytics, and a read-only `/mcp` server.
 
 ## What's Next
 
@@ -64,7 +64,7 @@ The main hero headline ("Give your coding agent better instructions.") was chose
 
 - Name: "Agent Kit by AtlasScope". AtlasScope is the brand; Agent Kit is its first product.
 - The AtlasScope identity is specified in `design/atlasscope/SPEC.md` (v0.4) and `DESIGN.md`: Orbit symbol, Montserrat 600 display and wordmark, ink `#0B0C12`, white `#FFFFFF`, slate `#151821`, muted `#A3A6AD`. The logo is only ever ink or white and never sits on a photograph.
-- The homepage hero uses the orbit photograph (and live WebGL scene) below a solid ink header, with no mark on the photo, as a stated exception to the spec.
+- The homepage hero is a view from orbit drawn from code (a live WebGL2 scene, with a still made from the same code behind it) below a solid ink header, with no mark on it, as a stated exception to the spec.
 - Header shows the AtlasScope lockup, a hairline divider, then "Agent Kit" in text.
 - Voice: plain, direct, and specific. No oversold claims ("Build like you have a senior team" was rejected).
 
@@ -86,4 +86,4 @@ The main hero headline ("Give your coding agent better instructions.") was chose
 
 ## Accessibility & Inclusion
 
-Keyboard and screen-reader use throughout, visible focus, `prefers-reduced-motion` respected, and text contrast checked wherever it sits over the photograph. Layouts hold from 360 px to 2560 px wide, including Windows at 125% and 150% scaling.
+Keyboard and screen-reader use throughout, visible focus, `prefers-reduced-motion` respected, and text contrast checked wherever it sits over the scene. Layouts hold from 360 px to 2560 px wide, including Windows at 125% and 150% scaling.
