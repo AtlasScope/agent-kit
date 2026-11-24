@@ -26,7 +26,7 @@ async function get(base, path, redirect = "follow") {
     const res = await fetch(base + path, { redirect });
     const body = redirect === "manual" ? "" : await res.text();
     return { status: res.status, location: res.headers.get("location"), body, type: res.headers.get("content-type") || "" };
-  } catch (e) { return { status: 0, error: String(e), body: "" }; }
+  } catch (e) { return { status: 0, error: String(e), body: "", type: "" }; }
 }
 
 const attr = (html, re) => { const m = html.match(re); return m ? m[1].replace(/&amp;/g, "&").replace(/&#x27;/g, "'").replace(/&quot;/g, '"') : null; };
@@ -62,6 +62,7 @@ for (const p of tgtPaths.filter((p) => !refPaths.includes(p))) add("minor", "sit
 // Pages: status and head.
 await pool(refPaths, Number(args.concurrency), async (p) => {
   const [r, t] = await Promise.all([get(R, p), get(T, p)]);
+  if (r.status === 0) { add("serious", "fetch", p, `reference fetch failed: ${r.error}`); return; }
   if (t.status !== r.status) { add(t.status >= 400 || t.status === 0 ? "blocker" : "serious", "status", p, `reference ${r.status}, target ${t.status}`); return; }
   if (!r.type.includes("html")) return;
   const hr = head(r.body), ht = head(t.body);

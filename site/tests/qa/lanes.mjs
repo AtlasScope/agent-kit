@@ -25,6 +25,12 @@ const pass = (check, where, note = "") => results.push({ check, where, ok: true,
 const fail = (check, where, severity, detail) => results.push({ check, where, ok: false, severity, detail });
 const dev = (id) => DEVICES.find((d) => d.id === id);
 const browser = await chromium.launch();
+// Runs one WebKit step; a failed load or a JS error becomes a finding and the lane carries on.
+async function wk(d, where, openMsg, fn) {
+  const o = await d.send({ cmd: "open", ...openMsg });
+  if (!o.ok) { fail("webkit-load", where, "serious", o.error || "page did not load"); return; }
+  try { await fn(); } catch (e) { fail("webkit-error", where, "serious", String(e.message || e).split("\n")[0].slice(0, 200)); }
+}
 
 async function open(devId, path, { scheme = "light", deny = false } = {}) {
   const ctx = await browser.newContext({ ...dev(devId).ctx, colorScheme: scheme, permissions: ["clipboard-read", "clipboard-write"] });
@@ -168,7 +174,7 @@ async function search() {
     for (const [devId, w, h] of [["macbook", 1440, 900], ["iphone", 393, 852]]) {
       for (const scheme of ["light", "dark"]) {
         const where = `webkit/${devId}/${scheme}`;
-        await d.send({ cmd: "open", url: base + "/prompts", width: w, height: h, dark: scheme === "dark", init: `(${clipboardRecorder})(false)` });
+        await wk(d, where, { url: base + "/prompts", width: w, height: h, dark: scheme === "dark", init: `(${clipboardRecorder})(false)` }, async () => {
         const r = await d.call(async (isPhone) => {
           if (isPhone) [...document.querySelectorAll("header button")].find((b) => /search/i.test(b.getAttribute("aria-label") || b.textContent))?.click();
           else document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }));
@@ -176,6 +182,7 @@ async function search() {
           const dlg = document.querySelector("dialog[open]");
           if (!dlg) return { open: false };
           const input = dlg.querySelector('[role="combobox"]');
+          if (!input) return { open: true, options: 0, noInput: true };
           const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
           set.call(input, "slow page");
           input.dispatchEvent(new Event("input", { bubbles: true }));
@@ -183,10 +190,11 @@ async function search() {
           const rect = dlg.getBoundingClientRect();
           return { open: true, options: dlg.querySelectorAll('[role="option"]').length, w: rect.width / innerWidth, h: rect.height / innerHeight, font: parseFloat(getComputedStyle(input).fontSize), side: document.documentElement.scrollWidth - innerWidth };
         }, devId === "iphone");
-        if (!r.open) { fail("webkit-open", where, "blocker", "palette did not open in WebKit"); continue; }
+        if (!r.open) { fail("webkit-open", where, "blocker", "palette did not open in WebKit"); return; }
         r.options > 0 ? pass("webkit-results", where, `${r.options} options`) : fail("webkit-results", where, "serious", "no results listed in WebKit");
         if (devId === "iphone") { r.font >= 16 ? pass("webkit-input-16px", where) : fail("webkit-input-16px", where, "serious", `input ${r.font}px`); (r.w > 0.97 && r.h > 0.9) ? pass("webkit-fullscreen", where) : fail("webkit-fullscreen", where, "moderate", `${Math.round(r.w * 100)}% x ${Math.round(r.h * 100)}%`); }
         await d.send({ cmd: "shot", path: `${dir}/shots-lane/palette--webkit-${devId}-${scheme}.png`, full: false });
+        });
       }
     }
     await d.quit();
@@ -274,7 +282,7 @@ async function detail() {
       for (const [devId, w, h] of [["macbook", 1440, 900], ["iphone", 393, 852]]) {
         for (const deny of [false, true]) {
           const where = `webkit/${devId}/${p.id}${deny ? "/denied" : ""}`;
-          await d.send({ cmd: "open", url: base + path, width: w, height: h, init: `(${clipboardRecorder})(${deny})` });
+          await wk(d, where, { url: base + path, width: w, height: h, init: `(${clipboardRecorder})(${deny})` }, async () => {
           const r = await d.call(async (deny) => {
             const btn = document.querySelector(".pd-copy, button.btn--solid");
             const res = { sticky: [] };
@@ -301,6 +309,7 @@ async function detail() {
           if (!deny && devId === "macbook") r.ckey.includes(want) ? pass("webkit-c-key", where) : fail("webkit-c-key", where, "serious", "C did not copy in WebKit");
           if (deny) r.sel.replace(/\s+/g, " ").trim() === want.replace(/\s+/g, " ").trim() ? pass("webkit-denied-selects-text", where) : fail("webkit-denied-selects-text", where, "serious", `selection after refused copy: ${r.sel.length} chars`);
           if (!deny) await d.send({ cmd: "shot", path: `${dir}/shots-lane/detail-${p.id}--webkit-${devId}.png`, full: false });
+          });
         }
       }
     }
@@ -363,6 +372,7 @@ async function browse() {
     const n = await btns.count();
     if (n < 2) { fail("area-filter", where, "moderate", `no filter on /prompts/${area.slug}`); await ctx.close(); continue; }
     const shownAll = await page.locator("main li:visible a[href^='/prompts/']").count();
+    const chosen = (await btns.nth(1).textContent()).trim();
     await btns.nth(1).click();
     await page.waitForTimeout(300);
     const url = new URL(page.url());
@@ -374,9 +384,10 @@ async function browse() {
     await page.waitForTimeout(300);
     const pressed = await page.locator('[role="group"] button[aria-pressed="true"]').first().textContent();
     const shownReload = await page.locator("main li:visible a[href^='/prompts/']").count();
-    (pressed?.includes(q) && shownReload === shownOne) ? pass("filter-restored", where) : fail("filter-restored", where, "serious", `after reload pressed "${pressed}", ${shownReload} shown (expected ${shownOne})`);
+    (q && pressed?.trim() === chosen && shownReload === shownOne) ? pass("filter-restored", where) : fail("filter-restored", where, "serious", `after reload pressed "${pressed}", ${shownReload} shown (expected ${shownOne})`);
     // Back to All restores the list.
     await btns.nth(0).click();
+    await page.waitForTimeout(300);
     const back = await page.locator("main li:visible a[href^='/prompts/']").count();
     back === shownAll ? pass("filter-all", where) : fail("filter-all", where, "serious", `All shows ${back}, expected ${shownAll}`);
     await page.screenshot({ path: `${dir}/shots-lane/area--${d}.png` });
@@ -386,7 +397,7 @@ async function browse() {
     const d = driver();
     for (const [devId, w, h] of [["macbook", 1440, 900], ["iphone", 393, 852]]) {
       const where = `webkit/${devId}`;
-      await d.send({ cmd: "open", url: `${base}/prompts#dcmd`, width: w, height: h, settle: 1200 });
+      await wk(d, where, { url: `${base}/prompts#dcmd`, width: w, height: h, settle: 1200 }, async () => {
       const r = await d.call(async () => {
         const el = document.getElementById("dcmd");
         const top = el?.getBoundingClientRect().top;
@@ -401,6 +412,7 @@ async function browse() {
       r.cur ? pass("webkit-scroll-spy", where, r.cur) : fail("webkit-scroll-spy", where, "moderate", "no rail link marked current after scrolling");
       r.side <= 1 ? pass("webkit-no-side-scroll", where) : fail("webkit-no-side-scroll", where, "serious", `side scroll ${r.side}px`);
       await d.send({ cmd: "shot", path: `${dir}/shots-lane/prompts--webkit-${devId}-scrolled.png`, full: false });
+      });
     }
     await d.quit();
   }
@@ -408,7 +420,9 @@ async function browse() {
 
 async function axeOpen(devId, scheme, setup) {
   const { createRequire } = await import("node:module");
-  const src = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf8");
+  let src;
+  try { src = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf8"); }
+  catch { pass("axe-open-palette", `${devId}/${scheme}`, "skipped: axe-core not installed"); return; }
   const { ctx, page } = await open(devId, "/prompts", { scheme });
   await setup(page);
   await page.addScriptTag({ content: src });
@@ -417,9 +431,13 @@ async function axeOpen(devId, scheme, setup) {
   await ctx.close();
 }
 
-await ({ search, detail, browse })[args.lane]();
-await browser.close();
-const failed = results.filter((r) => !r.ok);
-writeFileSync(`${dir}/lane-${args.lane}.json`, JSON.stringify({ lane: args.lane, target: base, when: new Date().toISOString(), passed: results.length - failed.length, failed: failed.length, results }, null, 2));
-console.log(`${args.lane}: ${results.length - failed.length} passed, ${failed.length} failed`);
-for (const f of failed) console.log(`${f.severity.padEnd(8)} ${f.check.padEnd(26)} [${f.where}] ${f.detail}`);
+// Results are written even if a check throws, so a partial run still leaves evidence.
+try { await ({ search, detail, browse })[args.lane](); }
+catch (e) { fail("harness", "run", "serious", `lane run stopped early: ${String(e.message || e).split("\n")[0]}`); }
+finally {
+  await browser.close();
+  const failed = results.filter((r) => !r.ok);
+  writeFileSync(`${dir}/lane-${args.lane}.json`, JSON.stringify({ lane: args.lane, target: base, when: new Date().toISOString(), passed: results.length - failed.length, failed: failed.length, results }, null, 2));
+  console.log(`${args.lane}: ${results.length - failed.length} passed, ${failed.length} failed`);
+  for (const f of failed) console.log(`${f.severity.padEnd(8)} ${f.check.padEnd(26)} [${f.where}] ${f.detail}`);
+}

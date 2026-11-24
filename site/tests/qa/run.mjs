@@ -65,16 +65,20 @@ for (const f of findings.filter((f) => f.status === "new").slice(0, 60)) console
 
 // ---------------------------------------------------------------------------------------------
 
+// Build hashes and query strings change between any two builds; strip them so the same error on main
+// and on a branch get the same key.
+function stable(s) { return String(s).replace(/\/_next\/static\/[^\s"')]+/g, "/_next/static/…").replace(/\?[^\s"')]*/g, "").replace(/\b[0-9a-f]{8,}\b/g, "…"); }
+
 function compare(target, ref) {
   if (!ref) return target.map((f) => ({ ...f, status: "new" }));
-  const seen = new Set(ref.map((f) => f.key));
-  return target.map((f) => ({ ...f, status: seen.has(f.key) ? "pre-existing" : "new" }));
+  const seen = new Set(ref.map((f) => stable(f.key)));
+  return target.map((f) => ({ ...f, status: seen.has(stable(f.key)) ? "pre-existing" : "new" }));
 }
 
 async function pass(base, label, shots) {
   const findings = [], facts = {}, copies = {};
   const add = (route, where, severity, check, detail, keyExtra = "") =>
-    findings.push({ owner: route.owner, family: route.family, path: route.path, where, severity, check, detail, key: `${route.path}|${where}|${check}|${keyExtra || detail}` });
+    findings.push({ owner: route.owner, family: route.family, path: route.path, where, severity, check, detail, key: `${route.path}|${where}|${check}|${stable(keyExtra || detail)}` });
   const shotDir = `${args.out}/${label}/shots`;
   if (shots) mkdirSync(shotDir, { recursive: true });
 
@@ -132,13 +136,15 @@ async function pass(base, label, shots) {
 
         if (shots) await page.screenshot({ path: `${shotDir}/${slugOf(route.path)}--${dev.id}-${scheme}.png`, fullPage: route.family !== "home", animations: "disabled", timeout: 60000 }).catch((e) => add(route, where, "minor", "screenshot", String(e).slice(0, 120)));
 
-        if (dev.id === "macbook") await focusWalk(page, route, where, add);
-        if (dev.id === "macbook" && scheme === "light") copies[route.path] = await copyAll(page, route, where, add);
+        try {
+          if (dev.id === "macbook") await focusWalk(page, route, where, add);
+          if (dev.id === "macbook" && scheme === "light") copies[route.path] = await copyAll(page, route, where, add);
+        } catch (e) { add(route, where, "minor", "harness", String(e.message).split("\n")[0].slice(0, 200)); }
         await ctx.close();
       }
     }
-    await reducedMotion(base, route, add);
-    await zoom200(base, route, add);
+    await reducedMotion(base, route, add).catch((e) => add(route, "iphone/reduced-motion", "minor", "harness", String(e.message).split("\n")[0]));
+    await zoom200(base, route, add).catch((e) => add(route, "zoom200/light", "minor", "harness", String(e.message).split("\n")[0]));
     console.error(`[${label}] ${route.path} done`);
   }
   await journeys(base, add);
@@ -196,7 +202,7 @@ async function reducedMotion(base, route, add) {
   const dev = DEVICES.find((d) => d.id === "iphone");
   const ctx = await browser.newContext({ ...dev.ctx, reducedMotion: "reduce" });
   const page = await ctx.newPage();
-  await page.goto(base + route.path, { waitUntil: "load" }).catch(() => {});
+  if (!(await page.goto(base + route.path, { waitUntil: "load" }).then(() => true).catch(() => false))) { await ctx.close(); return; }
   await page.waitForTimeout(2000);
   const anim = await page.evaluate(runningAnimations);
   for (const a of anim) add(route, "iphone/reduced-motion", route.family === "home" ? "moderate" : "serious", "reduced-motion", `${a.name} on ${a.target} runs with reduced motion on${a.infinite ? " (loops)" : ""}`, a.target);
@@ -208,7 +214,7 @@ async function reducedMotion(base, route, add) {
 async function zoom200(base, route, add) {
   const ctx = await browser.newContext({ viewport: { width: 720, height: 450 }, deviceScaleFactor: 4 });
   const page = await ctx.newPage();
-  await page.goto(base + route.path, { waitUntil: "load" }).catch(() => {});
+  if (!(await page.goto(base + route.path, { waitUntil: "load" }).then(() => true).catch(() => false))) { await ctx.close(); return; }
   await page.waitForTimeout(400);
   const f = await page.evaluate(pageFacts);
   if (f.sideScroll > 1) add(route, "zoom200/light", "serious", "reflow-200", `scrolls sideways by ${f.sideScroll}px at 200% zoom; wide: ${f.wide.join(", ")}`, "x");
@@ -222,13 +228,15 @@ async function zoom200(base, route, add) {
 // Keyboard and interaction journeys that don't depend on class names.
 async function journeys(base, add) {
   const J = (path, owner, family) => ({ path, owner, family });
+  // Each journey runs on its own; one that throws becomes a finding instead of ending the run.
+  const guard = async (route, where, fn) => { try { await fn(); } catch (e) { add(route, where, "serious", "journey-error", String(e.message || e).split("\n")[0].slice(0, 200)); } };
 
   // Search from the keyboard: "/" focuses the field, typing lists results, arrows and Enter open one.
-  {
+  await guard({ path: "journeys", owner: "?", family: "journey" }, "journey", async () => {
     const route = J("/prompts", "W3", "search");
     const ctx = await browser.newContext({ ...DEVICES[0].ctx });
     const page = await ctx.newPage();
-    await page.goto(base + "/prompts", { waitUntil: "networkidle" });
+    await page.goto(base + "/prompts", { waitUntil: "load" });
     await page.keyboard.press("/");
     const focused = await page.evaluate(() => ({ tag: document.activeElement?.tagName, role: document.activeElement?.getAttribute("role"), type: document.activeElement?.getAttribute("type") }));
     if (!(focused.role === "combobox" || focused.tag === "INPUT")) add(route, "macbook/keyboard", "serious", "search-slash", `"/" did not focus a search field (focus on ${focused.tag})`);
@@ -246,7 +254,7 @@ async function journeys(base, add) {
       }
     }
     // Escape should leave the field and close any results.
-    await page.goto(base + "/prompts", { waitUntil: "networkidle" });
+    await page.goto(base + "/prompts", { waitUntil: "load" });
     await page.keyboard.press("/");
     await page.keyboard.type("design");
     await page.waitForTimeout(800);
@@ -257,14 +265,14 @@ async function journeys(base, add) {
     await page.keyboard.press("Meta+k");
     await page.waitForTimeout(300);
     await ctx.close();
-  }
+  });
 
   // The menu on iPad width opens from the keyboard, closes on Escape and gives focus back.
-  {
+  await guard({ path: "journeys", owner: "?", family: "journey" }, "journey", async () => {
     const route = J("/prompts", "W2", "shell");
     const ctx = await browser.newContext({ ...DEVICES.find((d) => d.id === "ipad").ctx });
     const page = await ctx.newPage();
-    await page.goto(base + "/prompts", { waitUntil: "networkidle" });
+    await page.goto(base + "/prompts", { waitUntil: "load" });
     const menu = page.getByRole("button", { name: /^menu$/i }).first();
     if (await menu.isVisible().catch(() => false)) {
       await menu.focus();
@@ -283,38 +291,36 @@ async function journeys(base, add) {
       }
     }
     await ctx.close();
-  }
+  });
 
   // Copy when the browser refuses the clipboard: the page must say so on screen, not fail silently.
-  {
+  await guard({ path: "journeys", owner: "?", family: "journey" }, "journey", async () => {
     const p = data.prompts.find((x) => x.id === "PG01");
     const route = J(`/prompts/${p.slug}`, "W5", "prompt-detail");
     const ctx = await browser.newContext({ ...DEVICES.find((d) => d.id === "iphone").ctx });
     await ctx.addInitScript(clipboardRecorder, true);
     const page = await ctx.newPage();
-    await page.goto(base + route.path, { waitUntil: "networkidle" });
+    await page.goto(base + route.path, { waitUntil: "load" });
     const ctrls = await page.evaluate(copyControls);
     if (ctrls[0]) {
-      const before = await page.evaluate(() => document.body.innerText);
       await page.locator(`[data-qa-copy="${ctrls[0].id}"]`).click();
       await page.waitForTimeout(300);
-      const after = await page.evaluate(() => document.body.innerText);
-      const said = after !== before && /block|select|couldn|failed|denied|press/i.test(after.replace(before, ""));
-      const anyBlocked = /blocked|select the text|couldn.t copy/i.test(after);
-      if (!said && !anyBlocked) add(route, "iphone/clipboard-denied", "serious", "copy-denied", `with the clipboard refused, "${ctrls[0].name}" gave no visible fallback`);
+      // Feedback has to be on the button or in a live region, worded as a failure.
+      const said = await page.evaluate((id) => [document.querySelector(`[data-qa-copy="${id}"]`)?.textContent || "", ...[...document.querySelectorAll('[role="status"], [role="alert"], [aria-live]')].map((e) => e.textContent)].join(" "), ctrls[0].id);
+      if (!/blocked|couldn.t copy|not copied|select the text|denied/i.test(said)) add(route, "iphone/clipboard-denied", "serious", "copy-denied", `with the clipboard refused, "${ctrls[0].name}" gave no visible fallback`);
       const selectable = await page.evaluate(() => [...document.querySelectorAll("pre, code, textarea")].some((el) => getComputedStyle(el).userSelect !== "none" && el.textContent.length > 40));
       if (!selectable) add(route, "iphone/clipboard-denied", "serious", "copy-fallback", "no selectable copy of the payload on the page to fall back to");
     }
     await ctx.close();
-  }
+  });
 
   // Every agent tab on /install copies its exact steps.
-  {
+  await guard({ path: "journeys", owner: "?", family: "journey" }, "journey", async () => {
     const route = J("/install", "W9", "install");
     const ctx = await browser.newContext({ ...DEVICES[0].ctx });
     await ctx.addInitScript(clipboardRecorder, false);
     const page = await ctx.newPage();
-    await page.goto(base + "/install", { waitUntil: "networkidle" });
+    await page.goto(base + "/install", { waitUntil: "load" });
     await page.evaluate(() => { window.__qaCopies = []; });
     // The tabs the reference shows (SHOWN in components/install-choice.ts). Every tab present must copy
     // exactly its agent's steps from lib/site.ts.
@@ -330,5 +336,5 @@ async function journeys(base, add) {
       if (!texts.includes(agent.steps.join("\n"))) add(route, "macbook/light", "blocker", "install-command", `${agent.label}: no control copies its exact steps`, agent.id);
     }
     await ctx.close();
-  }
+  });
 }

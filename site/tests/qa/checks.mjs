@@ -91,19 +91,25 @@ export const runningAnimations = () =>
     return { name: a.animationName || a.transitionProperty || a.constructor.name, target: t ? t.tagName.toLowerCase() + (t.className && typeof t.className === "string" ? "." + t.className.trim().split(/\s+/)[0] : "") : "?", infinite: timing.iterations === Infinity, duration: timing.duration };
   }).slice(0, 10) : [];
 
-// Describes what has focus and whether it is visibly marked: an outline, a box-shadow ring, or a
-// change in border or background versus the unfocused state is accepted.
+// Describes what has focus and whether focus visibly changes it. The focused element's outline,
+// box-shadow, border colour and background are compared with the same element unfocused; an outline
+// or any of those changing counts as a visible focus indicator.
 export const focusInfo = () => {
   const el = document.activeElement;
   if (!el || el === document.body) return { tag: "body" };
+  const look = () => { const cs = getComputedStyle(el); return [cs.outlineStyle !== "none" && parseFloat(cs.outlineWidth) > 0 ? cs.outlineColor + cs.outlineWidth : "", cs.boxShadow, cs.borderColor, cs.backgroundColor, cs.textDecorationLine, cs.color].join("|"); };
+  const focused = look();
   const cs = getComputedStyle(el);
+  const hasOutline = cs.outlineStyle !== "none" && parseFloat(cs.outlineWidth) > 0;
+  el.blur();
+  const resting = look();
+  el.focus({ preventScroll: true });
   const r = el.getBoundingClientRect();
-  const ring = (cs.outlineStyle !== "none" && parseFloat(cs.outlineWidth) > 0) || (cs.boxShadow && cs.boxShadow !== "none");
   return {
     tag: el.tagName.toLowerCase(),
     name: (el.getAttribute("aria-label") || el.textContent || el.getAttribute("placeholder") || "").trim().replace(/\s+/g, " ").slice(0, 50),
     href: el.getAttribute("href"),
-    ring: !!ring,
+    ring: hasOutline || focused !== resting,
     onScreen: r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth && r.width > 0,
     key: el.tagName + "|" + (el.getAttribute("href") || "") + "|" + (el.textContent || "").trim().slice(0, 30) + "|" + Math.round(r.top + scrollY) + "|" + Math.round(r.left),
   };
