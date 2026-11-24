@@ -4,6 +4,41 @@ The working agreement between the lanes that redesign `site/`. It says which fil
 
 Integration branch: `redesign/integration`. Design-system branch: `redesign/design-system`. Page lanes branch from `redesign/integration` and merge back into it, never into `main`.
 
+## Decisions
+
+Taken for the redesign, from the founder's brief, the dossier (v0.9) and the benchmark research. Page lanes inherit them.
+
+| Decision | Detail |
+|---|---|
+| Palette | Orbital Neutral: cool greys with almost no chroma, near-black dark (`#08090B` range), near-white light. Light and dark both follow the system; `:root[data-theme]` is reserved for a later toggle. |
+| Main action | Neutral. Ink on light, white on dark. Green is no longer a button fill on interior pages. |
+| Green | One job: a state that is true now (copied, tested, finished, current). Links, focus and buttons no longer use it. |
+| Links | Text colour with a hairline underline that darkens on hover. |
+| Focus | One 2px blue ring (`--c-focus`), offset 2px, no glow. |
+| Header | Follows the page theme, translucent with blur over scrolled content, hairline below. No status LED, no green underglow. Install is in the bar on every page except Home and `/install`. Current section is a neutral pill. |
+| Phone menu | Fills the screen: section links large, then Kits, Learn, Connect your agent, GitHub, About, then a full-width Install. GitHub leaves the bar under 40rem. |
+| Type | Montserrat 600 for page titles only. Geist for everything else; section headings 600 (was 650). Geist Mono for payloads, commands and ids. |
+| Section hues | Kept, as small flat dots (no gloss). |
+| Home and the quiet stage | Unchanged palette, including the green main action, until Fable's track decides. |
+| First frame | Interior pages show real content in the first viewport: title, one line, then the thing itself. No hero blocks on interior pages. |
+
+## Tokens
+
+All in `site/app/styles/tokens.css`. Use these names in new CSS.
+
+- **Surfaces:** `--c-canvas` (page), `--c-surface` (cards, code, menus), `--c-raised` (fills inside a surface, block heads), `--c-sunken` (wells), `--c-overlay` (translucent header).
+- **Text:** `--c-fg` (headings, primary), `--c-fg-2` (body on surfaces), `--c-fg-3` (secondary and metadata, 4.5:1 or better), `--c-fg-4` (placeholders, decorative only).
+- **Lines:** `--c-line` (hairlines), `--c-line-2` (stronger hairline, hover edges), `--c-edge` (control boundaries that must reach 3:1).
+- **Roles:** `--c-primary`, `--c-on-primary`, `--c-primary-hover`, `--c-fill` and `--c-fill-2` (neutral selected/pressed tints), `--c-signal` (green state), `--c-signal-bright` (the LED), `--c-focus`, `--c-warm` and `--c-warm-soft`, `--c-danger` and `--c-on-danger`, section hues `--s-inv --s-db --s-think --s-ecmd --s-dcmd --s-recipe`.
+- **Depth:** `--shadow-1` (resting control), `--shadow-2` (card), `--shadow-3` (popover, menu), `--shadow-inset`.
+- **Type:** `--font-body`, `--font-display`, `--font-mono`; sizes `--type-display --type-h1 --type-h2 --type-h3 --type-lead --type-body --type-sm --type-xs --type-micro --type-code`, each with `--lh-*` and, for headings, `--tr-*` tracking; weights `--weight-regular/medium/semibold/bold`.
+- **Space:** `--space-1` to `--space-24` on a 4px grid (1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20, 24).
+- **Shape:** `--radius-xs` 4, `--radius-sm` 6, `--radius-md` 10, `--radius-lg` 14, `--radius-xl` 20, `--radius-pill`.
+- **Layout:** `--container`, `--gutter`, `--measure`, `--read`, `--header-h`, `--control-h`, `--control-h-sm`, `--control-h-lg`, `--tap`.
+- **Motion:** `--ease-out`, `--ease-in-out`, `--ease-standard`; `--dur-instant` 80ms (press), `--dur-fast` 140ms (hover), `--dur-base` 200ms (copy state), `--dur-slow` 260ms (menus, search), `--dur-page` 320ms (content transitions); `--travel` (1, or 0 under reduced motion).
+
+The older `--color-*`, `--space-xs…2xl`, `--text-*`, `--lift*`, `--led*` and `--accent-*` names still work and resolve to the tokens above. Don't add new uses of them.
+
 ## Stylesheets
 
 `site/app/globals.css` is only an index. It imports `site/app/styles/*.css` in this order, and the order is part of the cascade (later files win ties):
