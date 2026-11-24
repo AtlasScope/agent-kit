@@ -37,7 +37,7 @@ If PRODUCT.md does not say what this screen is for and you cannot tell from the 
 ## What to report
 
 - **A verdict in one sentence.** Honest, specific to this screen. "The page does three jobs at once, so the one that matters gets lost."
-- **The three problems**, most important first. For each: what a user experiences, where it is on the screenshot, the evidence (a count, a measured ratio, the step where you hesitated), and the job that fixes it (`/keen distill`, `layout`, `words`, `type`, `colour`, `harden`, `adapt`, `polish`). If no Keen job fits, say what kind of work it is.
+- **The three problems**, most important first. For each: what a user experiences, where it is on the screenshot, the evidence (a count, a measured ratio, the step where you hesitated), and the job that fixes it, from the job tables in SKILL.md. If no Keen job fits, say what kind of work it is.
 - **What is working**, two items at most, so the next change does not undo it.
 - **One suggested next step**, as a line they can copy.
 
