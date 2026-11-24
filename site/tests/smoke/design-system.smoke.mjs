@@ -78,25 +78,34 @@ for (const size of SIZES) {
     await ctx.close();
   });
 
-  test(`${size.name}: a blocked clipboard in FloatingCopy keeps the message up and brings the panel back`, async () => {
+  test(`${size.name}: a blocked clipboard in FloatingCopy brings the text back, selected and focused`, async () => {
     const ctx = await browser.newContext({ ...size, reducedMotion: "reduce" });
     const page = await ctx.newPage();
+    const errors = [];
+    page.on("pageerror", (e) => errors.push(e.message));
     await page.addInitScript(() => { navigator.clipboard.writeText = () => Promise.reject(new Error("blocked")); });
     await page.goto(base + "/design-system", { waitUntil: "networkidle" });
-    const y = await page.evaluate(() => Math.ceil(document.querySelector(".ds-float .block__head").getBoundingClientRect().bottom + scrollY - 20));
-    await page.evaluate((v) => scrollTo(0, v), y);
-    const bar = page.locator(".fcopy[data-on] .fcopy__copy");
-    await bar.waitFor();
-    await bar.click();
-    await page.locator(".fcopy[data-on] .fcopy__copy[data-blocked]").waitFor();
-    assert.match(await bar.textContent(), /Copy blocked/);
-    const panel = await page.evaluate(() => {
-      const r = document.querySelector(".ds-float .block__head").getBoundingClientRect();
+    const away = () => page.evaluate(() => scrollTo(0, Math.ceil(document.querySelector(".ds-float .block__head").getBoundingClientRect().bottom + scrollY - 20)));
+    const state = () => page.evaluate(() => {
+      const pre = document.querySelector(".ds-float pre"), r = pre.getBoundingClientRect();
       return { inView: r.top >= document.querySelector(".top").getBoundingClientRect().bottom && r.bottom <= innerHeight,
-        focus: document.activeElement === document.querySelector(".ds-float .block__head .copy") };
+        focus: document.activeElement === pre, selected: String(getSelection()).trim() === pre.textContent.trim() };
     });
-    assert.ok(panel.inView, "the panel scrolled back into view");
-    assert.ok(panel.focus, "focus moved to the panel's Copy");
+    // Twice: a second block while the first message still shows must recover too.
+    for (const round of [1, 2]) {
+      await away();
+      const bar = page.locator(".fcopy[data-on] .fcopy__copy");
+      await bar.waitFor();
+      await page.evaluate(() => { getSelection().removeAllRanges(); document.activeElement?.blur(); });
+      await bar.click();
+      await page.waitForFunction(() => !document.querySelector(".fcopy[data-on]"));
+      const s = await state();
+      assert.ok(s.inView, `round ${round}: the text scrolled back into view`);
+      assert.ok(s.focus, `round ${round}: focus moved to the text`);
+      assert.ok(s.selected, `round ${round}: the text is selected`);
+      assert.ok(await page.locator(".fcopy").evaluate((el) => el.inert), `round ${round}: the hidden bar is inert`);
+    }
+    assert.deepEqual(errors, []);
     await ctx.close();
   });
 }
