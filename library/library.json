@@ -1409,7 +1409,8 @@
     "supabase",
     "pgss",
     "advisors"
-   ]
+   ],
+   "line": "Takes one broad look at a Postgres database that feels hard to trust or costly, and ranks the few problems behind most of the trouble."
   },
   {
    "id": "PG01",
@@ -1433,7 +1434,8 @@
     "PG02",
     "PG04"
    ],
-   "tags": "wrong numbers, incorrect numbers, inaccurate data, figures don't match, doesn't match the source, reconciliation, recompute, verify metrics, data provenance"
+   "tags": "wrong numbers, incorrect numbers, inaccurate data, figures don't match, doesn't match the source, reconciliation, recompute, verify metrics, data provenance",
+   "line": "Rebuilds your most important figures from the original sources to prove whether the database has them right."
   },
   {
    "id": "PG02",
@@ -1460,7 +1462,8 @@
    "tags": "totals are wrong, rows are valid but wrong, inaccurate data, sanity checks, reconciliation, implausible values, missing records",
    "refs": [
     "pgtap"
-   ]
+   ],
+   "line": "Finds data that passes every check but is still wrong, by comparing totals across tables and against what you'd expect."
   },
   {
    "id": "PG03",
@@ -1484,7 +1487,8 @@
     "A02",
     "PG02"
    ],
-   "tags": "duplicates, merged records, share classes merged, entity matching, wrong company, identity, dedupe"
+   "tags": "duplicates, merged records, share classes merged, entity matching, wrong company, identity, dedupe",
+   "line": "Finds records that are really the same thing under different names or IDs, and ones that were merged by mistake."
   },
   {
    "id": "PG04",
@@ -1508,7 +1512,8 @@
     "PG01",
     "PG15"
    ],
-   "tags": "historical report changed, old data meanings, as-of, restatement, backfill, point in time, history rewritten"
+   "tags": "historical report changed, old data meanings, as-of, restatement, backfill, point in time, history rewritten",
+   "line": "Checks whether you can still reproduce what the database said on an earlier date, after the data or the rules changed."
   },
   {
    "id": "PG05",
@@ -1532,7 +1537,8 @@
     "PG06",
     "PG09"
    ],
-   "tags": "what writes to this table, mysterious overwrites, who owns this field, multiple writers, write ownership"
+   "tags": "what writes to this table, mysterious overwrites, who owns this field, multiple writers, write ownership",
+   "line": "Maps every job, function and agent that writes to the database, and the places where two of them change the same data."
   },
   {
    "id": "PG06",
@@ -1562,7 +1568,8 @@
     "pgss",
     "bestpractices"
    ],
-   "iso": true
+   "iso": true,
+   "line": "Finds imports and updates that rewrite rows that didn't change, which costs money and slows the database."
   },
   {
    "id": "PG07",
@@ -1588,7 +1595,8 @@
     "PG09"
    ],
    "tags": "ingestion, etl, import pipeline, simplify pipeline, sprawling pipeline, data pipeline",
-   "iso": true
+   "iso": true,
+   "line": "Traces one real import from start to finish and proposes a shorter path that gives the same result."
   },
   {
    "id": "PG08",
@@ -1616,7 +1624,8 @@
    "refs": [
     "pgtap"
    ],
-   "iso": true
+   "iso": true,
+   "line": "Checks whether rerunning an import or a failed job can duplicate or damage data, and how to make reruns safe."
   },
   {
    "id": "PG09",
@@ -1640,7 +1649,8 @@
     "PG07",
     "PG10"
    ],
-   "tags": "trigger or app code, validation in trigger, business logic in database, edge function, stored procedure, duplicate validation"
+   "tags": "trigger or app code, validation in trigger, business logic in database, edge function, stored procedure, duplicate validation",
+   "line": "Finds business rules split across the database, server code and background workers, and says where each should live."
   },
   {
    "id": "PG10",
@@ -1668,7 +1678,8 @@
    "tags": "unused views, dead views, unused functions, schema cleanup, too many views, triggers, database clutter, drop unused",
    "refs": [
     "bestpractices"
-   ]
+   ],
+   "line": "Lists the views, functions and triggers nothing needs any more, and what removing each one would risk."
   },
   {
    "id": "PG11",
@@ -1692,7 +1703,8 @@
     "PG05",
     "PG10"
    ],
-   "tags": "stale view, materialized view out of date, duplicate data, cache disagrees, derived column, denormalized, source of truth"
+   "tags": "stale view, materialized view out of date, duplicate data, cache disagrees, derived column, denormalized, source of truth",
+   "line": "Finds the same facts stored in several places that have drifted apart, and says which copy to trust."
   },
   {
    "id": "PG12",
@@ -1719,7 +1731,8 @@
    "tags": "agents can't understand schema, confusing table names, schema map, naming conventions, data model clarity",
    "refs": [
     "declarative"
-   ]
+   ],
+   "line": "Finds the table and column names that keep confusing people and agents, and the smallest renames that would help."
   },
   {
    "id": "PG13",
@@ -1749,7 +1762,8 @@
     "advisors",
     "hypopg",
     "bestpractices"
-   ]
+   ],
+   "line": "Shows where the database bill, processing time and storage actually go, with the saving each fix would bring."
   },
   {
    "id": "PG14",
@@ -1776,7 +1790,8 @@
    "refs": [
     "pgss",
     "hypopg"
-   ]
+   ],
+   "line": "Estimates when each table and query will get slow or expensive as the data grows."
   },
   {
    "id": "PG15",
@@ -1804,7 +1819,8 @@
    "refs": [
     "pgtap"
    ],
-   "iso": true
+   "iso": true,
+   "line": "Checks whether the database could be rebuilt from its sources if it were lost, by rebuilding a copy and comparing."
   },
   {
    "id": "PG17",
@@ -1835,7 +1851,8 @@
     "declarative",
     "bestpractices"
    ],
-   "iso": true
+   "iso": true,
+   "line": "Checks a database change before you merge it: what it touches, whether the running app survives it, and how to undo it."
   },
   {
    "id": "PG16",
@@ -1860,7 +1877,8 @@
     "PG01",
     "PG09"
    ],
-   "tags": "agent keeps asking me, stop asking me to classify, escalations, decision rules, classify every record"
+   "tags": "agent keeps asking me, stop asking me to classify, escalations, decision rules, classify every record",
+   "line": "Writes down the rules an agent can use to settle the data questions it keeps asking you."
   },
   {
    "id": "DBR01",
@@ -1904,7 +1922,8 @@
     "PG04"
    ],
    "tags": "recipe workflow",
-   "dmode": "Asks before changing"
+   "dmode": "Asks before changing",
+   "line": "Several database prompts in order: prove the numbers are right, then fix only what was confirmed."
   },
   {
    "id": "DBR02",
@@ -1950,7 +1969,8 @@
     "PG09"
    ],
    "tags": "recipe workflow",
-   "dmode": "Asks before changing"
+   "dmode": "Asks before changing",
+   "line": "Several database prompts in order to make imports cheaper and simpler without losing where the data came from."
   },
   {
    "id": "DBR03",
@@ -1994,7 +2014,8 @@
     "PG17"
    ],
    "tags": "recipe workflow",
-   "dmode": "Asks before changing"
+   "dmode": "Asks before changing",
+   "line": "Several database prompts in order to cut the views, functions and tables you don't need, with the same results."
   },
   {
    "id": "DBR04",
@@ -2038,7 +2059,8 @@
     "P03"
    ],
    "tags": "recipe workflow",
-   "dmode": "Asks before changing"
+   "dmode": "Asks before changing",
+   "line": "Several database prompts in order to lower the Postgres bill where the measurements say the money goes."
   },
   {
    "id": "DBR05",
@@ -2084,7 +2106,8 @@
     "R06"
    ],
    "tags": "recipe workflow",
-   "dmode": "Asks before changing"
+   "dmode": "Asks before changing",
+   "line": "Several database prompts in order to ship a schema change, or test a restore, safely."
   },
   {
    "id": "M01",
@@ -2094,7 +2117,8 @@
    "p": "I want the professional-grade version of this task, not a larger version. Look at what I'm trying to accomplish and tell me what a genuinely excellent practitioner would notice, investigate, or verify that I've overlooked. Start with the original evidence instead of just relying on existing summaries. Identify the methods that would materially improve the result and the independent evidence that would establish whether it's correct. Then improve the assignment accordingly. Keep the objective and scope intact. Don't add process or complexity just to make the work sound more sophisticated.",
    "use": "Use it before you hand an agent a task you only half know how to describe.",
    "aka": "Professional-grade, not larger",
-   "dmode": "Depends on the task"
+   "dmode": "Depends on the task",
+   "line": "Asks the agent what an expert would check that you missed, then improves the task without making it bigger."
   },
   {
    "id": "M02",
@@ -2104,7 +2128,8 @@
    "p": "Assume the proposed solution is wrong. Find the strongest evidence against it before recommending we proceed.",
    "use": "Use it when an agent's plan sounds right and you can't see why it might be wrong.",
    "aka": "Falsification",
-   "dmode": "Asks before changing"
+   "dmode": "Asks before changing",
+   "line": "Makes the agent look hard for evidence that its own plan is wrong before you go ahead."
   },
   {
    "id": "M03",
@@ -2114,7 +2139,8 @@
    "p": "Don't fix the visible symptom yet. Work backward through the system until you can explain why it occurred and what other behavior shares that cause.",
    "use": "Use it the second time the same kind of bug shows up.",
    "aka": "Root cause",
-   "dmode": "Report only"
+   "dmode": "Report only",
+   "line": "Makes the agent explain why a bug happened, and what else shares that cause, before it patches anything."
   },
   {
    "id": "M04",
@@ -2124,7 +2150,8 @@
    "p": "Solve this by making the existing system simpler. First determine whether we can remove a layer, rule, dependency, or special case rather than add something.",
    "use": "Use it when the proposed fix adds a new setting, table or service.",
    "aka": "Complexity reduction",
-   "dmode": "Changes code"
+   "dmode": "Changes code",
+   "line": "Makes the agent try to remove something before it adds a new setting, table or service."
   },
   {
    "id": "M05",
@@ -2137,7 +2164,8 @@
    "rel": [
     "PG16"
    ],
-   "dmode": "Depends on the task"
+   "dmode": "Depends on the task",
+   "line": "Tells the agent to make the technical calls itself and only ask you about product and risk decisions."
   },
   {
    "id": "M06",
@@ -2147,7 +2175,8 @@
    "p": "Design a way to prove your solution works that doesn't depend on the assumptions, code, or tests you just created.",
    "use": "Use it before you accept 'tests pass' as proof that something works.",
    "aka": "Independent verification",
-   "dmode": "Changes code"
+   "dmode": "Changes code",
+   "line": "Makes the agent prove its work by a route that doesn't rely on the code and tests it just wrote."
   },
   {
    "id": "M07",
@@ -2160,7 +2189,8 @@
    "rel": [
     "PG16"
    ],
-   "dmode": "Changes code"
+   "dmode": "Changes code",
+   "line": "Has the agent turn your request into a short plan with a clear finish line, finding answers itself instead of quizzing you."
   },
   {
    "id": "M08",
@@ -2169,7 +2199,8 @@
    "t": "Reproduce, measure, prove",
    "p": "Before repairing a suspected defect or performance problem, establish a reproducible failing case or measurable baseline. Find the root cause, implement the narrowest defensible fix, rerun an independent check, and report the before/after evidence. If you can't measure or reproduce it, say what evidence is missing instead of claiming a win.",
    "use": "Use it in the second session, after a read-only investigation found a real problem.",
-   "dmode": "Changes code"
+   "dmode": "Changes code",
+   "line": "Tells the agent to reproduce or measure the problem first, then fix it narrowly and show before-and-after proof."
   },
   {
    "id": "M09",
@@ -2179,7 +2210,8 @@
    "p": "Do not implement the first viable approach you find. Present three genuinely distinct ways to solve this problem: (1) the smallest, most conservative patch to the existing code, (2) the cleanest long-term structural design, and (3) a subtractive approach that removes an existing constraint, layer, or edge case. Compare their blast radius, testability, and failure modes, recommend one, and wait for my decision.",
    "use": "Use it for decisions that will be expensive to undo.",
    "aka": "Three-way tradeoff",
-   "dmode": "Asks before changing"
+   "dmode": "Asks before changing",
+   "line": "Has the agent lay out three different fixes (the smallest patch, the cleanest long-term design, and one that removes something) and recommend one."
   },
   {
    "id": "M10",
@@ -2189,7 +2221,8 @@
    "p": "Prepare a compact, self-contained technical checkpoint so a fresh agent session can resume this work cold. Document only: (1) verified facts and current system state, (2) approaches already tested and why they were ruled out, (3) exact files and uncommitted changes in flight, and (4) the single next falsifiable step. Summarize system ground truth, not our conversation history.",
    "use": "Use it before the agent compacts (shrinks its memory of the chat) or a long session ends. /pre-compact does the full version.",
    "aka": "Cold-start handoff checkpoint",
-   "dmode": "Writes notes only"
+   "dmode": "Writes notes only",
+   "line": "Has the agent write a short note on where the work stands so a fresh session can pick it up."
   },
   {
    "id": "M11",
@@ -2198,7 +2231,8 @@
    "t": "Thorough and bold",
    "p": "Go past the first answer. For each claim you make, check the original evidence (the code, the data or the docs) and say which claims you verified and which you assumed. Then give one clear recommendation, the strongest argument against it, and the result that would change your mind.",
    "use": "Add it to any prompt when you want depth and a firm recommendation, with the checking shown.",
-   "dmode": "Depends on the task"
+   "dmode": "Depends on the task",
+   "line": "Asks for a thorough answer that says what was checked and what was assumed, and ends with one firm recommendation."
   },
   {
    "id": "M12",
@@ -2214,7 +2248,8 @@
     "A03",
     "M04"
    ],
-   "dmode": "Changes code"
+   "dmode": "Changes code",
+   "line": "A cleanup pass that merges duplicated code and keeps the core logic in one place."
   },
   {
    "id": "EC01",
@@ -2325,7 +2360,8 @@
     "A05",
     "M12"
    ],
-   "dmode": "Writes notes only"
+   "dmode": "Writes notes only",
+   "line": "Finds parts of the code that add complexity without doing much, writes a before-and-after report, then talks the changes through with you."
   },
   {
    "id": "EC05",
@@ -2487,7 +2523,8 @@
     "T03",
     "G02"
    ],
-   "dmode": "Report only"
+   "dmode": "Report only",
+   "line": "Security review of a set of code changes, using their history and how many other places each change could affect."
   },
   {
    "id": "EC16",
@@ -2584,7 +2621,8 @@
     "A04",
     "A07"
    ],
-   "dmode": "Writes notes only"
+   "dmode": "Writes notes only",
+   "line": "Reads the code one function at a time and writes down what each one assumes, before any bug hunt starts."
   },
   {
    "id": "EC22",
@@ -2662,7 +2700,8 @@
    "rel": [
     "D06"
    ],
-   "dmode": "Report only"
+   "dmode": "Report only",
+   "line": "Checks a set of changes, or a pull request (a change waiting to be merged), for bugs at an effort level you pick."
   },
   {
    "id": "EC27",
@@ -2678,7 +2717,8 @@
     "T03",
     "G03"
    ],
-   "dmode": "Report only"
+   "dmode": "Report only",
+   "line": "Security review of the changes on your current branch that are not merged yet."
   },
   {
    "id": "EC28",
@@ -5101,6 +5141,396 @@
    "p": "A motion system for the whole app. Decide once how the product moves, then bring the existing animation in line.\nRun these in order, and check in with me between steps:\n1. /motion setup: agree the durations, curves and springs; writes MOTION.md\n2. /motion review: what to cut, fix and add, with frames as evidence\n3. /motion build: fix the worst three, one at a time\n4. /motion review: check the result against MOTION.md",
    "dmode": "Changes code"
   }
+ ],
+ "goals": [
+  [
+   "start",
+   "I'm not sure where to start",
+   "Describe the problem in your own words and let a router pick, or start any task with a short plan.",
+   [
+    "EC01",
+    "UI028",
+    "UI001",
+    "M07",
+    "M01",
+    "D06",
+    "EC36",
+    "UI106",
+    "UI002"
+   ]
+  ],
+  [
+   "broke",
+   "Something broke and I don't know why",
+   "Find the real cause before anyone patches the symptom.",
+   [
+    "EC02",
+    "M03",
+    "M08",
+    "A06",
+    "R06",
+    "R04",
+    "EC17",
+    "G06",
+    "A07",
+    "P07"
+   ]
+  ],
+  [
+   "cluttered",
+   "The screen feels cluttered, bland or amateur",
+   "Fix what stands out, spacing, type and color without starting over.",
+   [
+    "RC03",
+    "RC22",
+    "RC05",
+    "UI011",
+    "UI010",
+    "UI009",
+    "UI017",
+    "UI016",
+    "UI015",
+    "UI034",
+    "UI053",
+    "UI008",
+    "UI059",
+    "UI039",
+    "UI018",
+    "RC04",
+    "UI060",
+    "UI019",
+    "UI036"
+   ]
+  ],
+  [
+   "new",
+   "I need a new page or screen",
+   "Plan it, see a few directions, then build the one you pick.",
+   [
+    "RC01",
+    "RC02",
+    "UI003",
+    "UI055",
+    "UI051",
+    "UI075",
+    "UI062",
+    "UI024",
+    "UI023",
+    "RC09",
+    "UI056",
+    "UI058",
+    "RC13",
+    "RC20",
+    "RC21",
+    "UI032",
+    "UI076",
+    "UI082"
+   ]
+  ],
+  [
+   "lost",
+   "People get lost, confused or give up",
+   "Navigation, Back and shared links, confusing screens, and people who sign up and drift away.",
+   [
+    "EC23",
+    "R07",
+    "RC15",
+    "UI006",
+    "EC24",
+    "A08",
+    "UI038",
+    "UI040",
+    "UI052",
+    "UI012",
+    "UI061",
+    "UI013",
+    "RC19",
+    "UI041",
+    "UI042",
+    "UI049"
+   ]
+  ],
+  [
+   "slow",
+   "It's slow, or it costs too much",
+   "Where the seconds and the money go, measured before anything changes.",
+   [
+    "P01",
+    "P02",
+    "P04",
+    "P03",
+    "P06",
+    "P08",
+    "P09",
+    "P05",
+    "UI022",
+    "I03",
+    "EC30",
+    "EC29",
+    "I01",
+    "I07"
+   ]
+  ],
+  [
+   "numbers",
+   "The numbers or the data look wrong",
+   "Prove whether a figure is right, and find where missing values turn into zeros.",
+   [
+    "D02",
+    "D01",
+    "A04",
+    "G05",
+    "EC19",
+    "D03",
+    "D05",
+    "R02",
+    "PG00",
+    "DBR01",
+    "PG01",
+    "PG02",
+    "PG03",
+    "PG04",
+    "PG11",
+    "PG16"
+   ]
+  ],
+  [
+   "twice",
+   "Things happen twice, get lost or overwrite each other",
+   "Double sends, lost updates, imports that drop rows, and jobs that stop halfway.",
+   [
+    "R01",
+    "R05",
+    "D04",
+    "I04",
+    "G04",
+    "R03",
+    "PG08",
+    "PG05",
+    "DBR02",
+    "PG06",
+    "PG07",
+    "PG09"
+   ]
+  ],
+  [
+   "tests",
+   "The tests pass but it still breaks",
+   "What the tests really prove, and checks that would catch a real break.",
+   [
+    "T01",
+    "T06",
+    "T02",
+    "M06",
+    "EC03",
+    "EC25",
+    "UI081",
+    "EC18",
+    "EC20"
+   ]
+  ],
+  [
+   "live",
+   "It's merged, but the live site is wrong",
+   "The path from a merged change to the live site, settings that differ there, and database changes during a deploy.",
+   [
+    "I02",
+    "S06",
+    "I05",
+    "G02",
+    "PG17",
+    "DBR05",
+    "PG15",
+    "EC09"
+   ]
+  ],
+  [
+   "safe",
+   "Worried about who can see or change what",
+   "Security checks for your own code, your packages and your automation.",
+   [
+    "T03",
+    "T05",
+    "G03",
+    "EC27",
+    "EC12",
+    "T04",
+    "EC13",
+    "EC14",
+    "EC15",
+    "EC16",
+    "I06"
+   ]
+  ],
+  [
+   "hard",
+   "The code is getting hard to change",
+   "Agents break nearby things on small edits, or every change takes longer than it should.",
+   [
+    "A01",
+    "A02",
+    "A03",
+    "A05",
+    "EC04",
+    "M12",
+    "M04",
+    "EC28",
+    "G01",
+    "EC21",
+    "DBR03",
+    "PG10",
+    "PG12",
+    "DBR04",
+    "PG13",
+    "PG14"
+   ]
+  ],
+  [
+   "color",
+   "Fonts and colors need work",
+   "Pick type and a palette, make dark mode hold up, and keep the look consistent.",
+   [
+    "UI108",
+    "RC12",
+    "RC17",
+    "UI033",
+    "UI044",
+    "UI045",
+    "UI004",
+    "UI005",
+    "UI054"
+   ]
+  ],
+  [
+   "motion",
+   "Animations stutter, lag or feel off",
+   "Decide how the product moves, fix motion that stutters, and cut motion with no job.",
+   [
+    "UI100",
+    "RC06",
+    "RC23",
+    "MO02",
+    "MO01",
+    "MO04",
+    "MO03",
+    "MO05",
+    "MO06",
+    "UI101",
+    "UI102",
+    "UI103",
+    "UI104",
+    "UI105",
+    "UI063",
+    "UI066",
+    "UI067",
+    "UI068",
+    "UI069",
+    "UI014",
+    "UI035",
+    "RC18",
+    "UI065"
+   ]
+  ],
+  [
+   "phone",
+   "It doesn't feel right on a phone",
+   "Web apps that should feel installed, and native iPhone screens.",
+   [
+    "RC08",
+    "UI021",
+    "UI072",
+    "RC14",
+    "UI037",
+    "UI050",
+    "UI073",
+    "UI064"
+   ]
+  ],
+  [
+   "words",
+   "The words don't sound right",
+   "Labels and error messages, page copy, and writing that reads like AI.",
+   [
+    "UI020",
+    "UI046",
+    "RC11",
+    "UI083",
+    "UI084",
+    "UI091",
+    "UI048",
+    "UI047",
+    "UI092",
+    "UI093",
+    "UI094",
+    "UI095",
+    "UI096",
+    "UI098",
+    "UI099",
+    "RC10",
+    "UI085",
+    "UI086",
+    "UI087",
+    "UI088",
+    "UI089",
+    "UI090"
+   ]
+  ],
+  [
+   "ship",
+   "Check it before it ships",
+   "Reviews that report first, so you decide what gets fixed.",
+   [
+    "RC07",
+    "EC26",
+    "UI007",
+    "UI031",
+    "EC32",
+    "UI074",
+    "UI029",
+    "EC31",
+    "UI057",
+    "RC16",
+    "UI025",
+    "UI026",
+    "UI027"
+   ]
+  ],
+  [
+   "decide",
+   "Help me plan, decide or keep the agent on track",
+   "Options with tradeoffs, questions only you can answer, and handoffs between sessions.",
+   [
+    "EC34",
+    "M09",
+    "M02",
+    "M05",
+    "M11",
+    "EC05",
+    "EC06",
+    "EC10",
+    "EC07",
+    "UI043",
+    "UI070",
+    "UI071",
+    "EC22",
+    "M10",
+    "EC08",
+    "EC11",
+    "EC35"
+   ]
+  ],
+  [
+   "extras",
+   "Art, posters and other extras",
+   "Not for building or fixing an app. Kept for when you want them on purpose.",
+   [
+    "UI077",
+    "UI078",
+    "UI079",
+    "UI080",
+    "UI097"
+   ]
+  ]
  ],
  "symptoms": [
   [

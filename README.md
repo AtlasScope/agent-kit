@@ -97,7 +97,7 @@ You can also connect your agent to the read-only MCP server at `https://www.atla
 
 ## Prompt library
 
-[`library/dist/prompt-library.html`](library/dist/prompt-library.html) is a single self-contained HTML page with all 254 prompts, commands, and recipes, a symptom finder, a prompt composer, and browser-local stars. You can:
+[`library/dist/prompt-library.html`](library/dist/prompt-library.html) is a single self-contained HTML page with every prompt, command and recipe, sorted by what you want fixed. Each entry says in one line what it does and what you get back, with one Copy button; search covers the full prompt text, and a section at the end lists every command by the tool it comes from. You can:
 
 - Open it in a browser or in the side browser in Codex or Cursor.
 - Upload it as a Claude artifact.

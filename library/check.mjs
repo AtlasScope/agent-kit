@@ -19,6 +19,21 @@ for (const e of E) { if (seen.has(e.id)) fail(`Duplicate ID ${e.id}`); seen.add(
 for (const e of E) for (const r of e.rel || []) if (!BY.has(r)) fail(`${e.id} links to missing ${r}`);
 for (const [txt, ids] of [...lib.symptoms, ...(lib.dbSymptoms || [])]) for (const id of ids) if (!BY.has(id)) fail(`Symptom "${txt}" names missing ${id}`);
 
+// The page is sorted by problem: every entry sits in exactly one goal, and goal keys are unique.
+const goalOf = new Map();
+const goalKeys = new Set();
+for (const [key, title, blurb, ids] of lib.goals || []) {
+  if (!key || !title || !blurb || !Array.isArray(ids) || !ids.length) fail(`Goal "${title || key}" needs a key, title, blurb and entries`);
+  if (goalKeys.has(key)) fail(`Goal key ${key} is used twice`);
+  goalKeys.add(key);
+  for (const id of ids || []) {
+    if (!BY.has(id)) fail(`Goal "${title}" names missing ${id}`);
+    if (goalOf.has(id)) fail(`${id} is in two goals: "${goalOf.get(id)}" and "${title}"`);
+    goalOf.set(id, title);
+  }
+}
+for (const e of E) if (!goalOf.has(e.id)) fail(`${e.id} is in no goal: add it to one in library.json "goals" so the page shows it`);
+
 // The database section: PG00 to PG17 in order, each complete, plus workflows whose steps resolve.
 const db = E.filter((e) => e.sec === "db");
 const pg = db.filter((e) => !e.flow).map((e) => e.id);
