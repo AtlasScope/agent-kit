@@ -11,5 +11,5 @@ export default async function SharedFixture({ searchParams }: { searchParams: Pr
   const { id } = await searchParams;
   const c = store().find((x) => x.id === id) ?? store().find((x) => x.is_public);
   if (!c) notFound();
-  return <SharedCollection c={c} own manageHref={SAMPLE_PATH} />;
+  return <SharedCollection c={c} own manageHref={SAMPLE_PATH} selfHref={`${SAMPLE_PATH}/shared?id=${c.id}`} />;
 }

@@ -165,7 +165,7 @@ function ItemRow({ i, c, actions }: { i: Resolved; c: { id: string; name: string
 
 // The page for one collection: shared ones are public, private ones only open for their owner. The owner
 // also gets a way back to the workspace with this collection open.
-export function SharedCollection({ c, own = false, manageHref = "/account" }: { c: Omit<CollectionData, "is_starred">; own?: boolean; manageHref?: string }) {
+export function SharedCollection({ c, own = false, manageHref = "/account", selfHref = `/collections/${c.id}` }: { c: Omit<CollectionData, "is_starred">; own?: boolean; manageHref?: string; selfHref?: string }) {
   const items = resolve(c.items);
   const install = installFor(c.items);
   const { prompts, skills } = split(items);
@@ -174,7 +174,7 @@ export function SharedCollection({ c, own = false, manageHref = "/account" }: { 
   return (
     <main className="page shared">
       <div className="page-head">
-        <Crumbs items={[["Collections", "/account"], [c.name, `/collections/${c.id}`]]} />
+        <Crumbs items={[["Collections", manageHref], [c.name, selfHref]]} />
         <p className="kicker shared__kicker">
           <span className={`cpanel__state${c.is_public ? " is-shared" : ""}`}>{c.is_public && <span className="led is-on" aria-hidden="true" />}{c.is_public ? "Shared collection" : "Private collection, only you can see it"}</span>
         </p>

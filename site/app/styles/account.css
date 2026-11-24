@@ -36,7 +36,7 @@
 @media (pointer: coarse) { .col__rm { width: 44px; height: 44px; } }
 
 /* The Collections workspace: a rail of collections on the left, the open one on the right. The open one is
-   chosen by data-sel on .ws (set before paint, see components/account/boot.ts); per-collection rules that
+   chosen by data-ws-sel on <html> (set before paint, see components/account/boot.ts); per-collection rules that
    show it are inlined next to the markup. */
 .ws { display: grid; grid-template-columns: 17rem minmax(0, 1fr); align-items: start; border-top: 1px solid var(--c-line); }
 .ws__rail { position: sticky; top: var(--header-h); display: grid; gap: var(--space-3); align-content: start; padding: var(--space-4) var(--space-4) var(--space-6) 0; }
@@ -51,13 +51,13 @@
 .ws__state { grid-area: state; color: var(--c-fg-3); font-size: var(--type-micro); line-height: 1.4; }
 .ws__n { grid-area: n; color: var(--c-fg-3); font: 400 0.8125rem/1 var(--font-mono); font-variant-numeric: tabular-nums; }
 /* The open collection: a raised row, ink text. --on is set to 1 by the inlined per-collection rule. */
-.ws__item[aria-current="true"], .ws[data-sel] .ws__item { background: color-mix(in oklab, var(--c-fill-2) calc(var(--on) * 100%), transparent); color: color-mix(in oklab, var(--c-fg) calc(var(--on) * 100%), var(--c-fg-2)); }
-.ws:not([data-sel]) .ws__item[aria-current="true"] { background: var(--c-fill-2); color: var(--c-fg); }
+:root[data-ws-sel] .ws__item { background: color-mix(in oklab, var(--c-fill-2) calc(var(--on) * 100%), transparent); color: color-mix(in oklab, var(--c-fg) calc(var(--on) * 100%), var(--c-fg-2)); }
+:root:not([data-ws-sel]) .ws__list li:first-child .ws__item { background: var(--c-fill-2); color: var(--c-fg); }
 @media (hover: hover) and (pointer: fine) { .ws__item:hover { background: var(--c-fill); color: var(--c-fg); } }
 .ws__new .i { width: 14px; height: 14px; }
 .ws__main { min-width: 0; min-height: 24rem; padding: var(--space-4) 0 0 var(--space-10); border-left: 1px solid var(--c-line); }
 .ws__panel { display: none; gap: var(--space-6); min-width: 0; }
-.ws:not([data-sel]) .ws__panel:first-child { display: grid; }
+:root:not([data-ws-sel]) .ws__panel:first-child { display: grid; }
 .ws__back { display: none; }
 
 /* One open collection. */
@@ -97,16 +97,16 @@
   .ws__rail { position: static; padding: 0; border-right: 0; min-height: 0; }
   .ws__list { gap: 0; border-top: 1px solid var(--c-line); }
   .ws__list li { border-bottom: 1px solid var(--c-line); }
-  .ws__item, .ws[data-sel] .ws__item { min-height: 60px; padding-inline: 0; border-radius: 0; background: none; color: var(--c-fg); }
+  .ws__item, :root[data-ws-sel] .ws__item { min-height: 60px; padding-inline: 0; border-radius: 0; background: none; color: var(--c-fg); }
   .ws__item::after { content: ""; grid-row: 1 / 3; width: 7px; height: 7px; margin-left: 2px; border-right: 1.5px solid var(--c-fg-3); border-bottom: 1.5px solid var(--c-fg-3); transform: rotate(-45deg); }
   .ws__item { grid-template-columns: minmax(0, 1fr) auto auto; grid-template-areas: "name n arrow" "state n arrow"; }
   .ws__main { min-height: 0; padding: 0; border-left: 0; }
-  .ws[data-view="detail"] .ws__rail { display: none; }
-  .ws[data-view="list"] .ws__panel, .ws:not([data-view]) .ws__panel { display: none !important; }
+  :root[data-ws-view="detail"] .ws__rail { display: none; }
+  :root[data-ws-view="list"] .ws__panel, :root:not([data-ws-view]) .ws__panel { display: none !important; }
   .ws__back { display: inline-flex; align-items: center; gap: 4px; justify-self: start; min-height: 44px; margin: calc(-1 * var(--space-3)) 0 calc(-1 * var(--space-3)) -6px; padding-right: var(--space-3); color: var(--c-fg-2); font-size: var(--type-sm); text-decoration: none; }
   .cpanel__head { padding-top: 0; }
   /* With a collection open, the page's lead gives way so the collection starts near the top. */
-  .page:has(.ws[data-view="detail"]) .page-head .lead { display: none; }
+  :root[data-ws-view="detail"] .page:has(.ws) .page-head .lead { display: none; }
   .citem { align-items: start; }
 }
 @media (max-width: 40rem) {

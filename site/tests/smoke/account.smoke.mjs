@@ -32,6 +32,8 @@ before(async () => {
       await new Promise((r) => setTimeout(r, 500));
     }
   }
+  const r = await fetch(`${base}/account/fixture/reset`, { method: "POST" });
+  assert.equal(r.status, 204, "sample data is on at this server");
   browser = await chromium.launch();
 });
 
@@ -57,22 +59,24 @@ const openPanel = (page) => page.locator(".ws__panel:visible");
 
 test("desktop: the rail opens collections, Back returns, and the last one opened is remembered", async () => {
   const { page, ctx, errors } = await open(DESKTOP, "/account/fixture");
+  await page.locator(`.ws__panel[data-col="${STARRED}"]`).waitFor({ state: "visible" });
   assert.equal(await openPanel(page).count(), 1, "exactly one collection is open");
   assert.equal(await openPanel(page).getAttribute("data-col"), STARRED, "Starred opens first");
   assert.equal(await page.locator(`[data-for="${STARRED}"]`).getAttribute("aria-current"), "true");
 
   await page.locator(`[data-for="${DESIGN}"]`).click();
-  await page.locator(`#ws[data-sel="${DESIGN}"]`).waitFor({ state: "attached" });
-  assert.equal(await openPanel(page).getAttribute("data-col"), DESIGN);
-  assert.equal(await page.locator(`[data-for="${DESIGN}"]`).getAttribute("aria-current"), "true");
-  assert.equal(await page.locator(`[data-for="${STARRED}"]`).getAttribute("aria-current"), null);
+  await page.locator(`html[data-ws-sel="${DESIGN}"]`).waitFor({ state: "attached" });
+  assert.equal(await openPanel(page).getAttribute("data-col"), DESIGN, "clicked collection opens");
+  assert.equal(await page.locator(`[data-for="${DESIGN}"]`).getAttribute("aria-current"), "true", "open row is current");
+  assert.equal(await page.locator(`[data-for="${STARRED}"]`).getAttribute("aria-current"), null, "other rows are not");
 
   await page.goBack();
+  await page.waitForFunction(() => location.hash === "" && document.documentElement.getAttribute("data-ws-view") === "list");
   assert.equal(await openPanel(page).getAttribute("data-col"), DESIGN, "no hash: the remembered collection stays open");
 
   // A fresh visit with no hash opens the remembered collection before paint (no flash of Starred).
   await page.goto(base + "/account/fixture", { waitUntil: "domcontentloaded" });
-  assert.equal(await page.locator("#ws").getAttribute("data-sel"), DESIGN);
+  assert.equal(await page.locator("html").getAttribute("data-ws-sel"), DESIGN, "remembered collection picked before paint");
   await noSideScroll(page, "/account/fixture");
   assert.deepEqual(errors, []);
   await ctx.close();
@@ -88,7 +92,7 @@ test("desktop: a prompt copies the same payload as its page, the install command
   assert.equal(await page.evaluate(() => navigator.clipboard.readText()), "npx skills add AtlasScope/agent-kit --skill diagnosing-bugs");
 
   await page.locator(`[data-for="${EMPTY}"]`).click();
-  await page.locator(`#ws[data-sel="${EMPTY}"]`).waitFor({ state: "attached" });
+  await page.locator(`html[data-ws-sel="${EMPTY}"]`).waitFor({ state: "attached" });
   await openPanel(page).getByRole("link", { name: "Browse prompts" }).waitFor();
   await ctx.close();
 });
@@ -98,7 +102,7 @@ test("phone: the rail is the first screen, a collection replaces it, and All col
   assert.ok(await page.locator(".ws__rail").isVisible(), "rail shows first");
   assert.equal(await openPanel(page).count(), 0, "no collection open on the first screen");
   await page.locator(`[data-for="${DESIGN}"]`).tap();
-  await page.locator(`#ws[data-view="detail"][data-sel="${DESIGN}"]`).waitFor({ state: "attached" });
+  await page.locator(`html[data-ws-view="detail"][data-ws-sel="${DESIGN}"]`).waitFor({ state: "attached" });
   assert.ok(!(await page.locator(".ws__rail").isVisible()), "rail gives way");
   assert.equal(await openPanel(page).getAttribute("data-col"), DESIGN);
   assert.equal(await page.evaluate(() => document.activeElement?.id), `col-${DESIGN}`, "focus moves to the collection's heading");
@@ -121,7 +125,7 @@ test("desktop: New collection creates one and opens it; Remove takes an item out
   assert.ok(page.url().endsWith(`#${id}`), "the new collection is in the URL");
 
   await page.locator(`[data-for="${DESIGN}"]`).click();
-  await page.locator(`#ws[data-sel="${DESIGN}"]`).waitFor({ state: "attached" });
+  await page.locator(`html[data-ws-sel="${DESIGN}"]`).waitFor({ state: "attached" });
   const before = await openPanel(page).locator(".citem").count();
   // Pop's trigger is a <summary>, which has no button role in Chromium's accessibility tree; find it by its label.
   await openPanel(page).locator('summary[aria-label^="Remove ux-heuristics"]').click();
@@ -178,5 +182,31 @@ test("404 says so and links to the library", async () => {
   assert.equal(res.status(), 404);
   await page.getByRole("heading", { name: "Not here" }).waitFor();
   for (const href of ["/prompts", "/skills", "/kits", "/fix", "/start"]) assert.equal(await page.locator(`.notfound__ways a[href="${href}"]`).count(), 1);
+  await ctx.close();
+});
+
+test("a malformed hash doesn't break Collections, and deleting the open collection keeps focus on the page", async () => {
+  const { page, ctx, errors } = await open(DESKTOP, "/account/fixture#%E0");
+  assert.equal(await page.locator("html").getAttribute("data-ws-sel"), STARRED);
+  assert.deepEqual(errors, []);
+  await ctx.close();
+
+  const phone = await open(PHONE, "/account/fixture");
+  const BEFORE = "00000000-0000-4000-8000-000000000003";
+  await phone.page.locator(`[data-for="${BEFORE}"]`).tap();
+  await phone.page.locator(`html[data-ws-sel="${BEFORE}"]`).waitFor({ state: "attached" });
+  await openPanel(phone.page).locator('summary[aria-label^="Delete"]').tap();
+  await openPanel(phone.page).getByRole("button", { name: "Delete collection" }).tap();
+  await phone.page.locator(`[data-for="${BEFORE}"]`).waitFor({ state: "detached", timeout: 10000 });
+  await phone.page.waitForFunction(() => document.activeElement?.hasAttribute("data-for"));
+  await phone.ctx.close();
+});
+
+test("On this page marks a short last section after jumping to it", async () => {
+  const { page, ctx } = await open(DESKTOP, "/mcp-setup");
+  await page.locator('.doc__toc a[href="#limits"]').click();
+  await page.waitForFunction(() => document.querySelector('.doc__toc a[href="#limits"]')?.getAttribute("aria-current") === "location");
+  await page.waitForTimeout(400);
+  assert.equal(await page.locator('.doc__toc a[aria-current]').getAttribute("href"), "#limits");
   await ctx.close();
 });

@@ -1,6 +1,6 @@
 "use server";
 import { revalidatePath } from "next/cache";
-import { store, fixturesEnabled, reset, SAMPLE_PATH } from "./store";
+import { store, fixturesEnabled, SAMPLE_PATH } from "./store";
 import type { ActionState } from "../actions";
 
 // The same five actions as ../actions.ts, against the sample store. A short wait lets the busy labels show.
@@ -39,7 +39,4 @@ export async function removeItem(_: ActionState, f: FormData) {
     const c = store().find((x) => x.id === text(f, "id"));
     if (c) c.items = c.items.filter((i) => !(i.kind === text(f, "kind") && i.ref === text(f, "ref")));
   });
-}
-export async function resetSample() {
-  if (fixturesEnabled()) { reset(); revalidatePath(SAMPLE_PATH); }
 }

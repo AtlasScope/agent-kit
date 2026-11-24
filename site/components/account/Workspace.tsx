@@ -7,8 +7,13 @@ export type RailEntry = { id: string; name: string; count: number; starred: bool
 const NARROW = "(max-width: 60rem)";
 const STAR = <svg className="i i--warm" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" /></svg>;
 
+// The hash without its #, decoded; a malformed escape is read as no hash at all.
+export function hashId() {
+  try { return decodeURIComponent(location.hash.slice(1)); } catch { return ""; }
+}
+
 function pick(ids: string[]) {
-  const h = decodeURIComponent(location.hash.slice(1));
+  const h = hashId();
   let r: string | null = null;
   try { r = localStorage.getItem(KEY); } catch {}
   const hit = ids.includes(h);
@@ -16,7 +21,7 @@ function pick(ids: string[]) {
 }
 
 // The Collections workspace: a rail of collections and the panels they open. Selection is plain DOM state
-// on the root (data-sel, data-view) so the inline script and React agree without a re-render.
+// on <html> (data-ws-sel, data-ws-view) so the inline script and React agree without a re-render.
 export function Workspace({ rail, newCollection, boot, children }: { rail: RailEntry[]; newCollection: React.ReactNode; boot: React.ReactNode; children: React.ReactNode }) {
   const root = useRef<HTMLDivElement>(null);
   const ids = rail.map((r) => r.id);
@@ -27,19 +32,27 @@ export function Workspace({ rail, newCollection, boot, children }: { rail: RailE
     const w = root.current;
     if (!w) return;
     const list = idKey.split(" ");
+    const d = document.documentElement;
+    const openBefore = d.getAttribute("data-ws-sel");
 
-    const apply = (focus: boolean | "panel") => {
+    const apply = (focus: boolean | "panel" | "landed") => {
       const { sel, view, fromHash } = pick(list);
-      const was = w.getAttribute("data-sel");
-      w.setAttribute("data-sel", sel);
-      w.setAttribute("data-view", view);
+      const was = d.getAttribute("data-ws-sel");
+      d.setAttribute("data-ws-sel", sel);
+      d.setAttribute("data-ws-view", view);
       w.querySelectorAll<HTMLAnchorElement>("[data-for]").forEach((a) => {
         if (a.dataset.for === sel) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current");
       });
       if (fromHash) { try { localStorage.setItem(KEY, sel); } catch {} }
       if (!focus) return;
-      if (focus === "panel") { document.getElementById(`col-${sel}`)?.focus({ preventScroll: true }); return; }
       const narrow = window.matchMedia(NARROW).matches;
+      if (focus === "panel") { document.getElementById(`col-${sel}`)?.focus({ preventScroll: true }); return; }
+      // After a delete: the panel that opened in its place on wide screens, the rail row on phones (where the rail shows).
+      if (focus === "landed") {
+        const target = narrow && view === "list" ? w.querySelector<HTMLElement>(`[data-for="${sel}"]`) : document.getElementById(`col-${sel}`);
+        target?.focus({ preventScroll: true });
+        return;
+      }
       // On phones the panel replaces the rail, so focus follows it; going back returns focus to the row.
       if (narrow && view === "detail") document.getElementById(`col-${sel}`)?.focus({ preventScroll: true });
       if (narrow && view === "list") w.querySelector<HTMLElement>(`[data-for="${was}"]`)?.focus({ preventScroll: true });
@@ -54,17 +67,21 @@ export function Workspace({ rail, newCollection, boot, children }: { rail: RailE
     const before = prev.current;
     prev.current = list;
     const added = before ? list.filter((id) => !before.includes(id)) : [];
-    const h = decodeURIComponent(location.hash.slice(1));
-    const removed = Boolean(before && h && h !== "all" && !list.includes(h));
+    const h = hashId();
+    // The open collection was deleted (whether it came from the hash or was remembered): drop a stale hash so the
+    // first one opens, and move focus there instead of leaving it on the removed Delete button.
+    const removed = Boolean(before && openBefore && !list.includes(openBefore));
     if (added.length === 1) { landing = true; location.hash = added[0]; }
-    // The open collection was deleted: drop its hash so the remembered or first one opens, and move focus there.
-    else if (removed) history.replaceState(null, "", location.pathname + location.search);
-    apply(removed ? "panel" : false);
+    else if (removed && h && h !== "all" && !list.includes(h)) history.replaceState(null, "", location.pathname + location.search);
+    apply(removed ? "landed" : false);
     return () => window.removeEventListener("hashchange", onHash);
   }, [idKey]);
 
+  // Leaving the page: clear the choice from <html> so it can't style anything else.
+  useEffect(() => () => { document.documentElement.removeAttribute("data-ws-sel"); document.documentElement.removeAttribute("data-ws-view"); }, []);
+
   return (
-    <div className="ws" id="ws" ref={root} data-ids={idKey} suppressHydrationWarning>
+    <div className="ws" id="ws" ref={root} data-ids={idKey}>
       {boot}
       <nav className="ws__rail" aria-label="Your collections">
         <div className="ws__railhead">
@@ -72,9 +89,9 @@ export function Workspace({ rail, newCollection, boot, children }: { rail: RailE
           {newCollection}
         </div>
         <ul className="ws__list">
-          {rail.map((r, i) => (
+          {rail.map((r) => (
             <li key={r.id}>
-              <a className="ws__item" href={`#${r.id}`} data-for={r.id} aria-current={i === 0 ? "true" : undefined} suppressHydrationWarning>
+              <a className="ws__item" href={`#${r.id}`} data-for={r.id}>
                 <span className="ws__name">{r.starred && STAR}<span>{r.name}</span></span>
                 <span className="ws__state">{r.state}</span>
                 <span className="ws__n">{r.count}<span className="sr">{r.count === 1 ? " item" : " items"}</span></span>

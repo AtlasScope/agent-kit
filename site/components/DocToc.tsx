@@ -10,17 +10,25 @@ export function DocToc({ items }: { items: { id: string; title: string }[] }) {
     if (!nav || !("IntersectionObserver" in window)) return;
     const secs = items.map((i) => document.getElementById(i.id)).filter((s): s is HTMLElement => Boolean(s));
     const seen = new Map<string, boolean>();
-    const mark = () => {
-      // The first section on screen is current; past the last one, the last one stays current.
-      const id = items.find((i) => seen.get(i.id))?.id;
+    const set = (id: string | undefined) => {
       if (!id) return;
       nav.querySelectorAll("a").forEach((a) => {
         if (a.getAttribute("href") === `#${id}`) a.setAttribute("aria-current", "location"); else a.removeAttribute("aria-current");
       });
     };
+    const mark = () => {
+      const visible = items.filter((i) => seen.get(i.id)).map((i) => i.id);
+      // At the bottom of the page a short last section can't reach the top, so the first section on screen would
+      // stay current. There, the section the visitor jumped to wins, or else the last one on screen.
+      const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+      const hash = location.hash.slice(1);
+      set(atBottom ? (visible.includes(hash) ? hash : visible.at(-1)) : visible[0]);
+    };
+    const onHash = () => { const id = location.hash.slice(1); if (items.some((i) => i.id === id)) set(id); };
+    window.addEventListener("hashchange", onHash);
     const io = new IntersectionObserver((es) => { es.forEach((e) => seen.set(e.target.id, e.isIntersecting)); mark(); }, { rootMargin: "-80px 0px -45% 0px" });
     secs.forEach((s) => io.observe(s));
-    return () => io.disconnect();
+    return () => { io.disconnect(); window.removeEventListener("hashchange", onHash); };
   }, [items]);
   return (
     <nav className="doc__toc" aria-label="On this page" ref={ref}>
