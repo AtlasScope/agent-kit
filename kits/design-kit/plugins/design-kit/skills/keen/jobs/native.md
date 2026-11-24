@@ -16,7 +16,7 @@ This job is for apps installed on a device, built with the platform's own tools 
 2. **Run the app** in a simulator or emulator. Capture the screen in question in light and dark, at the default text size and at the largest, and on the smallest and largest device the app supports.
 3. **Use it with one hand**, doing the screen's main job. Note every place you reached for something that was not where the platform puts it.
 4. **Check each row** of the table below and fix what departs, using the platform's own controls before custom ones.
-5. **Capture after**, the same set, and report on the worksheet.
+5. **Capture after**, the same set, and report on the Keen page.
 
 ## What the platform expects
 

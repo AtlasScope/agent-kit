@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { commandFor, commands, optionsOf, readBook, render, serve } from "../scripts/worksheet.mjs";
+import { addPage, bookDir, commandFor, commands, optionsOf, readBook, render, serve } from "../scripts/worksheet.mjs";
 
 const page1 = {
   tab: "Critique",
@@ -34,14 +34,10 @@ const book = (...pages) => {
   pages.forEach((p, i) => fs.writeFileSync(path.join(dir, `page-${i + 1}.json`), JSON.stringify(p)));
   return dir;
 };
-const start = (dir, options = {}) => {
-  let ready;
-  const url = new Promise((resolve) => (ready = resolve));
-  const chosen = serve(dir, { minutes: 1, ...options, onReady: ready });
-  return { url, chosen };
-};
-const post = (address, body) => fetch(`${new URL(address).origin}/choose`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
-const keyOf = (address) => new URL(address).searchParams.get("k");
+const up = async (t, dir, options = {}) => { const s = await serve(dir, options); t.after(() => s.close()); return s; };
+const get = (s, route) => fetch(`http://127.0.0.1:${s.port}${route}${route.includes("?") ? "&" : "?"}k=${s.token}`);
+const post = (s, route, data = {}, k = s.token) => fetch(`http://127.0.0.1:${s.port}${route}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ k, ...data }) });
+const state = async (s) => (await (await get(s, "/state")).json()).live;
 
 test("a step offers its options best first, and a plain step is its own option", () => {
   assert.deepEqual(optionsOf(page1.steps[0]).map((o) => o.command), ["/keen distill Today", "/keen polish Today"]);
@@ -71,15 +67,15 @@ test("a screenshot address cannot add attributes to the image", () => {
   assert.match(html, /<img src="data:image\/png;base64,iVBORw0KGgo=" alt="c">/);
 });
 
-test("the static book has every page, a job picker, and no start", () => {
+test("the page has every page of the book, a job picker, Keen's own header and no outside files", () => {
   const html = render([page1, page2]);
-  assert.match(html, /<body class="static">/);
-  assert.match(html, /read-only copy to keep or send/);
-  assert.match(html, /const TOKEN = "";/);
   assert.equal(html.split("<script>")[0].split('<section class="page">').length - 1, 2);
   assert.match(html, /<select data-step="0">/);
   assert.match(html, /Add all, in this order/);
   assert.match(html, /Details for someone technical/);
+  assert.match(html, /<span class="brand"><i aria-hidden="true"><\/i>Keen<\/span>/);
+  assert.match(html, /id="start">Start<\/button>/);
+  assert.ok(!/(src|href)="https?:/.test(html), "nothing is fetched from elsewhere, so it looks the same everywhere");
 });
 
 test("smaller findings are listed and escaped", () => {
@@ -102,61 +98,87 @@ test("readBook returns pages in number order and ignores other files", () => {
   assert.deepEqual(readBook(dir).map((p) => p.title), [page1.title, page2.title, "ten"]);
 });
 
-test("the live page has no read-only note", async () => {
-  const { url, chosen } = start(book(page1), { minutes: 0.002 });
-  const html = await (await fetch(await url)).text();
-  assert.ok(!html.includes("read-only copy"));
-  assert.match(html, /id="start"|class="go"/);
-  await chosen;
+test("a short name is kept in the cache folder, not the project, and a path is used as given", () => {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "keen-home-"));
+  const project = fs.mkdtempSync(path.join(os.tmpdir(), "keen-proj-"));
+  const dir = bookDir("Kits page!", { cwd: project, env: { KEEN_HOME: home } });
+  assert.ok(dir.startsWith(home) && dir.endsWith(`${path.sep}kits-page`));
+  assert.ok(!dir.startsWith(project));
+  assert.equal(bookDir("./books/x", { cwd: project, env: {} }), path.join(project, "books", "x"));
+  assert.throws(() => bookDir(""), /short name/);
 });
 
-test("the server needs the key and reports the picks in the person's order", async () => {
-  const { url, chosen } = start(book(page1));
-  const address = await url;
-  assert.match(address, /^http:\/\/127\.0\.0\.1:\d+\/\?k=[0-9a-f]{32}$/);
-  const origin = new URL(address).origin;
-  const k = keyOf(address);
+test("adding a page copies its screenshots in and refuses a page with no title", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "keen-add-"));
+  const shots = fs.mkdtempSync(path.join(os.tmpdir(), "keen-shots-"));
+  fs.writeFileSync(path.join(shots, "a.png"), Buffer.from("iVBORw0KGgo=", "base64"));
+  assert.equal(addPage(dir, { title: "One", shots: [{ src: "a.png", caption: "c" }] }, { baseDir: shots }), 1);
+  assert.equal(addPage(dir, { title: "Two" }), 2);
+  fs.rmSync(shots, { recursive: true });
+  assert.match(readBook(dir)[0].shots[0].src, /^data:image\/png;base64,/);
+  assert.throws(() => addPage(dir, { verdict: "no title" }), /title/);
+  assert.throws(() => addPage(dir, { title: "x", shots: [{ src: "notes.txt" }] }, { baseDir: shots }), /png, jpg, webp or gif/);
+});
 
+test("the server needs the key, and a start reaches a waiting agent in the person's order", async (t) => {
+  const s = await up(t, book(page1));
+  assert.match(s.url, /^http:\/\/127\.0\.0\.1:\d+\/\?k=[0-9a-f]{32}$/);
+  const origin = `http://127.0.0.1:${s.port}`;
   assert.equal((await fetch(`${origin}/`)).status, 403);
   assert.equal((await fetch(`${origin}/state`)).status, 403);
-  assert.equal((await fetch(address)).status, 200);
-  assert.deepEqual(await (await fetch(`${origin}/state?k=${k}`)).json(), { count: 1, running: [] });
+  assert.equal((await fetch(`${origin}/wait`)).status, 403);
+  assert.equal((await fetch(s.url)).status, 200);
+  assert.deepEqual(await state(s), { working: [], held: [], listening: false, progress: "" });
 
-  assert.equal((await post(address, { k: "wrong", page: 0, picks: [["s", 0, 0]] })).status, 403);
-  assert.equal((await post(address, { k, page: 0, picks: [["s", 9, 0]] })).status, 400);
-  assert.equal((await post(address, { k, page: 5, picks: [["s", 0, 0]] })).status, 400);
-  assert.equal((await post(address, { k, page: 0, picks: [] })).status, 400);
-  assert.equal((await post(address, { k, page: 0, command: "rm -rf /" })).status, 400);
-  assert.equal((await post(address, { k, page: 0, picks: [["s", 1], ["s", 0, 1], ["m", 0]] })).status, 200);
-  assert.deepEqual(await chosen, [page1.steps[1].command, "/keen polish Today", "/keen harden Today"]);
+  assert.equal((await post(s, "/choose", { page: 0, picks: [["s", 0, 0]] }, "wrong")).status, 403);
+  assert.equal((await post(s, "/choose", { page: 0, picks: [["s", 9, 0]] })).status, 400);
+  assert.equal((await post(s, "/choose", { page: 5, picks: [["s", 0, 0]] })).status, 400);
+  assert.equal((await post(s, "/choose", { page: 0, picks: [] })).status, 400);
+  assert.equal((await post(s, "/choose", { page: 0, command: "rm -rf /" })).status, 400);
+
+  const waiting = get(s, "/wait").then((r) => r.json());
+  await new Promise((r) => setTimeout(r, 50));
+  assert.equal((await state(s)).listening, true);
+  const res = await (await post(s, "/choose", { page: 0, picks: [["s", 1], ["s", 0, 1], ["m", 0]] })).json();
+  assert.equal(res.delivered, true);
+  assert.deepEqual((await waiting).chosen, [page1.steps[1].command, "/keen polish Today", "/keen harden Today"]);
+  assert.deepEqual((await state(s)).working, ["Fix the phone", "Tidy only", "Harden"]);
 });
 
-test("a rerun keeps the same address, shows the new page, and accepts a pick from an earlier page", async () => {
+test("a start while the agent is busy or away is held, shown, and handed over at the next wait", async (t) => {
+  const s = await up(t, book(page1));
+  const away = await (await post(s, "/choose", { page: 0, picks: [["s", 0, 0]] })).json();
+  assert.equal(away.delivered, false);
+  assert.deepEqual(away.live.held, ["Simplify"]);
+  await post(s, "/choose", { page: 0, picks: [["m", 0]] });
+  assert.deepEqual((await (await get(s, "/wait")).json()).chosen, ["/keen distill Today", "/keen harden Today"]);
+
+  const busy = await (await post(s, "/choose", { page: 0, picks: [["s", 1]] })).json();
+  assert.equal(busy.delivered, false);
+  assert.deepEqual(busy.live, { working: ["Simplify", "Harden"], held: ["Fix the phone"], listening: false, progress: "" });
+  await post(s, "/say", { text: "Halfway" });
+  assert.equal((await state(s)).progress, "Halfway");
+  await post(s, "/turned");
+  assert.deepEqual((await state(s)).working, ["Harden"]);
+  assert.deepEqual((await (await get(s, "/wait")).json()).chosen, [page1.steps[1].command]);
+});
+
+test("a new page shows up on the open page without restarting anything", async (t) => {
   const dir = book(page1);
-  const first = start(dir);
-  const address = await first.url;
-  assert.equal((await post(address, { k: keyOf(address), page: 0, picks: [["s", 0, 0]] })).status, 200);
-  assert.deepEqual(await first.chosen, ["/keen distill Today"]);
-
-  fs.writeFileSync(path.join(dir, "page-2.json"), JSON.stringify(page2));
-  const second = start(dir);
-  const again = await second.url;
-  assert.equal(again, address, "the open page must be able to reconnect");
-  const origin = new URL(again).origin;
-  assert.deepEqual(await (await fetch(`${origin}/state?k=${keyOf(again)}`)).json(), { count: 2, running: [] });
-  const pages = await (await fetch(`${origin}/pages?k=${keyOf(again)}`)).json();
-  assert.deepEqual(pages.pages.map((p) => p.tab), ["Critique", "After simplify"]);
-  assert.equal(pages.html.length, 2);
-  assert.equal((await post(again, { k: keyOf(again), page: 0, picks: [["s", 1]] })).status, 200);
-  assert.deepEqual(await second.chosen, [page1.steps[1].command]);
+  const s = await up(t, dir);
+  assert.equal((await (await get(s, "/state")).json()).count, 1);
+  addPage(dir, page2);
+  assert.equal((await (await get(s, "/state")).json()).count, 2);
+  const fresh = await (await get(s, "/pages")).json();
+  assert.deepEqual(fresh.pages.map((p) => p.tab), ["Critique", "After simplify"]);
+  assert.equal(fresh.html.length, 2);
 });
 
-test("with no start before the time limit it resolves with null", async () => {
-  const { url, chosen } = start(book(page1), { minutes: 0.002 });
-  await url;
-  assert.equal(await chosen, null);
-});
-
-test("an empty folder is an error, not an empty page", async () => {
-  await assert.rejects(serve(fs.mkdtempSync(path.join(os.tmpdir(), "keen-empty-"))), /No page-1\.json/);
+test("a wait that nobody answers is told to ask again, and a stop ends it", async (t) => {
+  const s = await up(t, book(page1), { sliceMs: 40 });
+  assert.deepEqual(await (await get(s, "/wait")).json(), { again: true });
+  const waiting = get(s, "/wait").then((r) => r.json());
+  await new Promise((r) => setTimeout(r, 10));
+  await post(s, "/stop");
+  assert.deepEqual(await waiting, { stopped: true });
 });

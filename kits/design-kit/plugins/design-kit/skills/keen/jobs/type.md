@@ -20,7 +20,7 @@ Most of a screen is text, so most of how a screen looks is decided here. Two thi
    - Nothing under 12px.
 5. **Fix the reading.** Apply the table below to every style.
 6. **Fix the fonts**, if they are the problem. One family is enough for most products; two at most, with clear roles (one for headings, one for reading). Keep the project's fonts unless the request was to change them. Check that each font really loads, and that the page does not jump when it does: the stand-in font shown while loading should be close in width to the real one.
-7. **Capture after** and report on the worksheet, before and after side by side.
+7. **Capture after** and report on the Keen page, before and after side by side.
 
 ## Reading
 

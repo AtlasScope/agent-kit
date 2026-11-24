@@ -38,7 +38,7 @@ If PRODUCT.md does not say what this screen is for and you cannot tell from the 
    List the decisions you read under Details, with where each is written, so the person can see what the critique respected.
 5. **Judge it against the ten questions**, in this order. Answer every one, even when the answer is "yes, fine": a question skipped is how a real problem gets missed.
 6. **Rank.** Keep the three problems that most get in the way of the screen's job. A problem that blocks the job, or leaves the person with something other than what they were told, outranks any number that only look untidy. Keep up to five more as one line each.
-7. **Report**, on the worksheet described in SKILL.md, with each problem pinned on the screenshot it appears in.
+7. **Report**, on the Keen page described in SKILL.md, with each problem pinned on the screenshot it appears in.
 
 ## The ten questions
 

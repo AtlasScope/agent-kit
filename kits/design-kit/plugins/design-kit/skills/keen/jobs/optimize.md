@@ -14,7 +14,7 @@ People do not experience speed in milliseconds. They experience three things: ho
 2. **Find what the wait is made of.** List what loads before the main thing appears: pictures and their sizes, fonts, scripts, and requests for data. Note anything large, anything that blocks, and anything loaded that this screen does not use.
 3. **Fix in the order below**, starting with whichever number is worst.
 4. **Measure after**, the same way, three times, and report the middle result.
-5. **Report** on the worksheet: the loading captures before and after as two strips, and the three numbers.
+5. **Report** on the Keen page: the loading captures before and after as two strips, and the three numbers.
 
 ## The three numbers
 

@@ -25,7 +25,7 @@ When the same blue is written out in forty places, changing the blue means findi
 6. **Make the changes** in small groups, running the project's own checks after each group.
 7. **Capture after**, the same way, and compare every pair. Any difference a person can see is a fault in this job: fix it or undo that change.
 8. **Update DESIGN.md** with any new names and shared parts.
-9. **Report** on the worksheet.
+9. **Report** on the Keen page.
 
 ## Rules
 

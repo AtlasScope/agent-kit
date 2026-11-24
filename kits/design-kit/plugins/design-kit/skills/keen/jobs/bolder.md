@@ -17,7 +17,7 @@ If the screen is crowded, bolder makes it worse. Stop and suggest `/keen distill
 3. **Capture before**, at 390 and 1440 wide.
 4. **Make the five moves** below. Use the project's own fonts and colours; push how far apart their uses are, do not add new ones.
 5. **Capture after.** Shrink both captures to thumbnails side by side. The after should be recognisable at that size and the before should not. If you cannot tell them apart, you were not bold.
-6. **Report** on the worksheet with before and after side by side.
+6. **Report** on the Keen page with before and after side by side.
 
 ## The five moves
 
