@@ -131,6 +131,10 @@ for (const size of SIZES) {
     await box.waitFor({ state: "hidden" });
     // "/" opens it too; arrows move and Enter opens the result.
     await page.keyboard.press("/");
+    await box.waitFor({ timeout: 5000 }).catch(async () => {
+      const state = await page.evaluate(() => ({ open: document.querySelector("dialog.cmdk")?.open, active: document.activeElement?.outerHTML.slice(0, 160) }));
+      assert.fail(`"/" did not reopen the palette: ${JSON.stringify(state)}; page errors: ${JSON.stringify(errors)}`);
+    });
     await box.fill("tdd");
     await page.locator('#search-results a[role="option"][href="/skills/tdd"]').waitFor();
     await box.press("Enter");

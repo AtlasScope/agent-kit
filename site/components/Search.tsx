@@ -81,12 +81,24 @@ export function Search() {
   const show = useCallback(() => {
     const d = dlg.current;
     if (!d) return;
-    if (!d.open) { d.showModal(); setOpen(true); setRecent(readRecent()); }
+    if (!d.open) {
+      const from = document.activeElement as HTMLElement | null;
+      opener.current = from && from !== document.body && !d.contains(from) ? from : null;
+      d.showModal(); setOpen(true); setRecent(readRecent());
+    }
     input.current?.focus();
     input.current?.select();
     warm();
   }, [warm]);
   const hide = useCallback(() => { dlg.current?.close(); }, []);
+  // Focus goes back to whatever opened the palette (the header button, a page control). If nothing had focus,
+  // it leaves the dialog's field, so the next "/" isn't read as typing into a hidden input.
+  const opener = useRef<HTMLElement | null>(null);
+  const restoreFocus = () => {
+    const a = document.activeElement as HTMLElement | null;
+    if (a && a !== document.body && !dlg.current?.contains(a)) return;
+    if (opener.current?.isConnected) opener.current.focus({ preventScroll: true }); else a?.blur();
+  };
 
   useEffect(() => { setMounted(true); setMod(isMac() ? "⌘" : "Ctrl"); }, []);
   // Fetch the index once the page is idle, so a phone's first tap on Search doesn't wait for it. Skipped when the
@@ -106,7 +118,7 @@ export function Search() {
       if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "k") {
         e.preventDefault();
         if (dlg.current?.open) hide(); else show();
-      } else if (e.key === "/" && !e.metaKey && !e.ctrlKey && !e.altKey && !/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) && !t.isContentEditable && !dlg.current?.open) {
+      } else if (e.key === "/" && !e.metaKey && !e.ctrlKey && !e.altKey && !dlg.current?.open && (dlg.current?.contains(t) || (!/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) && !t.isContentEditable))) {
         e.preventDefault(); show();
       }
     };
@@ -206,7 +218,7 @@ export function Search() {
 
   const palette = (
     <dialog ref={dlg} className="cmdk" aria-label="Search"
-      onClose={() => { setOpen(false); setToast(""); }}
+      onClose={() => { setOpen(false); setToast(""); restoreFocus(); }}
       onCancel={(e) => { if (q) { e.preventDefault(); setQ(""); } }}
       onClick={(e) => { if (e.target === dlg.current) hide(); }}>
       <div className="cmdk__panel">
