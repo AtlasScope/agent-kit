@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import { chromium } from "playwright";
-import { SITE, kitInstallMessage } from "../../lib/site.ts";
+import { SITE, KIT_GUIDE, kitInstallMessage } from "../../lib/site.ts";
 
 const require = createRequire(import.meta.url);
 const data = require("../../content/generated.json");
@@ -80,6 +80,16 @@ for (const size of SIZES) for (const scheme of ["light", "dark"]) {
     }
   });
 
+  test(`${size.name} ${scheme}: a namespaced kit's skill names both commands`, async () => {
+    const { page, ctx, errors } = await open(size, scheme, "/skills/diagnose");
+    const runs = await page.locator(".sd-spec dt:text-is('Runs') + dd code").allTextContents();
+    assert.deepEqual(runs, ["/diagnose", "/experience-architecture:diagnose"]);
+    await page.getByRole("tab", { name: "Whole kit" }).click();
+    assert.match(await page.locator("#install .ip-note").textContent(), /\/experience-architecture:diagnose/);
+    assert.deepEqual(errors, []);
+    await ctx.close();
+  });
+
   test(`${size.name} ${scheme}: a skill's section list jumps to its heading`, async () => {
     const { page, ctx, errors } = await open(size, scheme, "/skills/apple-design");
     if (size.isMobile) {
@@ -112,17 +122,19 @@ for (const size of SIZES) for (const scheme of ["light", "dark"]) {
       await page.getByRole("tab", { name: "Codex" }).click();
       await page.getByRole("button", { name: "Copy the Codex commands" }).click();
       assert.equal(await clipboard(page), `codex plugin marketplace add ${SITE.repoSlug}\ncodex plugin add ${k.name}@agent-kit`);
-      // How a skill starts stays on one line, and a row's meta takes at most one line on desktop, two on a phone.
+      // How a skill starts stays on one line on desktop; on a phone a row's meta takes at most two lines. Nothing clips.
       const lines = await page.locator(".kd-row__m").evaluateAll((ms) => ms.map((m) => {
-        const lh = parseFloat(getComputedStyle(m).lineHeight), start = m.firstElementChild;
-        return [m.closest(".kd-row").querySelector(".kd-row__name").textContent, Math.round(start.getBoundingClientRect().height / lh), Math.round(m.getBoundingClientRect().height / lh)];
+        const lh = parseFloat(getComputedStyle(m).lineHeight), start = m.firstElementChild, box = m.getBoundingClientRect();
+        const clipped = [...m.querySelectorAll("span, code")].some((e) => e.getBoundingClientRect().right > box.right + 1);
+        return [m.closest(".kd-row").querySelector(".kd-row__name").textContent, Math.round(start.getBoundingClientRect().height / lh), Math.round(box.height / lh), clipped];
       }));
-      for (const [name, start, all] of lines) {
-        assert.equal(start, 1, `${k.name}/${name}: how it starts wraps`);
+      for (const [name, start, all, clipped] of lines) {
+        if (!size.isMobile) assert.equal(start, 1, `${k.name}/${name}: how it starts wraps`);
         assert.ok(all <= (size.isMobile ? 2 : 1), `${k.name}/${name}: meta takes ${all} lines`);
+        assert.equal(clipped, false, `${k.name}/${name}: meta spills out of its row`);
       }
       // Rows give the command a person types in Claude Code after installing the kit: /kit:name for a namespaced kit.
-      const prefix = k.name === "experience-architecture" ? "/experience-architecture:" : "/";
+      const prefix = KIT_GUIDE[k.name]?.type.some((t) => t.startsWith(`/${k.name}:`)) ? `/${k.name}:` : "/";
       const cmds = await page.locator(".kd-row__m code").allTextContents();
       assert.deepEqual(cmds.sort(), k.skills.map((n) => `${prefix}${n}`).sort(), `${k.name}: row commands`);
       // Every skill in the kit is listed once, linked to its page.

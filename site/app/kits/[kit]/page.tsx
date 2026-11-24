@@ -45,6 +45,7 @@ export default async function KitPage({ params }: { params: Promise<{ kit: strin
   // In Claude Code a namespaced kit's skills run as /kit:name; the prefix is what comes before the skill's name.
   const exCmd = ex ? commandFor(k.name, ex) : "";
   const prefix = ex ? exCmd.slice(0, -ex.length) : "/";
+  // Codex keeps $name: nothing in the kits or their docs namespaces Codex skill names.
   const borrowed = k.skills.filter((s) => getSkill(s)?.credit).length;
   const readme = `${SITE.repo}/blob/main/${k.readmePath}`;
   return (

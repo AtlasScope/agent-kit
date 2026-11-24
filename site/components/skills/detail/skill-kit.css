@@ -167,5 +167,13 @@
 @media (hover: hover) and (pointer: fine) { .sd-agent summary:hover { color: var(--c-fg); } }
 @media (pointer: coarse) { .sd-agent summary { min-height: var(--tap); } }
 .kd-row__m > span { white-space: nowrap; } /* how it starts stays on one line; the author wraps under it when space runs out */
-@media (max-width: 21rem) { .kd-row__m > span { white-space: normal; overflow-wrap: anywhere; } } /* below the narrowest phone checked, wrap rather than scroll sideways */
+/* On a phone the meta runs as one wrapping line: the words wrap, a command never breaks, and start plus author fit in
+   two lines even for a namespaced command (/experience-architecture:walkthrough). */
+@media (max-width: 40rem) {
+  .kd-row__m { display: block; }
+  .kd-row__m > span { white-space: normal; }
+  .kd-row__m > span + span { margin-left: var(--space-2); }
+  .kd-row__m code { white-space: nowrap; letter-spacing: -0.03em; } /* keeps /experience-architecture:walkthrough and its author on one line at 360px */
+}
+@media (max-width: 21rem) { .kd-row__m code { white-space: normal; overflow-wrap: anywhere; } } /* narrower than any phone checked: break rather than clip */
 .kd-row__m code { font: var(--weight-regular) var(--type-micro)/1.5 var(--font-mono); color: var(--c-fg-2); }

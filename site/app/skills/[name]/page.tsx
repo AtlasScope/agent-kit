@@ -38,6 +38,7 @@ export default async function SkillPage({ params }: { params: Promise<{ name: st
   const k = getKit(s.kit)!;
   const c = s.credit;
   const { lead, more, agent, fallback } = describe(s.description);
+  // Installed alone a skill runs as /name; with a namespaced kit it runs as /kit:name, so the Runs fact names both.
   const cmd = commandFor(s.kit, s.name);
   const { html, toc } = withAnchors(scrollersFocusable(demote(s.bodyHtml)));
   const folder = `${SITE.repo}/tree/main/${s.sourcePath}`;
@@ -58,7 +59,7 @@ export default async function SkillPage({ params }: { params: Promise<{ name: st
           </details>
         )}
         <dl className="sd-spec">
-          <div><dt>Runs</dt><dd>{s.typedOnly ? <>Type <code translate="no">{cmd}</code> to run</> : <>Starts automatically, or type <code translate="no">{cmd}</code></>}</dd></div>
+          <div><dt>Runs</dt><dd>{s.typedOnly ? <>Type <code translate="no">/{s.name}</code> to run</> : <>Starts automatically, or type <code translate="no">/{s.name}</code></>}{cmd !== `/${s.name}` && <>; with the kit, <code translate="no">{cmd}</code></>}</dd></div>
           <div><dt>Works in</dt><dd>Any agent with <code>npx skills</code>; Claude Code and Codex as part of {k.name}</dd></div>
           <div><dt>Source</dt><dd>{c ? <>By {c.author}, from <a className="lic" href={c.url}>{c.repo}</a></> : "Written for Agent Kit"}</dd></div>
           <div><dt>License</dt><dd>{c ? c.license : "MIT"}</dd></div>
