@@ -153,7 +153,7 @@ The person never has to type any of this. The Keen page below turns each next st
 
 Every job that has something to show or a next step ends on the Keen page: one live page the person keeps open beside the conversation. Each finished job adds a page to it. A page holds the report, the screenshots with each problem marked, and what can run next. The person reads, picks one or several next steps in the order they want, and presses Start. You hear about it, do the work, add the next page, and their open page turns to it by itself.
 
-The page is served by a small program that comes with this skill and stays running while the work goes on. It looks the same in every project and every tool: Keen's own dark page, with its own header, set entirely by the program. Do not restyle it or wrap it in anything. It always tells the person the truth about you: whether you are listening, what you are working on, and what they have started that is waiting its turn.
+The page is served by a small program that comes with this skill and stays running while the work goes on. It looks the same in every project and every tool: the AtlasScope page, dark, with the AtlasScope mark in its header and a tag naming the tool (Keen), set entirely by the program. Every area of the kit will use this same page. Do not restyle it or wrap it in anything. It always tells the person the truth about you: whether you are listening, what you are working on, and what they have started that is waiting its turn.
 
 A job that changes nothing visible and has no next step reports in text only.
 
@@ -230,7 +230,9 @@ Rules:
 
 - **The page is looked at before it is read.** It opens on the title, the verdict, the numbers and the screenshots. Write for that:
   - `verdict`: one sentence, 25 words at most.
-  - `stats`: two to four numbers a person can take in at a glance, each a short value with a few words under it. Measured numbers only, and say what each is a number of.
+  - The verdict is the page's headline: the first thing read on a small laptop. It must be the takeaway by itself.
+  - `report.todo`: one short line, shown right under the headline.
+  - `stats`: optional, at most four small facts shown as a quiet row. Measured numbers only, and say what each is a number of. Leave them out when the verdict already says it.
   - `report.happened` and `report.means`: two sentences each at most.
   - A problem's `body`: the first paragraph is what shows, so make it the whole point in 40 words or fewer. Later paragraphs sit behind "More".
   - Every page that judges or changes a screen has at least one screenshot. A page with no picture is a wall of words.

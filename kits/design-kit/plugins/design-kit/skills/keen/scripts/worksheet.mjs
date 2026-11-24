@@ -96,22 +96,21 @@ export function renderPage(page, { baseDir = process.cwd() } = {}) {
   const menu = (page.menu || []).filter((m) => m.command);
   const figure = (s) => `<figure><div class="frame"><img src="${esc(image(s.src, baseDir))}" alt="${esc(s.alt || s.caption || "Screenshot")}">${(s.pins || []).map((p) => `<span class="pin" style="left:${Number(p.x) || 0}%;top:${Number(p.y) || 0}%">${esc(p.n)}</span>`).join("")}</div><figcaption>${esc(s.caption)}</figcaption></figure>`;
   const shots = (page.shots || []).map(figure).join("\n");
-  const stats = (page.stats || []).slice(0, 4).map((s) => `<div class="stat"><b>${esc(s.value)}</b><span>${esc(s.label)}</span></div>`).join("");
   const problems = (page.problems || []).map((p) => `<li><h3>${esc(p.title)}</h3>${lead(p.body)}</li>`).join("\n");
   const hasNext = steps || menu.length;
   const todo = r.todo || (hasNext ? "Pick what to run next." : "Nothing.");
+  const chips = (page.stats || []).slice(0, 4).map((s) => `<span class="chip"><b>${esc(s.value)}</b> ${esc(s.label)}</span>`).join("");
   return `<header class="hero">
-${page.tab ? `<p class="eyebrow">${esc(page.tab)}</p>` : ""}
-<h1>${esc(page.title || "Keen")}</h1>
-${page.verdict ? `<p class="verdict">${esc(page.verdict)}</p>` : ""}
+<p class="eyebrow">${esc(page.title || page.tab || "Report")}</p>
+<h1>${esc(page.verdict || page.title || "Report")}</h1>
+<p class="next"><b>What you need to do</b> ${esc(todo)}</p>
+${chips ? `<p class="chips">${chips}</p>` : ""}
 ${page.subtitle ? `<p class="sub">${esc(page.subtitle)}</p>` : ""}
 </header>
-${stats ? `<div class="stats">${stats}</div>` : ""}
 ${shots ? `<section class="sec" aria-label="What it looks like"><div class="gallery">${shots}</div></section>` : ""}
 <section class="trio">
 <div class="card"><h2>What happened</h2><p>${esc(r.happened)}</p></div>
 <div class="card"><h2>What it means</h2><p>${esc(r.means)}</p></div>
-<div class="card key"><h2>What you need to do</h2><p>${esc(todo)}</p></div>
 </section>
 ${problems ? `<section class="sec"><p class="label">What was found, most important first</p><ol class="problems">${problems}</ol></section>` : ""}
 ${(page.also || []).length || (page.working || []).length ? `<section class="sec pair">
@@ -127,7 +126,8 @@ ${page.notChecked ? `<section class="sec"><p class="label">Not checked</p>${para
 ${page.details ? `<details class="tech"><summary>Details for someone technical</summary><pre>${esc(page.details)}</pre></details>` : ""}`;
 }
 
-// Keen's own look. Every value is set here, so the page is the same in every project and every browser tab:
+// The AtlasScope page. One shell for every area of the kit: the header says AtlasScope, and a small tag names the
+// tool that made the page (Keen by default; a page can set `area`). Every value is set here, so the page is the same in every project and every browser tab:
 // black, white type set tight and large, hairlines for structure, one green that marks what is live and what
 // to press, system fonts, and nothing fetched from anywhere. It is always dark, like a product page, not a document.
 const STYLE = `:root{color-scheme:dark;--bg:#000;--card:#0a0a0a;--card2:#111;--ink:#f5f5f5;--soft:#a1a1a1;--dim:#6f6f6f;--line:rgba(255,255,255,.1);--line2:rgba(255,255,255,.18);--green:oklch(0.86 0.21 150);--on-green:#03130a;--mark:oklch(0.68 0.2 28);--amber:oklch(0.8 0.15 80);--sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
@@ -137,7 +137,8 @@ body{margin:0;background:radial-gradient(1200px 420px at 50% -120px,rgba(0,220,1
 .top{position:sticky;top:0;z-index:4;background:rgba(0,0,0,.72);-webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--line)}
 .top .in{max-width:1120px;margin:0 auto;padding:0 20px;min-height:56px;display:flex;align-items:center;gap:14px}
 .brand{display:inline-flex;align-items:center;gap:10px;font-weight:650;font-size:17px;letter-spacing:-0.02em}
-.brand i{width:11px;height:11px;background:var(--green);transform:rotate(45deg);border-radius:2px;display:inline-block;box-shadow:0 0 18px rgba(0,220,130,.55)}
+.brand svg{display:block;width:17px;height:24px;flex:none}
+.tool{font:500 12px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--on-green);background:var(--green);border-radius:999px;padding:5px 9px;flex:none}
 nav.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;flex:1 1 auto;min-width:0;margin:0 4px}
 nav.tabs::-webkit-scrollbar{display:none}
 nav.tabs[hidden]{display:none}
@@ -151,10 +152,12 @@ nav.tabs button[aria-selected=true]{background:rgba(255,255,255,.1);color:var(--
 @media (prefers-reduced-motion:reduce){.state i{animation:none!important}}
 main{max-width:1120px;margin:0 auto;padding:0 20px 200px}
 .page[hidden]{display:none}
-.hero{padding:72px 0 40px;max-width:900px}
-.eyebrow,.label{font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--green);margin:0 0 18px}
+.hero{padding:28px 0 24px;max-width:860px}
+.eyebrow,.label{font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--green);margin:0 0 12px}
+.next{margin:0 0 12px;padding:10px 14px;border:1px solid rgba(0,220,130,.4);border-radius:10px;background:rgba(0,220,130,.06);font-size:15px;max-width:none}.next b{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--green);margin-right:10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;max-width:none}.chip{font-size:13px;color:var(--soft);border:1px solid var(--line);border-radius:999px;padding:4px 10px}.chip b{color:var(--ink);font-weight:600}
 .label{color:var(--dim);margin-bottom:16px}
-h1{font-size:clamp(34px,5.2vw,64px);line-height:1.02;letter-spacing:-0.045em;font-weight:600;margin:0 0 22px;background:linear-gradient(180deg,#fff 30%,#9c9c9c);-webkit-background-clip:text;background-clip:text;color:transparent;text-wrap:balance}
+h1{font-size:clamp(22px,2.6vw,34px);line-height:1.18;letter-spacing:-0.03em;font-weight:600;margin:0 0 16px;background:linear-gradient(180deg,#fff 30%,#9c9c9c);-webkit-background-clip:text;background-clip:text;color:transparent;text-wrap:balance}
 .verdict{font-size:clamp(18px,2vw,23px);line-height:1.42;letter-spacing:-0.015em;color:var(--ink);margin:0 0 14px;max-width:44ch;text-wrap:pretty}
 h2{font-size:15px;font-weight:600;letter-spacing:-0.005em;margin:0 0 8px}h3{font-size:17px;font-weight:600;letter-spacing:-0.015em;margin:0 0 6px}
 p{margin:0 0 10px;max-width:66ch}.sub,figcaption,.why{color:var(--soft)}.sub{font-size:15px}
@@ -171,7 +174,7 @@ figure{margin:0;flex:0 0 auto;width:min(300px,72vw);scroll-snap-align:start}
 .frame img{display:block;width:100%;height:auto}figcaption{font-size:13.5px;line-height:1.4;margin-top:12px}
 .pin,ol.problems li::before{width:26px;height:26px;border-radius:50%;background:var(--mark);color:#fff;font:600 13px/26px var(--sans);text-align:center}
 .pin{position:absolute;margin:-13px 0 0 -13px;box-shadow:0 0 0 3px rgba(0,0,0,.6)}
-.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:24px}
+.trio{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:24px}
 .card{background:var(--card);padding:22px}.card h2{color:var(--dim);font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px}.card p{margin:0;font-size:15.5px;line-height:1.55}
 .card.key h2{color:var(--green)}
 ol.problems{padding:0;margin:0;list-style:none;counter-reset:p;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;max-width:none}
@@ -212,7 +215,7 @@ button[disabled]{opacity:.4;cursor:default;box-shadow:none}
 #held{color:var(--soft)}
 .tech{border-top:1px solid var(--line);margin-top:64px;padding-top:18px}
 pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12.5px/1.6 var(--mono);color:var(--soft);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0 0}
-@media (max-width:820px){.trio{grid-template-columns:1fr}.hero{padding:44px 0 28px}.sec{margin-top:48px}.gallery{padding:16px;border-radius:14px}main{padding-bottom:230px}}
+@media (max-width:820px){.trio{grid-template-columns:1fr}.hero{padding:20px 0 18px}.sec{margin-top:48px}.gallery{padding:16px;border-radius:14px}main{padding-bottom:230px}}
 @media (max-width:560px){.top .in{flex-wrap:wrap;padding:8px 16px;gap:8px}nav.tabs{order:3;flex-basis:100%;margin:0 -4px}main{padding-left:16px;padding-right:16px}.state{max-width:60vw}#bar{padding:10px 10px 10px 14px}#copyall[disabled]{display:none}}`;
 
 // The page's own script. It reads everything it needs from DATA and never builds markup from text.
@@ -294,7 +297,7 @@ export function render(pages, { baseDir = process.cwd(), live = null } = {}) {
 <title>${esc(list.at(-1)?.title || "Keen")}</title>
 <style>${STYLE}</style>
 <body>
-<header class="top"><div class="in"><span class="brand"><i aria-hidden="true"></i>Keen</span><nav class="tabs" id="tabs" role="tablist" aria-label="Pages" hidden></nav><span class="state" id="state" role="status" aria-live="polite"><i aria-hidden="true"></i><span id="statetext"></span></span></div></header>
+<header class="top"><div class="in"><span class="brand"><svg viewBox="0 0 23 32" fill="currentColor" aria-hidden="true"><path d="M9.66 4L13.34 4L21.72 22.63A21.2 21.2 0 0 0 16.42 20.58L11.5 9.66L6.59 20.58A21.2 21.2 0 0 0 1.28 22.63ZM0 25.83A19.2 19.2 0 0 1 23 25.83L20.61 29.03A15.2 15.2 0 0 0 2.4 29.03Z"/></svg>AtlasScope</span><span class="tool">${esc(list.at(-1)?.area || "Keen")}</span><nav class="tabs" id="tabs" role="tablist" aria-label="Pages" hidden></nav><span class="state" id="state" role="status" aria-live="polite"><i aria-hidden="true"></i><span id="statetext"></span></span></div></header>
 <main>
 <div id="book">${html.map((h) => `<section class="page">${h}</section>`).join("\n")}</div>
 </main>
