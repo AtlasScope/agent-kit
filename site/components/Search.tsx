@@ -29,7 +29,7 @@ let loaded: Entry[] | null = null;
 // past the browser cache, which also replaces the cached copy for later pages. `gen` stops an index load from before
 // the drop taking effect, `textGen` a text fetch from before it refilling the text cache.
 // (Vercel purges its CDN on each deploy, so skipping the browser cache is enough to reach the new index.)
-let stale = false, gen = 0, textGen = 0, hadIndex = false;
+let stale = false, gen = 0, textGen = 0;
 function dropIndex() {
   texts.clear(); known.clear(); textGen++;
   if (stale) return;   // a fresh index is already on its way, or will be fetched on the next open
@@ -38,7 +38,7 @@ function dropIndex() {
 function loadIndex() {
   const g = gen;
   indexPromise ??= fetch("/search-index.json", stale ? { cache: "reload" } : undefined).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-    .then((e: Entry[]) => { if (g === gen) { stale = false; loaded = e; hadIndex = true; } return e; });
+    .then((e: Entry[]) => { if (g === gen) { stale = false; loaded = e; } return e; });
   const mine = indexPromise;
   indexPromise.catch(() => { if (indexPromise === mine) indexPromise = null; });
   return indexPromise;
@@ -49,8 +49,15 @@ const GONE = "This result was removed in an update. Close and reopen search for 
 // cached text can go to the clipboard inside the click or key event without waiting.
 const texts = new Map<string, Promise<string>>();
 const known = new Map<string, string>();
-// A 404 counts only if it answers a request made since the last drop; a late one from before can't drop a fresh index.
-const gone = (err: unknown) => err instanceof Error && err.message === "gone" && (err as Error & { gen?: number }).gen === textGen;
+// A 404 counts only if it answers a request made since the last drop, so a late one from before can't drop a fresh
+// index. The first handler to see it marks it, so every other waiter on the same request reads it the same way.
+type Gone = Error & { gen?: number; seen?: boolean };
+const gone = (err: unknown) => err instanceof Error && err.message === "gone" && ((err as Gone).seen || (err as Gone).gen === textGen);
+function claimGone(err: unknown) {
+  if (!gone(err)) return false;
+  if (!(err as Gone).seen) { (err as Gone).seen = true; dropIndex(); }
+  return true;
+}
 function copyText(e: Entry): Promise<string> {
   if (e.copy?.text !== undefined) return Promise.resolve(e.copy.text);
   const k = copyUrl(e);
@@ -106,16 +113,16 @@ export function Search() {
   // A failed load is retried at most every 15 seconds, however often the button is hovered or the palette opened.
   const failed = useRef(false);
   const lastTry = useRef(0);
+  // After a removed result (`stale`) the old list is cleared at once, so its dead results can't be opened, and the
+  // retry throttle doesn't apply. A load made obsolete by a drop in the meantime is ignored.
   const warm = useCallback(() => {
     if (loaded) { setEntries(loaded); setStatus("ready"); return; }
-    if (failed.current && Date.now() - lastTry.current < 15000) return;
+    if (stale) setEntries(null);
+    else if (failed.current && Date.now() - lastTry.current < 15000) return;
     lastTry.current = Date.now();
     if (!failed.current) setStatus("loading");
-    loadIndex().then((e) => { failed.current = false; setEntries(e); setStatus("ready"); }, () => {
-      failed.current = true;
-      // A refetch after a removed result that fails leaves the palette on the index it already has.
-      setStatus(hadIndex ? "ready" : "error");
-    });
+    loadIndex().then((e) => { if (loaded !== e) return; failed.current = false; setEntries(e); setStatus("ready"); },
+      () => { failed.current = true; setStatus("error"); });
   }, []);
 
   // Opens synchronously inside the click or key event, so iOS Safari raises the keyboard for the field.
@@ -237,7 +244,7 @@ export function Search() {
     let live = true;
     const e = active;
     const t = setTimeout(() => copyText(e).then((text) => { if (live) setPayload({ key: k, text }); },
-      (err) => { if (!live) return; const g = gone(err); if (g) dropIndex(); setPayload({ key: k, text: null, gone: g }); }), 120);
+      (err) => { if (live) setPayload({ key: k, text: null, gone: claimGone(err) }); }), 120);
     const w = setTimeout(() => setWaiting(true), 400);
     return () => { live = false; clearTimeout(t); clearTimeout(w); };
   }, [open, wide, active]);
@@ -280,7 +287,7 @@ export function Search() {
       }
       say(c.done); remember(e);
     } catch {
-      if (gone(loadFailed)) { dropIndex(); setPayload({ key: k, text: null, gone: true }); say(GONE); }
+      if (claimGone(loadFailed)) { setPayload((p) => (p?.key === k ? { key: k, text: null, gone: true } : p)); say(GONE); }
       else say(loadFailed ? "Couldn’t load the text to copy. Open the page and copy from there." : "Copy was blocked. Open the page and copy from there.");
     }
   };
