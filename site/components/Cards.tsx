@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { getPrompt, getPromptById, getSkill, copyText, copyLabel, whatOf, whenOf, MODES, type Prompt } from "@/lib/content";
+import { getPrompt, getPromptById, getSkill, copyText, copyLabel, whatOf, whenOf, type Prompt } from "@/lib/content";
 import { CHANGES, type Start } from "@/lib/starts";
 import { KITS } from "@/lib/site";
 import { CopyButton } from "./CopyButton";
 import { Star } from "./Star";
 import { ScardMore } from "./ScardMore";
+import { modeOf, marksChange } from "./prompts/browse/mode";
 
 // A kit named in a Requires line links to that kit's page, where its install command is.
 const KIT_NAME = new RegExp(`\\b(${KITS.join("|")})\\b`);
@@ -12,37 +13,38 @@ const withKitLinks = (text: string) =>
   text.split(KIT_NAME).map((part, i) => (i % 2 ? <Link key={i} href={`/kits/${part}`}>{part}</Link> : part));
 
 
-// One card per prompt: title and star, id and what it changes, one line on what it finds, then Copy and Details.
+// One row per prompt: id, title and what it finds, when to use it, what it changes, then Star and Copy.
+// The whole row opens the prompt (the title link stretches over it); Star and Copy sit above that link.
 export function PromptCard({ p, best }: { p: Prompt; best?: boolean }) {
-  const mode = p.mode ? (p.iso ? "Tests on a copy" : MODES[p.mode]) : p.dmode;
+  const mode = modeOf(p);
   return (
-    <article className={`pcard${best ? " pcard--best" : ""}`} data-sec={p.sec}>
-      <div className="pcard__top">
-        <h3 className="pcard__t"><Link className="stretch" href={`/prompts/${p.slug}`}>{p.t}</Link></h3>
-        <Star kind="prompt" refId={p.id} title={p.t} />
+    <article className={`prow${best ? " prow--best" : ""}`} data-sec={p.sec} data-mode={mode || undefined}>
+      <code className="pid prow__id" translate="no">{p.id}</code>
+      <div className="prow__main">
+        <h3 className="prow__t"><Link className="stretch" href={`/prompts/${p.slug}`} translate={p.t.startsWith("/") ? "no" : undefined}>{p.t}</Link></h3>
+        {whatOf(p) && <p className="prow__d">{whatOf(p)}</p>}
+        {whenOf(p) && <p className="prow__w"><b>Use it when:</b> {whenOf(p)}</p>}
       </div>
-      {whatOf(p) && <p className="pcard__d">{whatOf(p)}</p>}
-      {whenOf(p) && <p className="pcard__w"><b>Use it when:</b> {whenOf(p)}</p>}
-      <div className="pcard__foot">
-        <p className="pcard__m">
-          <code className="pid">{p.id}</code>
-          {best && <span className="best">Best first</span>}
-          {p.fresh && <span className="best">New</span>}
-          {p.sec === "dcmd" && <span>By {p.group}</span>}
-          {mode && <span className={(p.mode && p.mode !== "read") || p.dmode === "Changes code" ? "warn" : undefined}>{mode}</span>}
-        </p>
+      <p className="prow__m">
+        {best && <span className="best">Best first</span>}
+        {p.fresh && <span className="best">New</span>}
+        {p.sec === "dcmd" && <span>By {p.group}</span>}
+        {mode && <span className={marksChange(p) ? "warn" : undefined}>{mode}</span>}
+      </p>
+      <div className="prow__a">
+        <Star kind="prompt" refId={p.id} title={p.t} />
         <CopyButton className="btn btn--sm" text={copyText(p)} label={copyLabel(p)} name={`${copyLabel(p)}: ${p.t}`} icon />
       </div>
     </article>
   );
 }
 
+// A list of prompt rows. With rank, the list is ordered (the Fix pages: "Prompts to try, in order") and the first
+// is marked Best first. Each item carries its mode so the area filter can show or hide it.
 export function PromptCards({ slugs, rank }: { slugs: string[]; rank?: boolean }) {
-  return (
-    <div className="pgrid">
-      {slugs.map(getPrompt).filter((p): p is Prompt => Boolean(p)).map((p, i) => <PromptCard key={p.slug} p={p} best={rank && i === 0} />)}
-    </div>
-  );
+  const list = slugs.map(getPrompt).filter((p): p is Prompt => Boolean(p));
+  const items = list.map((p, i) => <li key={p.slug} data-mode={modeOf(p) || undefined}><PromptCard p={p} best={rank && i === 0} /></li>);
+  return rank ? <ol className="prows prows--ranked">{items}</ol> : <ul className="prows">{items}</ul>;
 }
 
 // The first whole sentence of a skill's description, so a card never stops mid-thought.
