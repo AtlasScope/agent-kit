@@ -1,0 +1,85 @@
+/* Library browsing: tiles, rows, prompt and skill cards, starting points, browse index.
+   Ownership: see DESIGN-CONTRACT.md. Split from globals.css with no change in cascade order. */
+
+.card { display: grid; gap: var(--space-xs); align-content: start; padding: var(--space-md) var(--space-lg); border: 1px solid var(--color-rule); border-radius: var(--radius); background: var(--color-paper-2); text-decoration: none; transition: border-color var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out); min-width: 0; }
+.card__t { font-weight: 500; overflow-wrap: anywhere; }
+.card__d { color: var(--color-muted); font-size: var(--text-sm); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.card__m { font-size: 0.8125rem; color: var(--color-muted); display: flex; gap: var(--space-xs); flex-wrap: wrap; }
+@media (prefers-reduced-motion: reduce) { * { transition-duration: 0.01ms !important; animation: none !important; } }
+@media (hover: hover) and (pointer: fine) { a.card:hover { border-color: var(--color-rule-2); background: var(--color-paper-3); } }
+/* Tiles: the big entry points */
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr)); gap: var(--space-sm); }
+.tiles:not(.tiles--start) .tile { padding: 14px 16px; }
+.tiles:not(.tiles--start) .tile__t { font-size: 0.9375rem; line-height: 1.3; }
+.tiles--start { grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); }
+.tile { display: grid; gap: 6px; align-content: start; padding: 18px 20px; border: 1px solid var(--color-rule); border-radius: 14px; background: var(--color-paper-2); box-shadow: var(--lift); text-decoration: none; transition: box-shadow var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out); min-width: 0; }
+.tiles:not(.tiles--start) .tile { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+.tile__t { display: flex; align-items: center; font-weight: 650; font-size: 1.0625rem; letter-spacing: -0.015em; }
+.tile__n { font: 500 0.8125rem/1 var(--font-mono); color: var(--color-muted); }
+.tile__d { color: var(--color-ink-2); font-size: 0.9375rem; line-height: 1.45; grid-column: 1 / -1; }
+.tile__m { color: var(--color-muted); font-size: 0.8125rem; grid-column: 1 / -1; }
+.tile--lead { border-color: var(--color-ink-2); }
+/* Rows: symptoms with an arrow */
+.rows { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: var(--space-sm); }
+.row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-sm); min-height: 68px; padding: 12px 16px; border: 1px solid var(--color-rule); border-radius: 12px; background: var(--color-paper-2); box-shadow: var(--lift); text-decoration: none; font-weight: 550; line-height: 1.35; transition: box-shadow var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out); }
+.row .i { color: var(--color-muted); }
+.row__n { font: 500 0.8125rem/1 var(--font-mono); color: var(--color-muted); }
+/* Prompt and skill cards */
+.pgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: var(--space-md); }
+.pcard { position: relative; display: flex; flex-direction: column; gap: 10px; padding: 16px; border: 1px solid var(--color-rule); border-radius: 14px; background: var(--color-paper-2); box-shadow: var(--lift); min-width: 0; transition: box-shadow var(--dur-short) var(--ease-out); }
+.pcard--best { border-color: var(--color-rule-2); }
+.pcard__top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-xs); }
+.pcard__t { margin: 0; font: 650 1.0625rem/1.3 var(--font-body); letter-spacing: -0.015em; overflow-wrap: anywhere; padding-top: 4px; }
+.pcard__t a { text-decoration: none; }
+.pcard__t a.stretch::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.pcard__m { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 0.8125rem; color: var(--color-muted); }
+/* "Changes code" and similar: a marked, brighter label, not the danger colour (the Danger Only Rule). */
+.pcard__m .warn { color: var(--color-ink-2); }
+.pcard__m .warn::before { content: "● "; font-size: 0.6rem; vertical-align: 2px; }
+.pid { font: 600 0.75rem/1 var(--font-mono); padding: 4px 6px; border-radius: 5px; color: var(--color-ink-2); background: var(--color-paper-3); border: 1px solid var(--color-rule); }
+.best { color: var(--color-ink); font-weight: 650; }
+.pcard__d { color: var(--color-ink-2); font-size: 0.9375rem; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.pcard__w { color: var(--color-muted); font-size: 0.875rem; line-height: 1.5; margin-top: -2px; }
+.pcard__w b { font-weight: 600; color: var(--color-ink-2); }
+.pcard__a { display: flex; gap: var(--space-xs); margin-top: auto; padding-top: 4px; }
+.pcard__a .btn { min-height: 36px; font-size: var(--text-sm); }
+.scard .pcard__t { display: flex; align-items: center; }
+.scard__pick { margin: -4px 0 0; font: 500 0.875rem/1.4 var(--font-body); }
+.scard__pick--cmd { font-family: var(--font-mono); }
+.scard__pick a { text-decoration: underline; text-decoration-color: var(--color-rule-2); text-underline-offset: 0.2em; }
+.scard__qa { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 12px; margin: 0; font-size: 0.875rem; line-height: 1.45; }
+.scard__qa dt { color: var(--color-muted); }
+.scard__qa dd { margin: 0; color: var(--color-ink-2); }
+.scard .pcard__a { margin-top: 0; }
+.pcard__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-xs); margin-top: auto; padding-top: 2px; }
+.pcard__foot .btn { position: relative; z-index: 1; flex: none; }
+.scard__alts { margin: auto 0 0; padding: 10px 0 0; border-top: 1px solid var(--color-rule); list-style: none; display: grid; gap: 6px; font-size: 0.8125rem; line-height: 1.45; color: var(--color-muted); }
+.scard__alts a { color: var(--color-ink-2); font-weight: 600; }
+/* The phone toggle on a starting-point card. Hidden from 40rem up, where the answers always show. */
+.scard__toggle { display: none; align-items: center; gap: 4px; justify-self: start; min-height: 40px; padding: 0; border: 0; background: none; color: var(--color-ink-2); font: 500 var(--text-sm)/1 var(--font-body); cursor: pointer; }
+.scard__toggle .i { width: 16px; height: 16px; transition: transform var(--dur-short) var(--ease-out); }
+.scard__toggle[aria-expanded="true"] .i { transform: rotate(180deg); }
+@media (max-width: 40rem) { .scard__toggle { display: inline-flex; } }
+@media (max-width: 40rem) { .scard__more[data-open="false"] { display: none; } }
+/* The library index on /prompts: one block per section, its area pages as tiles. */
+.browse { display: grid; gap: var(--space-sm); padding-top: var(--space-lg); }
+.browse + .browse { border-top: 1px solid var(--color-rule); }
+.browse__h { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.125rem; }
+.browse__n { color: var(--color-muted); font-weight: 500; font-size: var(--text-sm); }
+.browse__d { margin: 0; max-width: var(--read); color: var(--color-muted); font-size: var(--text-sm); line-height: 1.5; }
+@media (max-width: 30rem) { .scard__qa { grid-template-columns: minmax(0, 1fr); gap: 0; } }
+@media (max-width: 30rem) { .scard__qa dd { margin-bottom: 6px; } }
+@media (hover: hover) and (pointer: fine) { .tile:hover, .row:hover { box-shadow: var(--lift-hi); transform: translateY(-1px); } }
+@media (hover: hover) and (pointer: fine) { .pcard[data-sec]:has(.stretch:hover) { border-color: var(--tone); } }
+@media (hover: hover) and (pointer: fine) { .tile--lead:hover { filter: brightness(1.06); } }
+@media (hover: hover) and (pointer: fine) { .pcard:hover { box-shadow: var(--lift-hi); } }
+@media (hover: hover) and (pointer: fine) { .pcard__t a:hover { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--color-rule-2); } }
+@media (pointer: coarse) { .pcard__a .btn, .pcard__foot .btn, .menu > .btn { min-height: 44px; } }
+@media (max-width: 40rem) { .tiles:not(.tiles--start) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-xs); } }
+@media (max-width: 40rem) { .tiles:not(.tiles--start) .tile { padding: 12px; box-shadow: none; } }
+@media (max-width: 40rem) { .pgrid { gap: var(--space-sm); } }
+.pcard { content-visibility: auto; contain-intrinsic-size: auto 190px; }
+@media (hover: hover) and (pointer: fine) { a.card:hover, .tile:hover, .row:hover, .pcard:hover, [data-sec] .tile:hover, .tile[data-sec]:hover, .pcard[data-sec]:has(.stretch:hover), .hub__way:hover {
+    border-color: color-mix(in oklab, var(--color-accent) 85%, transparent); } }
+@media (hover: hover) and (pointer: fine) { a.card:hover, .hub__way:hover { box-shadow: var(--accent-halo); } }
+@media (hover: hover) and (pointer: fine) { .tile:hover, .row:hover, .pcard:hover { box-shadow: var(--lift-hi), var(--accent-halo); } }

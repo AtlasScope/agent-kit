@@ -1,0 +1,100 @@
+/* Design tokens: colour, type, space, shape, depth, motion. Custom properties only.
+   Ownership: see DESIGN-CONTRACT.md. Split from globals.css with no change in cascade order. */
+
+/* Light by default on library pages. Every grey carries a trace of green (hue 157-168) and the text a trace of the
+   opposite, magenta (hue 326-329), so the page reads as one family. Green is the one accent: the selected menu item,
+   links, focus, and the main button. Section hues stay as small wayfinding marks. Dark follows the system setting. */
+:root {
+  color-scheme: light;
+  --color-paper: oklch(97.2% .0055 157); --color-paper-2: oklch(99.5% .003 157); --color-paper-3: oklch(93.6% .0146 163.5);
+  --color-ink: oklch(22.2% .035 329); --color-ink-2: oklch(38% .03 329); --color-muted: oklch(51% .015 326);
+  --color-rule: oklch(86.5% .013 167); --color-rule-2: oklch(64% .016 168);
+  --color-accent: oklch(52.3% .112 158); --color-accent-ink: #FFFFFF; --color-focus: oklch(52.3% .112 158);
+  --color-link: oklch(47% .11 158); --color-accent-text: oklch(38% .1 158);
+  --color-cmd: oklch(22.2% .035 329); --color-warm: #B45309; --color-warm-soft: #FDF1E3; --color-danger: #B42318; --color-on-danger: #FFFFFF;
+  --s-inv: #00704A; --s-db: #5C6B00; --s-think: #5A2FC2; --s-ecmd: #006C80; --s-dcmd: #1849C4; --s-recipe: #BF1F5E;
+  --lift: inset 0 1px 0 rgba(255,255,255,.8), 0 1px 2px rgba(11,12,18,.06), 0 6px 14px -6px rgba(11,12,18,.08), 0 20px 34px -22px rgba(11,12,18,.18);
+  --lift-hi: inset 0 1px 0 rgba(255,255,255,.8), 0 2px 4px rgba(11,12,18,.07), 0 10px 22px -8px rgba(11,12,18,.13), 0 28px 44px -24px rgba(11,12,18,.26);
+  --font-body: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-montserrat), var(--font-body);
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --text-sm: 0.875rem; --text-md: 1rem; --text-lead: clamp(1.0625rem, 0.4vw + 1rem, 1.1875rem);
+  --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px; --space-xl: 40px; --space-2xl: 64px;
+  --radius: 12px; --container: 1280px; --gutter: 32px; --measure: 72ch;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --dur-micro: 120ms; --dur-short: 220ms; --dur-long: 600ms;
+}
+/* Dark: near-black with almost no colour in the greys, hairlines of 9% white, and green only where something is
+   selected, linked or clickable. rule-2 keeps 3:1 for control borders. */
+@media (prefers-color-scheme: dark) { :root {
+  color-scheme: dark;
+  --color-paper: oklch(9% .003 160); --color-paper-2: oklch(15% .006 160); --color-paper-3: oklch(19% .008 160);
+  --color-ink: oklch(97% .004 330); --color-ink-2: oklch(80% .008 160); --color-muted: oklch(71% .008 160);
+  --color-rule: oklch(100% 0 0 / .09); --color-rule-2: oklch(49% .008 160);
+  --color-accent: oklch(72% .17 155); --color-accent-ink: oklch(16% .04 155); --color-focus: oklch(72% .17 155);
+  --color-link: oklch(78% .16 156); --color-accent-text: oklch(86% .13 155);
+  --color-cmd: oklch(97% .004 330); --color-warm: #F5A524; --color-warm-soft: #2A2113; --color-danger: #FF8A75; --color-on-danger: #0B0C12;
+  --s-inv: #4BF0A8; --s-db: #C9E05A; --s-think: #BFA8FF; --s-ecmd: #3FE0F5; --s-dcmd: #8CB6FF; --s-recipe: #FF7FB2;
+  --lift: inset 0 1px 0 rgba(255,255,255,.06), 0 1px 2px rgba(0,0,0,.6), 0 8px 20px -10px rgba(0,0,0,.7), 0 24px 40px -24px rgba(0,0,0,.9);
+  --lift-hi: inset 0 1px 0 rgba(255,255,255,.08), 0 2px 4px rgba(0,0,0,.6), 0 12px 26px -10px rgba(0,0,0,.8), 0 30px 50px -24px rgba(0,0,0,1);
+} }
+/* The header, the homepage and the install page are ink in both themes. */
+.ink, :root:has(.home, .quiet) {
+  color-scheme: dark;
+  --color-paper: oklch(9% .003 160); --color-paper-2: oklch(15% .006 160); --color-paper-3: oklch(19% .008 160);
+  --color-ink: oklch(97% .004 330); --color-ink-2: oklch(80% .008 160); --color-muted: oklch(71% .008 160);
+  --color-rule: oklch(100% 0 0 / .09); --color-rule-2: oklch(49% .008 160);
+  --color-accent: oklch(72% .17 155); --color-accent-ink: oklch(16% .04 155); --color-focus: oklch(72% .17 155);
+  --color-link: oklch(78% .16 156); --color-accent-text: oklch(86% .13 155);
+  --color-cmd: oklch(97% .004 330); --color-warm: #F5A524; --color-warm-soft: #2A2113;
+  --s-inv: #4BF0A8; --s-db: #C9E05A; --s-think: #BFA8FF; --s-ecmd: #3FE0F5; --s-dcmd: #8CB6FF; --s-recipe: #FF7FB2;
+  --lift: inset 0 1px 0 rgba(255,255,255,.06), 0 1px 2px rgba(0,0,0,.6), 0 8px 20px -10px rgba(0,0,0,.7), 0 24px 40px -24px rgba(0,0,0,.9);
+  --lift-hi: inset 0 1px 0 rgba(255,255,255,.08), 0 2px 4px rgba(0,0,0,.6), 0 12px 26px -10px rgba(0,0,0,.8), 0 30px 50px -24px rgba(0,0,0,1);
+}
+@media (max-width: 60rem) { :root { --gutter: 24px; } }
+@media (max-width: 40rem) { :root { --gutter: 16px; } }
+/* Large monitors: a little more room, so the page doesn't float in the middle of a 27-inch screen. */
+@media (min-width: 100rem) and (min-height: 900px) { :root { --container: 1320px; } }
+/* Phones */
+@media (max-width: 22rem) { :root { --gutter: 12px; } }
+/* Phones: search is a button. The field covers the bar once the button opens it, and is hidden (out of the tab
+   order and the accessibility tree) until then. */
+@media (max-width: 40rem) { :root { --gutter: 16px; } }
+/* Polish (2026-11-10): one header height for sticky offsets and jump targets, a skip link, reading width,
+   balanced headings, hover on in-text links, visible focus, and lighter long lists. */
+:root { --header-h: 65px; --read: 52ch; }
+/* The header is one row everywhere: 64px plus its hairline, and 56px plus its hairline up to 1248px (78rem), where the menu takes over. A 1280px laptop gets the full row. */
+@media (max-width: 78rem) { :root { --header-h: 57px; } }
+/* LED green: the site's one status light. A 6px dot, high-contrast green with a soft glow, used only where something
+   is true right now or was done: the command was copied, an install was tested, a step is finished, a request was
+   routed. Unlit it is a dark socket. Never a fill, never large text, never decoration. */
+:root { --led: #39FF88; --led-glow: color-mix(in oklab, var(--led) 55%, transparent); }
+:root { --led-shine: 0 0 0 1px color-mix(in oklab, var(--led) 55%, transparent), 0 0 6px var(--led), 0 0 14px var(--led-glow); }
+/* Large screens: the page container widens from 1800px and again from 2600px, so the header and the homepage
+   use the width instead of sitting in a narrow strip of a 2560px or 4K screen. */
+@media (min-width: 1800px) { :root { --container: 1560px; } }
+@media (min-width: 2600px) { :root { --container: 1800px; } }
+/* Wide-colour finish. Screens that can show Display P3 (Mac, iPhone, iPad, wide-gamut monitors) get the same hues
+   and lightness as the hex values above, with saturation raised toward what the screen can show. Everything else
+   keeps the hex: a standard sRGB screen does not match this query, and a browser without OKLCH skips it. */
+@media (color-gamut: p3) {
+  :root {
+    --color-warm: oklch(55.5% .167 49); --color-danger: oklch(50% .223 29.5);
+    --s-inv: oklch(48.2% .143 161.2); --s-db: oklch(49.8% .134 118.9); --s-think: oklch(45.7% .262 288.4);
+    --s-ecmd: oklch(49% .113 216.4); --s-dcmd: oklch(45.9% .295 263.7); --s-recipe: oklch(53% .236 4.4);
+    --led: oklch(88.1% .245 151.2);
+  }
+  @media (prefers-color-scheme: dark) { :root { --color-danger: oklch(75.7% .183 31.4); --color-warm: oklch(78.2% .189 72.3);
+    --s-inv: oklch(85.3% .256 160.1); --s-db: oklch(86.4% .227 118.1); --s-think: oklch(78.4% .134 295.6);
+    --s-ecmd: oklch(83.5% .169 208.1); --s-dcmd: oklch(77.5% .124 261.1); --s-recipe: oklch(75.6% .208 356.6); } }
+  .ink, :root:has(.home, .quiet) { --color-warm: oklch(78.2% .189 72.3);
+    --s-inv: oklch(85.3% .256 160.1); --s-db: oklch(86.4% .227 118.1); --s-think: oklch(78.4% .134 295.6);
+    --s-ecmd: oklch(83.5% .169 208.1); --s-dcmd: oklch(77.5% .124 261.1); --s-recipe: oklch(75.6% .208 356.6); }
+}
+/* Green as the one accent. A tint of it marks where you are, a thin edge of it marks what the pointer is on,
+   solid green marks the main action, and links read as green text. */
+:root { --accent-wash: color-mix(in oklab, var(--color-accent) 16%, transparent); --accent-edge: color-mix(in oklab, var(--color-accent) 30%, transparent);
+  --accent-halo: 0 0 0 3px color-mix(in oklab, var(--color-accent) 12%, transparent);
+  --accent-hover: color-mix(in oklab, var(--color-accent), #000 14%); }
+/* Hover moves the button away from its label colour: darker under white text (light), lighter under dark text (dark). */
+@media (prefers-color-scheme: dark) { :root { --accent-hover: color-mix(in oklab, var(--color-accent), #fff 14%); } }
+.ink, :root:has(.home, .quiet) { --accent-hover: color-mix(in oklab, var(--color-accent), #fff 14%); }

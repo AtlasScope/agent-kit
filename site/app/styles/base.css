@@ -1,0 +1,28 @@
+/* Element defaults, focus, selection, container, skip link, reduced motion.
+   Ownership: see DESIGN-CONTRACT.md. Split from globals.css with no change in cascade order. */
+
+.ink { color: var(--color-ink); }
+*, *::before, *::after { box-sizing: border-box; }
+html, body { overflow-x: clip; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; scrollbar-color: var(--color-rule-2) var(--color-paper); }
+body { margin: 0; background: var(--color-paper); color: var(--color-ink); font: 400 var(--text-md)/1.55 var(--font-body); -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px;
+  box-shadow: 0 0 0 5px color-mix(in oklab, var(--color-focus) 16%, transparent), 0 0 18px color-mix(in oklab, var(--color-focus) 30%, transparent); }
+::selection { background: color-mix(in oklab, var(--color-warm) 30%, transparent); }
+a { color: inherit; }
+p { margin: 0; }
+h1 { margin: 0; font: 600 clamp(2.25rem, 3.6vw + 0.75rem, 3.5rem)/1.05 var(--font-display); letter-spacing: -0.02em; text-wrap: balance; overflow-wrap: break-word; min-width: 0; }
+code, pre { font-family: var(--font-mono); }
+.container { max-width: var(--container); margin-inline: auto; padding-inline: max(var(--gutter), env(safe-area-inset-left)) max(var(--gutter), env(safe-area-inset-right)); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+button, a, [role="tab"] { touch-action: manipulation; }
+button { -webkit-user-select: none; user-select: none; }
+/* Library look (2026-11-09): sticky header with search, lifted white cards, Copy and Star on every card. */
+svg.i { width: 16px; height: 16px; flex: none; }
+html { scroll-padding-top: calc(var(--header-h) + 16px); }
+@media (pointer: fine) { html { overscroll-behavior-y: none; } }
+.skip { position: absolute; left: 16px; top: -100px; z-index: 50; padding: 10px 16px; border-radius: 999px; background: var(--color-accent); color: var(--color-accent-ink); font-weight: 600; text-decoration: none; }
+.skip:focus-visible { top: 12px; }
+h2, h3 { text-wrap: balance; }
+p, li, dd { text-wrap: pretty; }
+summary { touch-action: manipulation; -webkit-user-select: none; user-select: none; }

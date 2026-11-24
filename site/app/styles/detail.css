@@ -1,0 +1,78 @@
+/* Detail pages: facts, credit, prose, two-column layout, kit contents (adds), kit install.
+   Ownership: see DESIGN-CONTRACT.md. Split from globals.css with no change in cascade order. */
+
+.facts { display: grid; grid-template-columns: minmax(0, 14ch) minmax(0, 1fr); gap: var(--space-sm) var(--space-lg); margin: 0; max-width: var(--measure); }
+.facts dt { color: var(--color-muted); font-size: var(--text-sm); padding-top: 2px; }
+.facts dd { margin: 0; color: var(--color-ink-2); }
+.credit { display: grid; gap: var(--space-xs); padding: var(--space-md) var(--space-lg); border: 1px solid var(--color-rule-2); border-radius: var(--radius); max-width: var(--measure); font-size: var(--text-sm); color: var(--color-ink-2); }
+.credit strong { color: var(--color-ink); font-weight: 500; }
+.credit code { font-size: 0.8125rem; }
+.toolbar { display: flex; flex-wrap: wrap; gap: var(--space-xs); align-items: center; }
+.two { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: var(--space-xl); align-items: start; }
+.aside { display: grid; gap: var(--space-lg); position: sticky; top: calc(var(--header-h) + var(--space-lg)); }
+.two--wide { grid-template-columns: minmax(0, 1fr) 340px; }
+.facts--side { grid-template-columns: minmax(0, 1fr); gap: 2px; font-size: 0.9375rem; }
+.facts--side dd { margin-bottom: var(--space-sm); line-height: 1.5; }
+.facts--side dd:last-child { margin-bottom: 0; }
+.prose { max-width: var(--measure); color: var(--color-ink-2); overflow-wrap: anywhere; }
+.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 { color: var(--color-ink); font: 500 1.125rem/1.3 var(--font-body); margin: 1.6em 0 0.6em; }
+.prose h1 { font-size: 1.375rem; }
+.prose p, .prose ul, .prose ol, .prose table, .prose pre, .prose blockquote { margin: 0 0 1em; }
+.prose pre { padding: var(--space-md); border: 1px solid var(--color-rule); border-radius: var(--radius); background: var(--color-paper-2); overflow-x: auto; font-size: 0.8125rem; }
+.prose code { font-size: 0.875em; color: var(--color-ink); }
+.prose table { border-collapse: collapse; display: block; overflow-x: auto; font-size: var(--text-sm); }
+.prose th, .prose td { border: 1px solid var(--color-rule); padding: 6px 10px; text-align: left; vertical-align: top; }
+.prose blockquote { border-left: 2px solid var(--color-rule-2); padding-left: var(--space-md); color: var(--color-muted); }
+.prose a { text-decoration-color: var(--color-rule-2); text-underline-offset: 0.2em; }
+details.lic-text summary { cursor: pointer; color: var(--color-muted); font-size: var(--text-sm); }
+details.lic-text pre { white-space: pre-wrap; font-size: 0.75rem; color: var(--color-muted); }
+@media (max-width: 60rem) { .two { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 60rem) { .aside { position: static; } }
+@media (max-width: 40rem) { .facts { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+@media (max-width: 40rem) { .facts dd { margin-bottom: var(--space-sm); } }
+.replaced { border: 1px solid var(--color-rule); border-radius: 10px; padding: 12px 14px; margin-top: 12px; }
+.plan-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.plan-steps li { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 10px 0; border-bottom: 1px solid var(--color-rule-2); }
+.plan-steps .muted { display: block; }
+@media (max-width: 640px) { .plan-steps li { grid-template-columns: 28px minmax(0, 1fr); } }
+@media (max-width: 640px) { .plan-steps li > :last-child { grid-column: 2; justify-self: start; } }
+.facts { padding: var(--space-md) var(--space-lg); border: 1px solid var(--color-rule); border-radius: var(--radius); background: var(--color-paper-2); max-width: none; }
+.credit { background: var(--color-paper-2); }
+/* What the install adds: one row per kit, name and size, what it does, the commands that start it. Flat, hairlines only. */
+.adds { display: grid; gap: var(--space-lg); margin-bottom: var(--space-lg); }
+.adds__head { display: grid; gap: var(--space-xs); }
+.adds__head h2 { margin: 0; font: 650 clamp(1.25rem, 0.6vw + 1rem, 1.5rem)/1.2 var(--font-body); letter-spacing: -0.025em; }
+.adds__head p { max-width: 60ch; font-size: 0.9375rem; line-height: 1.5; color: var(--color-muted); text-wrap: pretty; }
+.adds__list { margin: 0; padding: 0; list-style: none; border-bottom: 1px solid var(--color-rule); }
+.adds__list > li { position: relative; display: grid; grid-template-columns: 15rem minmax(0, 1fr) minmax(0, 21rem); grid-template-areas: "name line type" "n line type"; column-gap: var(--space-xl); row-gap: 2px; padding-block: 18px; border-top: 1px solid var(--color-rule); }
+.adds__name { grid-area: name; margin: 0; font: 650 1.0625rem/1.3 var(--font-body); letter-spacing: -0.015em; }
+.adds__name a { text-decoration: none; text-underline-offset: 0.2em; }
+.adds__name a::after { content: ""; position: absolute; inset: 0; }
+.adds__name a:focus-visible { outline: none; }
+.adds__list > li:has(.adds__name a:focus-visible) { outline: 2px solid var(--color-focus); outline-offset: 4px; border-radius: 4px; }
+.adds__n { grid-area: n; font-size: 0.8125rem; line-height: 1.46; color: var(--color-muted); font-variant-numeric: tabular-nums; }
+.adds__list > li > p { grid-area: line; max-width: 56ch; font-size: 0.9375rem; line-height: 1.5; color: var(--color-muted); text-wrap: pretty; }
+.adds__type { grid-area: type; position: relative; z-index: 1; display: flex; flex-wrap: wrap; align-content: start; gap: 2px var(--space-md); margin: 0; padding: 0; list-style: none; font: 400 0.875rem/1.6 var(--font-mono); }
+.adds__type code { font: inherit; overflow-wrap: anywhere; }
+/* A command in a kit row is a button that copies itself. It keeps the mono look and gains a hairline so it reads as pressable. */
+.adds__cmd { min-height: 32px; padding: 0 10px; border: 1px solid var(--color-rule-2); border-radius: 8px; background: transparent; color: var(--color-ink); font: inherit; text-align: left; overflow-wrap: anywhere; cursor: pointer; transition: background-color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out); }
+.adds__cmd[data-copied] { border-color: var(--led, currentColor); }
+.adds__cmd:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.adds__type:has(.adds__cmd) { gap: var(--space-xs); }
+@media (hover: hover) and (pointer: fine) { .adds__cmd:hover { background: var(--color-paper-3); } }
+@media (pointer: coarse) { .adds__cmd { min-height: 44px; padding: 0 14px; } }
+/* The action under a page's lead line, and the install on a kit page. */
+.page-act { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm) var(--space-md); margin-top: var(--space-md); font-size: 0.9375rem; }
+@media (pointer: coarse) { .page-act .btn { min-height: 44px; } }
+.kitin { display: grid; gap: var(--space-md); }
+.kitin__h { margin: 0; font: 650 1.0625rem/1.3 var(--font-body); letter-spacing: -0.015em; }
+.kitin__or { margin: var(--space-sm) 0 0; font: 550 0.9375rem/1.3 var(--font-body); color: var(--color-muted); }
+@media (hover: hover) and (pointer: fine) { .adds__name a:hover, .adds__list > li:has(.adds__name a:hover) .adds__name a { text-decoration: underline; text-decoration-color: var(--color-rule-2); } }
+@media (max-width: 60rem) { .adds { margin-bottom: 0; } }
+@media (max-width: 60rem) { .adds__list > li { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name n" "line line" "type type"; row-gap: 6px; padding-block: var(--space-md); } }
+@media (max-width: 60rem) { .adds__n { align-self: baseline; } }
+.prose p, .prose li, .doc__sec p, .start-body, .note, .sec-head p, .adds__head p { max-width: var(--read); }
+.prose a, .scard__pick a, .scard__alts a, .start-list a, .doc__sec a, .lic { text-underline-offset: 0.2em; }
+@media (hover: hover) and (pointer: fine) { .prose a:hover, .scard__pick a:hover, .scard__alts a:hover, .doc__sec a:hover, .lic:hover { text-decoration-color: currentColor; color: var(--color-ink); } }
+.prose a, .scard__pick a, .scard__alts a, .doc__sec a, .lic, .lead a { color: var(--color-link); text-decoration-color: color-mix(in oklab, var(--color-link) 40%, transparent); }
+@media (hover: hover) and (pointer: fine) { .prose a:hover, .scard__pick a:hover, .scard__alts a:hover, .doc__sec a:hover, .lic:hover, .lead a:hover { color: var(--color-link); text-decoration-color: currentColor; } }
