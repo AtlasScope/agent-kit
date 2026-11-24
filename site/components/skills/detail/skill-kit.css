@@ -148,6 +148,7 @@
   .ip-body { padding: var(--space-4) var(--gutter); }
 }
 @media (pointer: coarse) {
+  .ip-copy, .ip-tab { min-height: var(--tap); }
   .sd-filelist a { min-height: var(--tap); }
   .sd-doc__src { display: inline-flex; align-items: center; min-height: var(--tap); }
   /* Every other control on the page gets a full touch target too (the whole-site review: target-size on /skills). */
@@ -166,4 +167,5 @@
 @media (hover: hover) and (pointer: fine) { .sd-agent summary:hover { color: var(--c-fg); } }
 @media (pointer: coarse) { .sd-agent summary { min-height: var(--tap); } }
 .kd-row__m > span { white-space: nowrap; } /* how it starts stays on one line; the author wraps under it when space runs out */
+@media (max-width: 21rem) { .kd-row__m > span { white-space: normal; overflow-wrap: anywhere; } } /* below the narrowest phone checked, wrap rather than scroll sideways */
 .kd-row__m code { font: var(--weight-regular) var(--type-micro)/1.5 var(--font-mono); color: var(--c-fg-2); }

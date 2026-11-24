@@ -133,7 +133,7 @@ for (const size of SIZES) for (const scheme of ["light", "dark"]) {
 // A Copy stays in reach wherever the reader is on the page: the panel's own (sticky in its bar) or, once the panel
 // has scrolled away, the compact bar. Never both at once, and the bar copies the chosen way exactly.
 const copyInReach = (page) => page.evaluate(() => {
-  const head = parseFloat(getComputedStyle(document.querySelector(".ip-head")).top) || 0;
+  const head = document.querySelector(".top").getBoundingClientRect().bottom; // the line FloatingCopy measures against
   const shown = [...document.querySelectorAll("#install .ip-copy, #install .fcopy__copy")].filter((b) => {
     const r = b.getBoundingClientRect();
     if (r.top < head - 1 || r.bottom > innerHeight + 1 || !r.width) return false;
@@ -156,7 +156,7 @@ for (const size of SIZES) {
       // Pixel by pixel through the hand-off, where the panel's Copy slides under the header: never zero, never two.
       await page.emulateMedia({ reducedMotion: "reduce" });
       const handoff = await page.evaluate(() => {
-        const w = document.querySelector("#install .ip-copywrap"), head = parseFloat(getComputedStyle(document.querySelector(".ip-head")).top);
+        const w = document.querySelector("#install .ip-copywrap"), head = document.querySelector(".top").getBoundingClientRect().bottom;
         return scrollY + w.getBoundingClientRect().top - head;
       });
       for (let dy = -40; dy <= 120; dy += 4) {

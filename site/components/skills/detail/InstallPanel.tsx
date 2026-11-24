@@ -41,7 +41,7 @@ export function InstallPanel({ id, title, options }: { id: string; title: string
     // The bar's Copy is handled by FloatingCopy itself (it scrolls the text into view and selects it).
     const watch = new MutationObserver(() => {
       const p = pre.current, s = window.getSelection();
-      if (p && s && main()?.hasAttribute("data-blocked")) s.selectAllChildren(p);
+      if (p && s && main()?.hasAttribute("data-blocked")) { s.selectAllChildren(p); p.focus({ preventScroll: true }); }
     });
     const w = el.querySelector(".ip-copywrap");
     if (w) watch.observe(w, { subtree: true, attributes: true, attributeFilter: ["data-blocked"] });
@@ -93,7 +93,7 @@ export function InstallPanel({ id, title, options }: { id: string; title: string
         <pre ref={pre} className="ip-text" tabIndex={0} translate="no">{o.text}</pre>
         {o.note && <p className="ip-note">{o.note}</p>}
       </div>
-      <FloatingCopy anchor={wrap} target={pre} text={o.text} title={title} detail={options.length > 1 ? o.label : undefined} name={o.copyName} />
+      <FloatingCopy key={o.id} anchor={wrap} target={pre} text={o.text} title={title} detail={options.length > 1 ? o.label : undefined} name={o.copyName} />
     </section>
   );
 }
