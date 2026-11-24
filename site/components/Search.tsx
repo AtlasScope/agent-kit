@@ -53,6 +53,7 @@ export function Search() {
   const [entries, setEntries] = useState<Entry[] | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [fallback, setFallback] = useState<Entry[]>([]);
+  const [fallbackFor, setFallbackFor] = useState("");
   const [recent, setRecent] = useState<Recent[]>([]);
   const [toast, setToast] = useState("");
   const [mod, setMod] = useState("Ctrl");
@@ -65,9 +66,13 @@ export function Search() {
 
   // Stable, and reads module state rather than render state, so the idle preload and every open see the truth.
   // After a failure it retries quietly: the palette stays on server results until a retry succeeds.
+  // A failed load is retried at most every 15 seconds, however often the button is hovered or the palette opened.
   const failed = useRef(false);
+  const lastTry = useRef(0);
   const warm = useCallback(() => {
     if (loaded) { setEntries(loaded); setStatus("ready"); return; }
+    if (failed.current && Date.now() - lastTry.current < 15000) return;
+    lastTry.current = Date.now();
     if (!failed.current) setStatus("loading");
     loadIndex().then((e) => { failed.current = false; setEntries(e); setStatus("ready"); }, () => { failed.current = true; setStatus("error"); });
   }, []);
@@ -114,9 +119,10 @@ export function Search() {
   useEffect(() => {
     const vv = window.visualViewport, d = dlg.current;
     if (!open || !vv || !d) return;
-    const fit = () => d.style.setProperty("--cmdk-vh", `${vv.height}px`);
-    fit(); vv.addEventListener("resize", fit);
-    return () => { vv.removeEventListener("resize", fit); d.style.removeProperty("--cmdk-vh"); };
+    // iOS may also scroll the visual viewport to make room for the keyboard; offsetTop keeps the sheet on it.
+    const fit = () => { d.style.setProperty("--cmdk-vh", `${vv.height}px`); d.style.setProperty("--cmdk-top", `${vv.offsetTop}px`); };
+    fit(); vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit);
+    return () => { vv.removeEventListener("resize", fit); vv.removeEventListener("scroll", fit); d.style.removeProperty("--cmdk-vh"); d.style.removeProperty("--cmdk-top"); };
   }, [open]);
   // Back and Forward close it. (Not a path effect: that fires after a palette navigation lands and would close a
   // palette reopened in the meantime.)
@@ -125,14 +131,15 @@ export function Search() {
   // Without the index, typed queries go to the server.
   useEffect(() => {
     const term = q.trim();
-    setFallback([]);
-    if (status !== "error" || !term) return;
+    // The previous results stay up until the new ones arrive; `fallbackFor` says which query they answer.
+    if (status !== "error" || !term) { setFallback([]); setFallbackFor(""); return; }
     const ctl = new AbortController();
     const t = setTimeout(() => {
       fetch(`/api/search?q=${encodeURIComponent(term)}`, { signal: ctl.signal }).then((r) => r.json())
-        .then((d: { results: Hit[] }) => setFallback(d.results.map((h) => ({
-          ...h, fields: [], meta: KIND_LABEL[h.kind], href: h.kind === "skill" ? `/skills/${h.ref}` : `/prompts/${h.ref}`,
-        })))).catch(() => {});
+        .then((d: { results: Hit[] }) => {
+          setFallback(d.results.map((h) => ({ ...h, fields: [], meta: KIND_LABEL[h.kind], href: h.kind === "skill" ? `/skills/${h.ref}` : `/prompts/${h.ref}` })));
+          setFallbackFor(term);
+        }).catch(() => {});
     }, 120);
     return () => { clearTimeout(t); ctl.abort(); };
   }, [q, status]);
@@ -192,8 +199,8 @@ export function Search() {
   };
 
   const term = q.trim();
-  const loading = !!term && !entries && status !== "error";
-  const scoped = scope !== "all" && term && entries && !items.length && find(entries, term, "all", 1).length > 0;
+  const loading = !!term && (status === "error" ? fallbackFor !== term : !entries);
+  const scoped = scope !== "all" && !!term && !items.length && (entries ? find(entries, term, "all", 1).length > 0 : fallback.length > 0);
   const count = term ? (loading ? "" : items.length ? `${items.length} ${items.length === 1 ? "result" : "results"}` : "No results") : "";
   const optId = (e: Entry) => `cmdk-${keyOf(e)}`;
 
@@ -237,10 +244,11 @@ export function Search() {
                 ))}
               </div>
             ))}
-            {loading && <p className="cmdk__note">Loading the library…</p>}
+            {loading && <p className="cmdk__note">{status === "error" ? "Searching…" : "Loading the library…"}</p>}
             {!loading && term && !items.length && (
               <div className="cmdk__note">
                 <p>Nothing matches “{term}”{scope !== "all" ? ` in ${SCOPES.find(([s]) => s === scope)![1]}` : ""}.</p>
+                {status === "error" && <p>Only prompts and skills can be searched right now; kits, fixes and guides didn’t load.</p>}
                 {scoped
                   ? <button type="button" className="cmdk__link" onClick={() => { setScope("all"); input.current?.focus(); }}>Search everything instead</button>
                   : <p>Describe the symptom in plain words, or <a className="cmdk__link" href="/fix" onClick={(ev) => { ev.preventDefault(); hide(); router.push("/fix"); }}>pick it from Fix a problem</a>.</p>}

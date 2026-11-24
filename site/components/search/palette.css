@@ -126,7 +126,7 @@
    above the keyboard. 16px input text stops iOS zooming the page. */
 @media (max-width: 640px), (pointer: coarse) and (max-width: 900px) {
   .cmdk__panel {
-    inset: 0; left: 0; top: 0; width: 100%; height: var(--cmdk-vh, 100dvh); max-height: none; transform: none; border: 0; border-radius: 0;
+    inset: 0; left: 0; top: var(--cmdk-top, 0px); width: 100%; height: var(--cmdk-vh, 100dvh); max-height: none; transform: none; border: 0; border-radius: 0;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left); box-shadow: none; background: var(--c-canvas);
   }
   @media (prefers-reduced-motion: no-preference) { .cmdk[open] .cmdk__panel { animation: cmdk-sheet var(--dur-slow) var(--ease-out); } }
@@ -135,7 +135,8 @@
   .cmdk__input { height: 52px; font-size: 1rem; }
   .cmdk .cmdk__esc, .cmdk__foot .cmdk__keys { display: none; }
   .cmdk__cancel { display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px; border: 0; background: none; color: var(--c-fg); font: inherit; font-weight: 500; cursor: pointer; }
-  .cmdk__scope { min-height: 32px; padding: 0 12px; }
+  .cmdk__scope { min-height: 44px; padding: 0 14px; }
+  .cmdk__scopes { padding: 4px 12px; }
   .cmdk__opt { padding: 11px 10px; }
   .cmdk__d { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .cmdk__foot { min-height: 0; padding: 0 16px env(safe-area-inset-bottom); border: 0; }

@@ -12,7 +12,7 @@ const wordRe = (w: string) => new RegExp("(^|[^a-z0-9])" + escRe(w) + END + "(?=
 
 // Synonyms for jobs people describe in their own words. When a query matches, these results get a boost
 // in the order listed, so a plain-language or vague query lands on the right starting point or router.
-// Checked by tests/search.test.mjs; add a benchmark query before adding a row.
+// Checked by tests/search.test.mjs; add a benchmark query to tests/search-cases.mjs before adding a row.
 export const INTENTS: [RegExp, string[]][] = [
   [/\b(cramped|phone|mobile|small screen)\b/, ["feels-right-on-a-phone", "impeccable-adapt"]],
   [/\b(plan|spec)\b|\bnew feature\b/, ["spec-without-the-interview", "grill-me"]],
