@@ -35,6 +35,15 @@ if (overlayPath) {
     lib.entries.splice(at + 1, 0, entry);
   }
   for (const [k, v] of Object.entries(ov)) if (k !== "entries" && k !== "extraEntries") lib[k] = v;
+  // The page lists only entries named in a goal, so an added entry joins its anchor's goal, right
+  // after the anchor, unless the overlay's own goals already place it.
+  const placed = () => new Set((lib.goals || []).flatMap((g) => g[3]));
+  for (const { after, entry } of ov.extraEntries || []) {
+    if (placed().has(entry.id)) continue;
+    const goal = (lib.goals || []).find((g) => g[3].includes(after));
+    if (!goal) throw new Error(`Overlay adds ${entry.id} after ${after}, which is in no goal: list ${entry.id} in the overlay's goals`);
+    goal[3].splice(goal[3].indexOf(after) + 1, 0, entry.id);
+  }
 }
 
 const ids = new Set();
