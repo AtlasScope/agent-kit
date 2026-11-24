@@ -14,7 +14,7 @@
 .hub__way { display: grid; align-content: start; gap: 6px; padding: 20px 20px 18px; border: 1px solid var(--line-2); border-radius: 12px; background: var(--card); color: var(--t1); text-decoration: none; transition: border-color .2s, background .2s; }
 .hub__way-t { font-size: 1.0625rem; font-weight: 600; letter-spacing: -0.015em; }
 .hub__way-d { color: var(--t2); font-size: 14px; line-height: 1.5; }
-.hub__go { justify-self: start; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; margin-top: 10px; padding: 0 14px; border-radius: 8px; background: #fff; color: #000; font: 600 13.5px/1 var(--font-body); }
+.hub__go { justify-self: start; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; margin-top: 10px; padding: 0 14px; border-radius: 8px; background: var(--color-accent); color: var(--color-accent-ink); font: 600 13.5px/1 var(--font-body); }
 .hub__go--ghost { background: none; color: var(--t1); box-shadow: inset 0 0 0 1px var(--line-2); }
 .hub__go .i { width: 14px; height: 14px; transition: transform .25s var(--ease); }
 
@@ -36,7 +36,7 @@
 .hub h2 { margin: 0; font: 600 clamp(1.25rem, .6vw + 1.05rem, 1.5rem)/1.2 var(--font-body); letter-spacing: -0.03em; }
 .hub__sub { margin: -4px 0 4px; color: var(--t2); font-size: 14.5px; line-height: 1.5; }
 .hub .guide-resume { color: var(--t3); font-size: 13px; }
-.hub .guide-resume .btn { background: #fff; color: #000; border-color: transparent; }
+.hub .guide-resume .btn { background: var(--color-accent); color: var(--color-accent-ink); border-color: transparent; }
 .hub .guide-list { border-top: 1px solid var(--line); }
 .hub .guide-list li { border-bottom: 1px solid var(--line); }
 .hub .guide-list a { gap: 14px; padding: 14px 4px; color: var(--t1); border-radius: 8px; }
@@ -51,12 +51,12 @@
 /* The account offer for visitors from the homepage's Start here (StartWelcome.tsx), in the card style. */
 .hub .welcome { border-color: var(--line-2); background: var(--card); box-shadow: none; }
 .hub .welcome p { color: var(--t2); }
-.hub .welcome .btn--solid { background: #fff; color: #000; }
+.hub .welcome .btn--solid { background: var(--color-accent); color: var(--color-accent-ink); }
 .hub .welcome .btn--ghost { color: var(--t1); box-shadow: inset 0 0 0 1px var(--line-2); }
 
-.hub :is(a, button):focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.hub :is(a, button):focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 @media (hover: hover) and (pointer: fine) {
-  .hub__way:hover { border-color: rgba(255,255,255,.3); background: #0E0F15; }
+  .hub__way:hover { border-color: rgba(255,255,255,.3); background: oklch(15% .006 160); }
   .hub__way:hover .hub__go .i { transform: translateX(3px); }
   .hub .guide-list a:hover { background: rgba(255,255,255,.03); }
   .hub .guide-list a:hover strong { text-decoration: none; }

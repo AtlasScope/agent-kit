@@ -1,12 +1,14 @@
-/* Light by default on library pages: cool paper, white cards that sit up off it, ink text, section hues as small wayfinding dots,
-   no accent hue. The same family as the AtlasScope dark set, lightened. Dark follows the system setting. */
+/* Light by default on library pages. Every grey carries a trace of green (hue 157-168) and the text a trace of the
+   opposite, magenta (hue 326-329), so the page reads as one family. Green is the one accent: the selected menu item,
+   links, focus, and the main button. Section hues stay as small wayfinding marks. Dark follows the system setting. */
 :root {
   color-scheme: light;
-  --color-paper: #F4F5F7; --color-paper-2: #FFFFFF; --color-paper-3: #E8EAEE;
-  --color-ink: #0B0C12; --color-ink-2: #2B2F3A; --color-muted: #5A5F6B;
-  --color-rule: #DCDFE5; --color-rule-2: #808693;
-  --color-accent: #0B0C12; --color-accent-ink: #FFFFFF; --color-focus: #0B0C12;
-  --color-cmd: #0B0C12; --color-warm: #B45309; --color-warm-soft: #FDF1E3; --color-danger: #B42318; --color-on-danger: #FFFFFF;
+  --color-paper: oklch(97.2% .0055 157); --color-paper-2: oklch(99.5% .003 157); --color-paper-3: oklch(93.6% .0146 163.5);
+  --color-ink: oklch(22.2% .035 329); --color-ink-2: oklch(38% .03 329); --color-muted: oklch(51% .015 326);
+  --color-rule: oklch(86.5% .013 167); --color-rule-2: oklch(64% .016 168);
+  --color-accent: oklch(52.3% .112 158); --color-accent-ink: #FFFFFF; --color-focus: oklch(52.3% .112 158);
+  --color-link: oklch(47% .11 158); --color-accent-text: oklch(38% .1 158);
+  --color-cmd: oklch(22.2% .035 329); --color-warm: #B45309; --color-warm-soft: #FDF1E3; --color-danger: #B42318; --color-on-danger: #FFFFFF;
   --s-inv: #00704A; --s-db: #5C6B00; --s-think: #5A2FC2; --s-ecmd: #006C80; --s-dcmd: #1849C4; --s-recipe: #BF1F5E;
   --lift: inset 0 1px 0 rgba(255,255,255,.8), 0 1px 2px rgba(11,12,18,.06), 0 6px 14px -6px rgba(11,12,18,.08), 0 20px 34px -22px rgba(11,12,18,.18);
   --lift-hi: inset 0 1px 0 rgba(255,255,255,.8), 0 2px 4px rgba(11,12,18,.07), 0 10px 22px -8px rgba(11,12,18,.13), 0 28px 44px -24px rgba(11,12,18,.26);
@@ -18,15 +20,16 @@
   --radius: 12px; --container: 1280px; --gutter: 32px; --measure: 72ch;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --dur-micro: 120ms; --dur-short: 220ms; --dur-long: 600ms;
 }
-/* Dark is the AtlasScope brand: ink #0B0C12, white, slate #151821 and muted #A3A6AD. The two rule colours are muted at
-   22% and 60% over ink; the second keeps 3:1 for control borders. There is no accent hue. */
+/* Dark: near-black with almost no colour in the greys, hairlines of 9% white, and green only where something is
+   selected, linked or clickable. rule-2 keeps 3:1 for control borders. */
 @media (prefers-color-scheme: dark) { :root {
   color-scheme: dark;
-  --color-paper: #0B0C12; --color-paper-2: #151821; --color-paper-3: #1E222D;
-  --color-ink: #FFFFFF; --color-ink-2: #A3A6AD; --color-muted: #A3A6AD;
-  --color-rule: #2C2E34; --color-rule-2: #66686F;
-  --color-accent: #FFFFFF; --color-accent-ink: #0B0C12; --color-focus: #FFFFFF;
-  --color-cmd: #FFFFFF; --color-warm: #F5A524; --color-warm-soft: #2A2113; --color-danger: #FF8A75; --color-on-danger: #0B0C12;
+  --color-paper: oklch(9% .003 160); --color-paper-2: oklch(15% .006 160); --color-paper-3: oklch(19% .008 160);
+  --color-ink: oklch(97% .004 330); --color-ink-2: oklch(80% .008 160); --color-muted: oklch(71% .008 160);
+  --color-rule: oklch(100% 0 0 / .09); --color-rule-2: oklch(49% .008 160);
+  --color-accent: oklch(72% .17 155); --color-accent-ink: oklch(16% .04 155); --color-focus: oklch(72% .17 155);
+  --color-link: oklch(78% .16 156); --color-accent-text: oklch(86% .13 155);
+  --color-cmd: oklch(97% .004 330); --color-warm: #F5A524; --color-warm-soft: #2A2113; --color-danger: #FF8A75; --color-on-danger: #0B0C12;
   --s-inv: #4BF0A8; --s-db: #C9E05A; --s-think: #BFA8FF; --s-ecmd: #3FE0F5; --s-dcmd: #8CB6FF; --s-recipe: #FF7FB2;
   --lift: inset 0 1px 0 rgba(255,255,255,.06), 0 1px 2px rgba(0,0,0,.6), 0 8px 20px -10px rgba(0,0,0,.7), 0 24px 40px -24px rgba(0,0,0,.9);
   --lift-hi: inset 0 1px 0 rgba(255,255,255,.08), 0 2px 4px rgba(0,0,0,.6), 0 12px 26px -10px rgba(0,0,0,.8), 0 30px 50px -24px rgba(0,0,0,1);
@@ -34,11 +37,12 @@
 /* The header, the homepage and the install page are ink in both themes. */
 .ink, :root:has(.home, .quiet) {
   color-scheme: dark;
-  --color-paper: #0B0C12; --color-paper-2: #151821; --color-paper-3: #151821;
-  --color-ink: #FFFFFF; --color-ink-2: #A3A6AD; --color-muted: #A3A6AD;
-  --color-rule: #2C2E34; --color-rule-2: #66686F;
-  --color-accent: #FFFFFF; --color-accent-ink: #0B0C12; --color-focus: #FFFFFF;
-  --color-cmd: #FFFFFF; --color-warm: #F5A524; --color-warm-soft: #2A2113;
+  --color-paper: oklch(9% .003 160); --color-paper-2: oklch(15% .006 160); --color-paper-3: oklch(19% .008 160);
+  --color-ink: oklch(97% .004 330); --color-ink-2: oklch(80% .008 160); --color-muted: oklch(71% .008 160);
+  --color-rule: oklch(100% 0 0 / .09); --color-rule-2: oklch(49% .008 160);
+  --color-accent: oklch(72% .17 155); --color-accent-ink: oklch(16% .04 155); --color-focus: oklch(72% .17 155);
+  --color-link: oklch(78% .16 156); --color-accent-text: oklch(86% .13 155);
+  --color-cmd: oklch(97% .004 330); --color-warm: #F5A524; --color-warm-soft: #2A2113;
   --s-inv: #4BF0A8; --s-db: #C9E05A; --s-think: #BFA8FF; --s-ecmd: #3FE0F5; --s-dcmd: #8CB6FF; --s-recipe: #FF7FB2;
   --lift: inset 0 1px 0 rgba(255,255,255,.06), 0 1px 2px rgba(0,0,0,.6), 0 8px 20px -10px rgba(0,0,0,.7), 0 24px 40px -24px rgba(0,0,0,.9);
   --lift-hi: inset 0 1px 0 rgba(255,255,255,.08), 0 2px 4px rgba(0,0,0,.6), 0 12px 26px -10px rgba(0,0,0,.8), 0 30px 50px -24px rgba(0,0,0,1);
@@ -514,7 +518,7 @@ body:has(main.home) .foot { display: none; }
 .kitin__h { margin: 0; font: 650 1.0625rem/1.3 var(--font-body); letter-spacing: -0.015em; }
 .kitin__or { margin: var(--space-sm) 0 0; font: 550 0.9375rem/1.3 var(--font-body); color: var(--color-muted); }
 .block .copy.copy--main { background: var(--color-accent); color: var(--color-accent-ink); border-color: transparent; font-weight: 600; }
-@media (hover: hover) and (pointer: fine) { .block .copy.copy--main:hover { background: var(--color-accent); opacity: 0.86; } }
+@media (hover: hover) and (pointer: fine) { .block .copy.copy--main:hover { background: var(--accent-hover); } }
 @media (hover: hover) and (pointer: fine) { .adds__name a:hover, .adds__list > li:has(.adds__name a:hover) .adds__name a { text-decoration: underline; text-decoration-color: var(--color-rule-2); } }
 @media (max-width: 60rem) {
   .adds { margin-bottom: 0; }
@@ -689,7 +693,7 @@ summary { touch-action: manipulation; -webkit-user-select: none; user-select: no
    continue from (the rule near the top of this file puts the whole document in the dark set while one shows).
    Depth: the grid is a floor that recedes to a horizon in the first screen, with a faint green and blue glow where it
    meets the dark, and the cards (.lift) float above it. */
-.quiet { --bg: #030409; --card: #0A0B10; --line: rgba(255,255,255,.09); --line-2: rgba(255,255,255,.16); --t1: #EDEDED; --t2: #A1A1A1; --t3: #8B8B8F; --ok: var(--led);
+.quiet { --bg: oklch(9% .003 160); --card: oklch(13% .005 160); --line: rgba(255,255,255,.09); --line-2: rgba(255,255,255,.16); --t1: #EDEDED; --t2: #A1A1A1; --t3: #8B8B8F; --ok: var(--led);
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   position: relative; isolation: isolate; margin-inline: calc(50% - 50vw); background: var(--bg); color: var(--t1); overflow-x: clip; }
 .quiet::before { content: ""; position: absolute; left: 0; right: 0; top: 34svh; height: 72svh; z-index: -1; pointer-events: none; opacity: .9;
@@ -700,7 +704,7 @@ summary { touch-action: manipulation; -webkit-user-select: none; user-select: no
 .quiet::after { content: ""; position: absolute; left: 0; right: 0; top: 22svh; height: 260px; z-index: -1; pointer-events: none;
   background: radial-gradient(60% 50% at 50% 50%, color-mix(in oklab, var(--led) 10%, transparent), color-mix(in oklab, var(--s-dcmd) 5%, transparent) 45%, transparent 75%); }
 .quiet :is(.inst__term, .inst__tabs, .hub__card, .hub__way) { box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 30px 60px -20px rgba(0,0,0,.95), 0 12px 24px -12px rgba(0,0,0,.9); }
-.quiet :is(.inst__term, .hub__card, .hub__way) { background: linear-gradient(180deg, #0E1016, #090A0F); }
+.quiet :is(.inst__term, .hub__card, .hub__way) { background: linear-gradient(180deg, oklch(15% .006 160), oklch(11% .004 160)); }
 
 /* LED green: the site's one status light. A 6px dot, high-contrast green with a soft glow, used only where something
    is true right now or was done: the command was copied, an install was tested, a step is finished, a request was
@@ -719,10 +723,6 @@ summary { touch-action: manipulation; -webkit-user-select: none; user-select: no
 /* Keep the narrowest phones' mark-only header: the product name (and its light) stays hidden there. */
 @media (max-width: 23rem) { .wordmark .wordmark__name { display: none; } }
 .wordmark .wordmark__name::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--led); box-shadow: var(--led-shine); }
-.links a[aria-current="page"] { position: relative; padding-left: 22px; }
-.links a[aria-current="page"]::before, .sheet__links a[aria-current="page"]::before { content: ""; position: absolute; left: 10px; top: 50%; width: 6px; height: 6px; margin-top: -3px; border-radius: 50%; background: var(--led); box-shadow: var(--led-shine); }
-.sheet__links a[aria-current="page"] { position: relative; padding-left: 20px; }
-.sheet__links a[aria-current="page"]::before { left: 2px; }
 .nav__end .auth-out { box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--led) 40%, transparent); }
 @keyframes led-on { 0% { opacity: .15; } 18% { opacity: 1; } 32% { opacity: .35; } 50%, 100% { opacity: 1; } }
 
@@ -747,4 +747,25 @@ summary { touch-action: manipulation; -webkit-user-select: none; user-select: no
   .ink, :root:has(.home, .quiet) { --color-warm: oklch(78.2% .189 72.3);
     --s-inv: oklch(85.3% .256 160.1); --s-db: oklch(86.4% .227 118.1); --s-think: oklch(78.4% .134 295.6);
     --s-ecmd: oklch(83.5% .169 208.1); --s-dcmd: oklch(77.5% .124 261.1); --s-recipe: oklch(75.6% .208 356.6); }
+}
+
+/* Green as the one accent. A tint of it marks where you are, a thin edge of it marks what the pointer is on,
+   solid green marks the main action, and links read as green text. */
+:root { --accent-wash: color-mix(in oklab, var(--color-accent) 16%, transparent); --accent-edge: color-mix(in oklab, var(--color-accent) 30%, transparent);
+  --accent-halo: 0 0 0 3px color-mix(in oklab, var(--color-accent) 12%, transparent);
+  --accent-hover: color-mix(in oklab, var(--color-accent), #000 14%); }
+/* Hover moves the button away from its label colour: darker under white text (light), lighter under dark text (dark). */
+@media (prefers-color-scheme: dark) { :root { --accent-hover: color-mix(in oklab, var(--color-accent), #fff 14%); } }
+.ink, :root:has(.home, .quiet) { --accent-hover: color-mix(in oklab, var(--color-accent), #fff 14%); }
+.links a[aria-current="page"] { background: var(--accent-wash); color: var(--color-accent-text); box-shadow: inset 0 0 0 1px var(--accent-edge); font-weight: 500; }
+.sheet__links a[aria-current="page"] { color: var(--color-accent-text); }
+.prose a, .scard__pick a, .scard__alts a, .doc__sec a, .lic, .lead a { color: var(--color-link); text-decoration-color: color-mix(in oklab, var(--color-link) 40%, transparent); }
+.dot { border-radius: 50%; background: radial-gradient(circle at 32% 28%, color-mix(in oklab, var(--tone, var(--color-ink-2)) 30%, #fff), var(--tone, var(--color-ink-2)) 48%, color-mix(in oklab, var(--tone, var(--color-ink-2)) 55%, #000)); }
+@media (hover: hover) and (pointer: fine) {
+  .btn--solid:hover, .hub .welcome .btn--solid:hover { background: var(--accent-hover); }
+  .prose a:hover, .scard__pick a:hover, .scard__alts a:hover, .doc__sec a:hover, .lic:hover, .lead a:hover { color: var(--color-link); text-decoration-color: currentColor; }
+  a.card:hover, .tile:hover, .row:hover, .pcard:hover, [data-sec] .tile:hover, .tile[data-sec]:hover, .pcard[data-sec]:has(.stretch:hover), .hub__way:hover {
+    border-color: color-mix(in oklab, var(--color-accent) 85%, transparent); }
+  a.card:hover, .hub__way:hover { box-shadow: var(--accent-halo); }
+  .tile:hover, .row:hover, .pcard:hover { box-shadow: var(--lift-hi), var(--accent-halo); }
 }
