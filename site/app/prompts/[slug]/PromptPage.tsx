@@ -70,7 +70,7 @@ export function PromptPage({ p }: { p: Prompt }) {
       <div className="pd-grid">
         <div className="pd-main">
           {p.split && p.planSteps ? (
-            <Payload label="Steps" meta={<><span>{p.planSteps.length} steps, one per message</span><code translate="no">{p.id}</code></>} text={text} copyLabel={copyLabel(p)} actions={<>{save}{md}</>}>
+            <Payload label="Steps" meta={<><span>{p.planSteps.length} steps, one per message</span><code translate="no">{p.id}</code></>} text={text} copyLabel={copyLabel(p)} actions={<>{save}{md}</>} title={p.t}>
               <p className="pd-steps__note">Run one step per message. Start a fresh chat for each investigation, and read the result before the next step.</p>
               <ol className="pd-steps pd-steps--copy" role="list">
                 {p.planSteps.map((st, i) => (
@@ -86,7 +86,7 @@ export function PromptPage({ p }: { p: Prompt }) {
               </ol>
             </Payload>
           ) : (
-            <Payload label={blockLabel} meta={meta} text={text} copyLabel={copyLabel(p)} actions={<>{save}{md}</>} />
+            <Payload label={blockLabel} meta={meta} text={text} copyLabel={copyLabel(p)} actions={<>{save}{md}</>} title={p.t} />
           )}
 
           {p.steps && (
