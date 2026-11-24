@@ -28,7 +28,7 @@ export async function starredId(userId: string) {
 export async function listCollections(userId: string): Promise<Collection[]> {
   await starredId(userId);
   const rows = await sql()`
-    select c.id, c.name, c.is_starred, c.is_public, count(i.ref)::int as count
+    select c.id, c.name, c.is_starred, c.is_public, count(distinct i.kind || ':' || lower(i.ref))::int as count
     from collections c left join collection_items i on i.collection_id = c.id
     where c.user_id = ${userId}
     group by c.id order by c.is_starred desc, c.created_at`;
@@ -44,11 +44,14 @@ export async function getCollection(id: string) {
   return { ...(c as { id: string; user_id: string; name: string; is_starred: boolean; is_public: boolean; updated_at: string }), items };
 }
 
+// The library's spelling of a ref ("a01" is stored as A01), so Star and Save match what pages pass.
+const canonical = (kind: Kind, ref: string) => (kind === "prompt" ? getPromptById(ref)?.id : undefined) ?? ref;
+
 export async function myItems(userId: string) {
-  const rows = await sql()`
+  const rows = (await sql()`
     select c.id as collection_id, i.kind, i.ref from collections c
-    join collection_items i on i.collection_id = c.id where c.user_id = ${userId}`;
-  return rows as (Item & { collection_id: string })[];
+    join collection_items i on i.collection_id = c.id where c.user_id = ${userId}`) as (Item & { collection_id: string })[];
+  return rows.map((r) => ({ ...r, ref: canonical(r.kind, r.ref) }));
 }
 
 async function owns(userId: string, id: string) {
@@ -72,9 +75,16 @@ export async function setItem(userId: string, collectionId: string, kind: Kind, 
   if (on) {
     const [{ n }] = await db`select count(*)::int as n from collection_items where collection_id = ${collectionId}`;
     if (n >= MAX_ITEMS) throw new UserError(`This collection is full at ${MAX_ITEMS} items. Remove some, or save to a new collection.`);
-    await db`insert into collection_items (collection_id, kind, ref) values (${collectionId}, ${kind}, ${ref}) on conflict do nothing`;
+    // Refs match without regard to case, so an item already saved under another spelling isn't added again.
+    const clean = canonical(kind, ref);
+    await db`
+      insert into collection_items (collection_id, kind, ref)
+      select ${collectionId}, ${kind}, ${clean}
+      where not exists (select 1 from collection_items where collection_id = ${collectionId} and kind = ${kind} and lower(ref) = lower(${clean}))
+      on conflict do nothing`;
   } else {
-    await db`delete from collection_items where collection_id = ${collectionId} and kind = ${kind} and ref = ${ref}`;
+    // Every spelling goes, so a row saved as both "a01" and "A01" doesn't come back after Remove.
+    await db`delete from collection_items where collection_id = ${collectionId} and kind = ${kind} and lower(ref) = lower(${ref})`;
   }
   await db`update collections set updated_at = now() where id = ${collectionId}`;
 }
