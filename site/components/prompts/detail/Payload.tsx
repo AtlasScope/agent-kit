@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { CopyButton } from "@/components/CopyButton";
+import { FloatingCopy } from "@/components/ui/FloatingCopy";
 
 type Props = {
   /** What the panel holds: "Prompt", "Command", "As one prompt", "Steps". */
@@ -15,7 +16,7 @@ type Props = {
   actions?: ReactNode;
   /** The panel body. When absent, the exact text is shown in a selectable block. */
   children?: ReactNode;
-  /** The page title, repeated in the dock so its Copy says what it copies. */
+  /** The page title, repeated in the floating Copy bar so its Copy says what it copies. */
   title?: string;
   /** Exact texts of per-step Copy buttons in `children`, by index. Each such button sits inside an element with
    *  `data-step={index}`, and its row holds an empty `data-step-slot={index}` element, so a blocked step copy can
@@ -25,32 +26,35 @@ type Props = {
 
 type Fallback = { text: string; name: string; n: number; slot?: HTMLElement | null };
 
-const BLOCKED = /blocked/i;
 const editable = (el: EventTarget | null) =>
   el instanceof HTMLElement && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT|BUTTON|A)$/.test(el.tagName));
 
 // The exact text a prompt copies, with the one Copy that matters in a header that stays in reach while you read.
 // Copy itself is the shared CopyButton (frozen API). This panel adds, around it:
-//   - when the clipboard is blocked, the text that press would have copied is shown (if the panel's body is something
+//   - when the clipboard is blocked (CopyButton's data-blocked), the text that press would have copied is shown (if the panel's body is something
 //     else, such as the steps of a split recipe) and selected, so the fallback is one keystroke (Cmd/Ctrl+C);
 //   - while focus is inside the panel, C copies and Cmd/Ctrl+A inside the text selects only the text. The single-key
 //     shortcut is scoped to the panel so it can't fire from stray typing or speech input elsewhere (WCAG 2.1.4);
-//   - a dock at the bottom of the screen carries the same Copy whenever the panel's own Copy bar is not fully on
-//     screen, so Copy is in reach from the top of the page to the footer.
+//   - the shared FloatingCopy bar carries the same Copy once the panel's sticky Copy bar starts to scroll away under
+//     the header (the panel's end pushes it up), so Copy is in reach from the top of the page to the footer.
 export function Payload({ label, meta, text, copyLabel, actions, children, title, steps }: Props) {
   const root = useRef<HTMLElement>(null);
   const head = useRef<HTMLDivElement>(null);
   const pre = useRef<HTMLPreElement>(null);
   const main = useRef<HTMLButtonElement | null>(null);
-  const dock = useRef<HTMLDivElement>(null);
+  const dockWrap = useRef<HTMLDivElement>(null);
+  // FloatingCopy's anchor: a zero-height marker one Copy bar's height above the panel's end. Its bottom reaches the
+  // header exactly when the panel's end starts pushing the sticky bar up, so the floating bar takes over before the
+  // panel's own Copy is clipped. Its offset follows the bar's height (it wraps on narrow screens).
+  const anchor = useRef<HTMLSpanElement>(null);
   const [fallback, setFallback] = useState<Fallback | null>(null);
-  const [docked, setDocked] = useState(false);
   const inline = !children; // the exact text is the panel body
 
-  // Blocked presses. CopyButton reports a blocked clipboard only through its label, so watch the label change, and
-  // also check it on every press: a repeat press while the label already says "blocked" changes nothing in the DOM.
+  // Blocked presses. Watch CopyButton's data-blocked and data-copied, and also check on every press: a repeat press
+  // while the button already says "blocked" changes nothing in the DOM.
   useEffect(() => {
     const panel = root.current;
+    const dock = dockWrap.current?.querySelector<HTMLElement>(".fcopy") ?? null;
     if (!panel) return;
     main.current = panel.querySelector<HTMLButtonElement>(".pd-copy");
     const textFor = (btn: Element): Fallback | null => {
@@ -65,17 +69,23 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
       return { text, name: inline ? `${label} text` : `${what[0].toUpperCase()}${what.slice(1)} text`, n: Date.now() };
     };
     const onBlocked = (btn: Element) => { const f = textFor(btn); if (f) setFallback(f); };
-    const isCopy = (el: Element | null) => el?.closest(".pd-copy, .pd-stepcopy") ?? null;
+    const isCopy = (el: Element | null) => el?.closest(".pd-copy, .pd-stepcopy, .fcopy__copy") ?? null;
 
     const watch = new MutationObserver((records) => {
       for (const r of records) {
-        const btn = isCopy(r.target instanceof Element ? r.target : r.target.parentElement);
-        if (!btn) continue;
-        if (BLOCKED.test(btn.textContent || "")) onBlocked(btn);
-        else if (btn.hasAttribute("data-copied") && !inline) {
+        const el = r.target as Element;
+        if (el === dock) {
+          // The floating bar hid while it held focus: it turns inert, so hand focus to the panel's own Copy.
+          if (!dock.hasAttribute("data-on") && dock.contains(document.activeElement)) main.current?.focus({ preventScroll: true });
+          continue;
+        }
+        const btn = isCopy(el);
+        if (!btn || r.oldValue !== null) continue; // only an attribute turning on
+        if (r.attributeName === "data-blocked") onBlocked(btn);
+        else if (!inline) {
           // A later copy worked: hide the fallback, handing focus back to the button if it was in the text.
           if (pre.current?.contains(document.activeElement)) {
-            const to = dock.current?.contains(btn) && dock.current.inert ? main.current : (btn as HTMLElement);
+            const to = dock?.contains(btn) && dock.inert ? main.current : (btn as HTMLElement);
             to?.focus({ preventScroll: true });
           }
           setFallback(null);
@@ -87,30 +97,29 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
     const timers = new Set<ReturnType<typeof setTimeout>>();
     const onClick = (e: MouseEvent) => {
       const btn = isCopy(e.target as Element);
-      if (!btn || !BLOCKED.test(btn.textContent || "")) return;
-      const t = setTimeout(() => { timers.delete(t); if (BLOCKED.test(btn.textContent || "") && !btn.hasAttribute("data-copied")) onBlocked(btn); }, 400);
+      if (!btn?.hasAttribute("data-blocked")) return;
+      const t = setTimeout(() => { timers.delete(t); if (btn.hasAttribute("data-blocked")) onBlocked(btn); }, 400);
       timers.add(t);
     };
-    for (const el of [panel, dock.current]) {
+    for (const el of [panel, dock]) {
       if (!el) continue;
-      watch.observe(el, { subtree: true, characterData: true, childList: true, attributes: true, attributeFilter: ["data-copied"] });
+      watch.observe(el, { subtree: true, attributes: true, attributeOldValue: true, attributeFilter: ["data-blocked", "data-copied", "data-on"] });
       el.addEventListener("click", onClick, true);
     }
     return () => {
       watch.disconnect(); timers.forEach(clearTimeout);
-      for (const el of [panel, dock.current]) el?.removeEventListener("click", onClick, true);
+      for (const el of [panel, dock]) el?.removeEventListener("click", onClick, true);
     };
   }, [text, label, copyLabel, steps, inline]);
 
-  // After the fallback renders: make sure its first lines are on screen and not under the sticky bar (the panel's top
-  // for the main text, the text itself beside a step), then focus and select it.
+  // After the fallback renders: make sure its first lines are on screen and not under the sticky bar or the floating
+  // bar (the panel's top for the main text, the text itself beside a step), then focus and select it.
   useEffect(() => {
     if (!fallback || !pre.current) return;
     const r = pre.current.getBoundingClientRect();
-    // The first lines must be clear of the sticky bar, the header and, while it shows, the dock.
     const header = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-h")) || 0;
     let top = Math.max(head.current?.getBoundingClientRect().bottom ?? 0, header), bottom = innerHeight;
-    const d = dock.current;
+    const d = dockWrap.current?.querySelector<HTMLElement>(".fcopy");
     if (d?.hasAttribute("data-on")) { const dr = d.getBoundingClientRect(); if (dr.top < innerHeight / 2) top = Math.max(top, dr.bottom); else bottom = dr.top; }
     if (r.top < top || r.top + 24 > bottom) { // 24px: at least the first line
       if (fallback.slot) pre.current.scrollIntoView({ block: "center" });
@@ -120,27 +129,15 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
     window.getSelection()?.selectAllChildren(pre.current);
   }, [fallback]);
 
-  // The dock shows once the panel's Copy bar has started to scroll away under the site header (the panel's end pushes
-  // the sticky bar up), and stays for the rest of the page. Before the reader reaches the panel it stays hidden. Same
-  // rule as the skill and kit install panel. Measured on scroll, once per frame.
+  // Keep the anchor one Copy bar's height above the panel's end.
   useEffect(() => {
-    const panel = root.current, bar = head.current;
-    if (!panel || !bar) return;
-    let raf = 0;
-    const check = () => {
-      raf = 0;
-      const stick = parseFloat(getComputedStyle(bar).top) || 0;
-      const away = panel.getBoundingClientRect().bottom < stick + bar.offsetHeight - 2; // 2px: zoom rounding
-      setDocked((was) => {
-        if (was && !away && dock.current?.contains(document.activeElement)) main.current?.focus({ preventScroll: true });
-        return away;
-      });
-    };
-    const queue = () => { if (!raf) raf = requestAnimationFrame(check); };
-    check();
-    addEventListener("scroll", queue, { passive: true });
-    addEventListener("resize", queue);
-    return () => { cancelAnimationFrame(raf); removeEventListener("scroll", queue); removeEventListener("resize", queue); };
+    const bar = head.current, mark = anchor.current;
+    if (!bar || !mark) return;
+    const size = () => { mark.style.bottom = `${bar.offsetHeight}px`; };
+    size();
+    const ro = new ResizeObserver(size);
+    ro.observe(bar);
+    return () => ro.disconnect();
   }, []);
 
   const onKey = (e: ReactKeyboardEvent) => {
@@ -187,10 +184,10 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
           {children}
           {block && fallback?.slot && createPortal(<div className="pd-fallback pd-fallback--step">{block}</div>, fallback.slot)}
         </>}
+        <span ref={anchor} className="pd-anchor" aria-hidden="true" />
       </section>
-      <div ref={dock} className="pd-dock" data-on={docked || undefined} inert={!docked} aria-hidden={!docked || undefined}>
-        {title && <span className="pd-dock__t">{title}</span>}
-        <CopyButton className="btn btn--primary pd-copy pd-dock__copy" text={text} label={copyLabel} name={title ? `${copyLabel}: ${title}` : undefined} icon />
+      <div ref={dockWrap} className="pd-dockwrap">
+        <FloatingCopy anchor={anchor} text={text} title={title ?? label} detail={title ? label : undefined} label={copyLabel} name={`${copyLabel}: ${title ?? label}`} />
       </div>
     </>
   );

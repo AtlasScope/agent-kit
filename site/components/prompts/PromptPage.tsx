@@ -6,7 +6,6 @@ import { SaveMenu } from "@/components/SaveMenu";
 import { Payload } from "@/components/prompts/detail/Payload";
 import { authEnabled } from "@/lib/site";
 import { getArea, getPrompt, copyText, copyLabel, kindLabel, whatOf, whenOf, MODES, TOPO, type Prompt } from "@/lib/content";
-import "./prompt.css";
 
 type Fact = [string, string | undefined];
 const present = (fs: Fact[]) => fs.filter((f): f is [string, string] => Boolean(f[1]));
