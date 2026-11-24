@@ -51,7 +51,7 @@ Contrast is how much one colour stands out from the colour behind it, as a ratio
 
 ## Checks before you report
 
-- The measuring script shows no text below its minimum, in light and in dark. Text over a picture or gradient is not measured by the script: look at each one.
+- The measuring script shows no text below its minimum, in light and in dark. Text over a photo, video or drawing is not measured by the script: it lists each one, and you look at them.
 - The count of colours went down, or stayed the same with every one now from the set.
 - Seen in greyscale, the screen still makes sense: the main action still stands out and every status can still be told apart.
 - Positions, sizes and wording are unchanged.
