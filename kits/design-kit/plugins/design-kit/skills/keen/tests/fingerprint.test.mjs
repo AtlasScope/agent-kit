@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
 import { createRequire } from "node:module";
+import { execSync } from "node:child_process";
 import { oklch, judge, pageScript, defaultAccentHue } from "../scripts/fingerprint.mjs";
 
 const near = (a, b, tol, msg) => assert.ok(Math.abs(a - b) <= tol, `${msg}: ${a} is not within ${tol} of ${b}`);
@@ -57,15 +58,31 @@ test("the page script is one expression that parses and carries its own maths", 
   for (const name of ["function oklch", "function judge", "function readPage", "STOCK_FONTS"]) assert.ok(script.includes(name), name);
 });
 
-// In a real browser, when Playwright is on this machine (MOTION_PLAYWRIGHT_DIR or the global modules).
+// In a real browser, when Playwright is on this machine (MOTION_PLAYWRIGHT_DIR, NODE_PATH or the global
+// modules). KEEN_REQUIRE_BROWSER=1 (set in CI) turns a missing Playwright into a failure, and a browser
+// that will not launch always fails: a test that cannot look must never pass as if it had.
 function findPlaywright() {
-  const bases = [process.env.MOTION_PLAYWRIGHT_DIR, ...(process.env.NODE_PATH || "").split(path.delimiter), path.resolve(process.execPath, "../../lib/node_modules"), path.resolve(process.execPath, "../node_modules")].filter(Boolean);
+  let globalRoot = "";
+  try { globalRoot = execSync("npm root -g", { stdio: ["ignore", "pipe", "ignore"] }).toString().trim(); } catch { /* no npm */ }
+  const bases = [process.env.MOTION_PLAYWRIGHT_DIR, ...(process.env.NODE_PATH || "").split(path.delimiter), globalRoot, path.resolve(process.execPath, "../../lib/node_modules"), path.resolve(process.execPath, "../node_modules")].filter(Boolean);
   for (const base of bases) for (const dir of [path.join(base, "node_modules", "playwright"), path.join(base, "playwright")]) {
     try { return createRequire(path.join(dir, "package.json"))(dir); } catch { /* not here */ }
   }
   return null;
 }
 const pw = findPlaywright();
+const required = process.env.KEEN_REQUIRE_BROWSER === "1";
+const browserSkip = pw || required ? false : "Playwright is not available on this machine (set KEEN_REQUIRE_BROWSER=1 to make this a failure)";
+
+async function launch() {
+  assert.ok(pw, "KEEN_REQUIRE_BROWSER=1 but Playwright was not found");
+  // Playwright's own browser first, then an installed Chrome or Edge.
+  const errors = [];
+  for (const opts of [{}, { channel: "chrome" }, { channel: "msedge" }]) {
+    try { return await pw.chromium.launch(opts); } catch (e) { errors.push(`${opts.channel || "bundled"}: ${String(e.message).split("\n")[0]}`); }
+  }
+  assert.fail(`Playwright is installed but no browser launched:\n${errors.join("\n")}`);
+}
 
 const GENERIC_PAGE = `<!doctype html><html lang="en"><body style="margin:0;font-family:Inter,system-ui,sans-serif;background:#fff">
 <header style="text-align:center;padding:80px 20px"><h1 style="font-size:40px;background:linear-gradient(90deg,#6366f1,#8b5cf6);-webkit-background-clip:text;background-clip:text;color:transparent">Ship faster</h1>
@@ -73,13 +90,8 @@ const GENERIC_PAGE = `<!doctype html><html lang="en"><body style="margin:0;font-
 <a href="#" style="background:#6366f1;color:#fff;padding:12px 20px;border-radius:12px">Get started</a> <a href="#" style="background:#8b5cf6;color:#fff;padding:12px 20px;border-radius:12px">Learn more</a></header>
 <section style="display:flex;gap:16px;padding:20px">${["Fast", "Secure", "Simple"].map((t) => `<div style="flex:1;border-radius:12px;box-shadow:0 4px 12px #0002;background:#f5f5ff;padding:24px;height:120px"><h3>${t}</h3><p>Lorem ipsum dolor sit amet.</p></div>`).join("")}</section></body></html>`;
 
-test("in a browser, a stock landing page is fingerprinted as stock", { skip: pw ? false : "Playwright is not available on this machine" }, async () => {
-  // Playwright's own browser first, then an installed Chrome or Edge.
-  let browser;
-  for (const opts of [{}, { channel: "chrome" }, { channel: "msedge" }]) {
-    try { browser = await pw.chromium.launch(opts); break; } catch { /* try the next */ }
-  }
-  if (!browser) return;
+test("in a browser, a stock landing page is fingerprinted as stock", { skip: browserSkip }, async () => {
+  const browser = await launch();
   try {
     const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
     await page.setContent(GENERIC_PAGE);
@@ -87,5 +99,31 @@ test("in a browser, a stock landing page is fingerprinted as stock", { skip: pw 
     const ids = f.defaults.map((d) => d.id);
     for (const id of ["stock-type", "violet-accent", "gradient", "card-grid", "centred-hero"]) assert.ok(ids.includes(id), `${id} in ${ids.join(", ")}`);
     assert.equal(f.type.families[0].family, "inter");
+    assert.match(f.note, /says nothing about whether the design is good/);
+  } finally { await browser.close(); }
+});
+
+// A page whose colour and lettering live in a drawing: the fingerprint must see them.
+const DRAWN_PAGE = `<!doctype html><html lang="en"><body style="margin:0;font-family:Georgia,serif;background:#faf8f1;color:#141a1f">
+<h1 style="font-size:64px;margin:0 0 8px">07:45</h1>
+<p style="font-size:17px;max-width:none">${"A single line of reading text that never wraps because its box is far wider than it is. ".repeat(2).trim()}</p>
+<svg width="1280" height="500" viewBox="0 0 1280 500"><rect width="1280" height="500" fill="#a3156e"/>
+<path d="M0 400 C400 100 800 100 1280 400" fill="none" stroke="#0b6e4f" stroke-width="6"/>
+<text x="40" y="60" font-family="Courier New" font-size="28" fill="#faf8f1">HIGH WATER 08:02</text></svg></body></html>`;
+
+test("in a browser, SVG fills, strokes and text are read, and an unwrapped line is as long as its text", { skip: browserSkip }, async () => {
+  const browser = await launch();
+  try {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+    await page.setContent(DRAWN_PAGE);
+    const f = await page.evaluate(pageScript());
+    assert.equal(f.graphics.svgs, 1);
+    assert.ok(f.graphics.shapes >= 2, `shapes ${f.graphics.shapes}`);
+    assert.ok(f.graphics.firstScreenShare > 0.4, `drawn share ${f.graphics.firstScreenShare}`);
+    assert.ok(f.type.families.some((x) => x.family === "courier new"), f.type.families.map((x) => x.family).join(", "));
+    const magenta = f.colour.chromatic[0];
+    assert.ok(magenta && magenta.h > 330 && magenta.c > 0.15, `main colour ${JSON.stringify(magenta)}`);
+    assert.ok(f.colour.chromatic.some((c) => c.h > 150 && c.h < 175), "the green stroke is seen");
+    assert.ok(f.type.measure.median <= 190, `measure ${f.type.measure.median} should be the line's own length`);
   } finally { await browser.close(); }
 });

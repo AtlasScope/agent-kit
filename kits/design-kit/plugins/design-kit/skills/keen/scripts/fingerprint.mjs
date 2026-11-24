@@ -11,6 +11,14 @@
 // lists the defaults it found. A default is not a fault. It is a choice nobody made; a direction keeps
 // it only when it can say why.
 //
+// It is a smoke alarm, not a judge. An empty list means none of a dozen common habits was found; it says
+// nothing about whether the idea is good, the page is beautiful or the work is right for its people. A
+// template with a serif and a teal accent passes; a great page may keep a default on purpose. Never
+// report "no defaults" as evidence of quality. Judge the work by what it does for the person using it.
+//
+// Drawn graphics count: SVG fills, strokes, text and gradients join the colour and type readings, and
+// `graphics` says how much of the first screen is drawn.
+//
 // Colour maths: sRGB to OKLab and OKLCH from Björn Ottosson, "A perceptual color space for image
 // processing" (2020), the space CSS Color 4 uses for oklch().
 
@@ -110,8 +118,23 @@ export function readPage({ oklch }) {
       meas.font = `${s.fontStyle} ${s.fontWeight} ${s.fontSize} ${s.fontFamily}`;
       const avg = meas.measureText(t).width / n;
       const w = el.clientWidth - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight);
-      if (avg > 0) measures.push(Math.round(w / avg));
+      // A line that never wraps is as long as its text, however wide its box.
+      if (avg > 0) measures.push(Math.min(n, Math.round(w / avg)));
     }
+  }
+
+  // Drawn graphics: SVG text is type, so its faces count; its sizes are left out of the ladder, because
+  // chart labels are scaled with their drawing and are not the page's text sizes.
+  const svgs = [...document.body.querySelectorAll("svg")].filter((el) => !el.parentElement.closest("svg") && visible(el));
+  const svgText = svgs.flatMap((el) => [...el.querySelectorAll("text")]).filter(visible);
+  let svgChars = 0;
+  for (const el of svgText) {
+    const t = el.textContent.replace(/\s+/g, " ").trim();
+    if (!t) continue;
+    const first = getComputedStyle(el).fontFamily.split(",")[0].replace(/["']/g, "").trim().toLowerCase();
+    fam.set(first, (fam.get(first) || 0) + t.length);
+    chars += t.length;
+    svgChars += t.length;
   }
   const families = [...fam.entries()].sort((a, b) => b[1] - a[1]).map(([family, c]) => ({ family, share: Math.round((c / chars) * 100) / 100 }));
   const sizes = [...size.entries()].sort((a, b) => b[1] - a[1]);
@@ -144,6 +167,31 @@ export function readPage({ oklch }) {
     if (ownText(el)) addPaint(rgba(s.color), ownText(el).length * parseFloat(s.fontSize) ** 2 * 0.5);
     if (parseFloat(s.borderTopWidth) > 0) addPaint(rgba(s.borderTopColor), (r.width + r.height) * 2 * parseFloat(s.borderTopWidth));
   }
+  // SVG shapes paint by their fill area and stroke length; url() paints are gradients or patterns.
+  let shapes = 0;
+  let drawnArea = 0;
+  for (const svg of svgs) {
+    const r = svg.getBoundingClientRect();
+    drawnArea += Math.max(0, Math.min(r.bottom, vh) - Math.max(r.top, 0)) * Math.max(0, Math.min(r.right, vw) - Math.max(r.left, 0));
+    gradients += svg.querySelectorAll("linearGradient, radialGradient").length;
+    for (const el of svg.querySelectorAll("path, rect, circle, ellipse, polygon, polyline, line")) {
+      if (!visible(el)) continue;
+      shapes += 1;
+      const s = getComputedStyle(el);
+      const b = el.getBoundingClientRect();
+      const fo = Number(s.fillOpacity) * Number(s.opacity);
+      if (s.fill && s.fill !== "none" && !s.fill.startsWith("url(")) {
+        const c = rgba(s.fill);
+        addPaint([c[0], c[1], c[2], c[3] * fo], Math.min(b.width, vw) * Math.min(b.height, vh * 3) * 0.5);
+      }
+      const sw = parseFloat(s.strokeWidth) || 0;
+      if (s.stroke && s.stroke !== "none" && !s.stroke.startsWith("url(") && sw > 0) {
+        const c = rgba(s.stroke);
+        addPaint([c[0], c[1], c[2], c[3] * Number(s.strokeOpacity)], (b.width + b.height) * 2 * sw);
+      }
+    }
+  }
+  for (const el of svgText) addPaint(rgba(getComputedStyle(el).fill), el.textContent.trim().length * parseFloat(getComputedStyle(el).fontSize) ** 2 * 0.5);
   const total = [...paint.values()].reduce((a, b) => a + b, 0) || 1;
   const swatches = [...paint.entries()].map(([k, a]) => {
     const rgb = k.split(",").map(Number);
@@ -238,6 +286,7 @@ export function readPage({ oklch }) {
     },
     form: { boxes, mainRadius: topRadius[0], mainRadiusShare: boxes ? round(topRadius[1] / boxes) : 0, radii: [...radii.keys()], shadowShare: boxes ? round(shadowed / boxes) : 0, blur, cardRows },
     layout: { centredShare: chars ? round(centred / chars) : 0, centredHero, firstScreenWeightX: mass ? round(mx / mass / vw) : null },
+    graphics: { svgs: svgs.length, shapes, textChars: svgChars, firstScreenShare: round(Math.min(1, drawnArea / (vw * vh))) },
   };
 }
 
@@ -249,7 +298,7 @@ ${oklch}
 ${defaultAccentHue}
 ${judge}
 const f = (${readPage})({ oklch });
-return { ...f, defaults: judge(f) };
+return { ...f, defaults: judge(f), note: "Lists unchosen defaults only. An empty list says nothing about whether the design is good." };
 })()`;
 }
 

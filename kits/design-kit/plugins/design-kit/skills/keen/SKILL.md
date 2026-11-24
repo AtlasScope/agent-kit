@@ -17,7 +17,7 @@ Keen has 22 jobs. Movement and animation are not among them: that is `/motion`, 
 
 1. **Read the intent, not the keywords.** What outcome does the person want, for whom, on which screen? Look at the screen before deciding.
 2. **Sort what is fixed from what is open.** Invariants (who the product is for, accessibility, legal marks) never move. Commitments (the approved direction in DESIGN.md) move only with the person. History (whatever the code happens to do) moves freely when it stops serving the direction. Opportunities are ideas not yet tried. [references/direction.md](references/direction.md) has the detail.
-3. **Choose a stance.** Refine (the direction is right, the execution is not), reinvent (there is no direction worth keeping), experiment (asked for, or low stakes and worth learning from), or restrain (the content is the experience, and the ambitious move is to step back). Say it in one line. [references/kernel.md](references/kernel.md) explains how to tell them apart.
+3. **Choose a stance.** Refine (the direction is right, the execution is not), reinvent (there is no direction worth keeping), experiment (asked for, or low stakes and worth learning from), or restrain (the content is the experience, and the ambitious move is to step back). Say it when it is not obvious. [references/kernel.md](references/kernel.md) explains how to tell them apart. These ideas are instruments for hard calls, not steps every request walks through.
 4. **Compose the work.** One job when one job answers it. Several, in the order that wastes least (see Next steps), when the outcome needs them: a crowded screen that also reads badly is `distill` then `type`. Say the sequence in one line and run it straight through.
 5. **Load only what the work needs.** This file, then the job's file, then the kernel for creative work, then only the craft cards a decision touches. Never read every reference up front.
 
@@ -321,7 +321,9 @@ Before and after are captured at the same sizes: 390 wide for a phone and 1440 w
 
 `node <skill-dir>/scripts/fingerprint.mjs` prints a second script, run the same way. Where `measure.mjs` asks whether everyone can use the screen, this asks whose it is. It returns the type (faces and their share of the text, how far the sizes step apart, line length in characters), the colour in OKLCH (the perceptual colour space CSS uses, so hue and lightness mean what the eye sees), the form (corners, shadows, blur, rows of matching cards) and the arrangement (how much text is centred, where the first screen's weight sits). Then it lists `defaults`: the choices most generated interfaces share, such as only stock fonts, an indigo-violet accent, decorative gradients, one corner radius on everything, a centred heading over two buttons, a row of matching cards.
 
-A default is not a fault. It is a choice nobody made. `create` and `bolder` remove each one or say in one line why it stays. Other jobs report them only when the person asked about how distinctive the screen is.
+SVG counts: drawn fills, strokes, text and gradients join the readings, and `graphics` says how much of the first screen is drawn.
+
+A default is not a fault. It is a choice nobody made, and the list is a smoke alarm for a dozen common habits. It cannot see an idea, craft or fitness for the people using the product, so an empty list is never reported as evidence that a design is good. Jobs report defaults only when they are relevant to what the person asked.
 
 ## Sources
 

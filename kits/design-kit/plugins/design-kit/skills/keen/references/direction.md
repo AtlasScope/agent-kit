@@ -1,6 +1,6 @@
 # Direction: what may change and who decides
 
-Before changing how a product looks, sort what you know about it into four kinds. They carry different authority, and confusing them is how good work gets undone or bad work gets protected.
+Before changing how a product looks, know which of four kinds each thing you might change belongs to. They carry different authority, and confusing them is how good work gets undone or bad work gets protected. This is a way of thinking, not paperwork: most jobs never write any of it down.
 
 | Kind | What it is | Who can change it | Where it lives |
 |---|---|---|---|
@@ -22,7 +22,7 @@ The rule in SKILL.md still holds above all four: the person's request in this co
 
 ## The Direction section
 
-Keen writes and updates this section of DESIGN.md. Keep it under forty lines. A future runtime reads it by these exact headings, so keep them.
+Keen writes and updates this section of DESIGN.md. Write it only when work sets or changes a direction; routine jobs read it and leave it alone. Keep it under forty lines. A future runtime reads it by these exact headings, so keep them.
 
 ```markdown
 ## Direction
