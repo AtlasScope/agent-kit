@@ -12,7 +12,7 @@ import { composeCopy } from "../../lib/copy.ts";
 
 const require = createRequire(import.meta.url);
 const data = require("../../content/generated.json");
-const PORT = 3994; // Smoke files run in parallel; each needs its own port (journeys 3999, install and library 3998).
+const PORT = 3994; // Smoke files run in parallel; each needs its own port (journeys 3999, install 3998, library 3997).
 let base = process.env.SMOKE_URL?.replace(/\/$/, "");
 let server, browser;
 

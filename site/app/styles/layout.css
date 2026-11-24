@@ -1,6 +1,5 @@
 /* Page scaffolding: page, page head, sections, lists, grids.
-   Ownership: see DESIGN-CONTRACT.md. Split from globals.css with no change in cascade order. */
-
+   Owner: W1 design system (DESIGN-CONTRACT.md). */
 /* Library pages */
 .page { padding-block: var(--space-xl) var(--space-2xl); display: grid; gap: var(--space-xl); }
 .page-head { display: grid; gap: var(--space-md); max-width: var(--measure); }
@@ -21,9 +20,21 @@
 .page-head { gap: var(--space-sm); }
 .page-head h1 { font-size: clamp(2.125rem, 2.8vw + 1rem, 3.25rem); line-height: 1.05; letter-spacing: -0.035em; }
 .section > h2, .h2 { margin: 0; display: flex; align-items: center; font: 600 var(--type-h2)/var(--lh-h2) var(--font-body); letter-spacing: var(--tr-h2); }
-.sec-head { display: grid; gap: 6px; }
-.sec-head h2 { margin: 0; }
-.sec-head p { max-width: 72ch; color: var(--color-muted); font-size: 0.9375rem; line-height: 1.5; text-wrap: pretty; }
 @media (max-width: 40rem) { .page { padding-top: var(--space-lg); gap: var(--space-lg); } }
 .sec-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-xs) var(--space-md); min-height: 34px; }
 .sec-row h2 { margin: 0; }
+.facts { display: grid; grid-template-columns: minmax(0, 14ch) minmax(0, 1fr); gap: var(--space-sm) var(--space-lg); margin: 0; max-width: var(--measure); }
+.facts dt { color: var(--color-muted); font-size: var(--text-sm); padding-top: 2px; }
+.facts dd { margin: 0; color: var(--color-ink-2); }
+.toolbar { display: flex; flex-wrap: wrap; gap: var(--space-xs); align-items: center; }
+.two { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: var(--space-xl); align-items: start; }
+.aside { display: grid; gap: var(--space-lg); position: sticky; top: calc(var(--header-h) + var(--space-lg)); }
+.two--wide { grid-template-columns: minmax(0, 1fr) 340px; }
+.facts--side { grid-template-columns: minmax(0, 1fr); gap: 2px; font-size: 0.9375rem; }
+.facts--side dd { margin-bottom: var(--space-sm); line-height: 1.5; }
+.facts--side dd:last-child { margin-bottom: 0; }
+@media (max-width: 60rem) { .two { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 60rem) { .aside { position: static; } }
+@media (max-width: 40rem) { .facts { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+@media (max-width: 40rem) { .facts dd { margin-bottom: var(--space-sm); } }
+.facts { padding: var(--space-md) var(--space-lg); border: 1px solid var(--color-rule); border-radius: var(--radius); background: var(--color-paper-2); max-width: none; }

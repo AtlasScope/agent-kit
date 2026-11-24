@@ -1,5 +1,5 @@
 /* Sign in, Collections and shared collection pages.
-   Ownership: see DESIGN-CONTRACT.md (collections/account lane). Existing tokens only until contract v1 lands. */
+   Owner: W10 accounts and utility pages (DESIGN-CONTRACT.md). */
 
 /* Sign in: why an account helps on the left, the form on the right; stacked on phones. */
 .signin { grid-template-columns: minmax(0, 1fr) auto; align-items: start; column-gap: var(--space-16); }
