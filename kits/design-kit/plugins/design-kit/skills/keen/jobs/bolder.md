@@ -8,7 +8,7 @@ Aggressive. Edits files. Does the whole screen in one go.
 
 A bland screen is one where every choice was the middle choice: medium sizes, medium weights, medium grey, everything given equal room. Nothing is wrong and nothing is remembered. Bolder does not mean louder everywhere. It means picking the one thing this screen is about and letting it win by a wide margin, then letting everything else step back so the difference shows. Contrast is the tool: big against small, heavy against light, one colour against none, full against empty.
 
-If the screen is crowded, bolder makes it worse. Stop and suggest `/keen distill` first.
+If the screen is crowded, bolder makes it worse. Stop and suggest `/keen distill` first. If there is nothing to commit harder to (no idea behind the screen at all), bolder only adds volume: suggest `/keen create` instead. For the "one distinct thing" below, read the "Finding the idea" part of [../references/kernel.md](../references/kernel.md).
 
 ## Steps
 
@@ -16,7 +16,7 @@ If the screen is crowded, bolder makes it worse. Stop and suggest `/keen distill
 2. **Name the hero.** The one thing on this screen that should be impossible to miss: a number, a headline, a picture, an action. One, appearing once. On a screen that lists equal things, the hero is never every item's name, because five things made huge are five things competing; it is the page's heading, its one-line promise, or the way in. The page's own heading is never made smaller than something beneath it.
 3. **Capture before**, at 390 and 1440 wide.
 4. **Make the five moves** below. Use the project's own fonts and colours; push how far apart their uses are, do not add new ones.
-5. **Capture after.** Look at both captures small (about 300 pixels wide). The after should be recognisable at that size and the before should not. If you cannot tell them apart, you were not bold.
+5. **Capture after**, and run `scripts/fingerprint.mjs` on before and after: every default it lists is removed or kept for a reason you can say. Look at both captures small (about 300 pixels wide). The after should be recognisable at that size and the before should not. If you cannot tell them apart, you were not bold.
 6. **Look for what the moves broke.** Bigger type and wider gaps pull related things apart: a count now far from its name, a button stranded at the far edge of a short line, a heading that reads like a label. Fix each one, or undo the move that caused it. A cost you can see and left in place is a fault, not a trade.
 7. **Report** on the Keen page with the before and after shots.
 

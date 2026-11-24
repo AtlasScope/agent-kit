@@ -5743,8 +5743,12 @@
    "key": "design",
    "title": "Design",
    "cmd": "/keen",
-   "blurb": "Look at a screen, find out what is wrong with it, and fix it. Type /keen and what you want; typed alone it shows a short menu and suggests one job.",
+   "blurb": "Give a product an original look, or find out what is wrong with a screen and fix it. Type /keen and what you want; typed alone it shows a short menu and suggests one job.",
    "groups": [
+    [
+     "Make something new",
+     "K:Make something new"
+    ],
     [
      "Set up and plan",
      "K:Set up and plan"
@@ -6208,9 +6212,9 @@
   [
    "It looks plain or like a template",
    [
+    "K:create",
     "K:bolder",
-    "K:polish",
-    "K:type"
+    "K:polish"
    ]
   ],
   [

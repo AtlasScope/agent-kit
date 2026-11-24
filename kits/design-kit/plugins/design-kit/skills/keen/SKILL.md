@@ -1,21 +1,35 @@
 ---
 name: keen
-description: Use only when the user explicitly invokes /keen or $keen. One command for interface design work, written for people who direct the work and judge the result without reading code. Typed alone or with a vague request it shows a short menu, suggests one job and asks. Typed with one of its 21 jobs, such as critique, audit, distill, words or polish, it runs that job. Every job ends in plain English with proof the person can look at. Ordinary design talk must not activate it.
+description: Use only when the user explicitly invokes /keen or $keen. One command for interface design work, written for people who direct the work and judge the result without reading code. It reads what the person wants, chooses how far to go (refine, reinvent, experiment or restrain) and runs one of its 22 jobs, or several in order, such as create, critique, audit, distill or polish. create turns a product idea into an original direction and a built result. Typed alone it shows a short menu. Every job ends in plain English with proof the person can look at. Ordinary design talk must not activate it.
 disable-model-invocation: true
 metadata:
-  short-description: Design jobs with a menu, plain English and proof
+  short-description: Original design direction and design jobs, with proof
   author: AtlasScope/agent-kit
 ---
 
 # Keen
 
-The person types `/keen` and what they want, in their own words. They may not read code. They judge by looking at the screen and by reading what you tell them. Your job is to pick the right piece of design work, do it properly, and show them the result in a form they can check with their own eyes.
+The person types `/keen` and what they want, in their own words. They may not read code. They judge by looking at the screen and by reading what you tell them. Your job is to understand what they are after, decide how ambitious the answer should be, do the work properly, and show them the result in a form they can check with their own eyes.
 
-Keen has 21 jobs. Movement and animation are not among them: that is `/motion`, a separate command in the same kit. If it is not installed, say so.
+Keen has 22 jobs. Movement and animation are not among them: that is `/motion`, a separate command in the same kit. If it is not installed, say so.
+
+## How Keen works
+
+1. **Read the intent, not the keywords.** What outcome does the person want, for whom, on which screen? Look at the screen before deciding.
+2. **Sort what is fixed from what is open.** Invariants (who the product is for, accessibility, legal marks) never move. Commitments (the approved direction in DESIGN.md) move only with the person. History (whatever the code happens to do) moves freely when it stops serving the direction. Opportunities are ideas not yet tried. [references/direction.md](references/direction.md) has the detail.
+3. **Choose a stance.** Refine (the direction is right, the execution is not), reinvent (there is no direction worth keeping), experiment (asked for, or low stakes and worth learning from), or restrain (the content is the experience, and the ambitious move is to step back). Say it in one line. [references/kernel.md](references/kernel.md) explains how to tell them apart.
+4. **Compose the work.** One job when one job answers it. Several, in the order that wastes least (see Next steps), when the outcome needs them: a crowded screen that also reads badly is `distill` then `type`. Say the sequence in one line and run it straight through.
+5. **Load only what the work needs.** This file, then the job's file, then the kernel for creative work, then only the craft cards a decision touches. Never read every reference up front.
 
 ## Jobs
 
 Jobs marked "report" change nothing. Jobs marked "writes" add or update one project file after a yes. The rest edit the screen.
+
+**Make something new**
+
+| Job | Use it when | Kind | Instructions |
+|---|---|---|---|
+| `create` | A product idea, a new screen, or a screen with no point of view needs an original direction, built | Builds, records the direction | [jobs/create.md](jobs/create.md) |
 
 **Set up and plan**
 
@@ -63,16 +77,15 @@ Jobs marked "report" change nothing. Jobs marked "writes" add or update one proj
 | `optimize` | The screen feels slow or jumps while loading | Edits | [jobs/optimize.md](jobs/optimize.md) |
 | `extract` | The same values and parts are repeated everywhere and changes keep missing some | Edits, nothing looks different | [jobs/extract.md](jobs/extract.md) |
 
-Read the job's file before running it. Run one job per request.
+Read each job's file before running it.
 
 ## Which path to take
 
 1. **They named a job** (`/keen critique the pricing page`): run it, unless its file says it does not apply here; then rule 8 below.
-2. **Their words clearly match one job** ("this page is too busy" is distill; "does this hold up on a phone" is adapt; "the text is too small" is type; "nobody understands this button" is words): say which job you picked in one line and run it.
-3. **`/keen all`**: list every job from the tables above, grouped the same way, one line each, and stop.
-4. **Anything else**, including `/keen` alone: show the menu and stop.
-
-A request to "make it better", "fix the design" or "improve this page" is vague. Show the menu. Do not guess between a review and an edit.
+2. **Their words point to an outcome** ("this page is too busy" is distill; "the text is too small" is type; "design a landing page for my tide app" is create; "it's crowded and hard to read" is distill then type): say in one line what you will run, in what order, and why, then run it.
+3. **They want it better and named the screen** ("make the pricing page better"): open it and form a view first. If one outcome is clearly the answer, run it as in rule 2. If it could equally be a review or an edit, show the menu with your view as the suggestion.
+4. **`/keen all`**: list every job from the tables above, grouped the same way, one line each, and stop.
+5. **`/keen` alone, or nothing to go on**: show the menu and stop.
 
 ## The menu
 
@@ -103,7 +116,7 @@ Choose the alternatives from what you saw on the screen, not from a fixed list: 
 5. **Never remove something a person can do.** Hiding, moving or merging a control is design work. Deleting a capability needs a yes first.
 6. **Leave nothing worse.** After an edit, compare the after with the before as a stranger would, at both sizes. Anything that got worse is fixed or undone before you report. The report never lists damage you could see and chose to ship.
 7. **Do not manufacture work.** When the screen already does what the job is for, say so in the first line, fix only what is actually off, and report a small change as a small change.
-8. **One job.** If the job turns out to be the wrong one (asked to polish a screen whose structure is the problem), stop, say so in two lines and name the job that fits. That is the whole reply: no report and no Keen page, only the two lines and the command for the right job. Do this before starting anything up.
+8. **One outcome.** A request may need several jobs; run them in order and report once at the end, before and after across the whole change. If the job turns out to be the wrong one (asked to polish a screen whose structure is the problem), stop, say so in two lines and name the job that fits. That is the whole reply: no report and no Keen page, only the two lines and the command for the right job. Do this before starting anything up.
 
 ## The report
 
@@ -145,7 +158,7 @@ When there is something to do next, do not hand over one command as a line of te
 
 For each: the command, one plain line on what it will do, and one on why it ranks where it does. Mark the most valuable one as the suggestion. If it is not first in the list, say in one line what has to come before it and why.
 
-When two or more belong together, say in one line why they run in the order listed. The order that wastes the least work is: remove (`distill`), arrange (`layout`), reword (`words`), then style (`type`, `colour`, `bolder` or `quieter`), then make it hold up (`harden`, `adapt` or `native`, `optimize`), and `polish` last, because every earlier job changes what there is to polish. `extract` runs after the look is settled. Running several still means one job at a time, with a report after each.
+When two or more belong together, say in one line why they run in the order listed. The order that wastes the least work is: remove (`distill`), arrange (`layout`), reword (`words`), then style (`type`, `colour`, `bolder` or `quieter`), then make it hold up (`harden`, `adapt` or `native`, `optimize`), and `polish` last, because every earlier job changes what there is to polish. `extract` runs after the look is settled. `create` comes before all of them: it sets the direction they refine. Next steps the person starts from the page run one at a time, with a page after each; a sequence you composed yourself for one request runs straight through and reports once (rule 8).
 
 Look past Keen too. When what you found is not a design problem (a slow screen, a number that looks wrong, pages that duplicate each other), offer the Agent Kit command that handles it as a next step, in the same list, if it appears in this tool's list of commands (if you cannot see that list, offer it and say which kit it needs): `/motion` for movement, `/engineer` for speed and code problems, `/database` for wrong or slow data.
 
@@ -304,6 +317,12 @@ Any job that states a number about the screen uses this script to get it. A numb
 
 Before and after are captured at the same sizes: 390 wide for a phone and 1440 wide for a desktop, unless the job says otherwise.
 
+### Fingerprint
+
+`node <skill-dir>/scripts/fingerprint.mjs` prints a second script, run the same way. Where `measure.mjs` asks whether everyone can use the screen, this asks whose it is. It returns the type (faces and their share of the text, how far the sizes step apart, line length in characters), the colour in OKLCH (the perceptual colour space CSS uses, so hue and lightness mean what the eye sees), the form (corners, shadows, blur, rows of matching cards) and the arrangement (how much text is centred, where the first screen's weight sits). Then it lists `defaults`: the choices most generated interfaces share, such as only stock fonts, an indigo-violet accent, decorative gradients, one corner radius on everything, a centred heading over two buttons, a row of matching cards.
+
+A default is not a fault. It is a choice nobody made. `create` and `bolder` remove each one or say in one line why it stays. Other jobs report them only when the person asked about how distinctive the screen is.
+
 ## Sources
 
-Keen's jobs are written from published standards and platform guidance, named in each job file: the Web Content Accessibility Guidelines 2.2, Apple's Human Interface Guidelines, Material Design, Jakob Nielsen's ten usability heuristics, Google's Core Web Vitals, the Gestalt principles of grouping, Nielsen's response-time limits, and the CSS Color specification.
+Keen's jobs are written from published standards and platform guidance, named in each job file: the Web Content Accessibility Guidelines 2.2, Apple's Human Interface Guidelines, Material Design, Jakob Nielsen's ten usability heuristics, Google's Core Web Vitals, the Gestalt principles of grouping, Nielsen's response-time limits, and the CSS Color specification. The creative kernel and its craft cards draw on design research (on design fixation, analogy and parallel prototyping), on the typographic and graphic design canon (Bringhurst, Müller-Brockmann, Gerstner, Albers, Tufte, Bertin) and on primary technical sources (OKLab, CSS Fonts and Text Level 4); each card names its own.
