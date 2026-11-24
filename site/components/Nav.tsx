@@ -21,7 +21,7 @@ export function Nav() {
     <header className="top ink">
       <div className="container nav">
         <Link className="wordmark" href="/" aria-label={`${SITE.name} ${SITE.byline}, home`}>
-          <AtlasScopeLogo />
+          <AtlasScopeLogo sticky />
           <span className="wordmark__sep" aria-hidden="true" />
           <span className="wordmark__name">{SITE.name}</span>
         </Link>

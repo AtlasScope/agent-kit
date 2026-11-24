@@ -65,7 +65,7 @@ code, pre { font-family: var(--font-mono); }
 /* Nav */
 .nav { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; min-height: 72px; }
 .wordmark { display: inline-flex; align-items: baseline; gap: var(--space-xs); font: 500 var(--text-md)/1 var(--font-body); text-decoration: none; letter-spacing: -0.01em; }
-.wordmark span { color: var(--color-muted); font-weight: 400; font-size: var(--text-sm); }
+.wordmark .wordmark__name { color: var(--color-muted); font-weight: 400; font-size: var(--text-sm); }
 .links { display: flex; gap: var(--space-lg); margin: 0; padding: 0; list-style: none; font-size: var(--text-sm); color: var(--color-ink-2); }
 .links a { text-decoration: none; transition: color var(--dur-short) var(--ease-out); }
 .links a[aria-current="page"] { color: var(--color-ink); }
@@ -220,11 +220,10 @@ svg.i { width: 16px; height: 16px; flex: none; }
 .top { position: sticky; top: 0; z-index: 30; background: var(--color-paper); border-bottom: 1px solid var(--color-rule); }
 .nav { display: flex; align-items: center; gap: var(--space-sm) var(--space-lg); min-height: 64px; }
 .wordmark { gap: 0; font: 650 1.125rem/1 var(--font-body); letter-spacing: -0.03em; white-space: nowrap; }
-/* AtlasScope logo in the header. The svg is drawn on the pixel grid by export_site.py: it is 32px tall with
-   capitals from 4px to a baseline at 20px. Never scale or transform it. The header is 64px, so the svg's
-   top sits at 16px, and every flat edge lands on a whole device pixel at 100%, 125%, 150% and 200%. */
+/* LogoPixelGrid aligns the SVG's origin without moving the link or changing the artwork's size. */
 .wordmark { align-items: center; }
-.aslogo { display: block; flex: none; }
+.aslogo-grid { display: inline-flex; flex: none; }
+.aslogo { display: block; flex: none; transform: translate(var(--logo-x, 0px), var(--logo-y, 0px)); }
 .aslogo--mark { display: none; }
 .aslogo__sym--x125 { display: none; }
 @media (resolution: 1.25dppx) { .aslogo__sym--x1 { display: none; } .aslogo__sym--x125 { display: inline; } }
@@ -530,7 +529,7 @@ body:has(main.home) .foot { display: none; }
 .footer a { display: inline-flex; align-items: center; min-height: 24px; }
 @media (pointer: coarse) {
   .footer a { min-width: 44px; min-height: 44px; }
-  .wordmark { min-height: 44px; }
+  .wordmark { min-width: 44px; min-height: 44px; }
   .nav__end .btn--sm, .nav__end .btn--ghost { min-width: 44px; min-height: 44px; justify-content: center; }
   .iconbtn { width: 44px; height: 44px; }
 }
@@ -538,13 +537,16 @@ body:has(main.home) .foot { display: none; }
 /* Footer: the AtlasScope lockup and the license line, then three groups of links. Hairline above, nothing else. */
 .foot { display: grid; grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, 1fr)); gap: var(--space-xl); padding-block: var(--space-xl) max(var(--space-2xl), env(safe-area-inset-bottom)); border-top: 1px solid var(--color-rule); color: var(--color-muted); font-size: var(--text-sm); }
 .foot__brand { display: grid; gap: var(--space-md); align-content: start; }
-.foot__logo { display: inline-flex; width: max-content; color: var(--color-ink); }
+.foot__logo { display: inline-flex; align-items: center; width: max-content; color: var(--color-ink); }
 .foot__brand p { max-width: 36ch; line-height: 1.55; text-wrap: pretty; }
 .foot__group h2 { margin: 0 0 var(--space-sm); font: 600 var(--text-sm)/1.3 var(--font-body); color: var(--color-ink); letter-spacing: 0; }
 .foot__group ul { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
 .foot__group a { display: inline-flex; align-items: center; min-height: 30px; color: var(--color-muted); text-decoration: none; }
 @media (hover: hover) and (pointer: fine) { .foot__group a:hover, .foot__logo:hover { color: var(--color-ink); } }
-@media (pointer: coarse) { .foot__group a { min-height: 40px; } }
+@media (pointer: coarse) {
+  .foot__logo { min-height: 44px; }
+  .foot__group a { min-height: 40px; }
+}
 @media (max-width: 60rem) { .foot { grid-template-columns: repeat(3, minmax(0, 1fr)); } .foot__brand { grid-column: 1 / -1; } }
 @media (max-width: 40rem) { .foot { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-lg); } }
 /* The footer keeps the full lockup on phones; the header swaps to the symbol alone. */
