@@ -3,21 +3,27 @@ import { SITE, AGENTS } from "./site";
 export { installMd } from "./site";
 import {
   type Prompt, type Skill, type Kit, type Fix, type Area,
-  prompts, skills, kits, fixes, areas, sections, counts, getPrompt, getSkill, getArea,
-  copyText, kindLabel, skillInstall, MODES, TOPO,
+  listed, skills, kits, fixes, areas, sections, counts, getPrompt, getSkill, getArea,
+  copyText, kindLabel, whatOf, whenOf, skillInstall, MODES, TOPO,
 } from "./content";
 
 const u = (p: string) => `${SITE.url}${p}`;
 const fence = (t: string) => "```text\n" + t + "\n```";
-const promptLink = (slug: string) => { const p = getPrompt(slug); return p ? `- [${p.t}](${u(`/prompts/${slug}`)})${p.why ? `: ${p.why}` : ""}` : ""; };
+const promptLink = (slug: string) => { const p = getPrompt(slug); return p ? `- [${p.t}](${u(`/prompts/${slug}`)})${whatOf(p) ? `: ${whatOf(p)}` : ""}` : ""; };
 const skillLink = (name: string) => { const s = getSkill(name); return s ? `- [${s.name}](${u(`/skills/${name}`)}): ${s.description.split(/(?<=\.)\s/)[0]}` : ""; };
 
 export function promptMd(p: Prompt) {
   const area = getArea(p.area)!;
   const out = [`# ${p.t}`, "", `${kindLabel(p)} · ${area.title} · ${p.id}`, ""];
-  if (p.why || p.use) out.push(p.why || p.use || "", "");
+  if (whatOf(p)) out.push(whatOf(p), "");
+  if (whenOf(p)) out.push(`**Use it when:** ${whenOf(p)}`, "");
+  if (p.replacedBy) out.push(`Replaced in the library by [${getPrompt(p.replacedBy)?.t}](${u(`/prompts/${p.replacedBy}`)}).`, "");
   if (p.steps) out.push("## Steps", "", p.steps.map(([c, d], i) => `${i + 1}. \`${c}\`: ${d}`).join("\n"), "");
-  out.push(`## ${p.steps ? "As one prompt" : p.sec === "ecmd" ? "Command" : "Prompt"}`, "", fence(copyText(p)), "");
+  if (p.planSteps) {
+    out.push("## Steps", "", ...(p.split ? ["Run one step per message.", ""] : []), p.planSteps.map((s, i) => `${i + 1}. ${s.slug ? `[${s.label}](${u(`/prompts/${s.slug}`)})` : s.kind === "command" ? `\`${s.label}\`` : s.label}: ${s.note}`).join("\n"), "");
+    if (p.split) for (const [i, s] of p.planSteps.entries()) if (s.copy && s.kind === "prompt") out.push(`### Step ${i + 1}: ${s.label}`, "", fence(s.copy), "");
+  }
+  if (!p.split) out.push(`## ${p.steps || p.planSteps ? "As one prompt" : p.sec === "ecmd" ? "Command" : "Prompt"}`, "", fence(copyText(p)), "");
   const facts: [string, string | undefined][] = [
     ["What it returns", p.ev], ["Skip it when", p.skip || p.skipw], ["Avoid", p.avoid], ["Tools", p.tools], ["Works on", p.plat],
     ["Watch for", p.blind], ["Best for", p.best], ["Changes", p.mode ? (p.iso ? "Tests on a separate copy" : MODES[p.mode]) : undefined],
@@ -86,20 +92,20 @@ export function homeMd() {
 }
 
 export function llmsTxt() {
-  const top = prompts.filter((p) => p.sec === "inv" || p.sec === "db").filter((p) => (p as { imp?: string }).imp === "H" || p.id === "PG00").slice(0, 40);
+  const top = listed.filter((p) => p.sec === "inv" || p.sec === "db").filter((p) => (p as { imp?: string }).imp === "H" || p.id === "PG00").slice(0, 40);
   return [
     `# ${SITE.name}`, "",
     `> ${counts.skills} skills and ${counts.prompts} prompts for AI coding agents (Claude Code, Codex, Cursor and any agent that reads Agent Skills). Every page is public and has a markdown twin at the same URL plus .md.`, "",
     `Install: \`${AGENTS[0].cmd}\`. Public read-only MCP server: ${u("/mcp")}. Everything in one file: ${u("/llms-full.txt")}.`, "",
     "## Kits", "", ...kits.map((k) => `- [${k.title}](${u(`/kits/${k.name}.md`)}): ${k.description}`), "",
     "## Fix a problem", "", ...fixes.map((f) => `- [${f.title}](${u(`/fix/${f.slug}.md`)})`), "",
-    "## Prompt areas", "", ...areas.filter((a) => ["inv", "db", "think", "recipe"].includes(a.sec)).map((a) => `- [${a.title}](${u(`/prompts/${a.slug}.md`)}): ${a.prompts.length} prompts`), "",
-    "## Key prompts", "", ...top.map((p) => `- [${p.t}](${u(`/prompts/${p.slug}.md`)}): ${p.why}`), "",
+    "## Prompt areas", "", ...areas.filter((a) => ["work", "inv", "plan"].includes(a.sec)).map((a) => `- [${a.title}](${u(`/prompts/${a.slug}.md`)}): ${a.prompts.length} prompts`), "",
+    "## Key prompts", "", ...top.map((p) => `- [${p.t}](${u(`/prompts/${p.slug}.md`)}): ${whatOf(p)}`), "",
     "## Skills", "", ...skills.map((s) => `- [${s.name}](${u(`/skills/${s.name}.md`)})${s.credit ? ` by ${s.credit.author}` : ""}`), "",
     "## Optional", "", `- [Source on GitHub](${SITE.repo})`, `- [Credits](${SITE.repo}/blob/main/CREDITS.md)`,
   ].join("\n");
 }
 
 export function llmsFullTxt() {
-  return [homeMd(), ...kits.map(kitMd), ...fixes.map(fixMd), ...prompts.map(promptMd), ...skills.map((s) => skillMd(s, true))].join("\n\n---\n\n");
+  return [homeMd(), ...kits.map(kitMd), ...fixes.map(fixMd), ...listed.map(promptMd), ...skills.map((s) => skillMd(s, true))].join("\n\n---\n\n");
 }
