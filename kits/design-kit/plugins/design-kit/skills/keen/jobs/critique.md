@@ -12,7 +12,14 @@ If PRODUCT.md does not say what this screen is for and you cannot tell from the 
 
 1. **Capture it.** Screenshots at 390 and 1440 wide, in the state a real person usually sees. If the screen has an empty, loading or error state you can reach, capture those too.
 2. **Use it once** as the person in PRODUCT.md would, doing the screen's one job. Note where you hesitated.
-3. **Find out why it is the way it is.** Read PRODUCT.md and DESIGN.md for decisions about this screen, and the notes at the top of the screen's own code. A layout that looks like a mistake may be a choice someone wrote down. When a finding goes against a written decision, report it as a question for the person ("your notes say X; the cost of that is Y"), never as a problem to fix, and do not offer a next step that would quietly reverse it.
+3. **Find out why it is the way it is, before you judge anything.** This step is not optional and the screenshots do not replace it. Read, in this order:
+   - PRODUCT.md and DESIGN.md, for anything said about this screen.
+   - The screen's own source: the component file and its stylesheet. Read the notes written in them. People record decisions there ("phones: the message sits at the top, with the horizon below", "40px for a finger") that appear nowhere else.
+   - What a control does when used, from the code, when you are not going to press it.
+
+   Then sort every finding into one of two kinds. A **fault** is something no note explains or that contradicts the project's own notes. A **question** is something a written decision covers: report it as "your notes say X; the cost of that is Y; is that still what you want?", never as a problem, and never as a next step. Only faults get next steps. A critique that turns up only questions says so plainly; that is a real result.
+
+   List the decisions you read under Details, with where each is written, so the person can see what the critique respected.
 4. **Judge it against the seven questions**, in this order. Stop collecting once you have more than you will report.
 5. **Rank.** Keep the three problems that most get in the way of the screen's job. A problem that blocks the job outranks any number that only look untidy.
 6. **Report**, on the worksheet described in SKILL.md, with each problem pinned on the screenshot it appears in.
