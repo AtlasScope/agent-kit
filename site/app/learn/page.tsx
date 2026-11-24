@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Crumbs } from "@/components/Crumbs";
+import { GuideList, GuideResume } from "@/components/GuideProgress";
+import { JourneyPath } from "@/components/guide/JourneyPath";
+import { lessonItems } from "@/components/guide/items";
 import { LESSONS, STARTER } from "@/lib/lessons";
 
 export const metadata: Metadata = {
@@ -11,25 +14,28 @@ export const metadata: Metadata = {
 
 export default function Learn() {
   return (
-    <main className="page">
+    <main className="page learn-hub">
+      <JourneyPath current="/learn" />
       <div className="page-head">
         <Crumbs items={[["Lessons", "/learn"]]} />
         <h1>Five short lessons</h1>
         <p className="lead">Each one explains one idea and gives you one thing to try on the reading-list app from the <Link href="/start">first-app guide</Link>. Do them in order; each takes a few minutes.</p>
       </div>
 
-      <ol className="start-list">
-        {LESSONS.map((l, i) => (
-          <li key={l.slug}><Link href={`/learn/${l.slug}`}><span className="start-list__n">{String(i + 1).padStart(2, "0")}</span><span><strong>{l.title}</strong></span></Link></li>
-        ))}
-      </ol>
+      <section className="section" aria-labelledby="lessons-h">
+        <h2 id="lessons-h" className="sr">The lessons</h2>
+        <GuideResume items={LESSONS} base="/learn" store="learn" />
+        <GuideList items={lessonItems} base="/learn" store="learn" />
+      </section>
 
-      <section className="section">
-        <h2>Where to start in the library</h2>
-        <p className="start-body">Install <Link href={`/kits/${STARTER.kit}`}>{STARTER.kit}</Link> and use these three skills first. The full catalog is there when you need more.</p>
-        <dl className="facts">
-          {STARTER.skills.flatMap(([name, d]) => [<dt key={name + "t"}><Link href={`/skills/${name}`}>/{name}</Link></dt>, <dd key={name + "d"}>{d}</dd>])}
-        </dl>
+      <section className="section starter" aria-labelledby="starter-h">
+        <h2 id="starter-h">Where to start in the library</h2>
+        <p className="note">Install <Link href={`/kits/${STARTER.kit}`}>{STARTER.kit}</Link> and use these three skills first. The full catalog is there when you need more.</p>
+        <ul className="starter__list">
+          {STARTER.skills.map(([name, d]) => (
+            <li key={name}><Link href={`/skills/${name}`}><code>/{name}</code><span>{d}</span></Link></li>
+          ))}
+        </ul>
       </section>
     </main>
   );

@@ -29,7 +29,7 @@ export function GuideResume({ items, base, store }: { items: Item[]; base: strin
   if (!done.length || !next) return null;
   return (
     <p className="guide-resume">
-      <span>{done.length} of {items.length} done.</span>
+      <span><i className="led is-on" aria-hidden="true" />{done.length} of {items.length} done</span>
       <Link className="btn btn--sm" href={`${base}/${next.slug}`}>Continue: {next.title}</Link>
     </p>
   );
@@ -80,11 +80,35 @@ export function GuideRail({ items, base, store, current, label }: { items: Item[
   );
 }
 
+// The progress meter under a step or lesson title: one segment per item, finished ones lit, this one solid.
+// Each segment is a link, so the meter doubles as a jump bar on phones where the side list sits below the page.
+export function StepMeter({ items, base, store, current, noun }: { items: Item[]; base: string; store: string; current: string; noun: string }) {
+  const done = useDone(store);
+  const here = items.findIndex((s) => s.slug === current);
+  return (
+    <nav className="meter" aria-label={`${noun} ${here + 1} of ${items.length}`}>
+      <ol>
+        {items.map((s, i) => {
+          const d = done.includes(s.slug), now = s.slug === current;
+          return (
+            <li key={s.slug} className={[now && "is-here", d && "is-done"].filter(Boolean).join(" ") || undefined}>
+              <Link href={`${base}/${s.slug}`} aria-current={now ? "step" : undefined} title={s.title}>
+                <span className="sr">{noun} {i + 1}: {s.title}{d ? " (done)" : ""}</span>
+              </Link>
+            </li>
+          );
+        })}
+      </ol>
+      {done.length > 0 && <p className="meter__label"><i className="led is-on" aria-hidden="true" />{done.length} of {items.length} done</p>}
+    </nav>
+  );
+}
+
 // The Next button: marks this item done in the browser, then follows the link.
 export function GuideNext({ href, store, current, children }: { href: string; store: string; current: string; children: React.ReactNode }) {
   return (
-    <Link className="btn btn--solid" href={href} onClick={() => {
+    <Link className="btn btn--lg btn--primary guide-next" href={href} onClick={() => {
       try { const d = read(store); if (!d.includes(current)) localStorage.setItem(KEY(store), JSON.stringify([...d, current])); } catch {}
-    }}>{children}</Link>
+    }}>{children}<svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></Link>
   );
 }

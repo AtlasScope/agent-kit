@@ -27,7 +27,7 @@ export function StartWelcome({ enabled }: { enabled: boolean }) {
         <p>Star the prompts and skills you use in the guide, group them into collections, and share a collection with a link. Everything here also works without one.</p>
       </div>
       <div className="welcome__do">
-        <Link className="btn btn--solid" href={signInHref("/start")}>Create a free account</Link>
+        <Link className="btn btn--primary" href={signInHref("/start")}>Create a free account</Link>
         <button type="button" className="btn btn--ghost" onClick={() => setShow(false)}>Not now</button>
       </div>
     </section>
