@@ -120,6 +120,19 @@
 .lic { text-decoration-color: var(--c-line-2); text-underline-offset: 0.2em; }
 @media (hover: hover) and (pointer: fine) { .crumbs a:hover { color: var(--c-fg); } }
 @media (hover: hover) and (pointer: fine) { .lic:hover { color: var(--c-fg); text-decoration-color: currentColor; } }
+/* Touch: .lic inline actions and breadcrumb links get a hit area at least --tap tall, with no visual or layout change.
+   On an inline link the vertical padding is hit-testable but doesn't move the line, and it applies to each line of a
+   wrapped link; the box is about 1.2em of glyph area plus this padding, so it clears --tap at any font size. The
+   negative margin does nothing on an inline box and cancels the padding where a lane lays the link out as a block or
+   flex item. Only links whose sole class is lic, and unclassed crumbs: a link with a lane class of its own may set its
+   own padding or min-height, and the margin must never apply without the padding (.sd-eyebrow sizes its own too).
+   Plain prose links are left as they are: lines sit closer than --tap, so a taller box would reach into the next
+   line's links. The focus ring is pulled back in to fit the text. */
+@media (pointer: coarse) {
+  :where(a[class="lic"][href]:not(.sd-eyebrow a), .crumbs a[href]:not([class])) {
+    --hit: max(0px, calc((var(--tap) - 1em) / 2)); padding-block: var(--hit); margin-block: calc(-1 * var(--hit)); }
+  a[class="lic"]:focus-visible, .crumbs a:not([class]):focus-visible { outline-offset: calc(2px - var(--hit, 0px)); }
+}
 /* Stage (Home, /install): buttons keep main's look until Fable's track decides. */
 :root:has(.home, .quiet) { --control-h: 40px; --control-h-sm: 34px; }
 :root:has(.home, .quiet) .btn { border-color: var(--color-rule-2); box-shadow: none; font-weight: 550; letter-spacing: normal; }
