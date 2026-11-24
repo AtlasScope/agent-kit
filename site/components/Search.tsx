@@ -2,15 +2,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
-import { find, marks, keyOf, pushRecent, readRecent, writeRecent, SCOPES, KIND_LABEL, type Entry, type Recent, type Scope } from "@/lib/search";
+import { find, marks, keyOf, copyUrl, pushRecent, readRecent, writeRecent, SCOPES, KIND_LABEL, type Entry, type Recent, type Scope } from "@/lib/search";
 import "./search/palette.css";
 
 // Site search as a command palette. The header holds a button; ⌘K or Ctrl+K anywhere, "/" outside a text field,
 // or the phone header's Search button (the "agent-kit:search" event) opens it. It is a native modal dialog, so the
 // browser traps focus and gives it back on close; it is portalled to <body> so it takes the page's theme rather
-// than the always-dark header's. The index (/search-index.json) loads the first time the pointer or focus reaches
-// the button, or, on touch screens where there is no hover, once the page is idle. Ranking runs in the browser
-// with the same code as /api/search. If the index can't load, typed queries fall back to /api/search.
+// than the always-dark header's. The index (/search-index.v2.json) loads on the first sign of intent: the pointer or
+// focus reaching the button, a tap on it or on the phone header's Search button, ⌘K or "/". Nothing loads before
+// that, so pages that never search never pay for it. Ranking runs in the browser with the same code as /api/search.
+// If the index can't load, typed queries fall back to /api/search. The index leaves out what Copy sends; each
+// result's text is fetched from /search-copy when it is previewed or copied.
 //
 // Keys: ↑ ↓ (or Ctrl+N / Ctrl+P) move, Enter opens, ⌘Enter or Ctrl+Enter copies the result's prompt or install
 // command, Shift+Enter opens in a new tab, Escape clears the query and then closes. Every result is a real link,
@@ -23,11 +25,41 @@ type Group = { label: string; items: Entry[] };
 let indexPromise: Promise<Entry[]> | null = null;
 let loaded: Entry[] | null = null;
 function loadIndex() {
-  indexPromise ??= fetch("/search-index.json").then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+  indexPromise ??= fetch("/search-index.v2.json").then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
     .then((e: Entry[]) => (loaded = e));
-  indexPromise.catch(() => { indexPromise = null; });
-  return indexPromise;
+  const mine = indexPromise;
+  mine.catch(() => { if (indexPromise === mine) indexPromise = null; });
+  return mine;
 }
+
+// Copy texts by URL (which carries the text's version): `texts` holds the requests, `known` the answers, so a
+// cached text can go to the clipboard inside the click or key event without waiting. A text that fails to load
+// (offline, slow past 10 s, or a result a deploy removed while this browser still had the old index) leaves the cache,
+// so the next preview or Copy asks again.
+const texts = new Map<string, Promise<string>>();
+const known = new Map<string, string>();
+// A text request that gives up after `ms`, body included. (AbortSignal.timeout is missing before Safari 16 and
+// Chrome 103.)
+function textWithin(url: string, ms: number): Promise<string> {
+  const c = new AbortController(), t = setTimeout(() => c.abort(), ms);
+  return fetch(url, { signal: c.signal }).then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status))))).finally(() => clearTimeout(t));
+}
+const isGone = (err: unknown) => err instanceof Error && err.message === "404";
+// A 404 means the result changed in a deploy after this page loaded its index (browsers keep it 5 minutes).
+const CHANGED = "This result changed in an update. Reload the page for the latest list.";
+function copyText(e: Entry): Promise<string> {
+  if (e.copy?.text !== undefined) return Promise.resolve(e.copy.text);
+  const k = copyUrl(e);
+  let p = texts.get(k);
+  if (!p) {
+    p = textWithin(k, 10000).then((t) => { known.set(k, t); return t; });
+    const mine = p;
+    p.catch(() => { if (texts.get(k) === mine) texts.delete(k); });
+    texts.set(k, p);
+  }
+  return p;
+}
+const knownText = (e: Entry) => e.copy?.text ?? known.get(copyUrl(e));
 
 const SearchIcon = () => (
   <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
@@ -64,7 +96,7 @@ export function Search() {
   const router = useRouter();
   const path = usePathname();
 
-  // Stable, and reads module state rather than render state, so the idle preload and every open see the truth.
+  // Stable, and reads module state rather than render state, so every warm-up and every open see the truth.
   // After a failure it retries quietly: the palette stays on server results until a retry succeeds.
   // A failed load is retried at most every 15 seconds, however often the button is hovered or the palette opened.
   const failed = useRef(false);
@@ -101,16 +133,12 @@ export function Search() {
   };
 
   useEffect(() => { setMounted(true); setMod(isMac() ? "⌘" : "Ctrl"); }, []);
-  // Fetch the index once the page is idle, so a phone's first tap on Search doesn't wait for it. Skipped when the
-  // visitor asked to save data; it then loads on first use instead.
-  // Touch screens only: a mouse warms it on hover, a finger gives no warning before the tap.
+  // The phone header's Search button lives in NavMenu; its press starts the fetch about 100 ms before its click
+  // opens the palette. (The header field warms itself: pointerenter fires on touch as well as hover.)
   useEffect(() => {
-    const conn = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
-    if (conn?.saveData || !matchMedia("(hover: none)").matches) return;
-    const ric = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 2500));
-    const cancel = window.cancelIdleCallback ?? window.clearTimeout;
-    const id = ric(() => warm(), { timeout: 5000 });
-    return () => cancel(id);
+    const down = (e: PointerEvent) => { if ((e.target as Element | null)?.closest?.(".nav__find")) warm(); };
+    document.addEventListener("pointerdown", down, true);
+    return () => document.removeEventListener("pointerdown", down, true);
   }, [warm]);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
@@ -176,6 +204,37 @@ export function Search() {
   const active = items[Math.min(cur, items.length - 1)];
 
   useEffect(() => { setCur(0); list.current?.scrollTo({ top: 0 }); }, [q, scope]);
+  // On wide screens the preview shows the selected result's Copy text. It is fetched once the selection rests for a
+  // moment, so holding an arrow key doesn't request every result it passes. Phones have no preview and fetch a text
+  // only when it is copied.
+  // `text: null` means the fetch failed (Copy tries again and, if it succeeds, fills the preview).
+  // `waiting` turns on after 400 ms without the text (a timer, so reduced motion shows it).
+  const [payload, setPayload] = useState<{ key: string; text: string | null; gone?: boolean } | null>(null);
+  const [waiting, setWaiting] = useState(false);
+  const [wide, setWide] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    const mq = matchMedia("(min-width: 900px)"), on = () => setWide(mq.matches);
+    on(); mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, [open]);
+  useEffect(() => {
+    setWaiting(false);
+    if (!open || !wide || !active?.copy) return;
+    const k = copyUrl(active), have = knownText(active);
+    if (have !== undefined) { setPayload({ key: k, text: have }); return; }
+    // Coming back to a text that failed: it shows as loading again while it retries.
+    setPayload((p) => (p?.key === k ? null : p));
+    let live = true;
+    const e = active;
+    const t = setTimeout(() => copyText(e).then((text) => { if (live) setPayload({ key: k, text }); },
+      (err) => { if (live) setPayload({ key: k, text: null, gone: isGone(err) }); }), 120);
+    const w = setTimeout(() => setWaiting(true), 400);
+    return () => { live = false; clearTimeout(t); clearTimeout(w); };
+  }, [open, wide, active]);
+  // A text already fetched shows straight away, without waiting for the effect.
+  const cached = active?.copy ? knownText(active) : undefined;
+  const shown = cached !== undefined ? { text: cached } : active?.copy && payload?.key === copyUrl(active) ? payload : undefined;
   useEffect(() => {
     if (!active) return;
     document.getElementById(`cmdk-${keyOf(active)}`)?.scrollIntoView({ block: "nearest" });
@@ -189,11 +248,47 @@ export function Search() {
     setQ(""); setScope("all");
     if (e.href !== path) router.push(e.href);
   };
-  const say = (msg: string) => { clearTimeout(toastTimer.current); setToast(msg); toastTimer.current = setTimeout(() => setToast(""), 2400); };
+  // A sticky message (progress) stays until the next one replaces it.
+  const slowTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const say = (msg: string, sticky = false) => { clearTimeout(toastTimer.current); clearTimeout(slowTimer.current); setToast(msg); if (!sticky) toastTimer.current = setTimeout(() => setToast(""), 2400); };
+  // A text already fetched is written at once. Otherwise the clipboard is handed a promise of it (ClipboardItem),
+  // which keeps the user's gesture valid in Safari while the text loads; browsers without that wait, then write.
   const copy = async (e: Entry) => {
-    if (!e.copy) { say("Nothing to copy here. Press Enter to open it."); return; }
-    try { await navigator.clipboard.writeText(e.copy.text); say(e.copy.done); remember(e); }
-    catch { say("Copy was blocked. Open the page and copy from there."); }
+    const c = e.copy;
+    if (!c) { say("Nothing to copy here. Press Enter to open it."); return; }
+    const have = knownText(e), k = copyUrl(e);
+    let text: Promise<string> | null = null, late = false, slow: ReturnType<typeof setTimeout> | undefined;
+    try {
+      if (have !== undefined) await navigator.clipboard.writeText(have);
+      else {
+        text = copyText(e);
+        // Phones have no preview, so say something if the text takes a moment.
+        // Shared, so a later message (another copy's) cancels it.
+        const s = slow = slowTimer.current = setTimeout(() => say("Copying…", true), 300);
+        text.finally(() => clearTimeout(s)).catch(() => {});
+        text.then((t) => setPayload((p) => (p?.key === k ? { key: k, text: t } : p)), () => {});
+        try {
+          if (typeof ClipboardItem === "undefined" || !navigator.clipboard.write) throw new Error("unsupported");
+          const blob = text.then((t) => new Blob([t], { type: "text/plain" }));
+          blob.catch(() => {});
+          await navigator.clipboard.write([new ClipboardItem({ "text/plain": blob })]);
+        } catch {
+          // Writes the text once it arrives; a failed fetch rejects here and is reported below. This write comes
+          // after the key or click, so a browser may refuse it; the text is cached by then.
+          late = true;
+          await navigator.clipboard.writeText(await text);
+        }
+      }
+      clearTimeout(slow); say(c.done); remember(e);
+    } catch (err) {
+      // Settle the text first: the clipboard can fail before the fetch does, and the fetch is the real cause.
+      const loadFailed = text ? await text.then(() => null, (err: unknown) => err ?? true) : null;
+      clearTimeout(slow);
+      // The text arrived but the browser refused the late write; it is cached now, so a second press writes it at once.
+      if (late && !loadFailed && navigator.clipboard && err instanceof DOMException && err.name === "NotAllowedError") say("The text is ready now. Press Copy again.");
+      else if (isGone(loadFailed)) say(CHANGED);
+      else say(loadFailed ? "Couldn’t load the text to copy. Open the page and copy from there." : "Copy was blocked. Open the page and copy from there.");
+    }
   };
 
   const onKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -273,7 +368,9 @@ export function Search() {
               <p className="cmdk__meta"><span className="cmdk__dot" aria-hidden="true" data-kind={active.kind} />{active.meta}</p>
               <h2 className="cmdk__ph" translate={active.kind === "skill" || active.kind === "kit" ? "no" : undefined}>{active.title}</h2>
               {active.summary && <p className="cmdk__ps">{active.summary}</p>}
-              {active.copy && <pre className="cmdk__payload" data-long={active.copy.text.length > 360 || undefined} aria-label={`${active.copy.label.replace(/^Copy /, "")} text`}>{active.copy.text}</pre>}
+              {active.copy && typeof shown?.text === "string" && <pre className="cmdk__payload" data-long={shown.text.length > 360 || undefined} aria-label={`${active.copy.label.replace(/^Copy /, "")} text`}>{shown.text}</pre>}
+              {active.copy && !shown && waiting && <p className="cmdk__ps">Loading the text…</p>}
+              <p className="cmdk__ps cmdk__pnote">{active.copy && shown?.text === null ? ("gone" in shown && shown.gone ? CHANGED : "The text didn’t load. Copy will try again.") : ""}</p>
               <div className="cmdk__actions">
                 <button type="button" className="cmdk__btn cmdk__btn--main" onClick={() => go(active)}>Open<kbd aria-hidden="true">↵</kbd></button>
                 {active.copy && <button type="button" className="cmdk__btn" onClick={() => copy(active)}>{active.copy.label}<kbd aria-hidden="true">{mod}↵</kbd></button>}
@@ -296,7 +393,7 @@ export function Search() {
 
   return (
     <>
-      <div className="search" role="search">
+      <div className="search" role="search" aria-label="Site search">
         <SearchIcon />
         <button type="button" className="search__trigger" aria-haspopup="dialog" aria-keyshortcuts="Meta+K Control+K /"
           onClick={show} onPointerEnter={warm} onFocus={warm}>
