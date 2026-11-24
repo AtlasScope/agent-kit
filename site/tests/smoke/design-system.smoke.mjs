@@ -34,7 +34,7 @@ after(async () => {
 
 // Is any part of this button the topmost element somewhere inside the viewport below the header?
 // Samples its visible area on a small grid, the way a finger or pointer would find it.
-const pressable = (sel) => (s) => {
+const pressable = (s) => {
   const b = document.querySelector(s);
   if (!b) return false;
   const r = b.getBoundingClientRect();
@@ -63,13 +63,40 @@ for (const size of SIZES) {
     for (let y = Math.max(0, from); y <= to; y += 4) {
       await page.evaluate((v) => scrollTo(0, v), y);
       await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
-      const panel = await page.evaluate(pressable(), ".ds-float .block__head .copy");
-      const bar = await page.evaluate(pressable(), ".fcopy[data-on] .fcopy__copy");
+      const panel = await page.evaluate(pressable, ".ds-float .block__head .copy");
+      const bar = await page.evaluate(pressable, ".fcopy[data-on] .fcopy__copy");
       seenBar ||= bar;
       assert.ok(panel || bar, `at scrollY ${y} neither the panel's Copy nor the floating Copy can be pressed`);
     }
     assert.ok(seenBar, "the floating bar showed somewhere in the range");
+    // Past the example's end edge the bar hides again.
+    const past = await page.evaluate(() => Math.ceil(document.querySelector(".ds-float").getBoundingClientRect().bottom + scrollY + 40));
+    await page.evaluate((v) => scrollTo(0, v), past);
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    assert.equal(await page.locator(".fcopy[data-on]").count(), 0, "the bar hides once the example has scrolled past");
     assert.deepEqual(errors, []);
+    await ctx.close();
+  });
+
+  test(`${size.name}: a blocked clipboard in FloatingCopy keeps the message up and brings the panel back`, async () => {
+    const ctx = await browser.newContext({ ...size, reducedMotion: "reduce" });
+    const page = await ctx.newPage();
+    await page.addInitScript(() => { navigator.clipboard.writeText = () => Promise.reject(new Error("blocked")); });
+    await page.goto(base + "/design-system", { waitUntil: "networkidle" });
+    const y = await page.evaluate(() => Math.ceil(document.querySelector(".ds-float .block__head").getBoundingClientRect().bottom + scrollY - 20));
+    await page.evaluate((v) => scrollTo(0, v), y);
+    const bar = page.locator(".fcopy[data-on] .fcopy__copy");
+    await bar.waitFor();
+    await bar.click();
+    await page.locator(".fcopy[data-on] .fcopy__copy[data-blocked]").waitFor();
+    assert.match(await bar.textContent(), /Copy blocked/);
+    const panel = await page.evaluate(() => {
+      const r = document.querySelector(".ds-float .block__head").getBoundingClientRect();
+      return { inView: r.top >= document.querySelector(".top").getBoundingClientRect().bottom && r.bottom <= innerHeight,
+        focus: document.activeElement === document.querySelector(".ds-float .block__head .copy") };
+    });
+    assert.ok(panel.inView, "the panel scrolled back into view");
+    assert.ok(panel.focus, "focus moved to the panel's Copy");
     await ctx.close();
   });
 }

@@ -9,13 +9,16 @@ import { CopyButton } from "@/components/CopyButton";
 // `end` (optional) is where the bar stops being relevant: once its bottom edge is behind the header too, the bar hides.
 // Render both in the same commit as the bar (the refs are read on mount). Pass `name` so the two Copy buttons are told
 // apart by a screen reader, for example "Copy the install command".
-// If the clipboard refuses, the page scrolls the anchor back into view so the reader can select the text there.
+// If the clipboard refuses, the bar keeps its message up, the page scrolls the anchor back into view and focus moves to
+// the anchor's first control, so the reader can select the text there.
 // The bar never shows before the reader reaches the panel, and is inert while hidden so it takes no focus.
 // Styles: .fcopy in app/styles/primitives.css. Reduced motion removes its travel.
 export function FloatingCopy({ anchor, end, text, title, detail, name, label = "Copy" }: {
   anchor: RefObject<HTMLElement | null>; end?: RefObject<HTMLElement | null>; text: string; title: string; detail?: string; name?: string; label?: string;
 }) {
   const [away, setAway] = useState(false);
+  // While the bar's Copy reports a blocked clipboard, the bar stays up so its message stays readable and announced.
+  const [held, setHeld] = useState(false);
   const bar = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = anchor.current;
@@ -36,18 +39,24 @@ export function FloatingCopy({ anchor, end, text, title, detail, name, label = "
     addEventListener("resize", queue);
     return () => { cancelAnimationFrame(raf); removeEventListener("scroll", queue); removeEventListener("resize", queue); };
   }, [anchor, end]);
-  // A blocked clipboard: bring the panel back, where its text can be selected; the bar then hides by itself.
+  // A blocked clipboard: bring the panel back, where its text can be selected, and move focus to the panel's first
+  // control so a keyboard user lands next to the text. data-blocked is CopyButton's documented contract.
   useEffect(() => {
     const b = bar.current?.querySelector("button");
     if (!b) return;
     const watch = new MutationObserver(() => {
-      if (b.hasAttribute("data-blocked")) anchor.current?.scrollIntoView({ block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      const blocked = b.hasAttribute("data-blocked");
+      setHeld(blocked);
+      const el = anchor.current;
+      if (!blocked || !el) return;
+      el.scrollIntoView({ block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      el.querySelector<HTMLElement>("button, a[href], [tabindex]")?.focus({ preventScroll: true });
     });
     watch.observe(b, { attributes: true, attributeFilter: ["data-blocked"] });
     return () => watch.disconnect();
   }, [anchor]);
   return (
-    <div className="fcopy" ref={bar} data-on={away || undefined} inert={!away}>
+    <div className="fcopy" ref={bar} data-on={away || held || undefined} inert={!(away || held)}>
       <span className="fcopy__label">
         <span className="fcopy__title">{title}</span>
         {detail && <span className="fcopy__detail">{detail}</span>}
