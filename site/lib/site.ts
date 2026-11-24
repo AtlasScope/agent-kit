@@ -28,6 +28,10 @@ export const HERO = {
 // which agent they use or open a terminal. The per-agent commands stay on the install page for doing it by hand.
 export const INSTALL_MESSAGE = `Install Agent Kit for me from ${SITE.repo}. Follow the steps for the agent you are at ${SITE.url}/install.md, then tell me what you installed and how to start it.`;
 
+// The same idea for one kit, on that kit's page. Claude Code and Codex install kit by kit, so the agent runs two
+// commands from its section of /install.md. Agents that can only take every kit at once are told to ask first.
+export const kitInstallMessage = (kit: string) => `Install only the ${kit} kit from Agent Kit for me (${SITE.repo}). Open ${SITE.url}/install.md and find the section for the agent you are. Run its first command, then only the command that names ${kit}. If your section has one command that installs every kit, ask me before running it. Then tell me what you installed and how to start it.`;
+
 // Install paths per agent. `steps` run in order and Copy copies all of them. `tested` names the CLI
 // and date of the last clean-environment run (install, list, update, remove); null means documented only.
 // The plugin agents install every kit, one line each, so "install it once" is true. KITS must list every kit in
