@@ -181,7 +181,8 @@ for (const size of SIZES) {
     await opt.waitFor();
     await opt.hover();
     await box.press(`${mod}+Enter`);
-    await page.getByRole("status").filter({ hasText: "may have changed" }).waitFor();
+    // The preview says it on a wide screen, the toast on a phone.
+    await page.locator("text=/may have changed/ >> visible=true").first().waitFor();
     // The next open fetches the index again, past the cache.
     const again = page.waitForRequest((r) => r.url().endsWith("/search-index.v2.json"));
     await box.press("Escape"); await box.press("Escape");

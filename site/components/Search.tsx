@@ -24,21 +24,26 @@ type Group = { label: string; items: Entry[] };
 
 let indexPromise: Promise<Entry[]> | null = null;
 let loaded: Entry[] | null = null;
-// Set when a Copy text 404s: this tab's index may predate a deploy that removed or renamed the result. The next
-// open then fetches the index again past the browser cache, which also replaces the cached copy. The index in hand
-// stays in use until the new one arrives, and if the refetch fails.
-let refetch = false;
-function staleIndex() { refetch = true; indexPromise = null; }
-function loadIndex() {
-  if (indexPromise) return indexPromise;
-  const reload = refetch;
-  refetch = false;
+// A Copy text that 404s means this tab's index may predate a deploy that removed or renamed the result. The next
+// open then fetches the index once more past the browser cache (which also replaces the cached copy), at most once
+// per page so a text that stays missing can't cause repeated downloads. The index in hand stays in use meanwhile,
+// and if that fetch fails. Loads are numbered and only a newer one can replace `loaded`.
+let refetch = false, refetched = false, seq = 0, applied = 0;
+function staleIndex(): boolean {
+  if (refetched) return false;
+  refetch = true;
+  return true;
+}
+function loadIndex(): Promise<Entry[]> {
+  const reload = refetch && !refetched;
+  if (indexPromise && !reload) return indexPromise;
+  if (reload) { refetch = false; refetched = true; }
+  const n = ++seq;
   const mine: Promise<Entry[]> = fetch("/search-index.v2.json", reload ? { cache: "reload" } : undefined)
     .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-    // A load overtaken by staleIndex() doesn't count.
-    .then((e: Entry[]) => { if (indexPromise === mine) loaded = e; return e; });
+    .then((e: Entry[]) => { if (n > applied) { applied = n; loaded = e; } return loaded ?? e; });
   indexPromise = mine;
-  mine.catch(() => { if (indexPromise === mine) { indexPromise = null; if (reload) refetch = true; } });
+  mine.catch(() => { if (indexPromise === mine) indexPromise = null; });
   return mine;
 }
 
@@ -48,10 +53,11 @@ function loadIndex() {
 // so the next preview or Copy asks again.
 const texts = new Map<string, Promise<string>>();
 const known = new Map<string, string>();
-// A fetch that gives up after `ms`. (AbortSignal.timeout is missing before Safari 16 and Chrome 103.)
-function fetchWithin(url: string, ms: number): Promise<Response> {
+// A text request that gives up after `ms`, body included. (AbortSignal.timeout is missing before Safari 16 and
+// Chrome 103.)
+function textWithin(url: string, ms: number): Promise<string> {
   const c = new AbortController(), t = setTimeout(() => c.abort(), ms);
-  return fetch(url, { signal: c.signal }).finally(() => clearTimeout(t));
+  return fetch(url, { signal: c.signal }).then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status))))).finally(() => clearTimeout(t));
 }
 const isGone = (err: unknown) => err instanceof Error && err.message === "404";
 const CHANGED = "This result may have changed since the page loaded. Close and reopen search to refresh the list.";
@@ -60,7 +66,7 @@ function copyText(e: Entry): Promise<string> {
   const k = copyUrl(e);
   let p = texts.get(k);
   if (!p) {
-    p = fetchWithin(k, 10000).then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status))))).then((t) => { known.set(k, t); return t; });
+    p = textWithin(k, 10000).then((t) => { known.set(k, t); return t; });
     const mine = p;
     p.catch(() => { if (texts.get(k) === mine) texts.delete(k); });
     texts.set(k, p);
@@ -111,11 +117,11 @@ export function Search() {
   const lastTry = useRef(0);
   const warm = useCallback(() => {
     if (loaded) { setEntries(loaded); setStatus("ready"); if (!refetch) return; }
-    if (failed.current && Date.now() - lastTry.current < 15000) return;
+    else if (failed.current && Date.now() - lastTry.current < 15000) return;
     lastTry.current = Date.now();
     if (!failed.current && !loaded) setStatus("loading");
-    loadIndex().then((e) => { if (loaded !== e) return; failed.current = false; setEntries(e); setStatus("ready"); },
-      () => { failed.current = true; if (!loaded) setStatus("error"); });
+    loadIndex().then((e) => { failed.current = false; setEntries(e); setStatus("ready"); },
+      () => { if (!loaded) { failed.current = true; setStatus("error"); } });
   }, []);
 
   // Opens synchronously inside the click or key event, so iOS Safari raises the keyboard for the field.
@@ -237,7 +243,7 @@ export function Search() {
     let live = true;
     const e = active;
     const t = setTimeout(() => copyText(e).then((text) => { if (live) setPayload({ key: k, text }); },
-      (err) => { if (!live) return; if (isGone(err)) staleIndex(); setPayload({ key: k, text: null, gone: isGone(err) }); }), 120);
+      (err) => { if (live) setPayload({ key: k, text: null, gone: isGone(err) && staleIndex() }); }), 120);
     const w = setTimeout(() => setWaiting(true), 400);
     return () => { live = false; clearTimeout(t); clearTimeout(w); };
   }, [open, wide, active]);
@@ -294,7 +300,11 @@ export function Search() {
       clearTimeout(slow);
       // The text arrived but the browser refused the late write; it is cached now, so a second press writes it at once.
       if (late && !loadFailed && navigator.clipboard && err instanceof DOMException && err.name === "NotAllowedError") say("The text is ready now. Press Copy again.");
-      else if (isGone(loadFailed)) { staleIndex(); say(CHANGED); }
+      else if (isGone(loadFailed) && staleIndex()) {
+        // Where the preview shows this result its note says it; elsewhere the toast does.
+        setPayload({ key: k, text: null, gone: true });
+        if (!(wide && active === e)) say(CHANGED);
+      }
       else say(loadFailed ? "Couldn’t load the text to copy. Open the page and copy from there." : "Copy was blocked. Open the page and copy from there.");
     }
   };
@@ -378,7 +388,7 @@ export function Search() {
               {active.summary && <p className="cmdk__ps">{active.summary}</p>}
               {active.copy && typeof shown?.text === "string" && <pre className="cmdk__payload" data-long={shown.text.length > 360 || undefined} aria-label={`${active.copy.label.replace(/^Copy /, "")} text`}>{shown.text}</pre>}
               {active.copy && !shown && waiting && <p className="cmdk__ps">Loading the text…</p>}
-              <p className="cmdk__ps cmdk__pnote" aria-live="polite">{active.copy && shown?.text === null ? ("gone" in shown && shown.gone ? "This text is no longer available." : "The text didn’t load. Copy will try again.") : ""}</p>
+              <p className="cmdk__ps cmdk__pnote" aria-live="polite">{active.copy && shown?.text === null ? ("gone" in shown && shown.gone ? CHANGED : "The text didn’t load. Copy will try again.") : ""}</p>
               <div className="cmdk__actions">
                 <button type="button" className="cmdk__btn cmdk__btn--main" onClick={() => go(active)}>Open<kbd aria-hidden="true">↵</kbd></button>
                 {active.copy && <button type="button" className="cmdk__btn" onClick={() => copy(active)}>{active.copy.label}<kbd aria-hidden="true">{mod}↵</kbd></button>}
