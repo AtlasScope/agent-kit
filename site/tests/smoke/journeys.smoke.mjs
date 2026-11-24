@@ -95,12 +95,58 @@ for (const size of SIZES) {
       await page.getByRole("banner").getByRole("link", { name: "Skills" }).click();
     }
     await page.waitForURL(/\/skills$/);
-    // On phones the field opens from the header's Search button; it is hidden until then.
-    if (size.name === "phone") await page.getByRole("banner").getByRole("button", { name: "Search", exact: true }).click();
-    await page.getByRole("combobox", { name: "Search prompts and skills" }).fill("slow page");
-    // A real result, not the "Nothing matches" row (also an option).
-    await page.locator('#search-results [role="option"] a').first().waitFor();
+    // Search opens from the header: the field-shaped button on a computer, the Search button on a phone.
+    const banner = page.getByRole("banner");
+    await (size.name === "phone" ? banner.getByRole("button", { name: "Search", exact: true }) : banner.getByRole("button", { name: /^Search prompts/ })).click();
+    await page.getByRole("combobox", { name: "Search the library" }).fill("slow page");
+    await page.locator('#search-results a[role="option"]').first().waitFor();
     await noSideScroll(page, "/skills");
+    assert.deepEqual(errors, []);
+    await ctx.close();
+  });
+
+  test(`${size.name}: the search palette opens, copies, opens a result and remembers it`, async () => {
+    const p = data.prompts.find((x) => x.id === "PG02" && !x.replacedBy);
+    const { page, ctx, errors } = await open(size, "/skills");
+    const mod = process.platform === "darwin" ? "Meta" : "Control";
+    // The shortcut hint reads "⌘K" or "Ctrl K" once the page has hydrated and the shortcut listener is attached.
+    await page.getByRole("banner").locator(".kbd", { hasText: "K" }).waitFor({ state: "attached" });
+    await page.keyboard.press(`${mod}+k`);
+    const box = page.getByRole("combobox", { name: "Search the library" });
+    await box.waitFor();
+    assert.ok(await box.evaluate((el) => el === document.activeElement), "the field has focus");
+    // With nothing typed it offers the main pages.
+    await page.locator('#search-results a[role="option"][href="/install"]').waitFor();
+    await box.fill("PG02");
+    const first = page.locator('#search-results a[role="option"]').first();
+    await first.waitFor();
+    assert.equal(await first.getAttribute("href"), `/prompts/${p.slug}`, "an exact id comes first");
+    assert.equal(await first.getAttribute("aria-selected"), "true");
+    assert.equal(await box.getAttribute("aria-activedescendant"), await first.getAttribute("id"));
+    await box.press(`${mod}+Enter`);
+    await page.getByRole("status").filter({ hasText: "copied" }).waitFor();
+    assert.equal(await clipboard(page), composeCopy(p), "the palette copies the same text as the prompt page");
+    // Escape clears the query first, then closes.
+    await box.press("Escape");
+    assert.equal(await box.inputValue(), "");
+    await box.press("Escape");
+    await box.waitFor({ state: "hidden" });
+    // "/" opens it too; arrows move and Enter opens the result.
+    await page.keyboard.press("/");
+    await box.waitFor({ timeout: 5000 }).catch(async () => {
+      const state = await page.evaluate(() => ({ open: document.querySelector("dialog.cmdk")?.open, active: document.activeElement?.outerHTML.slice(0, 160) }));
+      assert.fail(`"/" did not reopen the palette: ${JSON.stringify(state)}; page errors: ${JSON.stringify(errors)}`);
+    });
+    await box.fill("tdd");
+    await page.locator('#search-results a[role="option"][href="/skills/tdd"]').waitFor();
+    await box.press("Enter");
+    await page.waitForURL(/\/skills\/tdd$/);
+    await box.waitFor({ state: "hidden" });
+    await page.keyboard.press(`${mod}+k`);
+    const recent = page.getByRole("group", { name: "Recent" });
+    await recent.locator('a[href="/skills/tdd"]').waitFor();
+    await recent.locator(`a[href="/prompts/${p.slug}"]`).waitFor();
+    await noSideScroll(page, "/skills/tdd");
     assert.deepEqual(errors, []);
     await ctx.close();
   });

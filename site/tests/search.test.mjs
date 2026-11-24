@@ -8,45 +8,11 @@ import fs from "node:fs";
 import { makeSearch } from "../lib/search.ts";
 
 const data = JSON.parse(fs.readFileSync(new URL("../content/generated.json", import.meta.url), "utf8"));
-const search = makeSearch(data.prompts, data.skills);
+// Retired entries keep their pages but leave search (lib/content.ts), so the benchmark runs on what the site searches.
+const search = makeSearch(data.prompts.filter((p) => !p.replacedBy), data.skills);
 const key = (r) => (r.kind === "skill" ? "s:" : "") + r.ref;
 
-export const PLAIN = [
-  ["my app is slow", ["slowest-journeys-end-to-end", "diagnosing-bugs", "s:diagnosing-bugs", "one-slow-step-that-blocks-the-rest"]],
-  ["the page looks cramped on a phone", ["feels-right-on-a-phone", "design", "s:design", "impeccable-adapt"]],
-  ["numbers in the database are wrong", ["can-we-independently-prove-these-numbers", "is-the-data-actually-right", "where-did-this-number-come-from", "s:database"]],
-  ["check accessibility", ["web-design-guidelines", "impeccable-audit", "pre-ship-check"]],
-  ["write better error messages", ["ux-writing", "s:ux-writing"]],
-  ["review my pull request", ["code-review", "differential-review-diff-review"]],
-  ["plan a new feature", ["spec-without-the-interview", "grill-me", "s:grill-me", "s:to-questionnaire"]],
-  ["code is too complicated", ["s:improve-codebase-architecture", "improve-codebase-architecture", "layers-that-dont-earn-their-keep", "simplify", "s:codebase-design"]],
-  ["security holes", ["security-review", "outside-input-reaching-sensitive-actions", "security-checks-that-fail-open"]],
-  ["tests pass but bugs still ship", ["unit-tests-that-give-false-comfort", "tests-that-cant-fail", "what-the-tests-really-prove"]],
-  ["deploy broke production", ["ship-or-recover-safely", "why-production-might-not-match-main"]],
-  ["landing page", ["new-landing-page", "landing-page-that-converts"]],
-  ["make it look less like AI", ["it-looks-ai-generated", "interface-design-design-deslop", "stop-slop", "s:stop-slop"]],
-  ["duplicate data in the database", ["are-we-storing-the-same-truth-multiple-times", "find-where-records-silently-change-identity", "s:database"]],
-  ["is this migration safe", ["are-our-database-changes-safe-before-we-merge", "database-changes-during-a-deploy", "ship-or-recover-safely"]],
-  ["animations feel janky", ["s:animation-performance", "animation-performance", "s:improve-animations", "improve-animations"]],
-  ["make the buttons clearer", ["impeccable-clarify", "ux-writing", "s:ux-writing"]],
-  ["database is too expensive", ["reduce-postgresql-resource-cost", "find-the-true-sources-of-database-waste", "what-will-become-expensive-as-the-database-grows"]],
-  ["production doesn't match main", ["why-production-might-not-match-main", "settings-that-differ-in-production"]],
-  ["memory leak", ["memory-that-keeps-growing", "timers-and-connections-nobody-closes"]],
-];
-
-// Vague or misleading: the answer should be a router or the broad starting point, not a random match.
-export const VAGUE = [
-  ["it doesn't work", ["engineer", "s:engineer", "diagnosing-bugs", "s:diagnosing-bugs"]],
-  ["make it better", ["design", "s:design", "engineer", "s:engineer", "this-page-kind-of-stinks"]],
-  ["help", ["engineer", "s:engineer", "design", "s:design", "s:recommend", "recommend"]],
-  ["something is off with the data", ["is-the-data-actually-right", "s:database", "database", "make-this-database-easier-to-trust-and-operate", "find-data-that-is-internally-consistent-but-wrong"]],
-  ["fast", ["slowest-journeys-end-to-end", "s:animation-performance", "impeccable-optimize", "one-slow-step-that-blocks-the-rest"]],
-  ["users leave", ["people-sign-up-and-drift-away", "improve-retention", "s:improve-retention"]],
-  ["bad design", ["design", "s:design", "this-page-kind-of-stinks", "impeccable-critique"]],
-  ["ai", ["it-looks-ai-generated", "write-prose-that-doesnt-sound-like-ai"]],
-  ["fix", ["engineer", "s:engineer", "design", "s:design", "diagnosing-bugs", "s:diagnosing-bugs", "s:fix-writing", "fix-writing"]],
-  ["page looks bad", ["this-page-kind-of-stinks", "design", "s:design", "impeccable-critique"]],
-];
+import { PLAIN, VAGUE } from "./search-cases.mjs";
 
 const slugs = new Set([...data.prompts.map((p) => p.slug), ...data.skills.map((s) => "s:" + s.name)]);
 test("every expected answer exists", () => {
@@ -68,4 +34,16 @@ test("exact ids, commands and skill names still come first", () => {
   for (const [q, want] of [["PG02", "find-data-that-is-internally-consistent-but-wrong"], ["/design", "design"], ["ux-writing", "s:ux-writing"], ["impeccable polish", "impeccable-polish"], ["tdd", "s:tdd"]]) {
     assert.equal(key(search(q, 1)[0]), want, q);
   }
+});
+
+// The two intent rows added for cost and duplicates, pinned exactly. /api/search and the MCP server's
+// find tool both call this same search over the listed prompts (lib/content.ts), so these are the
+// results /mcp returns. Before the rows, the top results were the /database router and
+// find-where-write-logic-should-live, neither of which the benchmark above counts as an answer.
+test("cost and duplicate queries lead with exactly these results", () => {
+  // The first two are what the rows put there; anything after them comes from ordinary word matches.
+  const two = (q) => search(q, 2).map(key);
+  assert.deepEqual(two("database is too expensive"), ["find-the-true-sources-of-database-waste", "reduce-postgresql-resource-cost-rdbr04"]);
+  assert.deepEqual(two("duplicate data in the database"), ["find-where-records-silently-change-identity", "two-systems-that-disagree"]);
+  assert.deepEqual(two("the database bill doubled"), ["find-the-true-sources-of-database-waste", "reduce-postgresql-resource-cost-rdbr04"]);
 });
