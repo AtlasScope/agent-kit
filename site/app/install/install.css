@@ -6,8 +6,9 @@
 /* The /start hub keeps the quiet stage's grid and glow; this page doesn't. */
 .quiet.inst::before, .quiet.inst::after { content: none; }
 .inst { min-height: calc(100svh - var(--header-h, 65px)); }
-/* Colours on this page, from the quiet stage. --ink-btn: the one main action is white on black (contract rule 3). */
-.inst { --ink-btn: #F4F4F2; --ink-btn-text: oklch(14% .004 160); --panel: oklch(12.5% .004 160); --panel-2: oklch(15.5% .005 160); }
+/* Panels on this page, a step above the quiet stage's black. The main action uses the stage's --c-primary, which
+   stays green here until the homepage track decides (DESIGN-CONTRACT.md, "Home and the quiet stage"). */
+.inst { --panel: oklch(12.5% .004 160); --panel-2: oklch(15.5% .005 160); }
 
 /* Same width and gutters as the header row, so the h1 starts under the logo. */
 .inst__in { max-width: max(var(--container), 80rem); margin-inline: auto;
@@ -19,13 +20,13 @@
 /* The heading takes focus on arrival from the homepage, so keyboard and screen reader users start at the top. It is not
    a control, so it shows no ring (the global focus style adds an outline and a glow; both are removed here only). */
 .inst h1:focus, .inst h1:focus-visible { outline: none; box-shadow: none; }
-.inst__lede { margin: 14px 0 0; max-width: 34em; color: var(--t2); font-size: var(--text-lead); line-height: 1.5; text-wrap: pretty; }
+.inst__lede { margin: 14px 0 0; max-width: 34em; color: var(--t2); font-size: var(--type-lead); line-height: 1.5; text-wrap: pretty; }
 
 /* Small labels: the message panel's, the terminal's and the kit list's. */
 .inst__label { display: inline-flex; align-items: center; gap: 9px; margin: 0; font: 500 0.8125rem/1.2 var(--font-body); letter-spacing: 0; color: var(--t2); }
 
 /* The message panel. A hairline box, a head with the label and Copy, the message as wrapped, selectable text. */
-.inst__msg { margin-top: 36px; border: 1px solid var(--line-2); border-radius: var(--radius, 12px); background: var(--panel); transition: border-color var(--dur-short) var(--ease-out); }
+.inst__msg { margin-top: 36px; border: 1px solid var(--line-2); border-radius: var(--radius-lg); background: var(--panel); transition: border-color var(--dur-base) var(--ease-out); }
 .inst__msg.is-copied { border-color: rgba(255,255,255,.28); }
 .inst__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 0 8px 0 18px; border-bottom: 1px solid var(--line); }
 .inst pre.inst__say { margin: 0; padding: 18px 20px 20px; white-space: pre-wrap; overflow-wrap: anywhere; font: 400 0.9375rem/1.65 var(--font-mono); color: var(--t1); -webkit-user-select: all; user-select: all; }
@@ -33,19 +34,19 @@
 
 /* Copy buttons. The message's is the page's one bright control; the terminal's is a quiet outline. */
 .inst__copy { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-width: 88px; min-height: 36px; padding: 0 14px; border: 1px solid var(--line-2); border-radius: 9px; background: var(--panel-2);
-  color: var(--t1); font: 550 0.8125rem/1 var(--font-body); cursor: pointer; transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out), transform var(--dur-micro) var(--ease-out); }
+  color: var(--t1); font: 550 0.8125rem/1 var(--font-body); cursor: pointer; transition: background-color var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out), transform var(--dur-instant) var(--ease-out); }
 .inst__copy .i { width: 15px; height: 15px; }
-.inst__copy--main { border-color: transparent; background: var(--ink-btn); color: var(--ink-btn-text); }
-.inst__copy:active { transform: translateY(calc(1px * var(--travel, 1))) scale(.98); }
+.inst__copy--main { border-color: transparent; background: var(--c-primary); color: var(--c-on-primary); }
+.inst__copy:active { transform: translateY(calc(1px * var(--travel))) scale(.98); }
 .inst__copy--main .i { stroke-width: 2; }
 
 /* The status line under the message: what Copy did, in words, in place. Before any copy it says where the message works. */
 .inst__status, .inst__cmdnote { min-height: 0; }
-.inst__how, .inst__note { margin: 14px 0 0; font-size: var(--text-sm); line-height: 1.55; color: var(--t2); text-wrap: pretty; }
-.inst__note { display: flex; align-items: baseline; gap: 10px; animation: inst-note var(--dur-short) var(--ease-out); }
+.inst__how, .inst__note { margin: 14px 0 0; font-size: var(--type-sm); line-height: 1.55; color: var(--t2); text-wrap: pretty; }
+.inst__note { display: flex; align-items: baseline; gap: 10px; animation: inst-note var(--dur-base) var(--ease-out); }
 .inst__note .led { flex: none; transform: translateY(-1px); }
 .inst__note b { color: var(--t1); font-weight: 550; }
-.inst__warn { flex: none; display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: var(--color-warm); color: #1A1204; font: 700 11px/1 var(--font-body); transform: translateY(2px); }
+.inst__warn { flex: none; display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: var(--c-warm); color: #1A1204; font: 700 11px/1 var(--font-body); transform: translateY(2px); }
 @keyframes inst-note { from { opacity: 0; } }
 
 /* Paste and copy keys for this computer (html[data-os], set before paint); none on a phone, where the command is for a computer. */
@@ -56,7 +57,7 @@ html:not([data-os="mac"], [data-os="linux"]) .inst__keys [data-os="other"], html
 @media (hover: none) and (pointer: coarse) { .inst__keys { display: none; } }
 
 /* Phones only: the install runs on a computer. */
-.inst__phone { display: none; margin: 10px 0 0; font-size: var(--text-sm); line-height: 1.55; color: var(--t3); }
+.inst__phone { display: none; margin: 10px 0 0; font-size: var(--type-sm); line-height: 1.55; color: var(--t3); }
 @media (hover: none) and (pointer: coarse) { .inst__phone { display: block; } }
 
 /* The by-hand commands, closed until asked for. The summary is a full-width row with a chevron that turns. */
@@ -64,26 +65,26 @@ html:not([data-os="mac"], [data-os="linux"]) .inst__keys [data-os="other"], html
 .inst__manual > summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 16px; row-gap: 4px; padding: 18px 0; cursor: pointer; list-style: none; -webkit-tap-highlight-color: transparent; }
 .inst__manual > summary::-webkit-details-marker { display: none; }
 .inst__or { grid-column: 1; margin: 0; font: 550 1rem/1.3 var(--font-body); letter-spacing: -0.005em; color: var(--t1); text-transform: none; }
-.inst__sum { grid-column: 1; font-size: var(--text-sm); line-height: 1.45; color: var(--t3); }
-.inst__chev { grid-column: 2; grid-row: 1 / span 2; width: 18px; height: 18px; color: var(--t2); transition: rotate var(--dur-short) var(--ease-out); }
+.inst__sum { grid-column: 1; font-size: var(--type-sm); line-height: 1.45; color: var(--t3); }
+.inst__chev { grid-column: 2; grid-row: 1 / span 2; width: 18px; height: 18px; color: var(--t2); transition: rotate var(--dur-base) var(--ease-out); }
 .inst__manual[open] .inst__chev { rotate: 90deg; }
 .inst__manual > summary:focus-visible { outline-offset: 4px; border-radius: 6px; }
 .inst__body { display: grid; gap: 14px; padding: 4px 0 28px; }
-.inst__manual[open] .inst__body { animation: inst-note var(--dur-short) var(--ease-out); }
+.inst__manual[open] .inst__body { animation: inst-note var(--dur-base) var(--ease-out); }
 
 /* Agent tabs: a quiet segmented control. */
 .inst__tabs { display: flex; gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 11px; background: var(--panel); overflow-x: auto; scrollbar-width: none; }
 .inst__tabs button { flex: 1 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 38px; padding: 0 10px; border: 0; border-radius: 8px; background: none;
-  color: var(--t2); font: 500 0.8125rem/1 var(--font-body); white-space: nowrap; cursor: pointer; transition: color var(--dur-short) var(--ease-out), background-color var(--dur-short) var(--ease-out); }
+  color: var(--t2); font: 500 0.8125rem/1 var(--font-body); white-space: nowrap; cursor: pointer; transition: color var(--dur-base) var(--ease-out), background-color var(--dur-base) var(--ease-out); }
 .inst__tabs .i { width: 15px; height: 15px; }
 :is(.inst[data-agent="claude"] #it-claude, .inst[data-agent="codex"] #it-codex, .inst[data-agent="cursor"] #it-cursor, .inst[data-agent="gemini"] #it-gemini, .inst[data-agent="copilot"] #it-copilot, .inst[data-agent="any"] #it-any) { background: rgba(255,255,255,.08); color: var(--t1); box-shadow: inset 0 0 0 1px var(--line); }
 
 /* Every agent's command, test note and steps are in the page; data-agent (set before paint) shows the chosen one. */
 .inst [data-a] { display: none; }
-.inst[data-picked] pre [data-a] { animation: inst-note var(--dur-short) var(--ease-out); }
+.inst[data-picked] pre [data-a] { animation: inst-note var(--dur-base) var(--ease-out); }
 :is(.inst[data-agent="claude"] [data-a="claude"], .inst[data-agent="codex"] [data-a="codex"], .inst[data-agent="cursor"] [data-a="cursor"], .inst[data-agent="gemini"] [data-a="gemini"], .inst[data-agent="copilot"] [data-a="copilot"], .inst[data-agent="any"] [data-a="any"]) { display: block; }
 
-.inst__term { border: 1px solid var(--line-2); border-radius: var(--radius, 12px); background: var(--panel); overflow: hidden; transition: border-color var(--dur-short) var(--ease-out); }
+.inst__term { border: 1px solid var(--line-2); border-radius: var(--radius-lg); background: var(--panel); overflow: hidden; transition: border-color var(--dur-base) var(--ease-out); }
 .inst__term.is-copied { border-color: rgba(255,255,255,.28); }
 .inst__term .inst__bar { min-height: 46px; padding-left: 16px; }
 .inst__term .inst__label { font-family: var(--font-mono); font-size: 0.75rem; color: var(--t3); }
@@ -103,10 +104,10 @@ html:not([data-os="mac"], [data-os="linux"]) .inst__keys [data-os="other"], html
 .inst__next li + li { margin-top: 12px; }
 .inst__next li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 12px; align-items: start; }
 .inst__next li > span { display: grid; place-items: center; width: 22px; height: 22px; border: 1px solid var(--line-2); border-radius: 50%; font: 500 11px/1 var(--font-mono); color: var(--t2); }
-.inst__next p { margin: 0; padding-top: 1px; font-size: var(--text-sm); line-height: 1.55; color: var(--t2); text-wrap: pretty; }
+.inst__next p { margin: 0; padding-top: 1px; font-size: var(--type-sm); line-height: 1.55; color: var(--t2); text-wrap: pretty; }
 
 .inst__more { display: flex; flex-wrap: wrap; gap: 4px 22px; margin-top: 24px; }
-.inst__more a { display: inline-flex; align-items: center; min-height: 36px; color: var(--t1); font-size: var(--text-sm); text-decoration: none; }
+.inst__more a { display: inline-flex; align-items: center; min-height: 36px; color: var(--t1); font-size: var(--type-sm); text-decoration: none; }
 
 /* What it installs: the five kits as a hairline list, each a link to its kit page. */
 .inst__kits { min-width: 0; padding-top: 6px; }
@@ -124,7 +125,7 @@ html:not([data-os="mac"], [data-os="linux"]) .inst__keys [data-os="other"], html
 
 @media (hover: hover) and (pointer: fine) {
   .inst__copy:hover { background: rgba(255,255,255,.1); }
-  .inst__copy--main:hover { background: #FFFFFF; }
+  .inst__copy--main:hover { background: var(--c-primary-hover); }
   .inst__tabs button:hover, .inst__manual > summary:hover .inst__or { color: #fff; }
   .inst__manual > summary:hover .inst__chev { color: var(--t1); }
   .inst__more a:hover { color: #fff; text-decoration: underline; text-decoration-color: var(--line-2); text-underline-offset: .25em; }
@@ -132,13 +133,13 @@ html:not([data-os="mac"], [data-os="linux"]) .inst__keys [data-os="other"], html
   .inst__by a:hover { color: var(--t1); }
 }
 .inst__tabs button:active { color: var(--t1); }
-.inst :is(button, a, summary):focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.inst :is(button, a, summary):focus-visible { outline: 2px solid var(--c-focus); outline-offset: 2px; }
 .inst__said { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 /* Arriving from the homepage's Install button (data-arrived, set before paint): one short settle of the whole column.
    A direct visit doesn't move. The homepage's transition owns everything before this frame. */
 .inst[data-arrived] .inst__in { animation: inst-arrive 360ms var(--ease-out) backwards; }
-@keyframes inst-arrive { from { opacity: 0; transform: translateY(calc(8px * var(--travel, 1))); } }
+@keyframes inst-arrive { from { opacity: 0; transform: translateY(calc(8px * var(--travel))); } }
 @media (prefers-reduced-motion: reduce) { .inst[data-arrived] .inst__in { animation-duration: 1ms; } }
 
 /* Touch screens: 44px for the things people tap. */
