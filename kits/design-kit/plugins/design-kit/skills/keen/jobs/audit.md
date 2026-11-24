@@ -26,7 +26,7 @@ Accessibility criteria are from the Web Content Accessibility Guidelines 2.2, le
 | Check | Passes when | How | Standard |
 |---|---|---|---|
 | Text stands out from its background | 4.5 to 1, or 3 to 1 for text of 24px and up (18.66px and up if bold) | Script: `text.lowContrast` | 1.4.3 |
-| Text over a photo, video or drawing | 4.5 to 1 at its worst point | Script lists these under `text.overPictureNotMeasured`. Capture the area with the words hidden and compare the text colour with the lightest and darkest parts behind it, or say you could not | 1.4.3 |
+| Text over a photo, video or drawing | 4.5 to 1 at its worst point, meaning the lightest or darkest colour that fills a real part of the text box, not a single speck | Script lists these under `text.overPictureNotMeasured`. Capture the area with the words hidden and compare the text colour with the lightest and darkest parts behind it, or say you could not | 1.4.3 |
 | Controls are big enough to hit | 24 by 24 CSS pixels, or smaller with clear space around it. A link inside a sentence is exempt | Script: `controls.under24`, which already applies both exceptions | 2.5.8 |
 | Every control has a name | A screen reader has words to say for each button, link and field | Script: `controls.unnamed`. A placeholder is not a name | 4.1.2, 3.3.2 |
 | Pictures have a text alternative | Each picture that carries meaning has one; decoration has an empty one | Script: `picturesWithoutText` | 1.1.1 |
@@ -37,7 +37,9 @@ Accessibility criteria are from the Web Content Accessibility Guidelines 2.2, le
 | Usable with a keyboard | Tab reaches every control in an order that follows the page, and the screen's main job can be finished | By hand: tab through and do the job | 2.1.1, 2.4.3 |
 | You can see where you are | A clearly visible outline on the focused control, never hidden behind a fixed header or bar | By hand, while tabbing | 2.4.7, 2.4.11 |
 | Meaning does not rest on colour alone | Errors, required fields and status have an icon, text or shape as well | By hand: look at each coloured signal | 1.4.1 |
-| Text can grow | At 200 percent browser zoom everything is readable and nothing is cut off | By hand: zoom and capture. If the tool cannot zoom, halve both the width and the height of the window, which lays the page out the same way, say that is what you did, and list text enlargement itself as not checked | 1.4.4 |
+| Text can grow | At 200 percent browser zoom everything is readable and nothing is cut off | By hand: zoom and capture. If the tool cannot zoom, halve both the width and the height of an ordinary laptop window (1280 by 800 becomes 640 by 400), which lays the page out the same way, say that is what you did, and list text enlargement itself as not checked | 1.4.4 |
+| Nothing moves forever without a way to stop it | Anything that starts by itself, runs longer than five seconds and sits beside other content can be paused, stopped or hidden on the page | Script: `noise.endlessMovement` counts it; then look for the control by hand | 2.2.2 (A) |
+| A mistake or a failure is said in words that stay | When something goes wrong (a refused copy, a field left empty, a request that failed), a message says what happened, stays until the person has dealt with it, and is announced to a screen reader | By hand: cause each failure you can reach and wait ten seconds | 3.3.1, 4.1.3 |
 | Movement can be turned off | With the reduce-motion setting on, nothing slides, zooms or loops | By hand, if the tool can set it | 2.3.3 (AAA) |
 
 Speed, from Google's Core Web Vitals. "Good" is the published threshold.
@@ -56,7 +58,7 @@ Phone comfort. This is guidance from the platform owners, not part of the standa
 
 Say which controls fall short, not only how many: the main action being too small matters; footer links a few points short hardly does.
 
-Consistency. These are counts, not failures. Compare each with DESIGN.md first: a count that matches the written system is fine however high it is. Only a count the project's own notes do not explain suggests anything.
+Consistency. These are counts, not failures. Compare each with DESIGN.md first: a count that matches the written system is fine however high it is. Only a count the project's own notes do not explain suggests anything. Then check the values themselves, not only how many there are: each corner shape, font family and text style the script lists, against the ones DESIGN.md names for that kind of element. A button with square corners where the file says pills is a mismatch even when the count looks right.
 
 | Count | From the script | Usually means |
 |---|---|---|
@@ -77,8 +79,8 @@ Within a level, the failure that appears most often comes first.
 
 ## What to report
 
-- **The verdict in one sentence that leads with who is stopped**, then the count. "Keyboard and screen-reader users cannot finish a booking: 3 of the 14 accessibility checks fail, 10 pass and 1 could not be measured." Count the 14 accessibility rows only. A row that was not measured is neither a pass nor a fail. When nobody is stopped, say that first.
-- **A table of every check**: pass, fail with the count ("8 of 95 pieces of text"), or not measured with the reason.
+- **The verdict in one sentence that leads with who is stopped**, then the count. "Keyboard and screen-reader users cannot finish a booking: 3 of the 16 accessibility checks fail, 12 pass and 1 could not be measured." Count the 16 accessibility rows only. A row that was not measured is neither a pass nor a fail. When nobody is stopped, say that first.
+- **A table of every check**: pass, fail with the count ("8 of 95 pieces of text"), or not measured with the reason. On the Keen page it goes under `details`; the failures are the `problems`.
 - **The failures, ranked**, each with what a person experiences, one named example from the screen, and the standard it comes from.
 - **Next steps**, each failure group matched to the job that fixes it: contrast to `/keen colour`, small text and too many sizes to `/keen type`, small targets and sideways scrolling to `/keen adapt`, missing names, keyboard and zoom to `/keen harden`, the consistency counts to `/keen polish`. A speed failure on a production copy goes to `/keen optimize`.
 

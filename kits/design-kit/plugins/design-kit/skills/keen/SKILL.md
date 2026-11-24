@@ -147,7 +147,7 @@ For each: the command, one plain line on what it will do, and one on why it rank
 
 When two or more belong together, say in one line why they run in the order listed. The order that wastes the least work is: remove (`distill`), arrange (`layout`), reword (`words`), then style (`type`, `colour`, `bolder` or `quieter`), then make it hold up (`harden`, `adapt` or `native`, `optimize`), and `polish` last, because every earlier job changes what there is to polish. `extract` runs after the look is settled. Running several still means one job at a time, with a report after each.
 
-Look past Keen too. When what you found is not a design problem (a slow screen, a number that looks wrong, pages that duplicate each other), offer the Agent Kit command that handles it as a next step, in the same list, if it appears in this tool's list of commands: `/motion` for movement, `/engineer` for speed and code problems, `/database` for wrong or slow data.
+Look past Keen too. When what you found is not a design problem (a slow screen, a number that looks wrong, pages that duplicate each other), offer the Agent Kit command that handles it as a next step, in the same list, if it appears in this tool's list of commands (if you cannot see that list, offer it and say which kit it needs): `/motion` for movement, `/engineer` for speed and code problems, `/database` for wrong or slow data.
 
 The person never has to type any of this. The Keen page below turns each next step into something they pick and start.
 
@@ -181,7 +181,7 @@ node <skill-dir>/scripts/worksheet.mjs stop <name>      when the person says the
 The loop:
 
 1. Finish the job. Send its page with `add`. Screenshots are named by their file path in the page and are copied in, so keep them in a temporary folder, not in the project. Give each one's full path; a bare file name is looked for in the folder `add` was run from.
-2. The first time, run `open` and open the address it prints in your browser panel. After that the open page turns to each new page by itself; do not open it again.
+2. The first time, open the address in your browser panel (`add` starts the page's server if it is not running and prints the address; `open` prints it again). After that the open page turns to each new page by itself; do not open it again.
 3. Run `wait` as a background or long-running command and tell the person in one line that the page is ready.
 4. When `wait` prints `CHOSEN:` lines, treat them as the person typing those commands, in that order. Run the first job. Use `say` for a line of progress on anything that takes more than a minute.
 5. `add` that job's page. If more `CHOSEN:` lines are left from the same Start, run the next one and `add` its page. Then go back to step 3.
@@ -233,7 +233,7 @@ Rules:
 ```
 
 - **The page is glanced at, not read.** It opens on one headline, one line saying what to do, the screenshots and the next steps. Everything else is a row the person opens if they want it. Write the way you would tell a friend across a desk: short, plain, in your own voice. "The Install button is below the fold on a phone", not "The primary call to action is not visible within the initial viewport".
-- **The program counts words and refuses a long page.** `add` prints each part that is over and adds nothing. Cut the part; do not move the words somewhere else on the page. The most each part holds:
+- **The program counts words and refuses a long page.** `add` prints each part that is over and adds nothing. Cut the part; do not move the words somewhere else on the page. Aim a word or two under each limit, so a hyphen or a number does not cost you a second try. The most each part holds:
 
   | Part | At most |
   |---|---|
@@ -246,6 +246,8 @@ Rules:
   | `steps` | 3. Label 8 words, why 18 |
   | `report.happened`, `report.means` | 30 words each |
   | `notChecked` | 40 words |
+  | `order` | 20 words |
+  | a step's `options`, and `menu` | label 8 words, why 18 |
   | `terms` | 3, each meaning 25 words |
   | `changes` | 5, each side 20 words |
 
@@ -260,7 +262,7 @@ Rules:
 - `tab` is the two or three words on the page's tab: the job and, after an edit, what changed.
 - `steps` are the ranked next steps, up to three, and may be empty: when nothing is worth doing next, say "Nothing" in `report.todo` and offer none. Give a step `options` when more than one job could do it, best first; the person sees a job picker on that step. A step with one way to do it has just `command`.
 - `menu` is every other job that could run on this screen, so the person is never limited to your ranking. List Keen's other jobs, and any other installed Agent Kit command the findings point to.
-- A pin's `x` and `y` are percentages of the image, and its `n` is the number of the problem it marks.
+- A pin's `x` and `y` are percentages of the image, and its `n` is the number of the problem it marks. Put it beside the thing, not on top of the words it is about.
 - A page for a finished edit leads with before and after, says what changed in plain words, and offers what is worth doing now that this is done. Do not repeat steps that are finished.
 
 ### Where the page opens
@@ -298,7 +300,7 @@ If the project's development tools draw a badge or toolbar over the page, hide i
 
 Capture both the first screen and the whole page. Pin a problem on whichever shows it. Wait for opening animations to settle first. If a whole-page capture comes back with blank bands, the page reveals its content as it scrolls: scroll to the bottom and back to the top, then capture. When an edit changed one small part, show that part (capture the element, or crop to it) so the difference is visible without hunting.
 
-Any job that states a number about the screen uses this script to get it. A number that was not measured is not reported. (Counts of your own edits, such as files changed, are counted directly.) Text over a photo, a video or a drawing cannot be measured this way. The script lists each such piece of text under `overPictureNotMeasured`, and you look at every one at its worst point. A plain gradient is measured against each of its colours.
+Any job that states a number about the screen uses this script to get it. A number that was not measured is not reported. (Counts of your own edits, such as files changed, are counted directly.) Text over a photo, a video or a drawing cannot be measured this way. The script lists each such piece of text under `overPictureNotMeasured`, and you look at every one at its worst point. To put a number on one: hide the text, capture, and take the lightest (for light text) or darkest (for dark text) colour that fills a real part of the text's box, ignoring single specks; work out the contrast against that, and say the number came from the picture at one moment. A plain gradient is measured against each of its colours.
 
 Before and after are captured at the same sizes: 390 wide for a phone and 1440 wide for a desktop, unless the job says otherwise.
 

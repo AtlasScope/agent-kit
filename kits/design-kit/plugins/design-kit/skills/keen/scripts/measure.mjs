@@ -331,7 +331,12 @@ ${luminance}
 ${contrast}
 ${over}
 ${needed}
-return (${measurePage})({ contrast, over, needed });
+// A layer that ignores the pointer (a background scene, a decorative picture) is skipped when the browser is
+// asked what sits at a point, so for the length of the measurement every element answers.
+const seeAll = document.createElement("style");
+seeAll.textContent = "*{pointer-events:auto!important}";
+document.documentElement.appendChild(seeAll);
+try { return (${measurePage})({ contrast, over, needed }); } finally { seeAll.remove(); }
 })()`;
 }
 
