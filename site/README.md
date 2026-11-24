@@ -9,20 +9,23 @@ cd site
 npm ci
 npm run dev        # builds content/generated.json from the repo, then starts Next.js
 npm run typecheck  # TypeScript check (requires content/generated.json)
-npm test           # unit tests for copy, hero, install, search, and starting points
+npm test           # unit tests for copy, hero, install, search, starting points, and the orbit scene's arithmetic
 npm run build      # builds content/generated.json and runs next build
 npx playwright install chromium && npm run smoke   # browser journeys against the built app
+npm run lab        # the orbit lab: tune the homepage's scene (development only, not part of the site)
 ```
 
 Everything is read from the repo at build time by `scripts/build-content.mjs`: `library/library.json`, every `kits/*/plugins/*/skills/*/SKILL.md`, each kit's `THIRD_PARTY.md`, and the root `CREDITS.md`. Edit those, not `site/content/generated.json`, to change what a page says. The build stops if two pages would get the same URL.
 
 The homepage hero headline and worked example live in `lib/site.ts` (`HERO`). Change the headline there only.
 
+The view behind it is drawn from code in `components/orbit/`; its README says how it works, how to tune it in the lab, and how to remake the still images (`node scripts/build-hero-images.mjs`) after changing the look.
+
 ## Pages
 
 | URL | What it is |
 |---|---|
-| `/` | One-screen orbit hero with a live WebGL scene, worked `/design` example, and Install hand-off. |
+| `/` | One-screen orbit hero with a live scene drawn from code, worked `/design` example, and Install hand-off. |
 | `/install` | Agent-specific install commands, test status, and next steps. |
 | `/start`, `/start/<step>` | Eight-step guide from no coding agent to a deployed reading-list app (untested with first-time users). |
 | `/learn`, `/learn/<lesson>` | Five short lessons on working with a coding agent. |

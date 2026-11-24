@@ -1,6 +1,6 @@
 ---
 name: Agent Kit by AtlasScope
-description: Ink, white, slate and muted grey on dark surfaces, a cool grey paper set in the light setting, and one orbit photograph, staged as a live scene, on the homepage.
+description: Ink, white, slate and muted grey on dark surfaces, a cool grey paper set in the light setting, and one view from orbit, drawn from code, on the homepage.
 colors:
   ink: "#0B0C12"
   white: "#FFFFFF"
@@ -193,7 +193,7 @@ components:
 
 AtlasScope is the brand. Agent Kit is its first product, and atlasscope.dev is the Agent Kit site. The system is the AtlasScope identity applied to a working tool: a near-black ink ground, white type, one raised slate tone, one muted grey, and nothing else. The name "Monolithic Minimal" is the owner's own reference board (black and white, a lit planet horizon, white pill buttons); it is used here as the working name for the system.
 
-The homepage carries the one image the system allows, a photograph of a planet horizon, sitting under a solid ink header. The install command lives on its own page, `/install`, on solid black. Everything a visitor acts on sits on a solid ground, never on the photograph.
+The homepage carries the one image the system allows, a planet horizon at first light, drawn from code in the visitor's browser and sitting under a solid ink header. The install command lives on its own page, `/install`, on solid black. Everything a visitor acts on sits on a solid ground, never on the scene.
 
 The rest of the site is a library, a first-app guide, a few reading pages and an account area. These follow the visitor's light or dark setting. Dark is the brand set. Light is the same system turned over: cool grey paper, white raised panels, ink type and ink buttons. Both sets are neutral and cool, with no warm tint.
 
@@ -205,7 +205,7 @@ The system has no accent hue. Emphasis comes from contrast, from weight, and fro
 - The header and the homepage are ink in both the light and the dark setting.
 - Montserrat 600 for display, Geist for text, Geist Mono for commands.
 - One primary action per view. In the hero it is a white pill; on library pages it is a solid ink (or, in dark, white) button.
-- One photograph, used only as the homepage hero backdrop under a solid header.
+- One image: the view from orbit, drawn from code and used only as the homepage hero backdrop under a solid header.
 - The AtlasScope logo is ink or white only, sits on a solid field, and is never scaled.
 
 ## Colors
@@ -291,7 +291,7 @@ The page is a centred container (1280px, growing to 1320px on screens at least 1
 The header is a solid ink bar fixed to the top of the window, with a hairline under it, and always one row. Wider than 1248px (78rem), so a 1280px laptop included, it is 64px tall and holds the lockup, four links, search, the account button and GitHub; search never gets narrower than its placeholder, and up to 1376px the links sit a little closer so a signed-in row still fits. Up to 1248px it is 56px tall and holds the lockup, search, Sign in (or the account), GitHub as its mark, and a menu button for the links. Up to 640px search becomes a button too, and Collections shows as its star. The switch points are in rem, so a larger text size moves them with the text, and the header row is capped in rem for the same reason. The `--header-h` token holds the current height, and every sticky column and jump target is offset by it (jump targets land 16px under the header), so nothing slides under the header. A "Skip to content" link is the first Tab stop.
 
 ### Homepage
-The homepage is one screen and nothing below it: no footer, no scrolling (`site/components/LaunchHero.tsx`, `site/components/orbit-gl.ts`, `site/app/launch.css`). A live view from orbit under the solid header holds the headline (each word in its own mask), one sentence, one real request and the skill it goes to in code type (`/design why does my dashboard look like a school project → refactoring-ui`, from `HERO.example`, which a test ties to a routing case), the Install pill, a "New to coding agents? Start here" text link, and one small line under them saying what Install does, hung from the container's left edge and vertically centred (on phones, at the top inside a darker shade, with the horizon below). Ink shades the sky side from the left so the text holds contrast. Nothing sits on the right but the planet. Because the homepage has no footer, a line of small links (About, Privacy, Terms, Credits) sits at the foot of the hero over a faint bottom shade. The scene runs behind the whole hero; on short screens the headline and spacing shrink so the message still fits. On a tall phone, one or two more real requests (`HERO.more` in `site/lib/site.ts`, one per other router) follow the note under Install, above the horizon; they are the first thing to go when the screen is shorter. In the header and footer a touch target is 44px.
+The homepage is one screen and nothing below it: no footer, no scrolling (`site/components/LaunchHero.tsx`, `site/components/orbit/`, `site/app/launch.css`). A live view from orbit under the solid header holds the headline (each word in its own mask), one sentence, one real request and the skill it goes to in code type (`/design why does my dashboard look like a school project → refactoring-ui`, from `HERO.example`, which a test ties to a routing case), the Install pill, a "New to coding agents? Start here" text link, and one small line under them saying what Install does, hung from the container's left edge and vertically centred (on phones, at the top inside a darker shade, with the horizon below). The scene is composed dark on the side the words are on, and a light ink shade over that side holds their contrast where the aurora or the limb passes behind them. Nothing sits on the right but the planet. Because the homepage has no footer, a line of small links (About, Privacy, Terms, Credits) sits at the foot of the hero over a faint bottom shade. The scene runs behind the whole hero; on short screens the headline and spacing shrink so the message still fits. On a tall phone, one or two more real requests (`HERO.more` in `site/lib/site.ts`, one per other router) follow the note under Install, above the horizon; they are the first thing to go when the screen is shorter. In the header and footer a touch target is 44px.
 
 Install copies one message in the click itself (`INSTALL_MESSAGE` in `site/lib/site.ts`): a sentence to paste into any agent's chat, which sends the agent to `/install.md` for its own steps. It is the same on a phone and a computer, the line under the button says so, and the sentence above names Claude Code, Codex and Cursor with their marks. The install page leads with that message and keeps each agent's own commands under "Or run it yourself", behind the agents' marks (Claude Code, Codex, Cursor, and any other agent). It then hands off to the install page. The hand-off: the words lift away, the planet sinks and the sky fades to black, about half a second, and `/install` settles in out of that black. With reduced motion it goes straight there. A modified click opens the install page in a new tab without copying. Any other navigation during the hand-off wins: a link click, Back or Forward cancels it and brings the homepage back, and if the install page never arrives the homepage comes back on its own. Old `/#install` links go to the install page before anything else runs, whatever the motion setting.
 
@@ -332,11 +332,11 @@ On library pages, depth is mostly tonal: a raised panel with a hairline border o
 - **Lift raised, light** (`box-shadow: inset 0 1px 0 rgba(255,255,255,.8), 0 2px 4px rgba(11,12,18,.07), 0 10px 22px -8px rgba(11,12,18,.13), 0 28px 44px -24px rgba(11,12,18,.26)`): hover and floating layers on paper.
 
 ### Named Rules
-**The Solid Ground Rule.** Anything a visitor operates or needs to read exactly (the header, the logo, the install command) sits on a solid colour, never on the photograph.
+**The Solid Ground Rule.** Anything a visitor operates or needs to read exactly (the header, the logo, the install command) sits on a solid colour, never on the scene.
 
-**The Launch Rule.** The homepage opens once per visit, about three and a half seconds: the planet rises out of black and the sun breaks over the limb while the headline lifts out of its masks, readable about a second in, with the sentence, the example and the actions just behind it; the small links at the foot come last. The opening waits in black until the live scene can draw its first frame (at most about a second, then it plays over the photograph), so the words and the sky always start on the same clock. If the page's script never arrives, the text plays on its own. Any click, key, wheel or touch skips to the end. `?replay` in the address plays it again. Install ends the scene the other way: the words lift away, the planet sinks and the light goes out, into the install page's black.
+**The Launch Rule.** The homepage opens once per visit, about three and a half seconds: the night side of the planet rises out of black under its aurora, and the sun comes up over the limb about a second in, while the headline lifts out of its masks, readable about a second in, with the sentence, the example and the actions just behind it; the small links at the foot come last. The sun goes on climbing for a few seconds after that, slower and slower, so the scene is never seen to stop. The opening waits in black until the live scene can draw its first frame (at most about a second, then it plays over the still), so the words and the sky always start on the same clock. If the page's script never arrives, the text plays on its own. Any click, key, wheel or touch ends the words' part at once and hurries the sunrise to its end. `?replay` in the address plays it again. Install ends the scene the other way: the words lift away, the planet sinks and the light goes out, into the install page's black.
 
-**The Living Scene Rule.** The scene keeps moving, slowly: cloud flow and a slight turn of the planet, a breathing atmosphere and sun, twinkling stars, a craft on a dashed orbit track (faded out on the text side), a camera that follows the pointer a little, and a light sweep across the Install pill every few seconds. Nothing on the page moves on a timer of its own. The scene pauses when off screen or in a background tab. With reduced motion set the still photograph shows and nothing moves.
+**The Living Scene Rule.** The scene keeps moving, slowly: the weather drifts and the storm turns about its centre, the aurora's rays shimmer, the stars flicker faintly, the camera floats by a few hundredths of a degree and follows the pointer a little, and a light sweeps across the Install pill every few seconds. Nothing in it loops. Nothing on the page moves on a timer of its own. The scene pauses when off screen or in a background tab, and once it has settled it draws about thirty frames a second, not sixty. With reduced motion set the still shows and nothing moves.
 
 **The Answer A Press Rule.** Every other movement answers something the visitor did, and none makes them wait. The menu sheet arrives in 240ms (fading in and settling 8px) with its rows following 30ms apart. Picking an agent on the install page fades its command in over 200ms; nothing fades on load. A pressed control answers within 120ms: icon buttons and the Copy pill shrink slightly and take their hover fill, because a phone has no hover. All of it uses the one ease-out curve, and all of it is off with reduced motion set.
 
@@ -359,7 +359,7 @@ The AtlasScope lockup, a hairline divider, then "Agent Kit".
 
 ### Buttons
 - **Hero primary:** white fill, ink text, Geist 600 at 1rem, 48px tall, 24px side padding, with an optional 16px line arrow after the label. One per view.
-- **Hero secondary:** outlined pill: 1px control border, white text in Geist 500, ink at 60% behind it so the label holds over the photograph.
+- **Hero secondary:** outlined pill: 1px control border, white text in Geist 500, ink at 60% behind it so the label holds over the scene.
 - **Library button:** raised fill, control border, ink text in Geist 550, 40px tall (34px small), 10px corners. The solid variant (ink on light, white on dark) is the one primary action in a view, such as Next on a guide step.
 - **Danger:** danger fill with no border, used only to confirm a delete.
 - **Pending:** a button that saves shows its work in its label ("Saving…", "Deleting…") and is disabled until the server answers.
@@ -415,10 +415,12 @@ The why-column is the page title over a list with small ink squares as markers. 
 - **Empty:** a dashed control-border box with one bold line and one sentence on how to add something.
 - **Errors:** a message in the danger colour directly under the form that caused it, saying what to do next. Raw server errors never reach the screen; an ended session goes to sign-in.
 
-### Hero photograph
-- **Source:** the supplied 3840 by 2160 orbit photograph. The pixels are used as supplied; the live scene adds light and motion on top (atmosphere, sun, cloud flow) but never regrades or retouches the photograph.
-- **Derivatives:** made by `site/scripts/build-hero-images.mjs` as AVIF and WebP at 960, 1440, 1920, 2560 and 3840px wide, plus phone crops at 780 and 1170px. A 24px blurred copy is inlined so the horizon is present before the photograph loads. The live scene uses the 1920 or 2560 WebP as its texture.
-- **The limb:** a circle fitted to the photograph (in 1920 by 1080 pixels: centre 1872.8, 5941.6; radius 5280.3). The atmosphere, the sun and the orbit track are placed on it, so they sit on the real horizon.
+### Hero scene
+- **Source:** code. `site/components/orbit/` generates the planet in the browser with WebGL2: the ground, the weather, the air and the light. No photograph, video or generated image is used. `site/components/orbit/README.md` says how it is put together.
+- **The look:** first light. An ocean world with pack ice and cloud, lit by its moon, at the moment the sun clears the limb, with an aurora on the dark limb. Obsidian, midnight blue, cobalt, silver and white, a trace of emerald in the aurora and the sea, and warm colour only in the band of dawn.
+- **Stills:** made by `site/scripts/build-hero-images.mjs` from the same code, drawn at rest: AVIF and WebP at 960, 1440, 1920, 2560 and 3840px wide, plus phone frames at 780 and 1170px. A 24px blurred copy is inlined so the horizon is present before the still loads. The still is the first paint, what shows with reduced motion, and what stays when a browser cannot draw the scene.
+- **Framing:** two reference frames, 1920 by 1080 and, under 760px wide, 1080 by 1350. A screen shows a cover crop of its frame, anchored where `object-position` anchors the still, so the live scene sits exactly on the still.
+- **Tuning:** `npm run lab` in `site/` opens a page of sliders for every number in the look. It is a development tool and is not part of the website.
 - **Placement:** homepage hero only, under the solid header. Decorative, with an empty text alternative.
 
 ### Named Rules
@@ -426,7 +428,7 @@ The why-column is the page title over a list with small ink squares as markers. 
 
 **The Untouched Logo Rule.** The header logo is pixel-fitted. Never scale it, transform it, or set its size from CSS. The logo is ink or white only: no gradient, glow, outline or tint.
 
-**The One Photograph Rule.** The orbit photograph is the only image in the system. Its pixels are used as supplied, only in the homepage hero, and only under a solid header.
+**The One Image Rule.** The view from orbit is the only image in the system. It is drawn from code, its stills are made from that code, and it is used only in the homepage hero, under a solid header.
 
 ## Do's and Don'ts
 
@@ -449,9 +451,9 @@ The why-column is the page title over a list with small ink squares as markers. 
 - **Don't** use a section hue as a fill, resting border, text colour or card tint; the six hues are small dots and a hover border.
 - **Don't** use the danger colour for anything but destruction and errors.
 - **Don't** give a callout a coloured side border.
-- **Don't** place the AtlasScope logo on the photograph or on any image.
+- **Don't** place the AtlasScope logo on the scene or on any image.
 - **Don't** scale, transform, recolour, outline or shade the header logo, and don't retype the wordmark in live text.
 - **Don't** put a small label above a heading.
-- **Don't** add a second image, regrade or retouch the orbit photograph, or use it anywhere but the homepage hero.
+- **Don't** add a second image, swap the scene's stills for anything not made from the scene, or use it anywhere but the homepage hero.
 - **Don't** put two primary buttons in one view.
-- **Don't** animate text into place; only the photograph moves, once, on load.
+- **Don't** animate text into place outside the homepage's opening.

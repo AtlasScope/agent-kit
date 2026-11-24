@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AgentMark } from "./AgentMark";
 import { clearHandoff, saveHandoff } from "./install-choice";
-import { startOrbit, type OrbitCamera } from "./orbit-gl";
+import type { Orbit } from "./orbit";
+import { TALL_SCREEN } from "./orbit/params";
 import { HERO, INSTALL_MESSAGE, SITE } from "@/lib/site";
 
 // The homepage: one screen and nothing below it. The headline, one sentence and Install over a live view from orbit.
@@ -12,16 +13,25 @@ import { HERO, INSTALL_MESSAGE, SITE } from "@/lib/site";
 // Install copies one message on the click (INSTALL_MESSAGE: a sentence to paste into any agent's chat), then the
 // planet sinks and the sky fades to black while the words lift away, and the install page (/install) settles in out
 // of that black and says the message is copied. It is the same on a phone and a computer, for every agent.
-// The opening plays once per visit, about three and a half seconds: the planet rises out of black, the sun breaks
-// over the limb, the headline lifts out of its masks and the rest follows. It is held until the scene can draw its
-// first frame (or a short wait runs out), so the words and the sky always start on the same clock. Any click, key,
-// wheel or touch skips to the end. With reduced motion, or before the script runs, nothing plays.
+//
+// The view is drawn from code (components/orbit): a planet at first light, generated and lit in the browser. Behind
+// it sits a still of the same scene at rest, made by scripts/build-hero-images.mjs. The still is what shows first,
+// what shows with reduced motion, and what stays if the browser cannot draw the scene or loses the means to.
+//
+// The opening plays once per visit, about three and a half seconds: the planet rises out of the dark, the sun comes
+// up over the limb, the headline lifts out of its masks and the rest follows. It is held until the scene can draw
+// its first frame (or a short wait runs out), so the words and the sky always start on the same clock. Any click,
+// key, wheel or touch ends the words' part at once and hurries the sunrise. With reduced motion, or before the
+// script runs, nothing plays.
 const KEY = "agent-kit:launched";
+// How long the opening lasts for the words (the scene settles for a few seconds more; see orbit/score.ts).
 const INTRO_MS = 3400;
-// How long the opening waits for the scene before it plays over the photograph instead.
+// How long the opening waits for the scene before it plays over the still instead.
 const WAIT_MS = 900;
 // The hand-off to the install page.
 const LEAVE_MS = 560;
+// Once the scene has settled, so little moves that half the frames are enough. A moving pointer gets all of them.
+const SETTLED_AFTER = 14, ACTIVE_GAP = 14, IDLE_GAP = 31;
 
 const WIDE = [960, 1440, 1920, 2560, 3840];
 const TALL = [780, 1170];
@@ -37,10 +47,15 @@ const REPLAY = process.env.NODE_ENV === "development" ? "true" : `/[?&]replay/.t
 const ARM = `try{if(location.hash==="#install")location.replace("/install");var s=document.currentScript.parentElement;if(${REPLAY})sessionStorage.removeItem("${KEY}");if(!matchMedia("(prefers-reduced-motion: reduce)").matches){s.setAttribute("data-live","");if(!sessionStorage.getItem("${KEY}")){s.setAttribute("data-intro","");s.setAttribute("data-hold","");setTimeout(function(){if(s.hasAttribute("data-hold")){s.setAttribute("data-go",String(performance.now()));s.removeAttribute("data-hold")}},1800)}}}catch(e){}`;
 
 const clamp = (x: number) => Math.min(1, Math.max(0, x));
-const seg = (p: number, a: number, b: number) => clamp((p - a) / (b - a));
-const eo = (x: number) => 1 - Math.pow(1 - clamp(x), 4);
-const eio = (x: number) => { const t = clamp(x); return t < .5 ? 8 * t ** 4 : 1 - Math.pow(-2 * t + 2, 4) / 2; };
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
+
+// How much the scene asks of the machine. Phones and small laptops start a step down; the renderer then trades
+// resolution for frame rate by itself if it has to.
+function tierFor() {
+  const cores = navigator.hardwareConcurrency || 4, memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory || 8;
+  if (cores <= 4 || memory <= 4) return "low";
+  return matchMedia("(pointer: coarse)").matches || Math.min(innerWidth, innerHeight) < 700 ? "medium" : "high";
+}
 
 // Arriving at the guide from Start here, a new visitor is offered a free account there (StartWelcome.tsx).
 const markStartHere = () => { try { sessionStorage.setItem("agent-kit:start-here", String(Date.now())); } catch {} };
@@ -64,71 +79,102 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
     if (!el.hasAttribute("data-live") && !matchMedia("(prefers-reduced-motion: reduce)").matches) el.setAttribute("data-live", "");
     if (!el.hasAttribute("data-live")) { finish(); return; }
     const $ = <T extends HTMLElement = HTMLElement>(r: string) => el.querySelector<T>(`[data-r="${r}"]`)!;
-    const scene = $("scene"), cv = $<HTMLCanvasElement>("gl"), earth = $("earth");
+    const cv = $<HTMLCanvasElement>("gl"), earth = $("earth");
 
-    // The opening's clock starts when the hold lifts: here, or from the fallback timer in ARM.
-    let intro = el.hasAttribute("data-intro"), introAt = intro ? -1 : -1e9;
+    // The opening's clock starts when the hold lifts: here, or from the fallback timer in ARM. It runs on the wall
+    // clock, not on frames, so a slow or sleeping tab still arrives on time. A visit that skips the opening starts
+    // long after its end. `from` is where the clock stood at `mark`; `rate` is how fast it has run since.
+    let intro = el.hasAttribute("data-intro"), from = intro ? 0 : 1e6, mark = -1, rate = 1;
+    const openingAt = (now: number) => (mark < 0 ? from : from + ((now - mark) * rate) / 1000);
     const go = () => {
-      if (introAt !== -1) return;
-      if (el.hasAttribute("data-hold")) { el.removeAttribute("data-hold"); introAt = performance.now(); }
-      else introAt = Number(el.getAttribute("data-go")) || performance.now();
+      if (mark >= 0) return;
+      // If ARM's timer lifted the hold before this script arrived, the words are already that far along.
+      if (el.hasAttribute("data-hold")) { el.removeAttribute("data-hold"); mark = performance.now(); }
+      else mark = Number(el.getAttribute("data-go")) || performance.now();
     };
     if (intro && !el.hasAttribute("data-hold")) go();
     const wait = intro ? setTimeout(go, WAIT_MS) : 0;
 
-    let draw: ReturnType<typeof startOrbit> = null;
-    try {
-      const src = cv.clientWidth * Math.min(devicePixelRatio || 1, 1.5) > 2000 ? "/hero/orbit-2560.webp" : "/hero/orbit-1920.webp";
-      draw = startOrbit(cv, src, () => { el.classList.add("is-live"); setLive(true); go(); });
-    } catch { draw = null; }
-    if (!draw) go();
+    // The scene's code arrives on its own, after the words: the page never waits on it.
+    let orbit: Orbit | null = null, score: typeof import("./orbit") | null = null, gone = false;
+    import("./orbit").then((module) => {
+      if (gone) return;
+      score = module;
+      // If the scene fails later (a shader the driver rejects, a machine far too slow), it is put away for good
+      // and the still stays.
+      const giveUp = () => { orbit?.dispose(); orbit = null; showing(false); go(); };
+      const which = () => (matchMedia(TALL_SCREEN).matches ? "tall" as const : "wide" as const);
+      try { orbit = module.createOrbit(cv, { tier: tierFor(), frame: which, onError: giveUp }); } catch { orbit = null; }
+      if (!orbit) go();
+      kick();
+    }, go);
+
+    // The canvas covers the still only while it has a picture to show.
+    let shown = false;
+    const showing = (on: boolean) => {
+      if (on === shown) return;
+      shown = on;
+      el.classList.toggle("is-live", on);
+      setLive(on);
+      if (on) go();
+    };
 
     const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
     const onMove = (e: PointerEvent) => { mouse.tx = e.clientX / innerWidth - .5; mouse.ty = e.clientY / innerHeight - .5; };
-    let W = 0, H = 0, narrow = false;
-    const measure = () => { W = scene.clientWidth; H = scene.clientHeight; narrow = W < 760; };
-    measure();
 
-    let raf = 0, onScreen = true;
+    let raf = 0, onScreen = true, drawn = 0;
+    const t0 = performance.now();
     function frame(now: number) {
       raf = 0;
       if (!onScreen || document.hidden) return;
-      // Before the hold lifts the scene stays black; after, the opening runs on its own clock.
-      const ip = introAt === -1 ? 0 : clamp((now - introAt) / INTRO_MS);
-      if (intro && ip >= 1) { intro = false; finish(); }
+      // Before the hold lifts the scene stays dark; after, the opening runs on its own clock.
+      const opening = openingAt(now);
+      if (intro && opening * 1000 >= INTRO_MS) { intro = false; finish(); }
       mouse.x = mix(mouse.x, mouse.tx, .06); mouse.y = mix(mouse.y, mouse.ty, .06);
-      const rise = eo(seg(ip, .12, .75));
-      const s0 = Math.max(W / 1920, H / 1080);
       // Leaving for the install page: the planet sinks and the light goes out.
-      const lv = leaveAt.current ? eio(clamp((now - leaveAt.current) / LEAVE_MS)) : 0;
-      const expo = mix(.2, 1, eo(seg(ip, 0, .6))) * (1 - lv);
-      const cam: OrbitCamera = { s: s0 * (1 + .16 * (1 - rise)), ox: (W - 1920 * s0) * (narrow ? .86 : .72) - mouse.x * W * .012,
-        oy: H - 1080 * s0 + H * .34 * (1 - rise) + H * .3 * lv - mouse.y * H * .01, rise, sun: eo(seg(ip, .32, .95)),
-        expo, hud: eo(seg(ip, .7, 1)) };
-      if (draw) draw(cam, now);
-      // Once the hand-off has faded the scene out there is nothing left to draw.
-      if (lv >= 1) { raf = 0; return; }
-      if (!draw || !el!.classList.contains("is-live")) {
-        earth.style.transform = rise < .999 ? `translateY(${.34 * (1 - rise) * 100}%)` : "";
-        earth.style.filter = expo < .999 ? `brightness(${expo})` : "";
+      const lv = leaveAt.current ? clamp((now - leaveAt.current) / LEAVE_MS) : 0;
+      const moving = opening < SETTLED_AFTER || lv > 0 || Math.abs(mouse.tx - mouse.x) + Math.abs(mouse.ty - mouse.y) > .002;
+      // Once the hand-off has faded the scene out there is nothing to draw, unless the hand-off is called off: the
+      // loop keeps turning so the scene is there again if the homepage comes back.
+      const out = lv >= 1;
+      if (!out && orbit && score && now - drawn >= (moving ? ACTIVE_GAP : IDLE_GAP)) {
+        const steady = moving && now - drawn < 40;
+        drawn = now;
+        const shot = score.play({ opening, leave: lv, time: (now - t0) / 1000, px: mouse.x, py: mouse.y }, score.DEFAULTS);
+        showing(orbit.render({ ...shot, steady }));
+      }
+      // Without the live scene the opening plays over the still: it rises and comes up out of the dark.
+      if (!out && !shown) {
+        const rise = 1 - Math.exp(-opening / 1.1), light = 1 - .8 * Math.exp(-opening / .6);
+        earth.style.transform = rise < .999 ? `translateY(${(.3 * (1 - rise) * 100).toFixed(2)}%)` : "";
+        earth.style.filter = light < .999 ? `brightness(${light.toFixed(3)})` : "";
       }
       raf = requestAnimationFrame(frame);
     }
     const kick = () => { if (!raf && onScreen && !document.hidden) raf = requestAnimationFrame(frame); };
     const io = new IntersectionObserver(([e]) => { onScreen = e.isIntersecting; kick(); }, { threshold: 0 });
     io.observe(el);
-    const skip = () => { if (intro) { if (introAt === -1) go(); introAt = performance.now() - INTRO_MS; } };
+    // A skipped opening is not cut: the words finish at once, and the sunrise is hurried to its end.
+    const skip = () => {
+      if (!intro) return;
+      go();
+      const now = performance.now();
+      from = openingAt(now); mark = now; rate = 8;
+      intro = false; finish();
+    };
     const events = ["pointerdown", "keydown", "wheel", "touchstart"] as const;
     events.forEach((e) => addEventListener(e, skip, { passive: true }));
     addEventListener("pointermove", onMove, { passive: true });
-    addEventListener("resize", measure);
     document.addEventListener("visibilitychange", kick);
     kick();
     return () => {
+      gone = true;
       clearTimeout(wait); cancelAnimationFrame(raf); io.disconnect();
       events.forEach((e) => removeEventListener(e, skip));
-      removeEventListener("pointermove", onMove); removeEventListener("resize", measure);
+      removeEventListener("pointermove", onMove);
       document.removeEventListener("visibilitychange", kick);
+      // Leaving the page gives the graphics memory back at once.
+      orbit?.dispose();
     };
   }, [finish, router]);
   // Leaving the homepage cancels a hand-off still in progress. It keeps the note it may have saved: when the install
@@ -176,8 +222,8 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
       <script dangerouslySetInnerHTML={{ __html: ARM }} />
       <div data-r="scene" className="launch__scene" aria-hidden="true">
         <picture data-r="earth" className="launch__earth" style={{ backgroundImage: `url(${blur})` }}>
-          <source media="(max-width: 720px)" type="image/avif" srcSet={set("orbit-tall", TALL, "avif")} sizes="100vw" />
-          <source media="(max-width: 720px)" type="image/webp" srcSet={set("orbit-tall", TALL, "webp")} sizes="100vw" />
+          <source media={TALL_SCREEN} type="image/avif" srcSet={set("orbit-tall", TALL, "avif")} sizes="100vw" />
+          <source media={TALL_SCREEN} type="image/webp" srcSet={set("orbit-tall", TALL, "webp")} sizes="100vw" />
           <source type="image/avif" srcSet={set("orbit", WIDE, "avif")} sizes="100vw" />
           <source type="image/webp" srcSet={set("orbit", WIDE, "webp")} sizes="100vw" />
           <img src="/hero/orbit-1920.webp" alt="" width={3840} height={2160} fetchPriority="high" decoding="async" />

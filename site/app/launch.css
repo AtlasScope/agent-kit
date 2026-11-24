@@ -1,20 +1,26 @@
 /* The homepage (components/LaunchHero.tsx): one screen and nothing below it. The message over a live view from orbit.
    [data-live] arms the scene; [data-intro] stages the opening once per visit; [data-hold] keeps it dark until the
    scene can draw; [data-leave] is the hand-off to /install. With reduced motion, or before the script runs, the
-   message simply shows over the photograph. */
+   message simply shows over the still. */
 .launch { --ease-launch: cubic-bezier(0.16, 1, 0.3, 1); --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); --stage-h: calc(100svh - var(--header-h, 65px));
   --lh-t2: rgba(255,255,255,.78);
   position: relative; isolation: isolate; margin-inline: calc(50% - 50vw); overflow-x: clip; background: #020302; color: #fff; }
 
-/* Scene: the photo is the first paint and the fallback; the WebGL canvas fades in over it once it draws. It sits
-   behind the whole hero, so on a screen too short for the message the planet still runs under every line of it. */
+/* Scene: a still of the scene at rest is the first paint and the fallback; the live canvas fades in over it once it
+   draws. Both are framed the same way (object-position here, the frames in components/orbit/params.ts), so one sits
+   exactly on the other. It lies behind the whole hero, so on a screen too short for the message the planet still
+   runs under every line of it. The scene is composed dark on the side the words are on, so the shade over it is
+   light: enough to hold the words' contrast where the aurora or the limb passes behind them. */
 .launch__scene { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
 .launch__earth { position: absolute; inset: 0; background: #020302 72% 100% / cover no-repeat; }
 .launch__earth img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 72% 100%; }
+/* Phones, and screens taller than 5:4, get the tall frame (TALL_SCREEN and the frames' anchors are in
+   components/orbit/params.ts). */
+@media (max-width: 759.98px), (max-aspect-ratio: 4/5) { .launch__earth { background-position: 100% 100%; } .launch__earth img { object-position: 100% 100%; } }
 .launch__gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity .9s var(--ease-launch); }
 .launch.is-live .launch__gl { opacity: 1; }
 .launch.is-live .launch__earth { visibility: hidden; transition: visibility 0s 1s; }
-.launch__shade { position: absolute; inset: 0; background: linear-gradient(100deg, rgba(2,3,2,.92) 0%, rgba(2,3,2,.62) 34%, rgba(2,3,2,0) 62%), linear-gradient(to bottom, rgba(2,3,2,.7), rgba(2,3,2,0) 22%), linear-gradient(to top, rgba(2,3,2,.7), rgba(2,3,2,0) 64px); }
+.launch__shade { position: absolute; inset: 0; background: linear-gradient(100deg, rgba(2,3,2,.52) 0%, rgba(2,3,2,.3) 34%, rgba(2,3,2,0) 60%), linear-gradient(to bottom, rgba(2,3,2,.6), rgba(2,3,2,0) 20%), linear-gradient(to top, rgba(2,3,2,.6), rgba(2,3,2,0) 64px); }
 
 /* The screen: the message, centred, and a line of small links at the foot (the homepage has no footer). */
 .launch__first { min-height: var(--stage-h); display: grid; grid-template-rows: minmax(0, 1fr) auto; }
@@ -75,11 +81,10 @@
 .launch[data-leave] .launch__scene { opacity: 0; transition: opacity .5s ease .06s; }
 
 @media (max-width: 760px) {
-  .launch__earth img { object-position: 60% 100%; }
   /* Phones: the message sits at the top, inside the shade, with the horizon below it. Where the screen is tall
      enough, one more real request follows the note (two on the tallest), so a visitor sees the other routers
      before installing. They stay short of the horizon, and go first when the screen gets shorter. */
-  .launch__shade { background: linear-gradient(to bottom, rgba(2,3,2,.9) 0%, rgba(2,3,2,.6) 55%, rgba(2,3,2,.3) 76%, rgba(2,3,2,0) 90%), linear-gradient(to top, rgba(2,3,2,.7), rgba(2,3,2,0) 64px); }
+  .launch__shade { background: linear-gradient(to bottom, rgba(2,3,2,.6) 0%, rgba(2,3,2,.4) 50%, rgba(2,3,2,.15) 72%, rgba(2,3,2,0) 88%), linear-gradient(to top, rgba(2,3,2,.6), rgba(2,3,2,0) 64px); }
   .launch__msg { align-self: start; padding-block: 5svh 24px; }
 }
 @media (max-width: 760px) and (min-height: 700px) {
