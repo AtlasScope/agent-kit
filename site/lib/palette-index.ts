@@ -1,4 +1,5 @@
 import "server-only";
+import { createHash } from "node:crypto";
 import { listed, skills, kits, fixes, areas, copyText, copyLabel, kindLabel, whatOf, skillInstall } from "./content";
 import { promptDoc, skillDoc } from "./search";
 import { INSTALL_MESSAGE, kitInstallMessage } from "./site";
@@ -73,7 +74,10 @@ function entries(): Entry[] {
 }
 
 export function paletteIndex(): Entry[] {
-  return entries().map((e) => (e.copy ? { ...e, copy: { label: e.copy.label, done: e.copy.done } } : e));
+  // `v` is a short hash of the text: it goes in the text's URL, so a browser never pairs a fresh index with a text
+  // it cached before the text changed.
+  return entries().map((e) => (e.copy?.text !== undefined
+    ? { ...e, copy: { label: e.copy.label, done: e.copy.done, v: createHash("sha1").update(e.copy.text).digest("hex").slice(0, 8) } } : e));
 }
 
 export const paletteCopies = (): { kind: string; ref: string }[] => entries().filter((e) => e.copy).map((e) => ({ kind: e.kind, ref: e.ref }));

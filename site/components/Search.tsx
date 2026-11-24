@@ -27,21 +27,23 @@ let loaded: Entry[] | null = null;
 // The browser may keep the index for an hour. If a deploy in that time removed a result, its Copy text is gone
 // (404); the palette then drops its copy of the index and the next open fetches a fresh one past the cache.
 let stale = false;
-function dropIndex() { loaded = null; indexPromise = null; stale = true; }
+function dropIndex() { loaded = null; indexPromise = null; stale = true; texts.clear(); known.clear(); }
 function loadIndex() {
   indexPromise ??= fetch("/search-index.json", stale ? { cache: "reload" } : undefined).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-    .then((e: Entry[]) => (loaded = e));
+    .then((e: Entry[]) => { stale = false; return (loaded = e); });
   indexPromise.catch(() => { indexPromise = null; });
   return indexPromise;
 }
 
 // Copy texts by entry key: `texts` holds the requests, `known` the answers, so a cached text can go to the
 // clipboard inside the click or key event without waiting.
+// Keyed by the URL, which carries the text's version.
 const texts = new Map<string, Promise<string>>();
 const known = new Map<string, string>();
+const gone = (err: unknown) => err instanceof Error && err.message === "gone";
 function copyText(e: Entry): Promise<string> {
   if (e.copy?.text !== undefined) return Promise.resolve(e.copy.text);
-  const k = keyOf(e);
+  const k = copyUrl(e);
   let p = texts.get(k);
   if (!p) {
     p = fetch(copyUrl(e)).then((r) => (r.ok ? r.text() : Promise.reject(new Error(r.status === 404 ? "gone" : String(r.status))))).then((t) => { known.set(k, t); return t; });
@@ -50,7 +52,7 @@ function copyText(e: Entry): Promise<string> {
   }
   return p;
 }
-const knownText = (e: Entry) => e.copy?.text ?? known.get(keyOf(e));
+const knownText = (e: Entry) => e.copy?.text ?? known.get(copyUrl(e));
 
 const SearchIcon = () => (
   <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
@@ -197,8 +199,9 @@ export function Search() {
   useEffect(() => { setCur(0); list.current?.scrollTo({ top: 0 }); }, [q, scope]);
   // The preview (wide screens only) shows what Copy sends. It is fetched once the selection rests for a moment,
   // so holding an arrow key doesn't request every result it passes.
-  // `text: null` means the fetch failed; Copy tries again and, if it succeeds, fills the preview.
-  const [payload, setPayload] = useState<{ key: string; text: string | null } | null>(null);
+  // `text: null` means the fetch failed (Copy tries again and, if it succeeds, fills the preview); `gone` means the
+  // result no longer exists.
+  const [payload, setPayload] = useState<{ key: string; text: string | null; gone?: boolean } | null>(null);
   const [wide, setWide] = useState(false);
   useEffect(() => {
     if (!open) return;
@@ -211,10 +214,10 @@ export function Search() {
     const k = keyOf(active), have = knownText(active);
     if (have !== undefined) { setPayload({ key: k, text: have }); return; }
     let live = true;
-    const t = setTimeout(() => copyText(active).then((text) => { if (live) setPayload({ key: k, text }); }, () => { if (live) setPayload({ key: k, text: null }); }), 120);
+    const t = setTimeout(() => copyText(active).then((text) => { if (live) setPayload({ key: k, text }); }, (err) => { if (live) setPayload({ key: k, text: null, gone: gone(err) }); }), 120);
     return () => { live = false; clearTimeout(t); };
   }, [open, wide, active]);
-  const shown = active && payload?.key === keyOf(active) ? payload.text : undefined;
+  const shown = active && payload?.key === keyOf(active) ? payload : undefined;
   useEffect(() => {
     if (!active) return;
     document.getElementById(`cmdk-${keyOf(active)}`)?.scrollIntoView({ block: "nearest" });
@@ -253,7 +256,8 @@ export function Search() {
       }
       say(c.done); remember(e);
     } catch {
-      if (loadFailed instanceof Error && loadFailed.message === "gone") { dropIndex(); say("This result changed since the page loaded. Close and search again."); }
+      // The index is out of date: fetch a fresh one now, which also takes the removed result off the list.
+      if (gone(loadFailed)) { dropIndex(); warm(); say("This result was removed in an update. The list is refreshed."); }
       else say(loadFailed ? "Couldn’t load the text to copy. Open the page and copy from there." : "Copy was blocked. Open the page and copy from there.");
     }
   };
@@ -335,8 +339,9 @@ export function Search() {
               <p className="cmdk__meta"><span className="cmdk__dot" aria-hidden="true" data-kind={active.kind} />{active.meta}</p>
               <h2 className="cmdk__ph" translate={active.kind === "skill" || active.kind === "kit" ? "no" : undefined}>{active.title}</h2>
               {active.summary && <p className="cmdk__ps">{active.summary}</p>}
-              {active.copy && typeof shown === "string" && <pre className="cmdk__payload" data-long={shown.length > 360 || undefined} aria-label={`${active.copy.label.replace(/^Copy /, "")} text`}>{shown}</pre>}
-              {active.copy && shown === null && <p className="cmdk__ps">The text didn’t load. Copy will try again.</p>}
+              {active.copy && typeof shown?.text === "string" && <pre className="cmdk__payload" data-long={shown.text.length > 360 || undefined} aria-label={`${active.copy.label.replace(/^Copy /, "")} text`}>{shown.text}</pre>}
+              {active.copy && shown?.text === null && !shown.gone && <p className="cmdk__ps">The text didn’t load. Copy will try again.</p>}
+              {active.copy && shown?.gone && <p className="cmdk__ps">This result was removed in an update. Press Copy to refresh the list.</p>}
               <div className="cmdk__actions">
                 <button type="button" className="cmdk__btn cmdk__btn--main" onClick={() => go(active)}>Open<kbd aria-hidden="true">↵</kbd></button>
                 {active.copy && <button type="button" className="cmdk__btn" onClick={() => copy(active)}>{active.copy.label}<kbd aria-hidden="true">{mod}↵</kbd></button>}
