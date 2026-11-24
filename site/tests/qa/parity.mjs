@@ -29,7 +29,8 @@ async function get(base, path, redirect = "follow") {
   } catch (e) { return { status: 0, error: String(e), body: "", type: "" }; }
 }
 
-const attr = (html, re) => { const m = html.match(re); return m ? m[1].replace(/&amp;/g, "&").replace(/&#x27;/g, "'").replace(/&quot;/g, '"') : null; };
+// &amp; goes last, so "&amp;quot;" decodes once to "&quot;" and not on to a quote.
+const attr = (html, re) => { const m = html.match(re); return m ? m[1].replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, "&") : null; };
 function head(html) {
   const metaName = (n) => attr(html, new RegExp(`<meta[^>]+name="${n}"[^>]+content="([^"]*)"`)) ?? attr(html, new RegExp(`<meta[^>]+content="([^"]*)"[^>]+name="${n}"`));
   const metaProp = (n) => attr(html, new RegExp(`<meta[^>]+property="${n}"[^>]+content="([^"]*)"`));

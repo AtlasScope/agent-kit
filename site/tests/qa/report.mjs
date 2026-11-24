@@ -11,6 +11,8 @@ const parity = read("parity.json"), browser = read("browser.json"), webkit = rea
 const lanes = readdirSync(dir).filter((f) => /^lane-.*\.json$/.test(f)).map(read);
 const order = ["blocker", "serious", "moderate", "minor"];
 const L = [];
+// Escape backslashes first, then pipes, so a detail can't break out of its table cell.
+const cell = (t) => String(t).replace(/\\/g, "\\\\").replace(/\|/g, "\\|").replace(/\n/g, " ");
 
 L.push(`# QA report: ${args.title || args.label}`, "");
 L.push("All browser results are emulation. Chromium runs use Playwright's iPhone, iPad and MacBook profiles (viewport, pixel ratio, user agent, touch). WebKit runs use WebKitGTK, the Linux port of Safari's engine, at 2x. Neither is Safari on a physical Apple device.", "");
@@ -61,7 +63,7 @@ if (pre.length) {
 }
 for (const l of lanes) {
   L.push(`## Lane checks: ${l.lane}`, "", "| Check | Where | Result |", "|---|---|---|");
-  for (const x of l.results) L.push(`| ${x.check} | ${x.where} | ${x.ok ? "pass" + (x.note ? `: ${x.note}` : "") : `**${x.severity}**: ${x.detail.replace(/\|/g, "\\|")}`} |`);
+  for (const x of l.results) L.push(`| ${x.check} | ${x.where} | ${x.ok ? "pass" + (x.note ? `: ${x.note}` : "") : `**${x.severity}**: ${cell(x.detail)}`} |`);
   L.push("");
 }
 writeFileSync(`${dir}/report.md`, L.join("\n"));
