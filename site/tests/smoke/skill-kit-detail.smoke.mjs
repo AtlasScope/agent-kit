@@ -112,6 +112,15 @@ for (const size of SIZES) for (const scheme of ["light", "dark"]) {
       await page.getByRole("tab", { name: "Codex" }).click();
       await page.getByRole("button", { name: "Copy the Codex commands" }).click();
       assert.equal(await clipboard(page), `codex plugin marketplace add ${SITE.repoSlug}\ncodex plugin add ${k.name}@agent-kit`);
+      // How a skill starts stays on one line, and a row's meta takes at most one line on desktop, two on a phone.
+      const lines = await page.locator(".kd-row__m").evaluateAll((ms) => ms.map((m) => {
+        const lh = parseFloat(getComputedStyle(m).lineHeight), start = m.firstElementChild;
+        return [m.closest(".kd-row").querySelector(".kd-row__name").textContent, Math.round(start.getBoundingClientRect().height / lh), Math.round(m.getBoundingClientRect().height / lh)];
+      }));
+      for (const [name, start, all] of lines) {
+        assert.equal(start, 1, `${k.name}/${name}: how it starts wraps`);
+        assert.ok(all <= (size.isMobile ? 2 : 1), `${k.name}/${name}: meta takes ${all} lines`);
+      }
       // Every skill in the kit is listed once, linked to its page.
       const links = await page.locator(".kd-row__name a").evaluateAll((as) => as.map((a) => a.getAttribute("href")));
       assert.deepEqual([...links].sort(), k.skills.map((n) => `/skills/${n}`).sort());
