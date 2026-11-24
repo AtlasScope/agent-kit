@@ -385,7 +385,8 @@ const LIB = JSON.parse(document.getElementById("library").textContent);
 const E = LIB.entries; const BY = Object.fromEntries(E.map(e => [e.id, e]));
 const CMDIDX = {};
 E.forEach(e => { if (e.cmd) { const k = norm(e.cmd); if (!CMDIDX[k]) CMDIDX[k] = e.id; } });
-function norm(s) { return s.toLowerCase().replace(/\s*<[^>]*>/g, "").replace(/,.*$/, "").replace(/\s+/g, " ").trim(); }
+// Placeholders such as "<path>" always come last, so keep only the text before the first "<".
+function norm(s) { return s.toLowerCase().split("<")[0].replace(/,.*$/, "").replace(/\s+/g, " ").trim(); }
 function findCmd(s) { const k = norm(s); if (CMDIDX[k]) return CMDIDX[k]; const two = k.split(" ").slice(0, 2).join(" "); return CMDIDX[two] || CMDIDX[k.split(" ")[0]] || null; }
 
 const SECS = [
