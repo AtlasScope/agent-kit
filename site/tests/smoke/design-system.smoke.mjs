@@ -104,8 +104,11 @@ for (const size of SIZES) {
       await landed().catch(() => assert.fail(`round ${round}: the text did not come back selected and focused`));
       assert.match(await bar.textContent(), /Copy blocked/, `round ${round}: the bar keeps its blocked message up`);
     }
-    // Once the clipboard works, a press copies and the page stays where it is.
+    // Pressing the bar while it is up only for its message: it stays up and shows the new outcome.
     await page.evaluate(() => { window.__block = false; });
+    await bar.click();
+    await page.locator(".fcopy[data-on] .fcopy__copy[data-copied]").waitFor();
+    // Once the clipboard works, a press copies and the page stays where it is.
     const y = await away();
     await bar.click();
     await page.locator(".fcopy__copy[data-copied]").waitFor();
