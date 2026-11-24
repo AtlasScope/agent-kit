@@ -44,8 +44,11 @@ export function FloatingCopy({ anchor, end, target, text, title, detail, name, l
   useEffect(() => {
     const b = bar.current?.querySelector("button");
     if (!b) return;
+    // One recovery per press: the attribute change handles a fresh block, the timer a repeat one, never both.
+    let pending = false;
     const recover = () => {
-      if (!b.hasAttribute("data-blocked")) return;
+      if (!pending || !b.hasAttribute("data-blocked")) return;
+      pending = false;
       const t = target?.current, a = anchor.current;
       const el = t || a;
       if (!el) return;
@@ -62,7 +65,7 @@ export function FloatingCopy({ anchor, end, target, text, title, detail, name, l
     const watch = new MutationObserver(recover);
     watch.observe(b, { attributes: true, attributeFilter: ["data-blocked"] });
     let timer: ReturnType<typeof setTimeout> | undefined;
-    const press = () => { clearTimeout(timer); timer = setTimeout(recover, 150); };
+    const press = () => { pending = true; clearTimeout(timer); timer = setTimeout(recover, 150); };
     b.addEventListener("click", press);
     return () => { watch.disconnect(); clearTimeout(timer); b.removeEventListener("click", press); };
   }, [anchor, target]);
