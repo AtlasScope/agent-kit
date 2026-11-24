@@ -14,7 +14,7 @@ If PRODUCT.md does not say what this screen is for and you cannot tell from the 
 2. **Use it once** as the person in PRODUCT.md would, doing the screen's one job. Note where you hesitated.
 3. **Judge it against the seven questions**, in this order. Stop collecting once you have more than you will report.
 4. **Rank.** Keep the three problems that most get in the way of the screen's job. A problem that blocks the job outranks any number that only look untidy.
-5. **Report**, with the page described under Proof in SKILL.md: each problem marked on the screenshot it appears in.
+5. **Report**, on the worksheet described in SKILL.md, with each problem pinned on the screenshot it appears in.
 
 ## The seven questions
 

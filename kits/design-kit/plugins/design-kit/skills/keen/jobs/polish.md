@@ -13,7 +13,7 @@ Polish cannot rescue a screen that is crowded, confusing or doing two jobs. If t
 1. **Capture before**, at 390 and 1440 wide, plus hover and keyboard-focus states of the main controls.
 2. **Find the project's values.** DESIGN.md first, then the theme or token file, then the most common values in the code. Polish means moving stray values onto the project's own scale. If there is no scale, take the values used most often on this screen as the scale and say so.
 3. **Go through the eight passes** below, fixing as you go.
-4. **Capture after** and build the before-and-after page.
+4. **Capture after** and build the worksheet with before and after side by side.
 
 ## The eight passes
 

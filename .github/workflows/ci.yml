@@ -36,12 +36,14 @@ jobs:
           public=$(has '^(kits/|library/|scripts/check-public|[A-Z]+\.md$)')
           catalog=$(has '^(kits/|\.claude-plugin/|\.agents/|scripts/check-catalog)')
           motion=$(has '^kits/motion-kit/')
-          [ "$all" = true ] && site=true library=true public=true catalog=true motion=true
+          keen=$(has '^kits/design-kit/plugins/design-kit/skills/keen/')
+          [ "$all" = true ] && site=true library=true public=true catalog=true motion=true keen=true
           echo "site=$site" >> "$GITHUB_OUTPUT"
           echo "library=$library" >> "$GITHUB_OUTPUT"
           echo "public=$public" >> "$GITHUB_OUTPUT"
           echo "catalog=$catalog" >> "$GITHUB_OUTPUT"
           echo "motion=$motion" >> "$GITHUB_OUTPUT"
+          echo "keen=$keen" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v7
         if: steps.changes.outputs.site == 'true' || steps.changes.outputs.library == 'true' || steps.changes.outputs.public == 'true' || steps.changes.outputs.catalog == 'true'
@@ -86,6 +88,10 @@ jobs:
         env:
           MOTION_REQUIRE_BROWSER: "1"
         run: node --test "kits/motion-kit/plugins/motion-kit/skills/motion/tests/*.test.mjs"
+
+      - name: Test the Keen worksheet script
+        if: steps.changes.outputs.keen == 'true'
+        run: node --test "kits/design-kit/plugins/design-kit/skills/keen/tests/*.test.mjs"
 
       - name: Typecheck the site
         if: steps.changes.outputs.site == 'true' && hashFiles('site/package.json') != ''
