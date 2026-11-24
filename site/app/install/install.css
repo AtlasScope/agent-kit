@@ -41,7 +41,6 @@
 .inst__copy--main .i { stroke-width: 2; }
 
 /* The status line under the message: what Copy did, in words, in place. Before any copy it says where the message works. */
-.inst__status, .inst__cmdnote { min-height: 0; }
 .inst__how, .inst__note { margin: 14px 0 0; font-size: var(--type-sm); line-height: 1.55; color: var(--t2); text-wrap: pretty; }
 .inst__note { display: flex; align-items: baseline; gap: 10px; animation: inst-note var(--dur-base) var(--ease-out); }
 .inst__note .led { flex: none; transform: translateY(-1px); }
@@ -54,7 +53,8 @@
 html:not([data-os="mac"], [data-os="linux"]) .inst__keys [data-os="other"], html[data-os="mac"] .inst__keys [data-os="mac"], html[data-os="linux"] .inst__keys [data-os="linux"] { display: inline; }
 .inst kbd { display: inline-grid; place-items: center; min-width: 1.55em; height: 1.55em; margin: 0 1px; padding: 0 .35em; border: 1px solid var(--line-2); border-bottom-width: 2px; border-radius: 5px;
   background: rgba(255,255,255,.04); color: var(--t1); font: 500 .8em/1 var(--font-body); vertical-align: .05em; }
-@media (hover: none) and (pointer: coarse) { .inst__keys { display: none; } }
+.inst__touch { display: none; }
+@media (hover: none) and (pointer: coarse) { .inst__keys { display: none; } .inst__touch { display: inline; } }
 
 /* Phones only: the install runs on a computer. */
 .inst__phone { display: none; margin: 10px 0 0; font-size: var(--type-sm); line-height: 1.55; color: var(--t3); }
@@ -111,6 +111,7 @@ html:not([data-os="mac"], [data-os="linux"]) .inst__keys [data-os="other"], html
 
 /* What it installs: the five kits as a hairline list, each a link to its kit page. */
 .inst__kits { min-width: 0; padding-top: 6px; }
+.inst__kitnote { margin: 6px 0 0; font-size: 0.75rem; line-height: 1.5; color: var(--t3); }
 .inst__kits ul { list-style: none; margin: 14px 0 0; padding: 0; border-top: 1px solid var(--line); }
 .inst__kits li { border-bottom: 1px solid var(--line); }
 .inst__kits li > a { display: grid; gap: 6px; padding: 14px 0 15px; color: inherit; text-decoration: none; }

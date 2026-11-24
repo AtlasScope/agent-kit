@@ -92,6 +92,10 @@ for (const size of SIZES) {
     assert.equal(await page.locator(".inst__note").count(), 0);
     assert.equal(await page.locator(".inst[data-arrived]").count(), 0);
     assert.ok(await page.getByRole("tab", { name: "Claude Code" }).isVisible(), "#manual opens the commands");
+    // A same-page link to #manual opens it too.
+    await page.locator(".inst__manual > summary").click();
+    await page.evaluate(() => { location.hash = ""; location.hash = "manual"; });
+    await page.getByRole("tab", { name: "Claude Code" }).waitFor();
     assert.deepEqual(errors, []);
     await ctx.close();
   });
@@ -103,6 +107,10 @@ for (const size of SIZES) {
     await page.locator(".inst__note.is-warn", { hasText: "blocked" }).waitFor();
     assert.equal((await page.evaluate(() => getSelection()?.toString() ?? "")).trim(), INSTALL_MESSAGE);
     assert.equal(await page.getByRole("button", { name: /Copied/ }).count(), 0, "never shows Copied after a failure");
+    // How to copy it yourself: keys on a computer, touch on a phone. Never a sentence with the keys missing.
+    const hint = await page.locator(".inst__note.is-warn").innerText();
+    assert.match(hint, size.name === "phone" ? /Touch and hold it, then choose Copy/ : /Copy it with/);
+    assert.doesNotMatch(hint, size.name === "phone" ? /Copy it with/ : /Touch and hold/);
     await ctx.close();
   });
 }

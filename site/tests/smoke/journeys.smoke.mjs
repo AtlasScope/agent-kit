@@ -72,6 +72,8 @@ for (const size of SIZES) {
     assert.equal(await clipboard(page), INSTALL_MESSAGE, "Install copies the message to paste into an agent");
     await page.getByRole("button", { name: /Copy the message/ }).click();
     assert.equal(await clipboard(page), INSTALL_MESSAGE, "the install page copies the same message");
+    // The by-hand commands sit in a closed disclosure under the message.
+    await page.locator(".inst__manual > summary").click();
     for (const agent of ["claude", "any"].map((id) => AGENTS.find((a) => a.id === id))) {
       await page.getByRole("tab", { name: agent.label }).click();
       const copy = page.getByRole("tabpanel").getByRole("button", { name: /^Copy/ });

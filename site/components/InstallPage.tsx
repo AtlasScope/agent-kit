@@ -25,20 +25,26 @@ export type KitLine = { name: string; line: string; type: string[]; skills: numb
 const Check = () => <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>;
 const CopyIcon = () => <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" /></svg>;
 const Chevron = () => <svg className="i inst__chev" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg>;
-// The paste keys for each kind of computer; html[data-os] decides which shows. Linux terminals paste with Ctrl Shift V.
+// The paste keys for each kind of computer; html[data-os] decides which shows. Linux terminals paste with Ctrl Shift V,
+// and the message may go into a terminal agent or an app, so Linux gets both for the message and the terminal keys for
+// a command. Phones show none of these (install.css).
 const Keys = ({ terminal }: { terminal?: boolean }) => (
   <span className="inst__keys"> with{" "}
     <span data-os="mac"><kbd>⌘</kbd><kbd>V</kbd></span>
-    <span data-os="linux">{terminal ? <><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>V</kbd></> : <><kbd>Ctrl</kbd><kbd>V</kbd></>}</span>
+    <span data-os="linux">{terminal ? <><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>V</kbd></> : <><kbd>Ctrl</kbd><kbd>V</kbd>, or <kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>V</kbd> in a terminal</>}</span>
     <span data-os="other"><kbd>Ctrl</kbd><kbd>V</kbd></span>
   </span>
 );
-const CopyKeys = () => (
-  <span className="inst__keys">
-    <span data-os="mac"><kbd>⌘</kbd><kbd>C</kbd></span>
-    <span data-os="linux"><kbd>Ctrl</kbd><kbd>C</kbd></span>
-    <span data-os="other"><kbd>Ctrl</kbd><kbd>C</kbd></span>
-  </span>
+// After a blocked copy the text is selected: how to copy it yourself, by keys on a computer, by touch on a phone.
+const CopyHint = () => (
+  <>
+    <span className="inst__keys"> Copy it with{" "}
+      <span data-os="mac"><kbd>⌘</kbd><kbd>C</kbd></span>
+      <span data-os="linux"><kbd>Ctrl</kbd><kbd>C</kbd></span>
+      <span data-os="other"><kbd>Ctrl</kbd><kbd>C</kbd></span>.
+    </span>
+    <span className="inst__touch"> Touch and hold it, then choose Copy.</span>
+  </>
 );
 const tested = (a: Agent) => a.tested ? `${a.testedScope ?? "Tested"} with ${a.tested}.` : `Not tested with ${a.label} yet.`;
 const selectText = (el: Element | null) => {
@@ -74,17 +80,18 @@ export function InstallPage({ kits, skills, kitLines, children }: { kits: number
     const h = readHandoff();
     if (!h) return;
     setArrived(true);
-    const kind: Note["kind"] = "message" in h ? "message" : "agent" in h ? "copied" : "blocked";
-    if (kind === "message") setSaid1(true);
-    if ("agent" in h) {
-      const a = SHOWN.find((x) => x.id === h.agent.replace(/^t-/, ""));
-      if (a) { setAgent(a); setOpen(true); setCopied(true); }
-    }
-    if (kind === "blocked") selectText(msg.current);
+    // As before this redesign: anything but a copied message reads as blocked. The homepage saves only those two.
+    const kind: Note["kind"] = "message" in h ? "message" : "blocked";
+    if (kind === "message") setSaid1(true); else selectText(msg.current);
     h1.current?.focus({ preventScroll: true });
     // The status waits a moment, so a screen reader reads it after the new page's title, not over it.
     const t = setTimeout(() => setNote({ kind, n: 1 }), 600);
     return () => clearTimeout(t);
+  }, []);
+  // A link to #manual from this same page opens the commands too.
+  useEffect(() => {
+    const on = () => { if (location.hash === "#manual") setOpen(true); };
+    addEventListener("hashchange", on); return () => removeEventListener("hashchange", on);
   }, []);
   useEffect(() => { if (!copied) return; const t = setTimeout(() => setCopied(false), NOTE_MS); return () => clearTimeout(t); }, [copied]);
   useEffect(() => { if (!said1) return; const t = setTimeout(() => setSaid1(false), NOTE_MS); return () => clearTimeout(t); }, [said1]);
@@ -94,7 +101,8 @@ export function InstallPage({ kits, skills, kitLines, children }: { kits: number
   const pick = (a: Agent) => {
     setPicked(true);
     setAgent(a); setCopied(false); setSaid(`${a.label}. ${tested(a)}`);
-    if (note?.kind === "copied") setNote(null);
+    // A command note belongs to the agent it was about; switching agents clears it.
+    if (note?.kind === "copied" || note?.kind === "failed") setNote(null);
     try { localStorage.setItem(AGENT_KEY, a.id); } catch {}
   };
   const focus = (a: Agent) => { pick(a); document.getElementById(`it-${a.id}`)?.focus(); };
@@ -130,22 +138,22 @@ export function InstallPage({ kits, skills, kitLines, children }: { kits: number
             <pre className="inst__say" ref={msg}>{INSTALL_MESSAGE}</pre>
           </section>
 
+          {/* Only the note is live, so its clearing back to the idle line isn't announced. */}
           <div className="inst__status" role="status">
-            {msgNote ? (
+            {msgNote && (
               <p className={`inst__note${msgNote.kind === "blocked" ? " is-warn" : ""}`} key={msgNote.n}>
                 {msgNote.kind === "message"
                   ? <><i className="led is-on" aria-hidden="true" /><span><b>Message copied.</b> Paste it into your agent<Keys />. It reads the steps, runs them, and tells you what it installed.</span></>
-                  : <><span className="inst__warn" aria-hidden="true">!</span><span><b>Your browser blocked copying.</b> The message is selected: copy it with <CopyKeys />, or press Copy again.</span></>}
+                  : <><span className="inst__warn" aria-hidden="true">!</span><span><b>Your browser blocked copying.</b> The message is selected.<CopyHint /></span></>}
               </p>
-            ) : (
-              <p className="inst__how">Works in Claude Code, Codex, Cursor and other coding agents. Your agent reads the steps for itself, runs them, and tells you what it installed.</p>
             )}
           </div>
+          {!msgNote && <p className="inst__how">Works in Claude Code, Codex, Cursor and other coding agents. Your agent reads the steps for itself, runs them, and tells you what it installed.</p>}
           <p className="inst__phone">Agent Kit installs on a computer. Copy the message here and paste it into your agent there, or send this page to yourself.</p>
 
           <details className="inst__manual" id="manual" open={open} onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}>
             <summary>
-              <h2 className="inst__or">Or run it yourself</h2>
+              <span className="inst__or">Or run it yourself</span>
               <span className="inst__sum">Terminal commands for Claude Code, Codex, Cursor or any agent</span>
               <Chevron />
             </summary>
@@ -181,7 +189,7 @@ export function InstallPage({ kits, skills, kitLines, children }: { kits: number
                   <p className={`inst__note${cmdNote.kind === "failed" ? " is-warn" : ""}`} key={cmdNote.n}>
                     {cmdNote.kind === "copied"
                       ? <><i className="led is-on" aria-hidden="true" /><span><b>Install command copied.</b> Paste it in a terminal<Keys terminal />.</span></>
-                      : <><span className="inst__warn" aria-hidden="true">!</span><span><b>Copying was blocked.</b> The command is selected: copy it with <CopyKeys />.</span></>}
+                      : <><span className="inst__warn" aria-hidden="true">!</span><span><b>Copying was blocked.</b> The command is selected.<CopyHint /></span></>}
                   </p>
                 )}
               </div>
@@ -213,6 +221,7 @@ export function InstallPage({ kits, skills, kitLines, children }: { kits: number
 
         <aside className="inst__kits" aria-labelledby="inst-kits-h">
           <h2 id="inst-kits-h" className="inst__label">What it installs</h2>
+          <p className="inst__kitnote">Each kit starts with the command shown, as typed in Claude Code.</p>
           <ul>
             {kitLines.map((k) => (
               <li key={k.name}>
