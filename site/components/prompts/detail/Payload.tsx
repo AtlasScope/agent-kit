@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type FocusEvent as ReactFocusEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { CopyButton } from "@/components/CopyButton";
 import { FloatingCopy } from "@/components/ui/FloatingCopy";
@@ -26,15 +26,19 @@ type Props = {
 
 type Fallback = { text: string; name: string; n: number; slot?: HTMLElement | null };
 
-const editable = (el: EventTarget | null) =>
-  el instanceof HTMLElement && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT|BUTTON|A)$/.test(el.tagName));
+// Fields where C is typing, never the shortcut.
+const typing = (el: EventTarget | null) =>
+  el instanceof HTMLElement && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
+const keyboardFocus = (el: Element) => { try { return el.matches(":focus-visible"); } catch { return true; } };
 
 // The exact text a prompt copies, with the one Copy that matters in a header that stays in reach while you read.
 // Copy itself is the shared CopyButton (frozen API). This panel adds, around it:
 //   - when the clipboard is blocked (CopyButton's data-blocked), the text that press would have copied is shown (if the panel's body is something
 //     else, such as the steps of a split recipe) and selected, so the fallback is one keystroke (Cmd/Ctrl+C);
-//   - while focus is inside the panel, C copies and Cmd/Ctrl+A inside the text selects only the text. The single-key
-//     shortcut is scoped to the panel so it can't fire from stray typing or speech input elsewhere (WCAG 2.1.4);
+//   - while focus is anywhere in the panel (Copy, Markdown, Save, the text), C copies and Cmd/Ctrl+A inside the text
+//     selects only the text. The single-key shortcut is scoped to the panel so it can't fire from stray typing or
+//     speech input elsewhere (WCAG 2.1.4). Its hint shows while keyboard focus is in the panel, never after a mouse
+//     click, and is driven from focus events rather than CSS :has(:focus), which WebKit doesn't re-evaluate on focus;
 //   - the shared FloatingCopy bar carries the same Copy once the panel's sticky Copy bar starts to scroll away under
 //     the header (the panel's end pushes it up), so Copy is in reach from the top of the page to the footer.
 export function Payload({ label, meta, text, copyLabel, actions, children, title, steps }: Props) {
@@ -48,10 +52,10 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
   // panel's own Copy is clipped. Its offset follows the bar's height (it wraps on narrow screens).
   const anchor = useRef<HTMLSpanElement>(null);
   const [fallback, setFallback] = useState<Fallback | null>(null);
+  const [keys, setKeys] = useState(false); // keyboard focus is in the panel, where C copies
   const inline = !children; // the exact text is the panel body
 
-  // Blocked presses. Watch CopyButton's data-blocked and data-copied, and also check on every press: a repeat press
-  // while the button already says "blocked" changes nothing in the DOM.
+  // Blocked presses: watch CopyButton's data-blocked and data-copied on the panel's buttons and the floating bar's.
   useEffect(() => {
     const panel = root.current;
     const dock = dockWrap.current?.querySelector<HTMLElement>(".fcopy") ?? null;
@@ -73,13 +77,7 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
 
     const watch = new MutationObserver((records) => {
       for (const r of records) {
-        const el = r.target as Element;
-        if (el === dock) {
-          // The floating bar hid while it held focus: it turns inert, so hand focus to the panel's own Copy.
-          if (!dock.hasAttribute("data-on") && dock.contains(document.activeElement)) main.current?.focus({ preventScroll: true });
-          continue;
-        }
-        const btn = isCopy(el);
+        const btn = isCopy(r.target as Element);
         if (!btn || r.oldValue !== null) continue; // only an attribute turning on
         if (r.attributeName === "data-blocked") onBlocked(btn);
         else if (!inline) {
@@ -92,26 +90,9 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
         }
       }
     });
-    // A press while the button already says "blocked" changes nothing in the DOM if it is blocked again, so for that
-    // press ask the clipboard directly, with the same text the button writes, and wait for its answer. This listener
-    // runs in the capture phase, before the button's own handler, under the same press.
-    let live = true;
-    const onClick = (e: MouseEvent) => {
-      const btn = isCopy(e.target as Element);
-      if (!btn?.hasAttribute("data-blocked")) return;
-      const f = textFor(btn);
-      if (!f) return;
-      navigator.clipboard.writeText(f.text).catch(() => { if (live) setFallback({ ...f, n: Date.now() }); });
-    };
-    for (const el of [panel, dock]) {
-      if (!el) continue;
-      watch.observe(el, { subtree: true, attributes: true, attributeOldValue: true, attributeFilter: ["data-blocked", "data-copied", "data-on"] });
-      el.addEventListener("click", onClick, true);
-    }
-    return () => {
-      watch.disconnect(); live = false;
-      for (const el of [panel, dock]) el?.removeEventListener("click", onClick, true);
-    };
+    // CopyButton resets to its plain label at the start of every press, so a repeat block turns data-blocked on again.
+    for (const el of [panel, dock]) if (el) watch.observe(el, { subtree: true, attributes: true, attributeOldValue: true, attributeFilter: ["data-blocked", "data-copied"] });
+    return () => watch.disconnect();
   }, [text, label, copyLabel, steps, inline]);
 
   // After the fallback renders: make sure its first lines are on screen and not under the sticky bar or the floating
@@ -153,11 +134,14 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
   const onKey = (e: ReactKeyboardEvent) => {
     if (e.key !== "c" && e.key !== "C") return;
     if (e.metaKey || e.ctrlKey || e.altKey || e.repeat || e.nativeEvent.isComposing) return;
-    if (e.target !== pre.current && e.target !== main.current && editable(e.target)) return;
-    if (fallback?.slot && e.target === pre.current) return; // a step's text is showing: C would copy step 1 instead
+    if (cDoesNothing(e.target)) return;
     e.preventDefault();
     main.current?.click();
   };
+  // A step's text showing beside its step: C there would copy step 1 instead, so it does nothing.
+  const cDoesNothing = (t: EventTarget | null) => typing(t) || (!!fallback?.slot && t === pre.current);
+  const onFocus = (e: ReactFocusEvent) => setKeys(!cDoesNothing(e.target) && keyboardFocus(e.target));
+  const onBlur = (e: ReactFocusEvent) => { if (!root.current?.contains(e.relatedTarget as Node | null)) setKeys(false); };
 
   const shown = inline ? { text, name: `${label} text` } : fallback;
   const block = shown && (
@@ -176,7 +160,7 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
 
   return (
     <>
-      <section ref={root} className="pd-payload" aria-label={label} onKeyDown={onKey}>
+      <section ref={root} className="pd-payload" aria-label={label} data-keys={keys || undefined} onKeyDown={onKey} onFocus={onFocus} onBlur={onBlur}>
         <div ref={head} className="pd-payload__head">
           <p className="pd-payload__meta"><span className="pd-payload__label">{label}</span>{meta}</p>
           <div className="pd-payload__acts">
@@ -195,7 +179,7 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
         <span ref={anchor} className="pd-anchor" aria-hidden="true" />
       </section>
       <div ref={dockWrap} className="pd-dockwrap">
-        <FloatingCopy anchor={anchor} text={text} title={title ?? label} detail={title ? label : undefined} label={copyLabel} name={`${copyLabel}: ${title ?? label}`} />
+        <FloatingCopy anchor={anchor} target={inline ? pre : undefined} text={text} title={title ?? label} detail={title ? label : undefined} label={copyLabel} name={`${copyLabel}: ${title ?? label}`} />
       </div>
     </>
   );
