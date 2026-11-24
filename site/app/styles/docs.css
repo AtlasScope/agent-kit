@@ -1,0 +1,24 @@
+/* Reading pages: About, Privacy, Terms.
+   Ownership: see DESIGN-CONTRACT.md. Split from globals.css with no change in cascade order. */
+
+/* Reading pages (About, Privacy, Terms): sections at a reading width, a short contents list beside them. */
+.doc-notice { max-width: var(--measure); padding: var(--space-sm) var(--space-md); border: 1px solid var(--color-rule-2); border-radius: var(--radius); background: var(--color-paper-2); color: var(--color-ink-2); font-size: var(--text-sm); line-height: 1.5; }
+.doc-notice strong { color: var(--color-ink); font-weight: 600; }
+.doc { display: grid; grid-template-columns: minmax(0, var(--measure)) 220px; justify-content: space-between; gap: var(--space-2xl); align-items: start; }
+.doc__body { display: grid; gap: var(--space-xl); min-width: 0; }
+.doc__sec { display: grid; gap: var(--space-sm); }
+.doc__sec h2 { margin: 0; font: 600 clamp(1.25rem, 0.6vw + 1rem, 1.5rem)/1.2 var(--font-body); letter-spacing: -0.025em; }
+.doc__sec p { color: var(--color-ink-2); line-height: 1.6; text-wrap: pretty; }
+.doc__sec a { color: var(--color-ink); text-decoration-color: var(--color-rule-2); text-underline-offset: 0.2em; }
+.doc__terms { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: var(--space-sm) var(--space-lg); margin: 0; }
+.doc__terms dt { font-weight: 600; }
+.doc__terms dd { margin: 0; color: var(--color-ink-2); line-height: 1.55; }
+.doc__toc { position: sticky; top: calc(var(--header-h) + var(--space-lg)); display: grid; gap: var(--space-xs); padding-left: var(--space-md); border-left: 1px solid var(--color-rule); font-size: var(--text-sm); }
+.doc__toc p { color: var(--color-ink); font-weight: 600; }
+.doc__toc ol { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.doc__toc a { display: inline-flex; align-items: center; min-height: 30px; color: var(--color-muted); text-decoration: none; }
+@media (hover: hover) and (pointer: fine) { .doc__toc a:hover { color: var(--color-ink); } }
+@media (max-width: 60rem) { .doc { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 60rem) { .doc__toc { display: none; } }
+@media (max-width: 60rem) { .doc__terms { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+@media (max-width: 60rem) { .doc__terms dd { margin-bottom: var(--space-sm); } }

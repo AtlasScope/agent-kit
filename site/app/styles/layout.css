@@ -1,0 +1,29 @@
+/* Page scaffolding: page, page head, sections, lists, grids.
+   Ownership: see DESIGN-CONTRACT.md. Split from globals.css with no change in cascade order. */
+
+/* Library pages */
+.page { padding-block: var(--space-xl) var(--space-2xl); display: grid; gap: var(--space-xl); }
+.page-head { display: grid; gap: var(--space-md); max-width: var(--measure); }
+.page-head h1 { font-size: clamp(2.25rem, 3.4vw + 0.75rem, 3.75rem); line-height: 1.05; }
+.section { display: grid; gap: var(--space-md); }
+.section > h2, .h2 { margin: 0; display: flex; align-items: center; font: 600 var(--type-h2)/var(--lh-h2) var(--font-body); letter-spacing: var(--tr-h2); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: var(--space-sm); }
+.list { display: grid; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--color-rule); }
+.list li { border-bottom: 1px solid var(--color-rule); }
+.list a { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-md); padding: var(--space-sm) 0; text-decoration: none; }
+.list__d { grid-column: 1 / -1; color: var(--color-muted); font-size: var(--text-sm); }
+.list__n { color: var(--color-muted); font: 400 0.8125rem/1.6 var(--font-mono); }
+.stack { display: grid; gap: var(--space-lg); min-width: 0; }
+.note { font-size: var(--text-sm); color: var(--color-muted); max-width: var(--measure); }
+@media (hover: hover) and (pointer: fine) { .list a:hover .list__t { text-decoration: underline; text-underline-offset: 0.2em; text-decoration-color: var(--color-rule-2); } }
+/* Page heads */
+.page { padding-block: var(--space-xl) var(--space-2xl); gap: var(--space-xl); }
+.page-head { gap: var(--space-sm); }
+.page-head h1 { font-size: clamp(2.125rem, 2.8vw + 1rem, 3.25rem); line-height: 1.05; letter-spacing: -0.035em; }
+.section > h2, .h2 { margin: 0; display: flex; align-items: center; font: 600 var(--type-h2)/var(--lh-h2) var(--font-body); letter-spacing: var(--tr-h2); }
+.sec-head { display: grid; gap: 6px; }
+.sec-head h2 { margin: 0; }
+.sec-head p { max-width: 72ch; color: var(--color-muted); font-size: 0.9375rem; line-height: 1.5; text-wrap: pretty; }
+@media (max-width: 40rem) { .page { padding-top: var(--space-lg); gap: var(--space-lg); } }
+.sec-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-xs) var(--space-md); min-height: 34px; }
+.sec-row h2 { margin: 0; }

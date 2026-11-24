@@ -1,0 +1,157 @@
+/* Global shell: header, navigation, menu sheet, header search and results, footer.
+   Ownership: design system (DESIGN-CONTRACT.md). The .search / .results rules pass to the search lane once it starts;
+   the header slot (size, position, breakpoints) stays here.
+
+   One bar everywhere. Wider than 78rem: lockup, section links, search, Sign in, GitHub, Install. Up to 78rem the links
+   move into the menu sheet. Up to 40rem search becomes a button and GitHub moves into the sheet. The switch points are
+   in rem so a larger text size moves them with the text. */
+
+/* Header */
+.top { position: sticky; top: 0; z-index: 30; color: var(--c-fg); background: var(--c-canvas); border-bottom: 1px solid var(--c-line); }
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .top { background: var(--c-overlay); -webkit-backdrop-filter: saturate(1.5) blur(16px); backdrop-filter: saturate(1.5) blur(16px); }
+}
+.top > .container { max-width: max(var(--container), 80rem); }
+.nav { display: flex; align-items: center; gap: var(--space-3) var(--space-6); min-height: 64px; }
+
+/* Lockup. The svg is drawn on the pixel grid by export_site.py: 32px tall, capitals from 4px to a baseline at 20px.
+   Never scale or transform it. The 64px bar puts its top at 16px, so every flat edge lands on a whole device pixel. */
+.wordmark { display: inline-flex; align-items: center; gap: 0; color: var(--c-fg); text-decoration: none; white-space: nowrap; }
+.aslogo { display: block; flex: none; }
+.aslogo--mark { display: none; }
+.aslogo__sym--x125 { display: none; }
+@media (resolution: 1.25dppx) { .aslogo__sym--x1 { display: none; } .aslogo__sym--x125 { display: inline; } }
+.wordmark .wordmark__sep { width: 1px; height: 18px; margin-inline: 14px; background: var(--c-line-2); }
+/* Sits on the logo's baseline (20px down the 32px svg). */
+.wordmark .wordmark__name { padding-bottom: 3px; color: var(--c-fg-2); font: var(--weight-medium) .9375rem/1 var(--font-body); letter-spacing: -0.01em; }
+@media (max-width: 720px) { .aslogo--full { display: none; } .aslogo--mark { display: block; } .wordmark .wordmark__sep { margin-inline: 10px; } }
+@media (max-width: 23rem) { .wordmark .wordmark__sep, .wordmark .wordmark__name { display: none; } }
+
+/* Section links. The current section is a quiet neutral pill; the text never moves. */
+.links { display: flex; gap: 2px; margin: 0; padding: 0; list-style: none; font-size: .875rem; }
+.links a { display: inline-flex; align-items: center; min-height: 34px; padding: 0 11px; border-radius: var(--radius-sm); color: var(--c-fg-3); font-weight: var(--weight-medium);
+  text-decoration: none; white-space: nowrap; transition: color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out); }
+.links a[aria-current="page"] { background: var(--c-fill); color: var(--c-fg); }
+@media (hover: hover) and (pointer: fine) { .links a:hover { color: var(--c-fg); } }
+@media (max-width: 86rem) { .links a { padding-inline: 9px; } }
+
+.nav__end { display: flex; align-items: center; gap: var(--space-2); }
+/* Signed in (see lib/auth-hint.ts): keep the Sign in link's space but hide it while Clerk loads the account menu. */
+html[data-auth] .auth-out { visibility: hidden; }
+.auth-me { display: inline-flex; }
+.nav__install { padding-inline: 14px; }
+/* Home and /install carry their own Install action, so the bar's would only repeat it. */
+body:has(main.home, .inst) .nav__install { display: none; }
+
+/* Header search field. A filled well with a key hint; the results drop below as a popover. */
+.search { display: flex; gap: var(--space-2); max-width: 40rem; }
+.nav .search { position: relative; display: block; flex: 0 1 300px; min-width: 14rem; margin-left: auto; }
+.nav .search > svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--c-fg-3); pointer-events: none; }
+.nav .search input { width: 100%; min-height: 36px; padding: 0 36px 0 34px; border: 1px solid transparent; border-radius: var(--radius-md); background: var(--c-fill); color: var(--c-fg);
+  font: inherit; font-size: .875rem; outline: none; -webkit-appearance: none; appearance: none; transition: background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out); }
+.nav .search input::placeholder { color: var(--c-fg-3); }
+.nav .search input::-webkit-search-cancel-button { display: none; }
+.nav .search input:focus { background: var(--c-surface); border-color: var(--c-line-2); }
+.nav .search input:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 1px; }
+.nav .search .kbd { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+@media (hover: hover) and (pointer: fine) { .nav .search input:hover:not(:focus) { background: var(--c-fill-2); } }
+
+.results { position: absolute; left: 0; right: 0; top: calc(100% + 8px); z-index: 40; min-width: min(440px, calc(100vw - 32px)); max-height: min(70vh, 520px); overflow-y: auto; overscroll-behavior: contain;
+  margin: 0; padding: 6px; list-style: none; border: 1px solid var(--c-line-2); border-radius: var(--radius-lg); background: var(--c-surface); box-shadow: var(--shadow-3); }
+.results li { display: block; padding: 0; border-radius: var(--radius-md); cursor: pointer; }
+.results li[aria-selected="true"] { background: var(--c-fill); }
+.results__a { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px var(--space-3); padding: 9px 10px; border-radius: var(--radius-md); color: inherit; text-decoration: none; }
+.results__t { font-size: var(--type-sm); font-weight: var(--weight-medium); overflow-wrap: anywhere; }
+.results__k { align-self: start; padding: 3px 6px; border-radius: var(--radius-xs); background: var(--c-fill); color: var(--c-fg-3); font: var(--weight-medium) var(--type-micro)/1 var(--font-body); }
+.results__d { grid-column: 1 / -1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: var(--c-fg-3); font-size: var(--type-xs); line-height: var(--lh-xs); }
+.results__none { padding: 9px 10px; color: var(--c-fg-3); font-size: var(--type-xs); cursor: default; }
+
+.nav__toggles, .search__close { display: none; }
+
+/* Menu sheet: fills the window, own top row so Close sits where Menu was. */
+.sheet { position: fixed; inset: 0; width: 100%; max-width: none; height: 100dvh; max-height: none; margin: 0; padding: 0 0 max(var(--space-6), env(safe-area-inset-bottom));
+  border: 0; background: var(--c-canvas); color: var(--c-fg); overflow-y: auto; overscroll-behavior: contain; }
+.sheet::backdrop { background: var(--c-canvas); }
+/* The page behind the open menu stays put (Safari otherwise scrolls it). */
+html:has(.sheet[open]) { overflow: hidden; }
+.sheet__top { display: flex; align-items: center; justify-content: space-between; min-height: var(--header-h); border-bottom: 1px solid var(--c-line); color: var(--c-fg-3); font: var(--weight-medium) .9375rem/1 var(--font-body); }
+.sheet__top .iconbtn { margin-right: -8px; }
+.sheet__title { outline: none; }
+.sheet__links { margin: 0; padding: var(--space-3) 0 0; list-style: none; }
+.sheet__links a { display: flex; align-items: center; min-height: 60px; border-bottom: 1px solid var(--c-line); color: var(--c-fg-3); font: var(--weight-semibold) 1.5rem/1.2 var(--font-body); letter-spacing: -0.025em;
+  text-decoration: none; transition: color var(--dur-fast) var(--ease-out); }
+.sheet__links a[aria-current="page"] { color: var(--c-fg); }
+.sheet__links a:active { color: var(--c-fg); }
+.sheet__more { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 var(--space-6); margin: var(--space-8) 0 0; padding: 0; list-style: none; }
+.sheet__more a { display: flex; align-items: center; min-height: 44px; color: var(--c-fg-2); font-size: var(--type-sm); text-decoration: none; }
+.sheet__act { display: grid; margin-top: var(--space-8); }
+@media (hover: hover) and (pointer: fine) { .sheet__links a:hover, .sheet__more a:hover { color: var(--c-fg); } }
+.sheet { transition: opacity var(--dur-slow) var(--ease-out), transform var(--dur-slow) var(--ease-out), overlay var(--dur-slow) allow-discrete, display var(--dur-slow) allow-discrete; }
+.sheet:not([open]) { opacity: 0; }
+@starting-style { .sheet[open] { opacity: 0; transform: translateY(calc(-8px * var(--travel))); } }
+.sheet[open] .sheet__links li { animation: sheet-in 360ms var(--ease-out) backwards; }
+.sheet[open] .sheet__links li:nth-child(2) { animation-delay: 30ms; }
+.sheet[open] .sheet__links li:nth-child(3) { animation-delay: 60ms; }
+.sheet[open] .sheet__links li:nth-child(4) { animation-delay: 90ms; }
+.sheet[open] .sheet__links li:nth-child(5) { animation-delay: 120ms; }
+@keyframes sheet-in { from { opacity: 0; transform: translateY(6px); } }
+
+/* Up to 78rem: a 56px bar with search and a menu button. The 32px logo sits at 12px, a whole device pixel. */
+@media (max-width: 78rem) {
+  .nav { min-height: 56px; gap: var(--space-3); }
+  .nav > .links { display: none; }
+  .nav__end .btn--ghost span { display: none; }
+  .nav__end .btn--ghost { min-width: 36px; padding-inline: 0; }
+  .nav__toggles { display: flex; gap: 2px; margin-right: -8px; }
+  .nav .search { flex: 0 1 420px; min-width: 0; }
+  .nav__find { display: none; }
+}
+/* Phones: search is a button that opens a field over the bar; GitHub lives in the sheet. */
+@media (max-width: 40rem) {
+  .nav { position: relative; gap: var(--space-2); }
+  .nav__end { margin-left: auto; }
+  .nav__end .auth-coll span, .nav__gh { display: none; }
+  .nav__find { display: inline-grid; }
+  .nav .search { position: absolute; z-index: 1; inset: 0 max(var(--gutter), env(safe-area-inset-right)) 0 max(var(--gutter), env(safe-area-inset-left)); display: flex; align-items: center; gap: 4px;
+    margin: 0; background: var(--c-canvas); opacity: 0; visibility: hidden; transition: opacity 150ms var(--ease-out), visibility 0s 150ms; }
+  .nav .search.is-shown { opacity: 1; visibility: visible; transition: opacity 150ms var(--ease-out); }
+  .nav .search input { flex: 1; width: auto; padding-right: 12px; }
+  .search__close { display: inline-grid; margin-right: -8px; }
+  .results { top: 100%; }
+  .nav .search .kbd { display: none; }
+}
+/* Touch: 44px targets; no key hint; a 16px field so iOS does not zoom; results short enough to clear the keyboard. */
+@media (pointer: coarse) {
+  .wordmark { min-height: 44px; }
+  .links a { min-height: 40px; }
+  .nav__end .btn--sm, .nav__end .btn--ghost { min-width: 44px; min-height: 44px; }
+  .nav .search .kbd { display: none; }
+  .nav .search input { font-size: 1rem; }
+  .results { max-height: min(520px, 42svh); }
+}
+
+/* Footer: lockup and license line, then three groups of links. A hairline above, nothing else. */
+.foot { display: grid; grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, 1fr)); gap: var(--space-10); margin-top: var(--space-8);
+  padding-block: var(--space-12) max(var(--space-16), env(safe-area-inset-bottom)); border-top: 1px solid var(--c-line); color: var(--c-fg-3); font-size: .875rem; }
+.foot__brand { display: grid; gap: var(--space-4); align-content: start; }
+.foot__logo { display: inline-flex; width: max-content; color: var(--c-fg); }
+.foot__brand p { max-width: 36ch; line-height: 1.55; text-wrap: pretty; }
+.foot__group h2 { margin: 0 0 var(--space-3); color: var(--c-fg); font: var(--weight-semibold) .8125rem/1.3 var(--font-body); letter-spacing: 0; }
+.foot__group ul { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.foot__group a { display: inline-flex; align-items: center; min-height: 30px; color: var(--c-fg-3); text-decoration: none; transition: color var(--dur-fast) var(--ease-out); }
+@media (hover: hover) and (pointer: fine) { .foot__group a:hover, .foot__logo:hover { color: var(--c-fg); } }
+@media (pointer: coarse) { .foot__group a { min-height: 44px; } }
+@media (max-width: 60rem) { .foot { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-8); } .foot__brand { grid-column: 1 / -1; } }
+@media (max-width: 40rem) { .foot { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-6); } }
+/* The footer keeps the full lockup on phones; the header swaps to the symbol alone. */
+@media (max-width: 720px) { .foot .aslogo--full { display: block; } .foot .aslogo--mark { display: none; } }
+/* The homepage is one screen: no footer under it (its legal links sit at the foot of the hero, LaunchHero.tsx). */
+body:has(main.home) .foot { display: none; }
+
+/* The old one-line footer, kept for any page that still renders it. */
+.footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-4) var(--space-10); padding-block: var(--space-10) max(var(--space-10), env(safe-area-inset-bottom));
+  border-top: 1px solid var(--c-line); color: var(--c-fg-3); font-size: .875rem; }
+.footer nav { display: flex; flex-wrap: wrap; gap: var(--space-6); }
+.footer a { display: inline-flex; align-items: center; min-height: 24px; text-decoration: none; }
+@media (hover: hover) and (pointer: fine) { .footer a:hover { color: var(--c-fg); } }
+@media (pointer: coarse) { .footer a { min-width: 44px; min-height: 44px; } }

@@ -1,0 +1,36 @@
+/* Element defaults, focus, selection, container, skip link, reduced motion.
+   Ownership: design system (DESIGN-CONTRACT.md). */
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { overflow-x: clip; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; scrollbar-color: var(--c-edge) var(--c-canvas);
+  scroll-padding-top: calc(var(--header-h) + 16px); text-rendering: optimizeLegibility; font-optical-sizing: auto; }
+@media (pointer: fine) { html { overscroll-behavior-y: none; } }
+body { margin: 0; background: var(--c-canvas); color: var(--c-fg); font: var(--weight-regular) var(--type-body)/var(--lh-body) var(--font-body);
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+/* Focus: one stable ring, high contrast, no glow. */
+:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 2px; }
+a:focus-visible { border-radius: var(--radius-xs); }
+::selection { background: color-mix(in oklab, var(--c-focus) 24%, transparent); }
+
+a { color: inherit; }
+p { margin: 0; }
+h1 { margin: 0; font: var(--weight-semibold) var(--type-h1)/var(--lh-h1) var(--font-display); letter-spacing: var(--tr-h1); text-wrap: balance; overflow-wrap: break-word; min-width: 0; }
+h2, h3 { text-wrap: balance; }
+p, li, dd { text-wrap: pretty; }
+code, pre, kbd, samp { font-family: var(--font-mono); font-variant-ligatures: none; }
+b, strong { font-weight: var(--weight-semibold); }
+
+.container { max-width: var(--container); margin-inline: auto; padding-inline: max(var(--gutter), env(safe-area-inset-left)) max(var(--gutter), env(safe-area-inset-right)); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+svg.i { width: 16px; height: 16px; flex: none; }
+
+button, a, [role="tab"], summary { touch-action: manipulation; }
+button, summary { -webkit-user-select: none; user-select: none; }
+
+.skip { position: absolute; left: 16px; top: -100px; z-index: 50; padding: 10px 16px; border-radius: var(--radius-pill); background: var(--c-primary); color: var(--c-on-primary); font-weight: var(--weight-semibold); text-decoration: none; }
+.skip:focus-visible { top: 12px; }
+
+/* Reduced motion: no travel, no ambient animation. State changes still show, instantly. */
+@media (prefers-reduced-motion: reduce) { * { transition-duration: 0.01ms !important; animation: none !important; } }
