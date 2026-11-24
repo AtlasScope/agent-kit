@@ -10,10 +10,10 @@ Polish cannot rescue a screen that is crowded, confusing or doing two jobs. If t
 
 ## Steps
 
-1. **Capture before**, at 390 and 1440 wide, plus hover and keyboard-focus states of the main controls.
-2. **Find the project's values.** DESIGN.md first, then the theme or token file, then the most common values in the code. Polish means moving stray values onto the project's own scale. If there is no scale, take the values used most often on this screen as the scale and say so.
-3. **Go through the eight passes** below, fixing as you go.
-4. **Capture after** and build the page with before and after side by side.
+1. **Capture before**, at 390 and 1440 wide, plus the main button and one link with the pointer over them and with keyboard focus (press Tab until each is reached, then capture). Two controls are enough; the point is to see whether those states exist and match.
+2. **Find the project's values.** DESIGN.md first, then the theme or token file, then the most common values in the code. Polish means moving stray values onto the project's own scale. If there is no scale, take the values used most often on this screen as the scale and say so. Where DESIGN.md and the screen disagree, DESIGN.md wins: a stray moves to the nearest value the file names, not to whichever stray is most common. If the file's value would look wrong here, leave the stray and list it as a question.
+3. **Go through the eight passes** below, fixing as you go. A pass that finds nothing is finished; on a tidy screen most will. Stop when the passes are done, not when the change looks big enough.
+4. **Capture after** and build the page with the before and after shots.
 
 ## The eight passes
 

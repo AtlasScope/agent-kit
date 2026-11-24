@@ -2,7 +2,7 @@
 
 Writes PRODUCT.md: who the product is for and what it should feel like. Every other job reads it, so a critique judges against this product and not against design in general.
 
-Interactive. Writes one file, after a yes.
+Interactive. Writes one file.
 
 ## If PRODUCT.md already exists
 
@@ -12,7 +12,9 @@ Read it. Do not overwrite it, whatever tool wrote it. Say in three lines what it
 
 1. **Learn what you can without asking.** Read the README, the home or landing screen, the sign-up flow, the navigation labels and any marketing copy. Open the running product if you can. Draft an answer to every item below from what you find.
 2. **Ask only what the project could not tell you.** Put the questions in one message, six at most, each with your drafted answer so a "yes" is enough. Typical gaps: who exactly uses it, what they are in the middle of when they open it, and what it must never feel like.
-3. **Show the draft file and ask for a yes.** Then write it to the project root.
+3. **Write the file once the questions are answered.** The answers are the yes; do not ask again. If the person does not answer, or you are running where nobody can, write it from your drafted answers and mark each guessed line with "(guessed: check this)" so it is easy to find.
+
+The file goes in the project root, beside the README. When the product is one folder of a larger repository, it still goes in the repository root unless an agent instruction file there says each product keeps its own notes.
 
 ## What goes in the file
 
@@ -28,4 +30,4 @@ Keep it under one page. Short sentences. No adjectives that could describe any p
 
 ## Report
 
-Follow the report shape in SKILL.md. "What you need to do" is usually to read the file once and correct anything that sounds wrong. If there is no DESIGN.md, say so under "Not checked" and that Keen cannot write one yet.
+Follow the report shape in SKILL.md. The Keen page for this job has no screenshot and no problems: the headline says the file was written, and `also` lists the guessed lines to check. "What you need to do" is usually to read the file once and correct anything that sounds wrong. If there is no DESIGN.md, say so under "Not checked" and that Keen cannot write one yet.

@@ -148,6 +148,7 @@ export function measurePage(helpers) {
   const sizes = new Map();
   const families = new Set();
   const textColours = new Set();
+  const styles = new Map();
   const check = (el, text, style, kind) => {
     const px = parseFloat(style.fontSize);
     const bases = behind(el);
@@ -170,13 +171,19 @@ export function measurePage(helpers) {
       sizes.set(px, (sizes.get(px) || 0) + 1);
       families.add(s.fontFamily.split(",")[0].replace(/["']/g, "").trim());
       textColours.add(rgba(s.color).slice(0, 3).join(","));
+      const lh = parseFloat(s.lineHeight);
+      const style = px + "px / weight " + s.fontWeight + " / line " + (lh ? Math.round((lh / px) * 100) / 100 : "normal");
+      const seen = styles.get(style) || { uses: 0, example: words(el).slice(0, 40) };
+      seen.uses += 1;
+      styles.set(style, seen);
       check(el, words(el), s, "text");
     }
     // Text the stylesheet adds before or after an element.
     for (const part of ["::before", "::after"]) {
       const ps = getComputedStyle(el, part);
       const made = /^"(.*)"$/.exec(ps.content || "");
-      if (!made || !made[1].trim() || ps.display === "none") continue;
+      // A mark with no letter or number in it (a slash, a dot, an arrow) is decoration here too.
+      if (!made || !/[\p{L}\p{N}]/u.test(made[1]) || ps.display === "none") continue;
       // With a background of its own, what is behind it cannot be worked out from here.
       if (rgba(ps.backgroundColor)[3] > 0 || ps.backgroundImage !== "none") {
         textUnmeasured += 1;
@@ -200,7 +207,24 @@ export function measurePage(helpers) {
     return (copy.textContent || "").replace(/[\s,.;:·|/()&-]+/g, " ").trim().length > 8;
   };
   const centre = (r) => [r.left + r.width / 2, r.top + r.height / 2];
-  const boxes = controls.map((el) => ({ el, r: el.getBoundingClientRect(), sentence: inSentence(el) }));
+  // What can actually be pressed. A link is often stretched over its whole row or card with an invisible
+  // ::before or ::after pinned to the edges of a positioned parent; the press area is then that parent, not the link's text.
+  const pressArea = (el) => {
+    let r = el.getBoundingClientRect();
+    for (const pseudo of ["::before", "::after"]) {
+      const s = getComputedStyle(el, pseudo);
+      if (!s || s.content === "none" || s.position !== "absolute" || s.pointerEvents === "none" || s.display === "none") continue;
+      if ([s.top, s.right, s.bottom, s.left].some((v) => v === "auto")) continue;
+      const host = getComputedStyle(el).position !== "static" ? el : el.offsetParent;
+      if (!host) continue;
+      const h = host.getBoundingClientRect();
+      const left = Math.min(r.left, h.left + parseFloat(s.left)), top = Math.min(r.top, h.top + parseFloat(s.top));
+      const right = Math.max(r.right, h.right - parseFloat(s.right)), bottom = Math.max(r.bottom, h.bottom - parseFloat(s.bottom));
+      r = { left, top, right, bottom, width: right - left, height: bottom - top };
+    }
+    return r;
+  };
+  const boxes = controls.map((el) => ({ el, r: pressArea(el), sentence: inSentence(el) }));
   // A small control still passes when a 24px circle on it touches no other control (WCAG 2.5.8).
   const crowded = (box) => {
     const [cx, cy] = centre(box.r);
@@ -243,8 +267,12 @@ export function measurePage(helpers) {
 
   const radii = new Set();
   const backColours = new Set();
+  let boxed = 0;
+  let shadowed = 0;
   for (const el of all) {
     const s = getComputedStyle(el);
+    if (parseFloat(s.borderTopWidth) > 0 && parseFloat(s.borderBottomWidth) > 0 && parseFloat(s.borderLeftWidth) > 0 && s.borderTopStyle !== "none" && rgba(s.borderTopColor)[3] > 0) boxed += 1;
+    if (s.boxShadow && s.boxShadow !== "none") shadowed += 1;
     if (s.borderTopLeftRadius !== "0px") radii.add(s.borderTopLeftRadius);
     const back = rgba(s.backgroundColor);
     if (back[3] > 0) backColours.add(back.slice(0, 3).join(","));
@@ -265,6 +293,15 @@ export function measurePage(helpers) {
       overPictureNotMeasured: { count: textUnmeasured, first: overPictures },
       lowContrast: cut(lowContrast.sort((a, b) => a.ratio - b.ratio)),
     },
+    // How much is on the screen, for jobs that report a before and an after.
+    // Things that draw the eye. Movement that never stops is counted; a still picture cannot show it.
+    noise: {
+      filledButtons: controls.filter((el) => rgba(getComputedStyle(el).backgroundColor)[3] > 0.5).length,
+      borderedBoxes: boxed,
+      shadows: shadowed,
+      endlessMovement: (document.getAnimations ? document.getAnimations() : []).filter((a) => a.playState === "running" && a.effect && a.effect.getComputedTiming().iterations === Infinity).length,
+    },
+    onScreen: { textPieces: textChecked + textUnmeasured, controls: controls.length, headings: headings.length, pictures: all.filter((el) => el.matches("img, svg, video, canvas, picture")).filter((el) => !el.closest("svg svg") && !(el.tagName === "IMG" && el.closest("picture"))).length },
     controls: { count: controls.length, under24: cut(under24), under44: cut(under44), unnamed: cut(unnamed) },
     picturesWithoutText: cut(picturesWithoutText),
     headings: { count: headings.length, mainHeadings: headings.filter((h) => h.level === 1).length, skipped },
@@ -276,8 +313,12 @@ export function measurePage(helpers) {
       smallestText: sizes.size ? Math.min(...sizes.keys()) : null,
       fontFamilies: [...families],
       // Counted by colour alone: the same colour at different strengths is one.
+      // Each combination of size, weight and line height in use, most used first: the text ladder as built.
+      textStyles: [...styles.entries()].sort((a, b) => b[1].uses - a[1].uses).slice(0, 20).map(([style, v]) => ({ style, uses: v.uses, example: v.example })),
       textColours: textColours.size,
+      textColourValues: [...textColours].slice(0, 20).map((c) => "rgb(" + c + ")"),
       backgroundColours: backColours.size,
+      backgroundColourValues: [...backColours].slice(0, 20).map((c) => "rgb(" + c + ")"),
       cornerShapes: [...radii],
     },
   };
@@ -290,7 +331,12 @@ ${luminance}
 ${contrast}
 ${over}
 ${needed}
-return (${measurePage})({ contrast, over, needed });
+// A layer that ignores the pointer (a background scene, a decorative picture) is skipped when the browser is
+// asked what sits at a point, so for the length of the measurement every element answers.
+const seeAll = document.createElement("style");
+seeAll.textContent = "*{pointer-events:auto!important}";
+document.documentElement.appendChild(seeAll);
+try { return (${measurePage})({ contrast, over, needed }); } finally { seeAll.remove(); }
 })()`;
 }
 

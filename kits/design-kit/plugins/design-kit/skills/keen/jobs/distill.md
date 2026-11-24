@@ -12,8 +12,8 @@ A screen is crowded when things that matter a little are shown as loudly as the 
 
 1. **Name the screen's one job** from PRODUCT.md or from the screen itself. Write it in one sentence. If you cannot, stop and suggest `/keen critique`.
 2. **Capture before**, at 390 and 1440 wide.
-3. **List everything on the screen**: every heading, block of text, control, image, badge, divider and box. Count them. Count the distinct text sizes, colours and box styles too.
-4. **Sort each item into one of five piles.**
+3. **List everything on the screen**: every heading, block of text, control, image, badge, divider and box. Take the counts from the measuring script (`onScreen`, and `variety` for text sizes, colours and box styles).
+4. **Sort each item into one of five piles.** When the screen is a list of many like items (a directory, a feed, a table), sort each part of one item, and each thing around the list, not every item: the question is what one row needs to show.
    - **Keep**: the job cannot be done without it.
    - **Quiet**: useful, but it should not compete. Less weight, less colour, less contrast, smaller.
    - **Later**: needed sometimes. Move it behind one click: a "more" menu, an expandable row, a second step, a details view.
@@ -23,9 +23,9 @@ A screen is crowded when things that matter a little are shown as loudly as the 
 6. **Make the change.**
    - One primary action. Other actions drop to plain buttons or links.
    - Group what remains by what belongs together, using space before lines and lines before boxes.
-   - Bring the counts down: aim for three or four text sizes and one accent colour on the screen, using the project's own values.
+   - Bring the counts down: aim for three or four text sizes and one accent colour in the part of the screen you are working on, using the project's own values. Sizes that come from the site's shared header and footer are not yours to change here; report the count and leave them.
    - Rewrite labels that need a sentence of help into labels that do not. Remove the help.
-7. **Capture after**, same sizes, and build the page with before and after side by side.
+7. **Capture after**, same sizes, and build the page with the before and after shots.
 
 ## Checks before you report
 

@@ -12,7 +12,7 @@ No one can know in advance that a change will lift sign-ups. This job makes the 
 
 ## Before you start
 
-Ask once, with your best guess as the default for each, unless PRODUCT.md already answers:
+Ask once, with your best guess as the default for each. Ask only the ones PRODUCT.md leaves open:
 
 - What is the one thing a visitor should do on this page?
 - Who is arriving, and from where: a search, an advert, a recommendation?
@@ -22,9 +22,9 @@ Ask once, with your best guess as the default for each, unless PRODUCT.md alread
 
 1. **Capture before**, at 390 and 1440 wide, the whole page. Most visitors are on a phone; judge that one first.
 2. **Take the five-second test.** Look at the first screen for five seconds, look away, and write what the product is, who it is for and what to do next. Whatever you could not write is the first fault.
-3. **Work through the page** with the table below.
+3. **Work through the page** with the table below. The table describes a long page. When the page is short on purpose (the project's notes say so, or it is plainly one screen by design), judge only the parts it has; do not add a section the design left out. If a missing part is costing visitors, say so as a finding and let the person decide.
 4. **Measure the basics**: run `node <skill-dir>/scripts/measure.mjs` and run what it prints inside the page, for text that is hard to read and buttons too small to press. A slow page loses visitors before any of this matters; if it is slow, offer `/keen optimize` as the first next step.
-5. **Capture after** and report on the Keen page, before and after side by side.
+5. **Capture after** and report on the Keen page, with the before and after shots.
 
 ## The page, top to bottom
 

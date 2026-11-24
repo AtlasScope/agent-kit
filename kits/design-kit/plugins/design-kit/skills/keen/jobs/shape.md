@@ -14,19 +14,24 @@ Read PRODUCT.md and DESIGN.md. Look at two or three screens the product already 
 
 ## Steps
 
-1. **Ask once.** Put every question below that the project's files and the request do not already answer into a single message, each with your best guess as the default, so the person can reply "yes to all" or correct one. Skip any you can answer yourself. Never more than five.
+1. **Ask once.** Put every question below that the project's files and the request do not already answer into a single message, each with your best guess as the default, so the person can reply "yes to all" or correct one. Skip any you can answer yourself. Ask the five that matter most, never more.
    - Who lands on this screen, and what did they just do before arriving?
    - What is the one thing they come here to do? What tells them they are done?
-   - What do you already have to show them? Real things that exist today, not things that would be nice.
+   - What do you already have to show them? Real things that exist today, not things that would be nice. If the content does not exist yet, who will write it and keep it current?
    - What must never happen on this screen?
    - Is anything fixed: a deadline, an existing screen it must match, a phone-first audience?
 2. **Write the screen's job in one sentence.** "A returning customer reorders last month's box in two taps." If the sentence needs "and", it is two screens. Say so and ask which comes first.
 3. **List the content, ranked.** Everything the person needs to see or do, in three groups: needed to do the job, helpful, and can wait for another screen. Use real examples from the product where they exist, with a realistic longest and shortest case. Nothing goes on the list because screens of this kind usually have it.
 4. **Walk the path.** Number the steps from arriving to done. Then name the states this screen will have: nothing yet, loading, a failure, too much, not allowed. One line each on what the person sees.
-5. **Sketch three arrangements that differ in kind**, not in decoration. They should disagree about what comes first or how the work is split, for example one long page, a step at a time, or a list beside a detail. Draw each as a plain grey wireframe: boxes, real labels, no colour, no styling, at phone width first. One page of HTML holding all three is enough. For each, one line on what it is best at and one on what it costs.
+5. **Sketch three arrangements that differ in kind**, not in decoration. They should disagree about what comes first or how the work is split, for example one long page, a step at a time, or a list beside a detail. Draw each as a plain grey wireframe: boxes, real labels, no colour, no styling, at phone width first. Draw them in a temporary folder outside the project, as whatever you can turn into a picture fastest (a throwaway page opened in the browser is fine), and take one screenshot of each. The pictures are what the person sees; the throwaway files are not handed over. For each, one line on what it is best at and one on what it costs.
 6. **Recommend one** and say why in two lines, tied to the job sentence.
-7. **Show it** on the Keen page: the job sentence, the ranked content, the three sketches side by side, and your recommendation as the suggested next step. Each sketch is a next step the person can pick.
-8. **When they pick, write the brief** to `docs/design/<screen>.md`, or wherever the project already keeps this kind of note. It holds the job sentence, the ranked content, the path, the states and the chosen arrangement with its sketch. Under 60 lines. This is the file the build reads.
+7. **Show it** on the Keen page.
+   - `verdict`: the job sentence.
+   - `shots`: the three sketches, captioned A, B and C with each one's name.
+   - `steps`: one per arrangement, the recommended one marked suggested. The label is the arrangement's name, the why is what it is best at and what it costs, and the command is `/keen shape <screen>: write the brief for arrangement A (<its name>)`.
+   - `also`: the content needed to do the job, most important first. The path and the states go under `details` now and into the brief next.
+   - No `problems`.
+8. **When they pick, write the brief.** The pick arrives as that command, from the page or typed. Write it to `docs/design/<screen>.md`, or wherever the project already keeps this kind of note. It holds the job sentence, the ranked content, the path, the states and the chosen arrangement with its sketch. Under 60 lines. This is the file the build reads.
 
 ## Rules
 

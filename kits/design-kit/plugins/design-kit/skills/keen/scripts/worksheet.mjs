@@ -83,8 +83,8 @@ function stepCard(step, index) {
 
 // The most words each part of a page may hold. A page is glanced at on a small laptop beside a conversation,
 // so the program refuses a long one and says which parts to cut: the writer shortens it, not the reader.
-export const LIMITS = { verdict: 16, todo: 12, subtitle: 14, statLabel: 6, problemTitle: 9, problemBody: 45, line: 16, stepLabel: 8, why: 18, order: 20, happened: 30, means: 30, notChecked: 40, termMeans: 25 };
-export const COUNTS = { stats: 3, problems: 3, also: 5, working: 3, steps: 3, terms: 3 };
+export const LIMITS = { verdict: 16, todo: 12, subtitle: 14, statLabel: 6, problemTitle: 9, problemBody: 45, line: 16, stepLabel: 8, why: 18, order: 20, happened: 30, means: 30, notChecked: 40, termMeans: 25, change: 20 };
+export const COUNTS = { stats: 3, problems: 3, also: 5, working: 3, steps: 3, terms: 3, changes: 5 };
 const words = (v) => String(v ?? "").trim().split(/\s+/).filter(Boolean).length;
 
 /** Every part of a page that is too long, as plain sentences. Empty when the page is short enough. */
@@ -105,6 +105,7 @@ export function tooLong(page) {
   (page.problems || []).forEach((p, i) => { check(`problems[${i}].title`, p?.title, LIMITS.problemTitle); check(`problems[${i}].body`, p?.body, LIMITS.problemBody); });
   (page.also || []).forEach((w, i) => check(`also[${i}]`, w, LIMITS.line));
   (page.working || []).forEach((w, i) => check(`working[${i}]`, w, LIMITS.line));
+  (page.changes || []).forEach((c, i) => { check(`changes[${i}].before`, c?.before, LIMITS.change); check(`changes[${i}].after`, c?.after, LIMITS.change); });
   (page.terms || []).forEach((t, i) => check(`terms[${i}].means`, t?.means, LIMITS.termMeans));
   (page.steps || []).forEach((s, i) => {
     check(`steps[${i}].label`, s?.label, LIMITS.stepLabel);
@@ -132,6 +133,7 @@ export function renderPage(page, { baseDir = process.cwd() } = {}) {
   const todo = r.todo || (hasNext ? "Pick what to run next." : "Nothing.");
   const chips = (page.stats || []).slice(0, COUNTS.stats).map((s) => `<span class="chip"><b>${esc(s.value)}</b> ${esc(s.label)}</span>`).join("");
   const also = page.also || [], working = page.working || [], terms = (page.terms || []).filter((t) => t?.term && t?.means);
+  const changes = (page.changes || []).filter((c) => c?.after).map((c) => `<li>${c.where ? `<span class="where">${esc(c.where)}</span>` : ""}${c.before ? `<s>${esc(c.before)}</s>` : ""}<b>${esc(c.after)}</b></li>`).join("");
   const story = [r.happened, r.means].filter((v) => String(v ?? "").trim());
   const more = [
     story.length ? row("What happened", story.map((v) => `<p>${esc(v)}</p>`).join(""), { quiet: true }) : "",
@@ -150,6 +152,7 @@ ${page.subtitle ? `<p class="sub">${esc(page.subtitle)}</p>` : ""}
 </header>
 <div class="split${shots ? " has-shots" : ""}"><div class="main">
 ${problems ? `<section class="sec"><p class="label">Found</p><div class="rows">${problems}</div></section>` : ""}
+${changes ? `<section class="sec"><p class="label">Changed</p><ul class="changes">${changes}</ul></section>` : ""}
 ${hasNext ? `<section class="sec"><p class="label">Next</p>
 <div class="steps">${steps}
 ${menu.length ? `<section class="step other"><h3>Something else</h3><label class="pick">Job <select data-menu>${menu.map((m, i) => `<option value="${i}">${esc(m.label)}</option>`).join("")}</select></label><p class="why" data-menu-why>${esc(menu[0].why || "")}</p><p class="cmd" data-menu-cmd>${esc(menu[0].command)}</p><div class="acts"><button type="button" class="add" data-add-menu>Add</button><button type="button" data-copy-menu>Copy command</button></div></section>` : ""}</div>
@@ -260,6 +263,7 @@ button[disabled]{opacity:.4;cursor:default;box-shadow:none}
 .row:has(.num) .body{padding-left:56px}
 .row.quiet summary{font-weight:500;font-size:15px;color:var(--soft);min-height:48px}
 .num{flex:none;width:26px;height:26px;border-radius:50%;background:var(--mark);color:#fff;font:600 13px/26px var(--sans);text-align:center}
+.changes{list-style:none;padding:0;max-width:none;border:1px solid var(--line);border-radius:14px;background:var(--card)}.changes li{margin:0;padding:12px 18px;display:grid;gap:2px}.changes li+li{border-top:1px solid var(--line)}.changes s{color:var(--dim);font-size:14.5px}.changes b{color:var(--ink);font-weight:500}.where{font:500 11px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
 dl{margin:0}dt{color:var(--ink);font-weight:600}dd{margin:0 0 10px}
 .allrow{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:14px 0 0;max-width:none;color:var(--soft);font-size:14px}
 pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12.5px/1.6 var(--mono);color:var(--soft);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0 0}
@@ -391,7 +395,9 @@ export function addPage(dir, page, { baseDir = process.cwd() } = {}) {
   if (long.length) throw new Error(`This page has too many words. Shorten these and add it again:\n- ${long.join("\n- ")}`);
   renderPage(stored); // fail now, with a clear message, on anything the page cannot show
   fs.mkdirSync(dir, { recursive: true });
-  const n = readBook(dir).length + 1;
+  const book = readBook(dir);
+  if (book.length && JSON.stringify(book.at(-1)) === JSON.stringify(stored)) return book.length; // the same page sent twice is one page
+  const n = book.length + 1;
   fs.writeFileSync(path.join(dir, `page-${n}.json`), JSON.stringify(stored));
   return n;
 }

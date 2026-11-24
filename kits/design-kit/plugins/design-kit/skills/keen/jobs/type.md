@@ -20,7 +20,7 @@ Most of a screen is text, so most of how a screen looks is decided here. Two thi
    - Nothing under 12px.
 5. **Fix the reading.** Apply the table below to every style.
 6. **Fix the fonts**, if they are the problem. One family is enough for most products; two at most, with clear roles (one for headings, one for reading). Keep the project's fonts unless the request was to change them. Check that each font really loads, and that the page does not jump when it does: the stand-in font shown while loading should be close in width to the real one.
-7. **Capture after** and report on the Keen page, before and after side by side.
+7. **Capture after** and report on the Keen page, with the before and after shots.
 
 ## Reading
 
@@ -39,7 +39,7 @@ Most of a screen is text, so most of how a screen looks is decided here. Two thi
 
 ## Checks before you report
 
-- Each purpose uses one style everywhere on the screen. Count the sizes again; the number should have dropped.
+- Each purpose uses one style everywhere on the screen. Count the sizes again (`variety.textStyles` lists each style with an example of where it is used). The number should have dropped, unless the screen was already on its ladder; then say so and report only the strays you fixed.
 - At 200 percent zoom nothing is cut off and nothing overlaps (WCAG 2.2, 1.4.4).
 - With line height 1.5, paragraph spacing twice the text size and letter spacing 0.12 of it, no text is clipped (WCAG 2.2, 1.4.12). This catches boxes with a fixed height.
 - No heading is left with a single word alone on its last line where a small width change fixes it.

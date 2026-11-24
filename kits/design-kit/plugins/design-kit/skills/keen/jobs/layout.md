@@ -13,13 +13,15 @@ If the screen has too much on it, layout will not save it. Stop and suggest `/ke
 ## Steps
 
 1. **Name the screen's one job** from PRODUCT.md or the screen. Then rank what is on it: the one thing that matters most, the things that support it, and everything else.
-2. **Capture before**, at 390 and 1440 wide. Shrink each capture to a thumbnail and write down what stands out. That is the screen's ranking today.
+2. **Capture before**, at 390 and 1440 wide. Look at each capture small (save a copy about 300 pixels wide, or view it zoomed far out) and write down what stands out when you cannot read the words. That is the screen's ranking today.
 3. **Find the project's spacing values**: DESIGN.md, then the theme or token file, then the values used most on this screen. If there is no set, use steps of 4 (4, 8, 12, 16, 24, 32, 48, 64) and say so.
 4. **Work through the six passes** below.
 5. **Capture after**, same sizes, and check the thumbnail again: the thing that matters most should now be what stands out.
-6. **Report** on the Keen page, before and after side by side.
+6. **Report** on the Keen page, with the before and after shots.
 
 ## The six passes
+
+On a screen that is a list of equal things (a directory, a gallery, search results), no one item should win. The "thing that matters most" is the way in: the search box, the filter, or the first row. Passes 1 and 3 apply to that, and pass 6 does most of the work. Check that no row is left with one stray item at any width.
 
 1. **Order.** Arrange things in the order a person needs them, top to bottom, and in the reading direction of the language. The screen's main thing and its main action appear without scrolling at 390 wide. Whatever is asked for first sits first. On a phone the main action sits where a thumb reaches, in the lower half or fixed at the bottom.
 2. **Grouping.** Things that belong together sit together, and the gap between groups is at least twice the gap inside them. A label sits closer to its own field than to the one above. Group with space first. Add a line only when space is not enough, and a box only when a line is not enough. Remove boxes inside boxes.

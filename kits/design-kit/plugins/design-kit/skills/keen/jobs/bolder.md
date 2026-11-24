@@ -12,12 +12,13 @@ If the screen is crowded, bolder makes it worse. Stop and suggest `/keen distill
 
 ## Steps
 
-1. **Read who the product is for and how it should feel** in PRODUCT.md and DESIGN.md. Bold for a bank and bold for a game are different things. If neither file says how the product should feel, ask one question: "Three words for how this should feel to someone seeing it for the first time?"
-2. **Name the hero.** The one thing on this screen that should be impossible to miss: a number, a headline, a picture, an action. One.
+1. **Read who the product is for and how it should feel** in PRODUCT.md and DESIGN.md. Bold for a bank and bold for a game are different things. If neither file says how the product should feel, ask one question: "Three words for how this should feel to someone seeing it for the first time?" If nobody can answer, choose three from what the product is for and say which you assumed.
+2. **Name the hero.** The one thing on this screen that should be impossible to miss: a number, a headline, a picture, an action. One, appearing once. On a screen that lists equal things, the hero is never every item's name, because five things made huge are five things competing; it is the page's heading, its one-line promise, or the way in. The page's own heading is never made smaller than something beneath it.
 3. **Capture before**, at 390 and 1440 wide.
 4. **Make the five moves** below. Use the project's own fonts and colours; push how far apart their uses are, do not add new ones.
-5. **Capture after.** Shrink both captures to thumbnails side by side. The after should be recognisable at that size and the before should not. If you cannot tell them apart, you were not bold.
-6. **Report** on the Keen page with before and after side by side.
+5. **Capture after.** Look at both captures small (about 300 pixels wide). The after should be recognisable at that size and the before should not. If you cannot tell them apart, you were not bold.
+6. **Look for what the moves broke.** Bigger type and wider gaps pull related things apart: a count now far from its name, a button stranded at the far edge of a short line, a heading that reads like a label. Fix each one, or undo the move that caused it. A cost you can see and left in place is a fault, not a trade.
+7. **Report** on the Keen page with the before and after shots.
 
 ## The five moves
 
@@ -32,7 +33,7 @@ If the screen is crowded, bolder makes it worse. Stop and suggest `/keen distill
 - Every readability rule still holds. Text contrast at least 4.5 to 1, or 3 to 1 for large text (WCAG 2.2, 1.4.3). Body text stays at 16px or more. Nothing scrolls sideways at 320 wide.
 - No effects for their own sake: no gradients, glows, shadows or movement added to look impressive. Bold comes from size, weight, colour and space.
 - Nothing is removed, and nothing the person can do becomes harder to find. The main action is at least as easy to reach as before.
-- If the project's DESIGN.md rules out something a move needs, the file wins. Say which move you held back and why.
+- If the project's DESIGN.md rules out something a move needs, the file wins. Say which move you held back and why. When colour is ruled out, moves 1, 2 and 4 carry the screen, and the one distinct thing comes from scale or arrangement.
 
 ## Report
 

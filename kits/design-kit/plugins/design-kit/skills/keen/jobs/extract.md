@@ -12,9 +12,9 @@ When the same blue is written out in forty places, changing the blue means findi
 
 1. **Read DESIGN.md** and the theme or token file. If there is no DESIGN.md, stop and suggest `/keen document`: extracting needs to know which values are the system and which are strays.
 2. **Set the scope.** The screens or folder the person named, or the whole product if they said so. Say in one line what is in and what is out.
-3. **Capture before**: every screen in scope at 390 and 1440 wide, in each theme. These are the proof, so keep the page still: same data, same scroll position, animations off.
+3. **Capture before**: every screen in scope at 390 and 1440 wide, in each theme (switch with the product's own control, or by telling the browser to prefer light or dark). These are the proof, so keep the page still: same data, same scroll position, animations off. Capture each one twice before changing anything and compare the two: whatever differs between two captures of unchanged code is the noise on this machine, and only a difference larger than that counts later.
 4. **Find the repeats.**
-   - Values: a colour, size, space, corner or shadow written out directly where a named one exists, or the same raw value used in three or more places with no name.
+   - Values: a colour, size, space, corner or shadow written out directly where a named one exists, or the same raw value used in three or more places with no name. Count places across the whole product, even when you will only change the ones in scope; a value used once here and ten times elsewhere is a repeat.
    - Parts: the same arrangement of elements built separately in three or more places, such as a card, a row, a field with its label and message.
 5. **Decide each one.**
    - A raw value equal to a named one: use the name.
@@ -23,9 +23,9 @@ When the same blue is written out in forty places, changing the blue means findi
    - A repeated part: make one shared part in the project's usual place and style, and use it in every place it was repeated. Keep its options few: only the differences that already exist.
    - Something used once or twice: leave it. Sharing too early is its own mess.
 6. **Make the changes** in small groups, running the project's own checks after each group.
-7. **Capture after**, the same way, and compare every pair. Any difference a person can see is a fault in this job: fix it or undo that change.
+7. **Capture after**, the same way, and compare every pair. Any difference a person can see, beyond the noise you measured in step 3, is a fault in this job: fix it or undo that change.
 8. **Update DESIGN.md** with any new names and shared parts.
-9. **Report** on the Keen page.
+9. **Report** on the Keen page. The screens look the same, so one shot of a screen in scope is enough, captioned "Unchanged", and the counts go in `changes` ("Install box: 3 copies" to "1 shared part").
 
 ## Rules
 

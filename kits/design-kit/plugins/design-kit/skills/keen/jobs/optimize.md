@@ -10,11 +10,13 @@ People do not experience speed in milliseconds. They experience three things: ho
 
 ## Steps
 
-1. **Measure before.** Load the screen fresh, on a throttled connection if the tool offers one, and record the three numbers below. Take a capture every half second while it loads so the person can see what the wait looks like. If you cannot measure, say so now and treat everything after as unproven.
+1. **Measure before**, on a production build of the product (built and started the way it is deployed), never the development server, which is slower in ways customers never see. Load the screen fresh at 390 wide as a touch device, three times, and keep the middle result of each number. Use the same conditions for every run, before and after, and write them down. If the tool can slow the connection and processor, use about 1.6 megabits a second down, 150 milliseconds of delay and a processor slowed four times, which is the usual stand-in for a mid-range phone. Take one capture at 1, 2 and 3 seconds so the person can see what the wait looks like. If you cannot measure, say so now and treat everything after as unproven.
+
+   How to read each number in the page: Largest Contentful Paint and Cumulative Layout Shift come from the browser's performance observer, with entry types `largest-contentful-paint` and `layout-shift`, each asked for with `buffered: true`. Interaction to Next Paint needs a real press: start an observer for the `event` type with a duration threshold of 16, press the screen's main control, and take the longest duration reported. A page nobody pressed has no such number; do not report 0.
 2. **Find what the wait is made of.** List what loads before the main thing appears: pictures and their sizes, fonts, scripts, and requests for data. Note anything large, anything that blocks, and anything loaded that this screen does not use.
 3. **Fix in the order below**, starting with whichever number is worst.
 4. **Measure after**, the same way, three times, and report the middle result.
-5. **Report** on the Keen page: the loading captures before and after as two strips, and the three numbers.
+5. **Report** on the Keen page: the capture at 2 seconds before and after as the two shots, and the three numbers as `changes` ("Main thing appears: 4.1 seconds" to "3.7 seconds"). When nothing is left worth doing, the page has no steps.
 
 ## The three numbers
 
@@ -49,6 +51,7 @@ From Google's Core Web Vitals. "Good" is the published threshold.
 ## Limits
 
 - The screen must look the same when it has finished loading. This job changes when things appear, not what appears.
+- A wait that is designed (an opening sequence, a deliberate hold, a staged reveal) is not slowness. Leave it, measure up to the moment the main thing is readable, and say that the sequence adds its own time on top.
 - Never show made-up content to seem fast. A placeholder is a shape, not a fake number.
 - Stay on this screen and what it loads. If the real cause is elsewhere (a slow request, a large shared script), report it with the measurement and offer the kit's engineering command as the next step if it is installed.
 - A number from this computer on a fast connection is not what a customer on a phone gets. Say which conditions you measured under.

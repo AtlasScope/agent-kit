@@ -67,7 +67,7 @@ Read the job's file before running it. Run one job per request.
 
 ## Which path to take
 
-1. **They named a job** (`/keen critique the pricing page`): run it.
+1. **They named a job** (`/keen critique the pricing page`): run it, unless its file says it does not apply here; then rule 8 below.
 2. **Their words clearly match one job** ("this page is too busy" is distill; "does this hold up on a phone" is adapt; "the text is too small" is type; "nobody understands this button" is words): say which job you picked in one line and run it.
 3. **`/keen all`**: list every job from the tables above, grouped the same way, one line each, and stop.
 4. **Anything else**, including `/keen` alone: show the menu and stop.
@@ -96,12 +96,14 @@ Choose the alternatives from what you saw on the screen, not from a fixed list: 
 
 ## Rules for every job
 
-1. **Look at the real screen.** Open it in a browser or simulator and take screenshots. If the live product will not open or sits behind a sign-in, look for a way to run it on this computer with sample data (the README and the project's agent instructions usually say how) before giving up. If you cannot run it at all, say so in the first line, work from the code, and say at the end that nothing was seen.
+1. **Look at the real screen.** Open it in a browser or simulator and take screenshots. If the live product will not open or sits behind a sign-in, look for a way to run it on this computer with sample data (the README and the project's agent instructions usually say how) before giving up. If you cannot run it at all, say so in the first line, work from the code, and say at the end that nothing was seen. A page that shows but does not react is not running: press one control and see it respond before judging how anything behaves (a development server often works only at the exact address it printed when it started). If the request names something the screen does not have ("the filters" on a page with none), say so in one line and work on what is there.
 2. **Read the project's own rules.** AGENTS.md or CLAUDE.md, PRODUCT.md and DESIGN.md come before your taste (in a long file, read the general rules and search for the screen's name; you do not need every section), and so do the notes written in the code of the screen you are working on. Read those notes before you judge or change it. The person outranks their own notes: when they ask for a change, or start a step from the worksheet, that is the decision, even if an older note says otherwise. Say in one line which note you are changing, make the change, and update the note so the code and its notes still agree. Stop only when the request rests on something that turned out not to be true (the thing you said was broken is not broken): say so, and offer what is actually worth doing instead. Where the project has a colour, size or spacing value, use it. Keen never authorizes a commit, merge or deploy.
-3. **Ask once, then go.** If something must be decided by the person, ask every such question together before you start, then finish without stopping. A job that only reports asks at most one question. A job that edits says what it will do in five lines or fewer and starts, unless the session-start note says ask before edits is on, in which case it waits for a yes.
-4. **Stay inside the target.** Change the screen or component they named. List anything you noticed elsewhere at the end. Do not fix it.
+3. **Ask once, then go.** If something must be decided by the person, ask every such question together before you start, then finish without stopping. A job that only reports asks at most one question. A job that edits says what it will do in five lines or fewer (skip this when the change is one or two lines) and starts, unless the session-start note says ask before edits is on, in which case it waits for a yes.
+4. **Stay inside the target.** Change the screen or component they named. List anything you noticed elsewhere at the end. Do not fix it. A part this screen shares with other screens (a card, a header, a shared style) is inside the target only when the change is right everywhere that part appears; check those places, or leave it and list it.
 5. **Never remove something a person can do.** Hiding, moving or merging a control is design work. Deleting a capability needs a yes first.
-6. **One job.** If the job turns out to be the wrong one (asked to polish a screen whose structure is the problem), stop, say so in two lines and name the job that fits.
+6. **Leave nothing worse.** After an edit, compare the after with the before as a stranger would, at both sizes. Anything that got worse is fixed or undone before you report. The report never lists damage you could see and chose to ship.
+7. **Do not manufacture work.** When the screen already does what the job is for, say so in the first line, fix only what is actually off, and report a small change as a small change.
+8. **One job.** If the job turns out to be the wrong one (asked to polish a screen whose structure is the problem), stop, say so in two lines and name the job that fits. That is the whole reply: no report and no Keen page, only the two lines and the command for the right job. Do this before starting anything up.
 
 ## The report
 
@@ -145,7 +147,7 @@ For each: the command, one plain line on what it will do, and one on why it rank
 
 When two or more belong together, say in one line why they run in the order listed. The order that wastes the least work is: remove (`distill`), arrange (`layout`), reword (`words`), then style (`type`, `colour`, `bolder` or `quieter`), then make it hold up (`harden`, `adapt` or `native`, `optimize`), and `polish` last, because every earlier job changes what there is to polish. `extract` runs after the look is settled. Running several still means one job at a time, with a report after each.
 
-Look past Keen too. When what you found is not a design problem (a slow screen, a number that looks wrong, pages that duplicate each other), offer the Agent Kit command that handles it as a next step, in the same list, if it appears in this tool's list of commands: `/motion` for movement, `/engineer` for speed and code problems, `/database` for wrong or slow data.
+Look past Keen too. When what you found is not a design problem (a slow screen, a number that looks wrong, pages that duplicate each other), offer the Agent Kit command that handles it as a next step, in the same list, if it appears in this tool's list of commands (if you cannot see that list, offer it and say which kit it needs): `/motion` for movement, `/engineer` for speed and code problems, `/database` for wrong or slow data.
 
 The person never has to type any of this. The Keen page below turns each next step into something they pick and start.
 
@@ -178,8 +180,8 @@ node <skill-dir>/scripts/worksheet.mjs stop <name>      when the person says the
 
 The loop:
 
-1. Finish the job. Send its page with `add`. Screenshots are named by their file path in the page and are copied in, so keep them in a temporary folder, not in the project.
-2. The first time, run `open` and open the address it prints in your browser panel. After that the open page turns to each new page by itself; do not open it again.
+1. Finish the job. Send its page with `add`. Screenshots are named by their file path in the page and are copied in, so keep them in a temporary folder, not in the project. Give each one's full path; a bare file name is looked for in the folder `add` was run from.
+2. The first time, open the address in your browser panel (`add` starts the page's server if it is not running and prints the address; `open` prints it again). After that the open page turns to each new page by itself; do not open it again.
 3. Run `wait` as a background or long-running command and tell the person in one line that the page is ready.
 4. When `wait` prints `CHOSEN:` lines, treat them as the person typing those commands, in that order. Run the first job. Use `say` for a line of progress on anything that takes more than a minute.
 5. `add` that job's page. If more `CHOSEN:` lines are left from the same Start, run the next one and `add` its page. Then go back to step 3.
@@ -204,11 +206,12 @@ Rules:
   "subtitle": "Looked at with sample data. Nothing was changed.",
   "verdict": "One honest sentence about this screen.",
   "stats": [{ "value": "8 of 95", "label": "pieces of text hard to read" }],
-  "report": { "happened": "...", "means": "..." },
+  "report": { "todo": "Pick a fix and press Start.", "happened": "...", "means": "..." },
   "shots": [{ "src": "today-phone.jpg", "caption": "Phone, first screen.", "pins": [{ "n": 1, "x": 50, "y": 89 }] }],
   "problems": [{ "title": "Your day is not on the first screen", "body": "Plain words. Blank line between paragraphs." }],
   "also": ["A smaller finding, in one line."],
   "working": ["One thing to keep."],
+  "changes": [{ "where": "Main button", "before": "Submit", "after": "Send invoice" }],
   "terms": [{ "term": "Contrast", "means": "How much text stands out from what is behind it. Low contrast is why some visitors cannot read a line." }],
   "steps": [
     {
@@ -230,7 +233,7 @@ Rules:
 ```
 
 - **The page is glanced at, not read.** It opens on one headline, one line saying what to do, the screenshots and the next steps. Everything else is a row the person opens if they want it. Write the way you would tell a friend across a desk: short, plain, in your own voice. "The Install button is below the fold on a phone", not "The primary call to action is not visible within the initial viewport".
-- **The program counts words and refuses a long page.** `add` prints each part that is over and adds nothing. Cut the part; do not move the words somewhere else on the page. The most each part holds:
+- **The program counts words and refuses a long page.** `add` prints each part that is over and adds nothing. Cut the part; do not move the words somewhere else on the page. Aim a word or two under each limit, so a hyphen or a number does not cost you a second try. The most each part holds:
 
   | Part | At most |
   |---|---|
@@ -243,16 +246,23 @@ Rules:
   | `steps` | 3. Label 8 words, why 18 |
   | `report.happened`, `report.means` | 30 words each |
   | `notChecked` | 40 words |
+  | `order` | 20 words |
+  | a step's `options`, and `menu` | label 8 words, why 18 |
   | `terms` | 3, each meaning 25 words |
+  | `changes` | 5, each side 20 words |
 
 - A problem's title is the finding, said as a fact about the screen ("Copy does nothing on a phone"). Only the first problem is open when the page loads, so the titles alone must tell the story.
 - `terms` teaches. When the page has to use a word the person may not know (contrast, tap target, layout shift), add it with one sentence saying what it is and why it matters to their visitors: `"terms": [{ "term": "Contrast", "means": "..." }]`. Then use the word freely.
-- Every page that judges or changes a screen has at least one screenshot, with each problem pinned on it. The picture does the explaining; the words only name what to look at.
+- **What a page holds depends on the job.** Never invent a problem, a pin or a picture to fill a slot.
+  - A job that reports (critique, audit): `problems`, each pinned on a screenshot. The picture does the explaining; the words only name what to look at.
+  - A job that edits: no `problems`. Two shots of the same view at the same size, captioned "Before" and "After", in that order, without pins (the phone pair, showing the first screen or the part that changed and not the whole length of the page; add the wide pair only when the change shows differently there); that is what a job file means by "before and after side by side". Use `changes` for up to five things a person would notice, each as what it was and what it is now.
+  - A job that offers choices (shape, variants): one shot per choice and one step per choice. No `problems`.
+  - A job with no screen to show (init, document): no screenshot. The headline says what was written, and `also` lists what the person should check.
 - `details` has no limit and is the only place for commands, file names and exact values.
 - `tab` is the two or three words on the page's tab: the job and, after an edit, what changed.
-- `steps` are the ranked next steps, up to three. Give a step `options` when more than one job could do it, best first; the person sees a job picker on that step. A step with one way to do it has just `command`.
+- `steps` are the ranked next steps, up to three, and may be empty: when nothing is worth doing next, say "Nothing" in `report.todo` and offer none. Give a step `options` when more than one job could do it, best first; the person sees a job picker on that step. A step with one way to do it has just `command`.
 - `menu` is every other job that could run on this screen, so the person is never limited to your ranking. List Keen's other jobs, and any other installed Agent Kit command the findings point to.
-- A pin's `x` and `y` are percentages of the image, and its `n` is the number of the problem it marks.
+- A pin's `x` and `y` are percentages of the image, and its `n` is the number of the problem it marks. Put it beside the thing, not on top of the words it is about.
 - A page for a finished edit leads with before and after, says what changed in plain words, and offers what is worth doing now that this is done. Do not repeat steps that are finished.
 
 ### Where the page opens
@@ -272,7 +282,7 @@ These tools change quickly. If the one you are in has its own interactive page w
 
 ## Measuring
 
-`node <skill-dir>/scripts/measure.mjs` prints a script. Run what it prints inside the open page, using the tool's way of running JavaScript in a page. It returns how much each piece of text stands out from its background, which controls are too small to press, which have no name for a screen reader, the heading outline, any sideways scrolling, and how many different text sizes, colours and corner shapes are in use. It reads the page and changes nothing.
+`node <skill-dir>/scripts/measure.mjs` prints a script: one expression, as text. Hand that text, whole and unchanged, to the tool's way of running JavaScript in the open page, and keep what it returns. It is long, so do not retype or paste it: in a browser driven from code, save the program's output to a temporary file, read the file into a string, and pass the string to the page's evaluate call. It returns how much each piece of text stands out from its background, which controls are too small to press, which have no name for a screen reader, the heading outline, any sideways scrolling, and how many different text sizes, colours and corner shapes are in use. It reads the page and changes nothing.
 
 Three things change its answers, so do them every time:
 
@@ -280,11 +290,17 @@ Three things change its answers, so do them every time:
 - **At phone sizes, make the browser act as a touch device**, not only a narrow window. Many sites enlarge their buttons for touch, and the result says which mode it measured in (`touch`).
 - **Scroll the part you care about into view.** Text is checked against what is really stacked under it on screen, which is how a photo placed behind the words is noticed. Text further down the page is checked against its own background colours only.
 
+What the answers mean, where it is not obvious:
+
+- `onScreen` counts the pieces of text, controls, headings and pictures. A job that says how much it removed or added reports these, before and after.
+- A control's size is the area that responds to a press. A link stretched over its whole row or card is measured as that row or card.
+- `variety.textSizes` covers the whole page, including the site's shared header and footer. When a job works on one screen, judge the sizes that screen adds, and do not chase a count the shared parts set.
+
 If the project's development tools draw a badge or toolbar over the page, hide it or leave it out of the findings.
 
-Capture both the first screen and the whole page. Pin a problem on whichever shows it.
+Capture both the first screen and the whole page. Pin a problem on whichever shows it. Wait for opening animations to settle first. If a whole-page capture comes back with blank bands, the page reveals its content as it scrolls: scroll to the bottom and back to the top, then capture. When an edit changed one small part, show that part (capture the element, or crop to it) so the difference is visible without hunting.
 
-Any job that states a number uses this script to get it. A number that was not measured is not reported. Text over a photo, a video or a drawing cannot be measured this way. The script lists each such piece of text under `overPictureNotMeasured`, and you look at every one at its worst point. A plain gradient is measured against each of its colours.
+Any job that states a number about the screen uses this script to get it. A number that was not measured is not reported. (Counts of your own edits, such as files changed, are counted directly.) Text over a photo, a video or a drawing cannot be measured this way. The script lists each such piece of text under `overPictureNotMeasured`, and you look at every one at its worst point. To put a number on one: hide the text, capture, and take the lightest (for light text) or darkest (for dark text) colour that fills a real part of the text's box, ignoring single specks; work out the contrast against that, and say the number came from the picture at one moment. A plain gradient is measured against each of its colours.
 
 Before and after are captured at the same sizes: 390 wide for a phone and 1440 wide for a desktop, unless the job says otherwise.
 

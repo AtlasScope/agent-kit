@@ -2,7 +2,7 @@
 
 Writes down the design the product already has, in a DESIGN.md that every later job reads: its colours, text sizes, spacing, shapes, components and the reasons behind them.
 
-Interactive. Writes or updates DESIGN.md after a yes. Changes no screen.
+Interactive. Writes or updates DESIGN.md. Changes no screen.
 
 ## The idea
 
@@ -11,12 +11,13 @@ Every editing job in Keen says "use the project's own values". When nobody has w
 ## Steps
 
 1. **Pick the screens that matter**: the four to six a person uses most. PRODUCT.md usually says which. If there is already a DESIGN.md, read it first; this job then checks it against the screens and updates it.
-2. **Measure each screen.** Open it, capture it, and run `node <skill-dir>/scripts/measure.mjs`, running what it prints inside the page. Collect the text sizes, font families, colours and corner shapes with how often each is used. Read the theme or token file too, if there is one, for the names the code already uses.
+2. **Measure each screen**, at 390 and 1440 wide. Open it, capture it, and run `node <skill-dir>/scripts/measure.mjs`, running what it prints inside the page. Collect the text styles (size, weight and line height), font families, colours and corner shapes with how often each is used; they are under `variety`. Spacing and shadows are not measured: read them from the stylesheet. Read the theme or token file too, if there is one, for the names the code already uses.
 3. **Find the system inside the numbers.** For each kind of value, the ones used often are the system and the ones used once or twice are strays. Write down the system. List the strays separately.
 4. **Find the repeated parts**: buttons, fields, cards, lists, menus, dialogs, messages. For each, note its variants and where a good example lives.
 5. **Collect the decisions.** Read the notes people left in the code and in PRODUCT.md about why something is the way it is. A decision with its reason is the most valuable line in the file, because it stops the next job from undoing it.
 6. **Ask once.** Put every real conflict to the person in one message, each with your recommendation: "Buttons have 6px corners on four screens and 10px on two. Which is right? I'd say 6px." Do not ask about strays that are plainly mistakes.
-7. **Show the draft** and write the file after a yes.
+7. **Write the file once the conflicts are answered.** The answers are the yes. A conflict nobody answered goes under Open questions with your recommendation; do not ask it a second time in the report. If nobody can answer, write the file from your recommendations and list them all there.
+8. **Check what points at it.** Search the project for mentions of DESIGN.md (PRODUCT.md, the agent instruction files, the README) and say if any now describes something the file does not hold.
 
 ## What goes in DESIGN.md
 
@@ -49,4 +50,4 @@ Offer as next steps: `/keen extract` if the strays are many, to move them onto t
 
 ## Report
 
-Follow the report shape in SKILL.md. In "What happened", say how many screens were measured and what was found in plain numbers ("five text sizes do most of the work; nine more appear once or twice"). "What you need to do" is to settle the open questions. Under Details, the strays with where each appears. Under "Not checked", the screens you did not measure.
+Follow the report shape in SKILL.md. In "What happened", say how many screens were measured and what was found in plain numbers ("five text sizes do most of the work; nine more appear once or twice"). The Keen page for this job has no screenshot and no problems. "What you need to do" is to read the file once; name the open questions that are left, without asking them again. Under Details, the strays with where each appears. Under "Not checked", the screens you did not measure.
