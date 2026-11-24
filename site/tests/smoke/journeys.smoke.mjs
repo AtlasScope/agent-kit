@@ -134,7 +134,7 @@ for (const size of SIZES) {
     const path = `/skills/${s.name}`;
     const { page, ctx, errors } = await open(size, path);
     await noSideScroll(page, path);
-    const copies = page.locator(".cmdline").getByRole("button");
+    const copies = page.locator(".sd-install").getByRole("button");
     await copies.nth(0).click();
     assert.equal(await clipboard(page), `npx skills add AtlasScope/agent-kit --skill ${s.name}`);
     await copies.nth(1).click();
