@@ -60,7 +60,8 @@ function tierFor() {
 // Arriving at the guide from Start here, a new visitor is offered a free account there (StartWelcome.tsx).
 const markStartHere = () => { try { sessionStorage.setItem("agent-kit:start-here", String(Date.now())); } catch {} };
 
-export function LaunchHero({ headline, blur }: { headline: string; blur: string }) {
+// `art` swaps the scene for one of the experimental directions in components/horizon (the /horizon pages only).
+export function LaunchHero({ headline, blur, art }: { headline: string; blur: string; art?: string }) {
   const ref = useRef<HTMLElement>(null);
   const leaveAt = useRef(0);
   // The hand-off in progress, if any; `stop` cancels it and brings the homepage back.
@@ -97,7 +98,16 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
 
     // The scene's code arrives on its own, after the words: the page never waits on it.
     let orbit: Orbit | null = null, score: typeof import("./orbit") | null = null, sky: Visit, gone = false;
-    import("./orbit").then((module) => {
+    let stage: ReturnType<typeof import("./horizon").createStage> | null = null;
+    if (art) import("./horizon").then((module) => {
+      if (gone) return;
+      const asked = new URLSearchParams(location.search);
+      try {
+        stage = module.createStage(cv, { direction: module.DIRECTIONS[art] ?? module.DIRECTIONS.day, tall: () => matchMedia(TALL_SCREEN).matches, cloud: asked.get("cloud") || undefined, rate: asked.has("rate") ? Number(asked.get("rate")) : undefined, onError: () => {} });
+      } catch { stage = null; go(); }
+      kick();
+    }, go);
+    else import("./orbit").then((module) => {
       if (gone) return;
       score = module;
       // Each visit gets its own sky: a seed for the climate, or the one in the address (?sky=12) to see one again.
@@ -156,6 +166,10 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
         const shot = score.play({ opening, leave: lv, time, px: mouse.x, py: mouse.y, clock: score.weatherClock(sky, time) }, { ...score.DEFAULTS, ...weather.look });
         showing(orbit.render({ ...shot, steady }));
         paced = moving;
+      } else if (!out && stage && now - drawn >= IDLE_GAP - 4) {
+        // The horizon scene never rests, but it moves slowly: thirty frames a second carry it.
+        drawn = now;
+        showing(stage.frame({ now, opening, leave: lv, px: mouse.x, py: mouse.y }));
       } else if (out) paced = false;
       // Without the live scene the opening plays over the still: it rises and comes up out of the dark.
       if (!out && !shown) {
@@ -188,9 +202,9 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
       removeEventListener("pointermove", onMove);
       document.removeEventListener("visibilitychange", kick);
       // Leaving the page gives the graphics memory back at once.
-      orbit?.dispose();
+      orbit?.dispose(); stage?.dispose();
     };
-  }, [finish, router]);
+  }, [finish, router, art]);
   // Leaving the homepage cancels a hand-off still in progress. It keeps the note it may have saved: when the install
   // page is what replaced the homepage, this runs just before that page reads it.
   useEffect(() => () => leaving.current?.stop(false), []);
@@ -235,7 +249,7 @@ export function LaunchHero({ headline, blur }: { headline: string; blur: string 
     <section ref={ref} className={`launch${live ? " is-live" : ""}`} aria-labelledby="hero-h" suppressHydrationWarning>
       <script dangerouslySetInnerHTML={{ __html: ARM }} />
       <div data-r="scene" className="launch__scene" aria-hidden="true">
-        <picture data-r="earth" className="launch__earth" style={{ backgroundImage: `url(${blur})` }}>
+        <picture data-r="earth" className="launch__earth" style={art ? { visibility: "hidden" } : { backgroundImage: `url(${blur})` }}>
           <source media={TALL_SCREEN} type="image/avif" srcSet={set("orbit-tall", TALL, "avif")} sizes="100vw" />
           <source media={TALL_SCREEN} type="image/webp" srcSet={set("orbit-tall", TALL, "webp")} sizes="100vw" />
           <source type="image/avif" srcSet={set("orbit", WIDE, "avif")} sizes="100vw" />
