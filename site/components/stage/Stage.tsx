@@ -30,6 +30,21 @@ const REST_GAP = 27;
 const METER = 0;
 const still = (pose: string, shape: string) => `/horizon/stills/${VIEW}${pose}-${shape}.avif`;
 const TALL = "(max-width: 759.98px), (max-aspect-ratio: 4/5)";
+// A browser drawing WebGL in software (no graphics hardware, or acceleration turned off) would spend whole seconds
+// on each frame and starve the page, so it keeps the still. Asked of a throwaway context before anything is loaded.
+// Safari and Firefox report a generic name here, which never matches.
+const softwareGL = () => {
+  try {
+    const gl = document.createElement("canvas").getContext("webgl2");
+    if (!gl) return true;
+    const info = gl.getExtension("WEBGL_debug_renderer_info");
+    const name = info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : "";
+    gl.getExtension("WEBGL_lose_context")?.loseContext();
+    return /swiftshader|llvmpipe|softpipe|software|basic render|microsoft basic/i.test(name);
+  } catch { return true; }
+};
+// Hardware that is present but cannot keep up: if most of the first frames come this late, the still comes back.
+const SLOW_MS = 180, TRIAL = 24, SLOW_LIMIT = 12;
 
 export function Stage({ children }: { children: React.ReactNode }) {
   const path = usePathname();
@@ -139,6 +154,7 @@ export function Stage({ children }: { children: React.ReactNode }) {
     const el = root.current, cv = canvas.current;
     if (!el || !cv || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let stage: ReturnType<typeof import("../horizon").createStage> | null = null, gone = false, raf = 0, drawn = 0, last = 0, live = false;
+    let tried = 0, slow = 0, prevDraw = 0;
     const show = (on: boolean) => { if (on !== live) { live = on; el.classList.toggle("is-live", on); } };
     const frame = (now: number) => {
       raf = 0;
@@ -152,6 +168,12 @@ export function Stage({ children }: { children: React.ReactNode }) {
         if (stage.broken()) { stage.dispose(); stage = null; show(false); return; }
         const drew = stage.frame({ now, opening: 1e6, leave: 0, px: 0, py: 0, recede: c.at });
         show(drew);
+        // The first frames are a trial: on hardware too slow for the scene, the still comes back for good.
+        if (drew && tried < TRIAL) {
+          if (prevDraw && tried > 2 && now - prevDraw > SLOW_MS) slow++;
+          prevDraw = now; tried++;
+          if (slow >= SLOW_LIMIT) { stage.dispose(); stage = null; show(false); kick.current = () => {}; return; }
+        }
         // At rest in the install pose the planet has faded out: once that (black) frame is drawn it stays, and
         // drawing stops until the camera is asked to move again (kick).
         if (drew && !moving && c.at === 1) { raf = 0; return; }
@@ -162,6 +184,7 @@ export function Stage({ children }: { children: React.ReactNode }) {
     const boot = () => {
       if (booted) return;
       booted = true;
+      if (softwareGL()) return;
       const loaded = new Promise<void>((done) => { if (document.readyState === "complete") done(); else addEventListener("load", () => done(), { once: true }); });
       loaded.then(() => import("../horizon")).then((m) => {
         if (gone) return;
@@ -174,7 +197,7 @@ export function Stage({ children }: { children: React.ReactNode }) {
     };
     kick.current = () => {
       if (!stage) { if (cam.current.to < 1) boot(); return; }
-      if (!raf && !document.hidden) { last = 0; raf = requestAnimationFrame(frame); }
+      if (!raf && !document.hidden) { last = 0; prevDraw = 0; raf = requestAnimationFrame(frame); }
     };
     if (cam.current.to < 1) boot();
     const onVisible = () => kick.current();
