@@ -478,7 +478,7 @@ const MODE_GET = {
 function keenGet(kind) {
   const k = kind.toLowerCase();
   if (k === "report") return "A report. Nothing changes.";
-  if (k.startsWith("writes")) return kind.replace(/^Writes/, "Writes") + " after you say yes. The screen stays as it is.";
+  if (k.startsWith("writes")) return kind + " after you say yes. The screen stays as it is.";
   if (k.includes("pick only")) return "Three versions side by side. It edits only the one you pick.";
   if (k.includes("text only")) return "It edits the words on the screen and shows before and after.";
   if (k.includes("nothing looks different")) return "It tidies the code behind the screen. Nothing looks different.";
