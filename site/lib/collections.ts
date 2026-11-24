@@ -28,7 +28,8 @@ export async function starredId(userId: string) {
 export async function listCollections(userId: string): Promise<Collection[]> {
   await starredId(userId);
   const rows = await sql()`
-    select c.id, c.name, c.is_starred, c.is_public, count(i.ref)::int as count
+    select c.id, c.name, c.is_starred, c.is_public,
+      count(distinct i.kind || ':' || case when i.kind = 'prompt' then lower(i.ref) else i.ref end)::int as count
     from collections c left join collection_items i on i.collection_id = c.id
     where c.user_id = ${userId}
     group by c.id order by c.is_starred desc, c.created_at`;
@@ -44,11 +45,21 @@ export async function getCollection(id: string) {
   return { ...(c as { id: string; user_id: string; name: string; is_starred: boolean; is_public: boolean; updated_at: string }), items };
 }
 
+// The library's spelling of a prompt ref ("a01" becomes A01), so Star and Save match what pages pass. Skill names
+// match exactly and pass through. Memoised: /api/me maps every saved row through it.
+const spelled = new Map<string, string>();
+const canonical = (kind: Kind, ref: string) => {
+  if (kind !== "prompt") return ref;
+  let id = spelled.get(ref);
+  if (id === undefined) { id = getPromptById(ref)?.id ?? ref; spelled.set(ref, id); }
+  return id;
+};
+
 export async function myItems(userId: string) {
-  const rows = await sql()`
+  const rows = (await sql()`
     select c.id as collection_id, i.kind, i.ref from collections c
-    join collection_items i on i.collection_id = c.id where c.user_id = ${userId}`;
-  return rows as (Item & { collection_id: string })[];
+    join collection_items i on i.collection_id = c.id where c.user_id = ${userId}`) as (Item & { collection_id: string })[];
+  return rows.map((r) => ({ ...r, ref: canonical(r.kind, r.ref) }));
 }
 
 async function owns(userId: string, id: string) {
@@ -70,9 +81,23 @@ export async function setItem(userId: string, collectionId: string, kind: Kind, 
   if (!(await owns(userId, collectionId))) throw new UserError("That collection belongs to another account.");
   const db = sql();
   if (on) {
-    const [{ n }] = await db`select count(*)::int as n from collection_items where collection_id = ${collectionId}`;
+    // Counted the way pages count: one per library entry, whatever spellings are stored.
+    const [{ n }] = await db`select count(distinct kind || ':' || case when kind = 'prompt' then lower(ref) else ref end)::int as n from collection_items where collection_id = ${collectionId}`;
     if (n >= MAX_ITEMS) throw new UserError(`This collection is full at ${MAX_ITEMS} items. Remove some, or save to a new collection.`);
-    await db`insert into collection_items (collection_id, kind, ref) values (${collectionId}, ${kind}, ${ref}) on conflict do nothing`;
+    if (kind === "prompt") {
+      // Prompt ids match without regard to case, so a prompt already saved under another spelling isn't added again.
+      const id = canonical(kind, ref);
+      await db`
+        insert into collection_items (collection_id, kind, ref)
+        select ${collectionId}, 'prompt', ${id}
+        where not exists (select 1 from collection_items where collection_id = ${collectionId} and kind = 'prompt' and lower(ref) = lower(${id}))
+        on conflict do nothing`;
+    } else {
+      await db`insert into collection_items (collection_id, kind, ref) values (${collectionId}, ${kind}, ${ref}) on conflict do nothing`;
+    }
+  } else if (kind === "prompt") {
+    // Every spelling goes, so a prompt saved as both "a01" and "A01" doesn't come back after Remove.
+    await db`delete from collection_items where collection_id = ${collectionId} and kind = 'prompt' and lower(ref) = lower(${ref})`;
   } else {
     await db`delete from collection_items where collection_id = ${collectionId} and kind = ${kind} and ref = ${ref}`;
   }

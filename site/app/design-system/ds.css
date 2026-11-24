@@ -1,0 +1,15 @@
+/* The /design-system contract page only. Owner: W1 design system. */
+.ds h3 { margin: var(--space-2) 0 0; font: var(--weight-semibold) var(--type-sm)/var(--lh-sm) var(--font-body); color: var(--c-fg-3); }
+.ds-swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr)); gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.ds-swatches li { display: flex; align-items: center; gap: var(--space-3); font-size: var(--type-xs); color: var(--c-fg-2); }
+.ds-chip { flex: none; width: 2.5rem; height: 2.5rem; border: 1px solid var(--c-line); border-radius: var(--radius-sm); }
+.ds-type { display: grid; gap: var(--space-4); margin: 0; padding: 0; list-style: none; color: var(--c-fg); }
+.ds-type code, .ds-space code, .ds-boxes code { margin-right: var(--space-3); font: 400 var(--type-micro)/1 var(--font-mono); color: var(--c-fg-3); }
+.ds-space { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.ds-space li { display: flex; align-items: center; gap: var(--space-3); }
+.ds-space span { display: block; height: var(--space-3); background: var(--c-fg-3); border-radius: var(--radius-xs); }
+.ds-boxes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 9rem), 1fr)); gap: var(--space-4); margin: var(--space-4) 0 0; padding: 0; list-style: none; }
+.ds-boxes li { display: grid; place-items: center; height: 5rem; border: 1px solid var(--c-line-2); background: var(--c-surface); }
+.ds-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.ds-note { margin: 0; color: var(--c-fg-3); font-size: var(--type-xs); }
+.ds-float { display: grid; gap: var(--space-4); }

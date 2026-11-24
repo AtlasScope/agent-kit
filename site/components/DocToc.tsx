@@ -1,0 +1,48 @@
+"use client";
+import { useEffect, useRef } from "react";
+
+// "On this page" for reading pages. The section being read is marked as the current one as you scroll,
+// and the same list sits in a disclosure at the top of the page on narrow screens.
+export function DocToc({ items }: { items: { id: string; title: string }[] }) {
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const nav = ref.current;
+    if (!nav || !("IntersectionObserver" in window)) return;
+    const secs = items.map((i) => document.getElementById(i.id)).filter((s): s is HTMLElement => Boolean(s));
+    const seen = new Map<string, boolean>();
+    const set = (id: string | undefined) => {
+      if (!id) return;
+      nav.querySelectorAll("a").forEach((a) => {
+        if (a.getAttribute("href") === `#${id}`) a.setAttribute("aria-current", "location"); else a.removeAttribute("aria-current");
+      });
+    };
+    const mark = () => {
+      const visible = items.filter((i) => seen.get(i.id)).map((i) => i.id);
+      // At the bottom of the page a short last section can't reach the top, so the first section on screen would
+      // stay current. There, the section the visitor jumped to wins, or else the last one on screen.
+      const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+      const hash = location.hash.slice(1);
+      set(atBottom ? (visible.includes(hash) ? hash : visible.at(-1)) : visible[0]);
+    };
+    const onHash = () => { const id = location.hash.slice(1); if (items.some((i) => i.id === id)) set(id); };
+    window.addEventListener("hashchange", onHash);
+    const io = new IntersectionObserver((es) => { es.forEach((e) => seen.set(e.target.id, e.isIntersecting)); mark(); }, { rootMargin: "-80px 0px -45% 0px" });
+    secs.forEach((s) => io.observe(s));
+    return () => { io.disconnect(); window.removeEventListener("hashchange", onHash); };
+  }, [items]);
+  // On phones the contents list is a disclosure; picking a section closes it so it doesn't sit above the content.
+  useEffect(() => {
+    const close = (e: MouseEvent) => {
+      const a = (e.target as Element).closest?.(".doc__minitoc a");
+      if (a) a.closest("details")?.removeAttribute("open");
+    };
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, []);
+  return (
+    <nav className="doc__toc" aria-label="On this page" ref={ref}>
+      <p>On this page</p>
+      <ol>{items.map((s) => <li key={s.id}><a href={`#${s.id}`}>{s.title}</a></li>)}</ol>
+    </nav>
+  );
+}

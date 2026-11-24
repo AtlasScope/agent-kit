@@ -1,0 +1,149 @@
+/* Start, Learn and Fix: the guided routes. Hub lists, step and lesson pages, progress, the welcome offer.
+   Ownership: Start/Learn/Fix lane (DESIGN-CONTRACT.md). Route-only CSS: app/start/start.css, app/fix/fix.css.
+   Colour follows the contract: ink for the main action and "you are here", green (--c-signal) only for what is
+   finished, hairlines instead of shadows. Literal pixel sizes below are marker diameters, bar heights and rail widths,
+   which the token set has no scale for yet; spacing, type, colour, radii and timing all come from tokens. */
+
+/* The three routes, at the top of each hub */
+.journey ol { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; border-bottom: 1px solid var(--c-line); }
+.journey a { display: grid; grid-template-columns: auto auto minmax(0, 1fr); align-items: baseline; gap: var(--space-2); padding: var(--space-3) var(--space-4) var(--space-3) 0; margin-bottom: -1px; border-bottom: 2px solid transparent; color: var(--c-fg-3); text-decoration: none; font-size: var(--type-xs); }
+.journey__n { font: 500 0.75rem/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.journey__t { font-weight: 550; color: var(--c-fg-2); }
+.journey__c { font: 400 0.75rem/1 var(--font-mono); }
+.journey .is-here a { border-bottom-color: var(--c-fg); color: var(--c-fg-2); }
+.journey .is-here .journey__t { color: var(--c-fg); font-weight: var(--weight-semibold); }
+@media (hover: hover) and (pointer: fine) { .journey a:hover .journey__t { color: var(--c-fg); } .journey li:not(.is-here) a:hover { border-bottom-color: var(--c-edge); } }
+@media (max-width: 40rem) {
+  .journey a { grid-template-columns: minmax(0, 1fr); gap: 4px; padding-right: var(--space-2); min-height: 44px; }
+  .journey__c { display: none; }
+  .journey__t { font-size: 0.8125rem; line-height: 1.25; }
+}
+
+/* Progress: "3 of 8 done" and Continue */
+.guide-resume { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin: 0; color: var(--c-fg-3); font-size: var(--type-xs); }
+.guide-resume > span { display: inline-flex; align-items: center; gap: var(--space-2); font-variant-numeric: tabular-nums; }
+
+/* Hub lists: numbered rows between hairlines, a check on the finished ones */
+.guide-list { display: grid; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--c-line); }
+.guide-list--two { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: column; grid-template-rows: repeat(var(--rows, 4), auto); column-gap: var(--space-10); }
+.guide-list li { border-bottom: 1px solid var(--c-line); }
+.guide-list a { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: var(--space-4); align-items: start; padding: var(--space-4) 0; color: var(--c-fg); text-decoration: none; }
+.guide-list__n { display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid var(--c-edge); border-radius: 50%; font: 500 0.8125rem/1 var(--font-mono); font-variant-numeric: tabular-nums; color: var(--c-fg-3); }
+.guide-list__n .i { width: 14px; height: 14px; }
+.guide-list .is-done .guide-list__n { border-color: var(--c-signal); color: var(--c-signal); }
+.guide-list__t { display: grid; gap: 2px; padding-top: 3px; }
+.guide-list__t strong { font-weight: var(--weight-semibold); letter-spacing: -0.01em; }
+.guide-list__t span { color: var(--c-fg-3); font-size: var(--type-xs); line-height: 1.45; text-wrap: pretty; }
+@media (hover: hover) and (pointer: fine) {
+  .guide-list a:hover strong { text-decoration: underline; text-decoration-color: var(--c-edge); text-underline-offset: 0.2em; }
+  .guide-list a:hover .guide-list__n { border-color: var(--c-fg); color: var(--c-fg); }
+  .guide-list .is-done a:hover .guide-list__n { border-color: var(--c-signal); color: var(--c-signal); }
+}
+@media (pointer: coarse) { .guide-list a { min-height: 52px; } }
+@media (max-width: 60rem) { .guide-list--two { grid-template-columns: minmax(0, 1fr); grid-auto-flow: row; grid-template-rows: none; } }
+
+/* Step and lesson pages: a reading column and a sticky rail of every item */
+.guide { display: grid; grid-template-columns: minmax(0, 46rem) 240px; justify-content: space-between; gap: var(--space-16); align-items: start; }
+.guide__main { display: grid; gap: var(--space-10); min-width: 0; }
+.guide__head { gap: var(--space-4); max-width: none; }
+.guide__head .lead + .lead { margin-top: calc(-1 * var(--space-2)); }
+.start-body { max-width: var(--read); }
+.guide__aside { position: sticky; top: calc(var(--header-h) + var(--space-10)); display: grid; gap: var(--space-3); }
+.guide__aside-h { margin: 0; padding-left: var(--space-4); color: var(--c-fg-3); font: 500 0.75rem/1 var(--font-mono); letter-spacing: 0.04em; text-transform: uppercase; }
+@media (max-width: 60rem) {
+  .guide { grid-template-columns: minmax(0, 1fr); gap: var(--space-10); }
+  .guide__aside { position: static; padding-top: var(--space-6); border-top: 1px solid var(--c-line); }
+}
+
+/* The meter: one segment per step, finished ones green, this one ink. Each segment is a link. */
+.meter { display: flex; align-items: center; gap: var(--space-4); max-width: 34rem; }
+.meter__label { display: inline-flex; align-items: center; gap: var(--space-2); flex: none; margin: 0; color: var(--c-fg-3); font-size: var(--type-xs); font-variant-numeric: tabular-nums; }
+.meter ol { flex: 1; display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.meter li { flex: 1; }
+.meter a { display: flex; align-items: center; height: 16px; border-radius: 2px; }
+.meter a::before { content: ""; flex: 1; height: 4px; border-radius: 2px; background: var(--c-line); transition: background var(--dur-fast) var(--ease-out); }
+.meter .is-done a::before { background: var(--c-signal); }
+.meter .is-here a::before { background: var(--c-fg); }
+@media (hover: hover) and (pointer: fine) { .meter li:not(.is-here) a:hover::before { background: var(--c-edge); } .meter .is-done:not(.is-here) a:hover::before { background: var(--c-signal); } }
+@media (pointer: coarse) { .meter { flex-wrap: wrap; gap: 0; } .meter ol { flex-basis: 100%; gap: 2px; } .meter__label { order: -1; } .meter a { height: 44px; } }
+
+/* The rail */
+.guide-rail ol { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.guide-rail a { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: center; min-height: 36px; padding: 4px var(--space-2) 4px var(--space-4); border-left: 2px solid transparent; color: var(--c-fg-3); font-size: var(--type-xs); line-height: 1.35; text-decoration: none; }
+.guide-rail__n { display: grid; place-items: center; width: 22px; height: 22px; border: 1px solid var(--c-edge); border-radius: 50%; font: 500 0.75rem/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.guide-rail__n .i { width: 12px; height: 12px; }
+.guide-rail .is-done a { color: var(--c-fg-2); }
+.guide-rail .is-done .guide-rail__n { border-color: var(--c-signal); color: var(--c-signal); }
+.guide-rail .is-here a { border-left-color: var(--c-fg); color: var(--c-fg); font-weight: var(--weight-semibold); }
+.guide-rail .is-here .guide-rail__n { border-color: var(--c-fg); background: var(--c-fg); color: var(--c-canvas); }
+@media (hover: hover) and (pointer: fine) { .guide-rail li:not(.is-here) a:hover { color: var(--c-fg); border-left-color: var(--c-edge); } }
+@media (pointer: coarse) { .guide-rail a { min-height: 44px; } }
+
+/* Operating-system notes, links out, and the copy blocks keep the shared .block */
+.os { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; margin: 0; border: 1px solid var(--c-line); border-radius: var(--radius-lg); }
+.os > div { display: grid; gap: 4px; padding: var(--space-4) var(--space-6); }
+.os > div + div { border-left: 1px solid var(--c-line); }
+.os dt { color: var(--c-fg-3); font: 500 0.75rem/1.2 var(--font-mono); letter-spacing: 0.04em; text-transform: uppercase; }
+.os dd { margin: 0; color: var(--c-fg-2); line-height: 1.55; }
+@media (max-width: 40rem) { .os { grid-template-columns: minmax(0, 1fr); } .os > div + div { border-left: 0; border-top: 1px solid var(--c-line); } }
+.golinks { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+.golinks .i { width: 14px; height: 14px; color: var(--c-fg-3); }
+@media (pointer: coarse) { .golinks .btn { min-height: 44px; } }
+.guide__main .block { box-shadow: none; }
+
+/* Lesson words and "Try it" */
+.terms { display: grid; gap: 0; margin: 0; border-top: 1px solid var(--c-line); }
+.terms > div { display: grid; grid-template-columns: minmax(0, 12rem) minmax(0, 1fr); gap: var(--space-6); padding: var(--space-3) 0; border-bottom: 1px solid var(--c-line); }
+.terms dt { font-weight: var(--weight-semibold); }
+.terms dd { margin: 0; color: var(--c-fg-2); line-height: 1.55; }
+@media (max-width: 40rem) { .terms > div { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+.tryit { display: grid; gap: var(--space-3); }
+.tryit h2, .troubles h2 { margin: 0; font: var(--weight-semibold) var(--type-h2)/var(--lh-h2) var(--font-body); letter-spacing: var(--tr-h2); }
+.tryit .note { margin: 0; }
+.contrast { margin: 0; max-width: var(--read); color: var(--c-fg-3); font-size: var(--type-xs); line-height: 1.55; }
+.contrast__k { color: var(--c-fg-2); font-weight: 550; }
+
+/* What success looks like */
+.checkpoint { display: grid; gap: var(--space-1); padding: var(--space-6); border: 1px solid var(--c-line); border-radius: var(--radius-lg); background: var(--c-surface); }
+.checkpoint h2 { display: flex; align-items: center; gap: var(--space-4); margin: 0; }
+.checkpoint h2 { font: var(--weight-semibold) var(--type-h3)/var(--lh-h3) var(--font-body); letter-spacing: var(--tr-h3); }
+.checkpoint__mark { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--c-fg); color: var(--c-canvas); }
+.checkpoint__mark .i { width: 16px; height: 16px; }
+.checkpoint p { margin: 0; padding-left: calc(28px + var(--space-4)); max-width: var(--read); color: var(--c-fg-2); line-height: 1.55; }
+
+/* What can go wrong: the symptom, then what to do */
+.troubles { display: grid; gap: var(--space-3); }
+.troubles dl { margin: 0; border-top: 1px solid var(--c-line); }
+.troubles__row { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: var(--space-6); padding: var(--space-4) 0; border-bottom: 1px solid var(--c-line); }
+.troubles dt { font-weight: var(--weight-semibold); line-height: 1.45; }
+.troubles dd { margin: 0; color: var(--c-fg-2); line-height: 1.55; }
+@media (max-width: 40rem) { .troubles__row { grid-template-columns: minmax(0, 1fr); gap: 4px; } }
+
+/* Back and next: next is the one .btn--primary on the page */
+.stepnav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-3); padding-top: var(--space-6); border-top: 1px solid var(--c-line); }
+.stepnav .btn { white-space: normal; text-align: left; }
+.guide-next .i, .stepnav__back .i { transition: transform var(--dur-fast) var(--ease-out); }
+.stepnav__back { color: var(--c-fg-2); padding-inline: var(--space-2); }
+@media (hover: hover) and (pointer: fine) {
+  .guide-next:hover .i { transform: translateX(calc(3px * var(--travel))); }
+  .stepnav__back:hover { color: var(--c-fg); }
+  .stepnav__back:hover .i { transform: translateX(calc(-3px * var(--travel))); }
+}
+@media (max-width: 40rem) { .stepnav { flex-direction: column; } .stepnav .btn { justify-content: center; text-align: center; } }
+
+/* The account offer on /start, for a visitor who came from the homepage's Start here (StartWelcome.tsx). */
+.welcome { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-4) var(--space-10); padding: var(--space-6); border: 1px solid var(--c-line); border-radius: var(--radius-lg); background: var(--c-surface); }
+.welcome h2 { margin: 0 0 6px; font: var(--weight-semibold) var(--type-h3)/var(--lh-h3) var(--font-body); letter-spacing: var(--tr-h3); }
+.welcome p { max-width: 56ch; color: var(--c-fg-3); font-size: 0.9375rem; line-height: 1.5; }
+.welcome__do { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+@media (pointer: coarse) { .welcome__do .btn { min-height: 44px; } }
+
+/* Learn hub: the three starter skills */
+.starter__list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.starter__list a { display: grid; gap: var(--space-2); height: 100%; padding: var(--space-4); border: 1px solid var(--c-line); border-radius: var(--radius-lg); color: var(--c-fg-2); text-decoration: none; font-size: var(--type-xs); line-height: 1.5; }
+.starter__list code { color: var(--c-fg); font: 600 0.9375rem/1.2 var(--font-mono); }
+@media (hover: hover) and (pointer: fine) { .starter__list a:hover { border-color: var(--c-edge); } }
+@media (max-width: 48rem) { .starter__list { grid-template-columns: minmax(0, 1fr); } }
+
+/* Hub top: breadcrumbs first, as on every other page, then the route bar */
+.hub-top { display: grid; gap: var(--space-4); }
