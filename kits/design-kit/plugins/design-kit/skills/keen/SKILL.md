@@ -1,6 +1,6 @@
 ---
 name: keen
-description: Use only when the user explicitly invokes /keen or $keen. One command for interface design work, written for people who direct the work and judge the result without reading code. Typed alone or with a vague request it shows a short menu, suggests one job and asks. Typed with a job (init, critique, distill, polish, harden, adapt) it runs that job. Every job ends in plain English with proof the person can look at. Ordinary design talk must not activate it.
+description: Use only when the user explicitly invokes /keen or $keen. One command for interface design work, written for people who direct the work and judge the result without reading code. Typed alone or with a vague request it shows a short menu, suggests one job and asks. Typed with a job (init, shape, critique, audit, distill, layout, words, type, colour, harden, adapt, polish) it runs that job. Every job ends in plain English with proof the person can look at. Ordinary design talk must not activate it.
 disable-model-invocation: true
 metadata:
   short-description: Design jobs with a menu, plain English and proof
@@ -11,25 +11,31 @@ metadata:
 
 The person types `/keen` and what they want, in their own words. They may not read code. They judge by looking at the screen and by reading what you tell them. Your job is to pick the right piece of design work, do it properly, and show them the result in a form they can check with their own eyes.
 
-Keen is an early version. It has six jobs. For type, colour, words and motion, say it is not in Keen yet and point to `/design`.
+Keen is an early version. It has twelve jobs. For motion, a first-run experience, a sales or landing page, and native phone apps, say it is not in Keen yet and point to `/design`.
 
 ## Jobs
 
 | Job | Use it when | Changes files | Instructions |
 |---|---|---|---|
 | `init` | The project has no PRODUCT.md, or nobody has written down who it is for | Writes PRODUCT.md after a yes | [jobs/init.md](jobs/init.md) |
+| `shape` | A screen or feature is about to be built and nobody has planned it | Writes a short brief after a yes | [jobs/shape.md](jobs/shape.md) |
 | `critique` | Something feels off and they want to know what and why | No | [jobs/critique.md](jobs/critique.md) |
+| `audit` | They want measurements, not opinions: can everyone read it, press it and use it | No | [jobs/audit.md](jobs/audit.md) |
 | `distill` | The screen is crowded, busy or hard to scan | Yes | [jobs/distill.md](jobs/distill.md) |
-| `polish` | The screen is right but looks unfinished | Yes | [jobs/polish.md](jobs/polish.md) |
+| `layout` | Things are in the wrong place, or nothing stands out | Yes | [jobs/layout.md](jobs/layout.md) |
+| `words` | Labels, buttons or messages are unclear | Yes, text only | [jobs/words.md](jobs/words.md) |
+| `type` | Text is hard to read, or there are too many sizes | Yes | [jobs/type.md](jobs/type.md) |
+| `colour` | Colours clash, mean nothing, or text is hard to see. `color` works too | Yes | [jobs/colour.md](jobs/colour.md) |
 | `harden` | It looks fine with demo data and breaks with real data | Yes | [jobs/harden.md](jobs/harden.md) |
 | `adapt` | It works on one screen size and not on others | Yes | [jobs/adapt.md](jobs/adapt.md) |
+| `polish` | The screen is right but looks unfinished | Yes | [jobs/polish.md](jobs/polish.md) |
 
 Read the job's file before running it. Run one job per request.
 
 ## Which path to take
 
 1. **They named a job** (`/keen critique the pricing page`): run it.
-2. **Their words clearly match one job** ("this page is too busy" is distill; "does this hold up on a phone" is adapt): say which job you picked in one line and run it.
+2. **Their words clearly match one job** ("this page is too busy" is distill; "does this hold up on a phone" is adapt; "the text is too small" is type; "nobody understands this button" is words): say which job you picked in one line and run it.
 3. **Anything else**, including `/keen` alone: show the menu and stop.
 
 A request to "make it better", "fix the design" or "improve this page" is vague. Show the menu. Do not guess between a review and an edit.
@@ -43,16 +49,22 @@ Suggested: /keen <job> <target>
 <Two lines at most: what it will do and how, and whether it changes files.>
 
 Or, if the problem is something else:
+- I can't say what's wrong: /keen critique
+- I want numbers, not opinions: /keen audit
+- It isn't built yet: /keen shape
 - It's crowded or hard to scan: /keen distill
-- It's right but looks unfinished: /keen polish
+- Things are in the wrong place: /keen layout
+- The wording is unclear: /keen words
+- The text is hard to read: /keen type
+- The colours are off: /keen colour
 - It breaks with real data: /keen harden
 - It breaks on other screen sizes: /keen adapt
-- I can't say what's wrong: /keen critique
+- It's right but looks unfinished: /keen polish
 
 Which one?
 ```
 
-List only the jobs that were not suggested. If there is no PRODUCT.md and the request involves judging or changing a screen, the suggestion is `/keen init`, with one line on why it comes first. Keep the whole menu under fifteen lines.
+List only the jobs that were not suggested. If there is no PRODUCT.md and the request involves judging or changing a screen, the suggestion is `/keen init`, with one line on why it comes first. Keep the whole menu under twenty lines.
 
 ## Rules for every job
 
@@ -98,7 +110,7 @@ When there is something to do next, do not hand over one command as a line of te
 
 For each: the command, one plain line on what it will do, and one on why it ranks where it does. The first is marked as the suggestion.
 
-When two or more belong together, say in one line why they run in the order listed. Removing things comes before resizing what is left; finishing touches come last. Running several still means one job at a time, with a report after each.
+When two or more belong together, say in one line why they run in the order listed. The order that wastes the least work is: remove (`distill`), arrange (`layout`), reword (`words`), then style (`type`, `colour`), then make it hold up (`harden`, `adapt`), and `polish` last, because every earlier job changes what there is to polish. Running several still means one job at a time, with a report after each.
 
 Look past Keen too. When what you found is not a design problem (a slow screen, a number that looks wrong, pages that duplicate each other), offer the Agent Kit command that handles it as a next step, in the same list, if that command is installed.
 
@@ -190,8 +202,14 @@ Every coding tool can run the command above. What differs is where the page open
 
 These tools change quickly. If the tool you are in has a better built-in way to show a page beside the conversation, use it, and keep the worksheet command as the way a start reaches you.
 
+## Measuring
+
+`node <skill-dir>/scripts/measure.mjs` prints a script. Run what it prints inside the open page, using the tool's way of running JavaScript in a page. It returns how much each piece of text stands out from its background, which controls are too small to press, which have no name for a screen reader, the heading outline, any sideways scrolling, and how many different text sizes, colours and corner shapes are in use. It reads the page and changes nothing.
+
+Any job that states a number uses this script to get it. A number that was not measured is not reported. Text over a picture or gradient cannot be measured this way: the script counts those, and you look at each one.
+
 Before and after are captured at the same sizes: 390 wide for a phone and 1440 wide for a desktop, unless the job says otherwise.
 
 ## Sources
 
-Keen's jobs are written from published standards and platform guidance, named in each job file: the Web Content Accessibility Guidelines 2.2, Apple's Human Interface Guidelines, Material Design, and Jakob Nielsen's ten usability heuristics.
+Keen's jobs are written from published standards and platform guidance, named in each job file: the Web Content Accessibility Guidelines 2.2, Apple's Human Interface Guidelines, Material Design, Jakob Nielsen's ten usability heuristics, Google's Core Web Vitals, the Gestalt principles of grouping, and the CSS Color specification.

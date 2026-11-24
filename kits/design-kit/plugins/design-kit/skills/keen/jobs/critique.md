@@ -32,12 +32,12 @@ If PRODUCT.md does not say what this screen is for and you cannot tell from the 
 4. **Does it speak the user's language and tell them where they are?** Labels a user would say out loud, a visible sign of what just happened after each action, and a way back. (Nielsen's heuristics: visibility of system status, match with the real world, user control.)
 5. **Is it consistent with itself and with the product?** Same thing looks the same everywhere. Check against DESIGN.md if there is one. Count the distinct text sizes, colours, corner radii and spacing values on the screen; a high count is evidence.
 6. **Does it hold up outside the ideal case?** Empty, loading, error, very long text, no image. A missing state is a finding.
-7. **Can everyone use it?** Text contrast of at least 4.5 to 1, or 3 to 1 for large text and for the edges of controls (WCAG 2.2, 1.4.3 and 1.4.11). Tap targets at least 24 by 24 CSS pixels (WCAG 2.2, 2.5.8), and 44 points on a phone (Apple's guidelines). A visible focus outline when moving through the page with the keyboard. Measure these; do not estimate them.
+7. **Can everyone use it?** Text contrast of at least 4.5 to 1, or 3 to 1 for large text and for the edges of controls (WCAG 2.2, 1.4.3 and 1.4.11). Tap targets at least 24 by 24 CSS pixels (WCAG 2.2, 2.5.8), and 44 points on a phone (Apple's guidelines). A visible focus outline when moving through the page with the keyboard. Measure these with the script described under Measuring in SKILL.md; do not estimate them.
 
 ## What to report
 
 - **A verdict in one sentence.** Honest, specific to this screen. "The page does three jobs at once, so the one that matters gets lost."
-- **The three problems**, most important first. For each: what a user experiences, where it is on the screenshot, the evidence (a count, a measured ratio, the step where you hesitated), and the job that fixes it (`/keen distill`, `polish`, `harden`, `adapt`). If no Keen job fits, say what kind of work it is.
+- **The three problems**, most important first. For each: what a user experiences, where it is on the screenshot, the evidence (a count, a measured ratio, the step where you hesitated), and the job that fixes it (`/keen distill`, `layout`, `words`, `type`, `colour`, `harden`, `adapt`, `polish`). If no Keen job fits, say what kind of work it is.
 - **What is working**, two items at most, so the next change does not undo it.
 - **One suggested next step**, as a line they can copy.
 
