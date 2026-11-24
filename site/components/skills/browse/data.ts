@@ -4,10 +4,16 @@ import { AGENTS, KITS, KIT_GUIDE } from "@/lib/site";
 
 // The small, serialisable view of the catalog that the skills browser needs. Built on the server from
 // content/generated.json, so the client gets names and one line each, never the SKILL.md bodies.
-export type BrowseSkill = { name: string; kit: string; line: string; text: string; author: string; borrowed: boolean; typed: boolean };
+export type BrowseSkill = { name: string; kit: string; line: string; text: string; author: string; borrowed: boolean; typed: boolean; cmd: string };
 export type BrowseKit = { name: string; title: string; version: string; line: string; count: number };
 
 export const AGENT_KIT = "Agent Kit";
+
+// What a person types to run a skill. A kit that namespaces its commands lists them in KIT_GUIDE
+// (/experience-architecture:diagnose); every other skill runs as /<name>.
+function commandFor(kit: string, name: string) {
+  return KIT_GUIDE[kit]?.type.find((t) => t === `/${name}` || t.endsWith(`:${name}`)) ?? `/${name}`;
+}
 
 export const browseSkills: BrowseSkill[] = skills.map((s) => ({
   name: s.name,
@@ -18,6 +24,7 @@ export const browseSkills: BrowseSkill[] = skills.map((s) => ({
   author: s.credit?.author ?? AGENT_KIT,
   borrowed: Boolean(s.credit),
   typed: s.typedOnly,
+  cmd: commandFor(s.kit, s.name),
 }));
 
 // Kits in catalog order (KITS), which is also the order of the install commands.

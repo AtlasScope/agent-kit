@@ -80,14 +80,14 @@
 .sk-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--c-line); }
 .sk {
   position: relative; display: grid; align-items: baseline;
-  grid-template-columns: minmax(10rem, 14rem) minmax(0, 1fr) 11rem 32px;
+  grid-template-columns: minmax(10rem, 14rem) minmax(0, 1fr) 15rem 32px;
   grid-template-areas: "name d m star"; column-gap: var(--space-4);
   padding: var(--space-4) var(--space-3); margin-inline: calc(var(--space-3) * -1); border-radius: var(--radius-md);
   transition: background-color var(--dur-fast) var(--ease-out);
 }
 /* Hairline inset to the text, so the hover fill can reach past it without the line sticking out of the column. */
 .sk::after { content: ""; position: absolute; left: var(--space-3); right: var(--space-3); bottom: 0; border-bottom: 1px solid var(--c-line); pointer-events: none; }
-.sk__name { grid-area: name; margin: 0; font: var(--weight-semibold) var(--type-h3)/var(--lh-h3) var(--font-body); letter-spacing: var(--tr-h3); overflow-wrap: anywhere; }
+.sk__name { grid-area: name; margin: 0; font: var(--weight-semibold) var(--type-body)/var(--lh-h3) var(--font-mono); letter-spacing: -0.01em; overflow-wrap: anywhere; }
 .sk__name a { color: var(--c-fg); text-decoration: none; }
 .sk__name a.stretch::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
 .sk__name a:focus-visible { outline: none; }
@@ -95,8 +95,7 @@
 .sk__d { grid-area: d; margin: 0; color: var(--c-fg-2); font-size: var(--type-body); line-height: var(--lh-body); text-wrap: pretty; }
 .sk__m { grid-area: m; margin: 0; display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: var(--type-xs); line-height: var(--lh-xs); color: var(--c-fg-3); }
 .sk__own { color: var(--c-fg-2); }
-.sk__auto { display: inline-flex; align-items: center; gap: 6px; }
-.sk__auto::before { content: ""; width: 5px; height: 5px; border-radius: 50%; border: 1px solid currentColor; }
+.sk__start code { font-family: var(--font-mono); font-size: var(--type-micro); font-weight: var(--weight-medium); color: var(--c-fg-2); overflow-wrap: anywhere; }
 .sk__star { grid-area: star; position: relative; z-index: 1; align-self: center; justify-self: end; }
 .sk .star { margin: -6px 0; }
 
@@ -155,7 +154,7 @@
 .kit__skills a {
   display: inline-flex; align-items: center; min-height: 28px; padding: 0 9px;
   border: 1px solid var(--c-line); border-radius: var(--radius-sm); background: var(--c-surface);
-  color: var(--c-fg-2); font: var(--weight-medium) var(--type-xs)/1 var(--font-body); text-decoration: none;
+  color: var(--c-fg-2); font: var(--weight-medium) var(--type-xs)/1 var(--font-mono); text-decoration: none;
   transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
 }
 .kit__skills .kit__more { border-style: dashed; color: var(--c-fg-3); }
