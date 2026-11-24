@@ -8,7 +8,8 @@ import fs from "node:fs";
 import { makeSearch } from "../lib/search.ts";
 
 const data = JSON.parse(fs.readFileSync(new URL("../content/generated.json", import.meta.url), "utf8"));
-const search = makeSearch(data.prompts, data.skills);
+// Retired entries keep their pages but leave search (lib/content.ts), so the benchmark runs on what the site searches.
+const search = makeSearch(data.prompts.filter((p) => !p.replacedBy), data.skills);
 const key = (r) => (r.kind === "skill" ? "s:" : "") + r.ref;
 
 export const PLAIN = [
@@ -25,11 +26,11 @@ export const PLAIN = [
   ["deploy broke production", ["ship-or-recover-safely", "why-production-might-not-match-main"]],
   ["landing page", ["new-landing-page", "landing-page-that-converts"]],
   ["make it look less like AI", ["it-looks-ai-generated", "interface-design-design-deslop", "stop-slop", "s:stop-slop"]],
-  ["duplicate data in the database", ["are-we-storing-the-same-truth-multiple-times", "find-where-records-silently-change-identity", "s:database"]],
+  ["duplicate data in the database", ["two-systems-that-disagree", "are-we-storing-the-same-truth-multiple-times", "find-where-records-silently-change-identity", "s:database"]],
   ["is this migration safe", ["are-our-database-changes-safe-before-we-merge", "database-changes-during-a-deploy", "ship-or-recover-safely"]],
   ["animations feel janky", ["s:animation-performance", "animation-performance", "s:improve-animations", "improve-animations"]],
   ["make the buttons clearer", ["impeccable-clarify", "ux-writing", "s:ux-writing"]],
-  ["database is too expensive", ["reduce-postgresql-resource-cost", "find-the-true-sources-of-database-waste", "what-will-become-expensive-as-the-database-grows"]],
+  ["database is too expensive", ["reduce-postgresql-resource-cost-rdbr04", "what-breaks-at-ten-times-the-size", "reduce-postgresql-resource-cost", "find-the-true-sources-of-database-waste", "what-will-become-expensive-as-the-database-grows"]],
   ["production doesn't match main", ["why-production-might-not-match-main", "settings-that-differ-in-production"]],
   ["memory leak", ["memory-that-keeps-growing", "timers-and-connections-nobody-closes"]],
 ];
