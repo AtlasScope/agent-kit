@@ -32,6 +32,9 @@ const PACIFIC = { file: "clouds-pacific", west: 145, north: -2, width: 150, heig
 // Weather seen from orbit hardly moves in the minutes a pass takes, so the clouds keep a faster clock of their own:
 // about two and a half hours of drift for each minute on the page.
 const WEATHER = 150;
+// The directions that have a still image (public/horizon/stills, made by scripts/horizon-stills.mjs): every one whose
+// first frame is the same on every visit.
+export const STILLS = ["day", "dawn", "night"];
 export const DIRECTIONS: Record<string, Direction> = {
   day: {
     title: "Meridian, day",
@@ -41,9 +44,9 @@ export const DIRECTIONS: Record<string, Direction> = {
   },
   dawn: {
     title: "Meridian, first light",
-    note: "The same orbit a few hours earlier, flying toward sunrise. The colour on the limb is computed from the air, not painted.",
+    note: "The same orbit a few hours earlier, flying toward sunrise. The sun stays out of the frame; its light arrives along the limb and then across the cloud tops. The colour is computed from the air, not painted.",
     maps: "earth", start: "2026-11-21T16:05:00Z",
-    orbit: orbitThrough(-37, 153, 72, 1800), wide: { ...WIDE, heading: 28 }, tall: { ...TALL, heading: 20, pitch: 31.5, focal: 3 }, rate: 4, meter: 0, detail: PACIFIC,
+    orbit: orbitThrough(-39.2, 144, 69.5, 1800), wide: { ...WIDE, heading: 24 }, tall: { ...TALL, heading: 18, pitch: 31.5, focal: 3 }, rate: 4, meter: -1.8, detail: PACIFIC,
   },
   night: {
     title: "Meridian, night",
@@ -53,7 +56,7 @@ export const DIRECTIONS: Record<string, Direction> = {
   },
   now: {
     title: "Meridian, now",
-    note: "This moment: the sun and moon where the almanac puts them, on an orbit that started over the mid-Pacific when the page opened.",
+    note: "The sun and moon where the almanac puts them at this moment, on an orbit that starts over the mid-Pacific when the page opens. The cloud is still the map of 22 November 2026, not today's weather.",
     maps: "earth", start: "now",
     orbit: { altitude: 1800, inclination: 51.6, node: -150, phase: 0 }, wide: WIDE, tall: TALL, rate: 4, meter: 0,
   },
@@ -111,8 +114,11 @@ export function createStage(canvas: HTMLCanvasElement, options: { direction: Dir
       const leave = easeInOut(cue.leave), arrive = Math.exp(-Math.max(cue.opening, 0) / 1.1);
       const at = orbitAt(orbit, ms);
       // The opening tips the camera down onto the planet; the hand-off lets the planet sink out of the frame.
-      const pitch = view.pitch - 7 * arrive - 9 * leave + cue.py * 0.5;
-      const shot = aim(at.position, view.heading - cue.px * 0.7, pitch, view.roll, at.travel);
+      // The camera is never perfectly still and never follows the pointer: two slow, unrelated sways of about a
+      // tenth of a degree, the kind a hand-held long lens has on a steady mount.
+      const pan = 0.1 * Math.sin(seconds / 37) + 0.04 * Math.sin(seconds / 11.3 + 1), tilt = 0.07 * Math.sin(seconds / 53 + 2);
+      const pitch = view.pitch - 7 * arrive - 9 * leave + tilt;
+      const shot = aim(at.position, view.heading + pan, pitch, view.roll, at.travel);
       const sun = sunDirection(ms), moon = moonDirection(ms);
       // The meter adapts over a few seconds, as an eye or a camera would, so crossing the terminator is a slow
       // change of exposure and never a jump.

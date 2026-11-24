@@ -179,13 +179,23 @@ void main() {
       // Moonlight is sunlight four hundred thousand times weaker; it is what the night side is seen by.
       float muMoon = dot(p, uMoon) / r;
       inScatter += scatterR * moonR * sunAt(r, muMoon) * SUN * uNightLook.z;
-      // Airglow: the thin shell of excited oxygen near 95 km (green) with sodium just under it (amber).
-      float glow = exp(-pow((h - 92.0) / 5.0, 2.0));
-      vec3 emit = (vec3(0.25, 1.0, 0.32) * glow + vec3(1.0, 0.55, 0.12) * 0.25 * exp(-pow((h - 86.0) / 3.5, 2.0))) * uNightLook.y;
       vec3 step = exp(-extinct * dt);
-      light += through * (inScatter * (1.0 - step) / max(extinct, vec3(1e-7)) + emit * dt);
+      light += through * (inScatter * (1.0 - step) / max(extinct, vec3(1e-7)));
       through *= step;
     }
+  }
+
+  // Airglow: a shell of excited oxygen about 95 km up (a yellow-green line) with sodium just under it (amber).
+  // The shell is a few kilometres thick, far thinner than a step of the march above, so its light along the ray is
+  // worked out in closed form: the length of the ray's path through a Gaussian shell, once on the way in and, if the
+  // ray misses the ground, once more on the way out. Seen edge-on at the limb that path is long, which is why
+  // airglow from orbit is a fine bright line and almost nothing over the face of the planet.
+  if (dot(ro, rd) < 0.0) {
+    float miss = length(cross(ro, rd));
+    vec2 shell = vec2(RG + 95.0, RG + 89.0), wide = vec2(2.8, 2.4);
+    vec2 slant = sqrt(max(1.0 - pow(min(vec2(miss), shell) / shell, vec2(2.0)), 0.0) + 0.5 * wide / shell);
+    vec2 path = sqrt(PI) * wide * (hitsGround ? 1.0 : 2.0) * exp(-pow(max(vec2(miss) - shell, 0.0) / wide, vec2(2.0))) / slant;
+    light += (vec3(0.46, 1.0, 0.40) * path.x + vec3(1.0, 0.58, 0.16) * 0.2 * path.y) * uNightLook.y;
   }
 
   vec3 behind = vec3(0.0);
@@ -259,9 +269,9 @@ void main() {
     behind = mix(ground + base * moon * max(muMoon, 0.0) / PI, cloudLight * min(lift, vec3(8.0)), cover);
 
     if (uHas.z > 0.5) {
-      vec3 lamps = readMap(uNight, n, 0.0, nx, ny).rgb;
+      vec3 lamps = readMap(uNight, n, 0.0, nx, ny).rrr;
       float dark = smoothstep(0.04, -0.12, mu);
-      behind += lamps * lamps * vec3(1.0, 0.78, 0.5) * uNightLook.x * dark * (1.0 - cover * 0.92);
+      behind += lamps * lamps * vec3(1.0, 0.6, 0.28) * uNightLook.x * dark * (1.0 - cover * 0.92);
     }
   } else {
     behind = stars(rd) * uNightLook.w;

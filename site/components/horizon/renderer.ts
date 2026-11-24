@@ -16,9 +16,9 @@ export interface Look {
   warmth: number; tint: number;       // white balance: 0 leaves sunlight as yellow as the air makes it, 1 calls a sunlit cloud white
 }
 export const LOOK: Look = {
-  focal: 2.4, exposure: 1, contrast: 1.6, saturation: 1.1, p3: 0.35, glare: 0.22,
+  focal: 2.4, exposure: 1, contrast: 1.6, saturation: 1.1, p3: 0.35, glare: 0.14,
   cloudDepth: 120, cloudRelief: 1, cloudHeight: 7, cloudDrift: 0,
-  cityLights: 0.0035, airglow: 0.00000025, moonlight: 0.00002, stars: 0.0012, steps: 40, warmth: 1, tint: 0.03,
+  cityLights: 0.003, airglow: 0.0000004, moonlight: 0.00002, stars: 0.0012, steps: 40, warmth: 1, tint: 0.03,
 };
 export interface Frame { shot: Shot; sun: Vec3; moon: Vec3; look: Look; time: number }
 export interface Horizon {
@@ -77,7 +77,9 @@ export function createHorizon(canvas: HTMLCanvasElement, options: { maps?: Maps;
   const anisotropy = gl.getExtension("EXT_texture_filter_anisotropic");
   const has = [0, 0, 0, 0], loaded: string[] = [];
   let pending = 0, gone = false;
-  const load = (slot: number, unit: number, name: string, url: string | undefined, srgb: boolean) => {
+  // `cap` is the widest the map is kept on the GPU. Cloud and lamp maps are stored as one channel, a quarter of the
+  // memory of the four the browser would otherwise keep.
+  const load = (slot: number, unit: number, name: string, url: string | undefined, srgb: boolean, cap: number) => {
     gl.uniform1i(U(name), unit);
     if (!url) return;
     pending++;
@@ -87,13 +89,16 @@ export function createHorizon(canvas: HTMLCanvasElement, options: { maps?: Maps;
       if (gone) return;
       try {
         let source: TexImageSource = image;
-        if (image.naturalWidth > maxTexture) {
-          source = await createImageBitmap(image, { resizeWidth: maxTexture, resizeHeight: Math.round((maxTexture * image.naturalHeight) / image.naturalWidth), resizeQuality: "high" });
+        const limit = Math.min(maxTexture, cap);
+        if (image.naturalWidth > limit) {
+          source = await createImageBitmap(image, { resizeWidth: limit, resizeHeight: Math.round((limit * image.naturalHeight) / image.naturalWidth), resizeQuality: "high" });
         }
         const texture = gl.createTexture();
         gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
-        gl.texImage2D(gl.TEXTURE_2D, 0, srgb ? gl.SRGB8_ALPHA8 : gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, source);
+        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+        if (srgb) gl.texImage2D(gl.TEXTURE_2D, 0, gl.SRGB8_ALPHA8, gl.RGBA, gl.UNSIGNED_BYTE, source);
+        else gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, gl.RED, gl.UNSIGNED_BYTE, source);
         gl.generateMipmap(gl.TEXTURE_2D);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -106,11 +111,13 @@ export function createHorizon(canvas: HTMLCanvasElement, options: { maps?: Maps;
     image.onerror = () => { pending--; options.onError?.(new Error(`could not load ${url}`)); };
     image.src = url;
   };
-  load(0, 2, "uCloud", options.maps?.cloud, false);
-  load(1, 3, "uColor", options.maps?.colour, true);
-  load(2, 4, "uNight", options.maps?.night, true);
-  load(3, 5, "uCloudHi", options.maps?.detail?.url, false);
+  // A phone keeps smaller maps: its screen shows less of them and its browser allows a page far less graphics memory.
+  const small = matchMedia("(pointer: coarse)").matches || Math.min(innerWidth, innerHeight) < 700;
   const detail = options.maps?.detail;
+  load(0, 2, "uCloud", options.maps?.cloud, false, detail || small ? 4096 : 8192);
+  load(1, 3, "uColor", options.maps?.colour, true, small ? 2048 : 4096);
+  load(2, 4, "uNight", options.maps?.night, false, small ? 2048 : 4096);
+  load(3, 5, "uCloudHi", detail?.url, false, small ? 4096 : 8192);
 
   const u = {
     res: U("uRes"), cam: U("uCam"), right: U("uRight"), up: U("uUp"), fwd: U("uFwd"), sun: U("uSun"), moon: U("uMoon"),

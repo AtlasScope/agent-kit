@@ -14,6 +14,8 @@ import { launch, site } from "./orbit-browser.mjs";
 const args = process.argv.slice(2), folder = args.shift();
 const take = (flag, fallback) => { const i = args.indexOf(flag); return i < 0 ? fallback : args.splice(i, 2)[1]; };
 const engine = take("--engine", "chromium"), film = Number(take("--film", 0)), given = take("--base", "");
+// --still asks for reduced motion, so the page shows its still image and never starts the live scene.
+const still = args.includes("--still"); if (still) args.splice(args.indexOf("--still"), 1);
 await mkdir(folder, { recursive: true });
 
 let server = null, base = given;
@@ -26,13 +28,13 @@ const browser = engine === "webkit" ? await webkit.launch() : await launch();
 try {
   for (const job of args) {
     const [name, rest] = job.split("="), [route, size = "1440x900x2"] = rest.split("@"), [width, height, scale] = size.split("x").map(Number);
-    const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: scale || 1, isMobile: engine !== "webkit" ? width < 600 : undefined, hasTouch: width < 600, ...(film ? { recordVideo: { dir: folder, size: { width, height } } } : {}) });
+    const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: scale || 1, isMobile: engine !== "webkit" ? width < 600 : undefined, hasTouch: width < 600, reducedMotion: still ? "reduce" : "no-preference", ...(film ? { recordVideo: { dir: folder, size: { width, height } } } : {}) });
     const page = await context.newPage();
     const errors = [];
     page.on("pageerror", (e) => errors.push(e.message));
     await page.goto(base + route);
-    await page.waitForSelector(".launch.is-live", { timeout: 30000 }).catch(() => errors.push("the scene never went live"));
-    await page.waitForTimeout(5200);
+    if (still) await page.waitForTimeout(2500);
+    else { await page.waitForSelector(".launch.is-live", { timeout: 30000 }).catch(() => errors.push("the scene never went live")); await page.waitForTimeout(5200); }
     await page.screenshot({ path: path.join(folder, `${name}.png`) });
     if (film) await page.waitForTimeout(film * 1000);
     const video = page.video();

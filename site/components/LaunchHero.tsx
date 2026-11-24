@@ -6,6 +6,7 @@ import { AgentMark } from "./AgentMark";
 import { clearHandoff, saveHandoff } from "./install-choice";
 import type { Orbit, Visit } from "./orbit";
 import { TALL_SCREEN } from "./orbit/params";
+import { STILLS } from "./horizon/stage";
 import { HERO, INSTALL_MESSAGE, SITE } from "@/lib/site";
 
 // The homepage: one screen and nothing below it. The headline, one sentence and Install over a live view from orbit.
@@ -249,13 +250,22 @@ export function LaunchHero({ headline, blur, art }: { headline: string; blur: st
     <section ref={ref} className={`launch${art ? " launch--art" : ""}${live ? " is-live" : ""}`} aria-labelledby="hero-h" suppressHydrationWarning>
       <script dangerouslySetInnerHTML={{ __html: ARM }} />
       <div data-r="scene" className="launch__scene" aria-hidden="true">
-        <picture data-r="earth" className="launch__earth" style={art ? { visibility: "hidden" } : { backgroundImage: `url(${blur})` }}>
+        {art ? (
+          // An experimental direction: its own still, the first frame the live scene will draw, so the scene can take
+          // over from it unseen. With reduced motion, or without WebGL 2, the still is the picture.
+          <picture data-r="earth" className="launch__earth">
+            {STILLS.includes(art) && <source media={TALL_SCREEN} type="image/avif" srcSet={`/horizon/stills/${art}-tall.avif`} />}
+            {STILLS.includes(art) && <img src={`/horizon/stills/${art}-wide.avif`} alt="" width={3840} height={1600} fetchPriority="high" decoding="async" />}
+          </picture>
+        ) : (
+        <picture data-r="earth" className="launch__earth" style={{ backgroundImage: `url(${blur})` }}>
           <source media={TALL_SCREEN} type="image/avif" srcSet={set("orbit-tall", TALL, "avif")} sizes="100vw" />
           <source media={TALL_SCREEN} type="image/webp" srcSet={set("orbit-tall", TALL, "webp")} sizes="100vw" />
           <source type="image/avif" srcSet={set("orbit", WIDE, "avif")} sizes="100vw" />
           <source type="image/webp" srcSet={set("orbit", WIDE, "webp")} sizes="100vw" />
           <img src="/hero/orbit-1920.webp" alt="" width={3840} height={2160} fetchPriority="high" decoding="async" />
         </picture>
+        )}
         <canvas data-r="gl" className="launch__gl" />
         <div className="launch__shade" />
       </div>
