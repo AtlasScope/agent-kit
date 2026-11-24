@@ -1,6 +1,5 @@
-/* The quiet stage behind /install and /start.
-   Ownership: see DESIGN-CONTRACT.md. Split from globals.css with no change in cascade order. */
-
+/* The dark stage behind /install (and /start until the Start lane moves it to light and dark).
+   Owner: W9 install (DESIGN-CONTRACT.md). */
 /* The quiet pages (/install, /start): black, hairlines, one centred column, always dark like the homepage they
    continue from (the rule near the top of this file puts the whole document in the dark set while one shows).
    Depth: the grid is a floor that recedes to a horizon in the first screen, with a faint green and blue glow where it
@@ -17,3 +16,6 @@
   background: radial-gradient(60% 50% at 50% 50%, color-mix(in oklab, var(--led) 10%, transparent), color-mix(in oklab, var(--s-dcmd) 5%, transparent) 45%, transparent 75%); }
 .quiet :is(.inst__term, .inst__tabs, .hub__card, .hub__way) { box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 30px 60px -20px rgba(0,0,0,.95), 0 12px 24px -12px rgba(0,0,0,.9); }
 .quiet :is(.inst__term, .hub__card, .hub__way) { background: linear-gradient(180deg, oklch(15% .006 160), oklch(11% .004 160)); }
+
+/* The /start hub on the stage keeps its green hover edge, as on main. */
+@media (hover: hover) and (pointer: fine) { .quiet .hub__way:hover { border-color: color-mix(in oklab, var(--c-primary) 85%, transparent); box-shadow: 0 0 0 3px color-mix(in oklab, var(--c-primary) 12%, transparent); } }

@@ -1,14 +1,20 @@
 /* Site stylesheet index. Files load in this order and the order is part of the cascade: later files win ties.
-   Ownership of each file is listed in DESIGN-CONTRACT.md. Route-specific CSS lives beside its route
-   (app/launch.css, app/install/install.css, app/start/start.css). */
+   Each lane owns its file; DESIGN-CONTRACT.md lists the owners. overrides.css holds the few grouped rules that
+   span lanes and loads last. Route-only CSS lives beside its route (app/launch.css, app/install/install.css,
+   app/start/start.css). */
 @import "./styles/tokens.css";
 @import "./styles/base.css";
 @import "./styles/primitives.css";
 @import "./styles/shell.css";
+@import "./styles/search.css";
 @import "./styles/layout.css";
-@import "./styles/guides.css";
-@import "./styles/docs.css";
+@import "./styles/library.css";
+@import "./styles/skills.css";
+@import "./styles/fix.css";
+@import "./styles/detail-prompt.css";
+@import "./styles/detail-skill.css";
+@import "./styles/guide.css";
+@import "./styles/reading.css";
 @import "./styles/account.css";
 @import "./styles/quiet.css";
-@import "./styles/library.css";
-@import "./styles/detail.css";
+@import "./styles/overrides.css";
