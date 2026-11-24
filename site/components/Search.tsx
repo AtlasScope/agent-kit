@@ -34,7 +34,8 @@ function loadIndex() {
 
 // Copy texts by URL (which carries the text's version): `texts` holds the requests, `known` the answers, so a
 // cached text can go to the clipboard inside the click or key event without waiting. A text that fails to load
-// (offline, or a result a deploy removed while this browser still had the old index) is reported, not retried.
+// (offline, slow past 10 s, or a result a deploy removed while this browser still had the old index) leaves the cache,
+// so the next preview or Copy asks again.
 const texts = new Map<string, Promise<string>>();
 const known = new Map<string, string>();
 function copyText(e: Entry): Promise<string> {
@@ -42,7 +43,7 @@ function copyText(e: Entry): Promise<string> {
   const k = copyUrl(e);
   let p = texts.get(k);
   if (!p) {
-    p = fetch(k).then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status))))).then((t) => { known.set(k, t); return t; });
+    p = fetch(k, { signal: AbortSignal.timeout(10000) }).then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status))))).then((t) => { known.set(k, t); return t; });
     const mine = p;
     p.catch(() => { if (texts.get(k) === mine) texts.delete(k); });
     texts.set(k, p);
@@ -222,7 +223,9 @@ export function Search() {
     const w = setTimeout(() => setWaiting(true), 400);
     return () => { live = false; clearTimeout(t); clearTimeout(w); };
   }, [open, wide, active]);
-  const shown = active?.copy && payload?.key === copyUrl(active) ? payload : undefined;
+  // A text already fetched shows straight away, without waiting for the effect.
+  const cached = active?.copy ? knownText(active) : undefined;
+  const shown = cached !== undefined ? { text: cached } : active?.copy && payload?.key === copyUrl(active) ? payload : undefined;
   useEffect(() => {
     if (!active) return;
     document.getElementById(`cmdk-${keyOf(active)}`)?.scrollIntoView({ block: "nearest" });
@@ -248,6 +251,9 @@ export function Search() {
       if (have !== undefined) await navigator.clipboard.writeText(have);
       else {
         text = copyText(e);
+        // Phones have no preview, so say something if the text takes a moment.
+        const slow = setTimeout(() => say("Copying…"), 300);
+        text.finally(() => clearTimeout(slow)).catch(() => {});
         text.then((t) => setPayload((p) => (p?.key === k ? { key: k, text: t } : p)), () => {});
         try {
           if (typeof ClipboardItem === "undefined" || !navigator.clipboard.write) throw new Error("unsupported");
@@ -262,11 +268,11 @@ export function Search() {
         }
       }
       say(c.done); remember(e);
-    } catch {
+    } catch (err) {
       // Settle the text first: the clipboard can fail before the fetch does, and the fetch is the real cause.
       const loadFailed = text ? await text.then(() => null, (err: unknown) => err ?? true) : null;
       // The text arrived but the browser refused the late write; it is cached now, so a second press writes it at once.
-      if (late && !loadFailed) say("The text is ready now. Press Copy again.");
+      if (late && !loadFailed && navigator.clipboard && err instanceof DOMException && err.name === "NotAllowedError") say("The text is ready now. Press Copy again.");
       else say(loadFailed ? "Couldn’t load the text to copy. Open the page and copy from there." : "Copy was blocked. Open the page and copy from there.");
     }
   };
