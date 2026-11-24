@@ -92,7 +92,7 @@ export function SkillBrowser({ skills, kits }: { skills: BrowseSkill[]; kits: Br
   return (
     <div className="sb">
       <div className="sb__bar">
-        <div className="sb__find" role="search">
+        <div className="sb__find" role="search" aria-label="Filter skills">
           <svg className="sb__glass" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.75" /><path d="m10.5 10.5 3.25 3.25" /></svg>
           <input
             ref={field}
