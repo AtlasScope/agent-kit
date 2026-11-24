@@ -169,6 +169,25 @@ for (const size of SIZES) {
     await ctx.close();
   });
 
+  test(`${size.name}: a result removed since the index loaded refreshes the list`, async () => {
+    const { page, ctx, errors } = await open(size, "/skills");
+    await page.getByRole("banner").locator(".kbd", { hasText: "K" }).waitFor({ state: "attached" });
+    await page.keyboard.press(`${process.platform === "darwin" ? "Meta" : "Control"}+k`);
+    const box = page.getByRole("combobox", { name: "Search the library" });
+    await box.fill("tdd");
+    await page.locator('#search-results a[role="option"][href="/skills/tdd"]').first().waitFor();
+    // As if a deploy had removed it: its Copy text is gone, and the fresh index no longer lists it.
+    await page.route("**/search-copy/skill/tdd*", (r) => r.fulfill({ status: 404, body: "" }));
+    const fresh = page.waitForRequest((r) => /\/search-index\.json\?r=/.test(r.url()));
+    await page.locator('#search-results a[role="option"][href="/skills/tdd"]').first().hover();
+    await box.press(`${process.platform === "darwin" ? "Meta" : "Control"}+Enter`);
+    await fresh;
+    await page.getByRole("status").filter({ hasText: "The list is up to date" }).waitFor();
+    assert.equal(await page.locator('#search-results a[role="option"][href="/skills/tdd"]').count(), 0, "the removed result leaves the list");
+    assert.deepEqual(errors, []);
+    await ctx.close();
+  });
+
   test(`${size.name}: a prompt page copies the whole prompt with its rules`, async () => {
     const p = data.prompts.find((x) => x.id === "PG01");
     const path = `/prompts/${p.slug}`;

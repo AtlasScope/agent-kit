@@ -25,19 +25,20 @@ type Group = { label: string; items: Entry[] };
 let indexPromise: Promise<Entry[]> | null = null;
 let loaded: Entry[] | null = null;
 // The browser may keep the index for an hour. If a deploy in that time removed a result, its Copy text is gone
-// (404); the palette then drops its copy of the index and the next open fetches a fresh one past the cache.
-let stale = false;
-function dropIndex() { loaded = null; indexPromise = null; stale = true; texts.clear(); known.clear(); }
+// (404). The palette then forgets that result, drops the index and its cached texts, and fetches a fresh index
+// with a query that no cache along the way has seen. `gen` stops fetches from before the drop refilling the cache.
+let stale = false, gen = 0;
+const removed = new Set<string>();
+function dropIndex(e: Entry) { removed.add(keyOf(e)); loaded = null; indexPromise = null; stale = true; gen++; texts.clear(); known.clear(); }
 function loadIndex() {
-  indexPromise ??= fetch("/search-index.json", stale ? { cache: "reload" } : undefined).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-    .then((e: Entry[]) => { stale = false; return (loaded = e); });
+  indexPromise ??= fetch(stale ? `/search-index.json?r=${Date.now()}` : "/search-index.json").then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+    .then((e: Entry[]) => { stale = false; return (loaded = removed.size ? e.filter((x) => !removed.has(keyOf(x))) : e); });
   indexPromise.catch(() => { indexPromise = null; });
   return indexPromise;
 }
 
-// Copy texts by entry key: `texts` holds the requests, `known` the answers, so a cached text can go to the
-// clipboard inside the click or key event without waiting.
-// Keyed by the URL, which carries the text's version.
+// Copy texts by URL (which carries the text's version): `texts` holds the requests, `known` the answers, so a
+// cached text can go to the clipboard inside the click or key event without waiting.
 const texts = new Map<string, Promise<string>>();
 const known = new Map<string, string>();
 const gone = (err: unknown) => err instanceof Error && err.message === "gone";
@@ -46,7 +47,8 @@ function copyText(e: Entry): Promise<string> {
   const k = copyUrl(e);
   let p = texts.get(k);
   if (!p) {
-    p = fetch(copyUrl(e)).then((r) => (r.ok ? r.text() : Promise.reject(new Error(r.status === 404 ? "gone" : String(r.status))))).then((t) => { known.set(k, t); return t; });
+    const g = gen;
+    p = fetch(k).then((r) => (r.ok ? r.text() : Promise.reject(new Error(r.status === 404 ? "gone" : String(r.status))))).then((t) => { if (g === gen) known.set(k, t); return t; });
     p.catch(() => texts.delete(k));
     texts.set(k, p);
   }
@@ -211,18 +213,24 @@ export function Search() {
   }, [open]);
   useEffect(() => {
     if (!open || !wide || !active?.copy) return;
-    const k = keyOf(active), have = knownText(active);
+    const k = copyUrl(active), have = knownText(active);
     if (have !== undefined) { setPayload({ key: k, text: have }); return; }
     let live = true;
     const t = setTimeout(() => copyText(active).then((text) => { if (live) setPayload({ key: k, text }); }, (err) => { if (live) setPayload({ key: k, text: null, gone: gone(err) }); }), 120);
     return () => { live = false; clearTimeout(t); };
   }, [open, wide, active]);
-  const shown = active && payload?.key === keyOf(active) ? payload : undefined;
+  const shown = active?.copy && payload?.key === copyUrl(active) ? payload : undefined;
   useEffect(() => {
     if (!active) return;
     document.getElementById(`cmdk-${keyOf(active)}`)?.scrollIntoView({ block: "nearest" });
   }, [active]);
 
+  // The index is out of date: fetch a fresh one now, past the retry throttle, without the removed result.
+  const refresh = (e: Entry) => {
+    dropIndex(e); setPayload(null); setStatus("loading"); say("This result was removed in an update. Refreshing the list…");
+    loadIndex().then((fresh) => { failed.current = false; setEntries(fresh); setStatus("ready"); say("This result was removed in an update. The list is up to date."); },
+      () => { failed.current = true; lastTry.current = Date.now(); setStatus("error"); say("This result was removed in an update. Reload the page for the latest list."); });
+  };
   const remember = (e: Entry) => { const next = pushRecent(readRecent(), e); writeRecent(next); setRecent(next); };
   const go = (e: Entry, newTab = false) => {
     remember(e);
@@ -237,7 +245,7 @@ export function Search() {
   const copy = async (e: Entry) => {
     const c = e.copy;
     if (!c) { say("Nothing to copy here. Press Enter to open it."); return; }
-    const have = knownText(e), k = keyOf(e);
+    const have = knownText(e), k = copyUrl(e);
     let loadFailed: unknown = null;
     try {
       if (have !== undefined) await navigator.clipboard.writeText(have);
@@ -256,8 +264,7 @@ export function Search() {
       }
       say(c.done); remember(e);
     } catch {
-      // The index is out of date: fetch a fresh one now, which also takes the removed result off the list.
-      if (gone(loadFailed)) { dropIndex(); warm(); say("This result was removed in an update. The list is refreshed."); }
+      if (gone(loadFailed)) refresh(e);
       else say(loadFailed ? "Couldn’t load the text to copy. Open the page and copy from there." : "Copy was blocked. Open the page and copy from there.");
     }
   };
@@ -341,6 +348,7 @@ export function Search() {
               {active.summary && <p className="cmdk__ps">{active.summary}</p>}
               {active.copy && typeof shown?.text === "string" && <pre className="cmdk__payload" data-long={shown.text.length > 360 || undefined} aria-label={`${active.copy.label.replace(/^Copy /, "")} text`}>{shown.text}</pre>}
               {active.copy && shown?.text === null && !shown.gone && <p className="cmdk__ps">The text didn’t load. Copy will try again.</p>}
+              {active.copy && !shown && <p className="cmdk__ps cmdk__wait">Loading the text…</p>}
               {active.copy && shown?.gone && <p className="cmdk__ps">This result was removed in an update. Press Copy to refresh the list.</p>}
               <div className="cmdk__actions">
                 <button type="button" className="cmdk__btn cmdk__btn--main" onClick={() => go(active)}>Open<kbd aria-hidden="true">↵</kbd></button>
