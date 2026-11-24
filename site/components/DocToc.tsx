@@ -30,6 +30,15 @@ export function DocToc({ items }: { items: { id: string; title: string }[] }) {
     secs.forEach((s) => io.observe(s));
     return () => { io.disconnect(); window.removeEventListener("hashchange", onHash); };
   }, [items]);
+  // On phones the contents list is a disclosure; picking a section closes it so it doesn't sit above the content.
+  useEffect(() => {
+    const close = (e: MouseEvent) => {
+      const a = (e.target as Element).closest?.(".doc__minitoc a");
+      if (a) a.closest("details")?.removeAttribute("open");
+    };
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, []);
   return (
     <nav className="doc__toc" aria-label="On this page" ref={ref}>
       <p>On this page</p>

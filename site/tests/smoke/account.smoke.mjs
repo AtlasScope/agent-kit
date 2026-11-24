@@ -111,6 +111,7 @@ test("phone: the rail is the first screen, a collection replaces it, and All col
   await openPanel(page).getByRole("link", { name: "All collections" }).tap();
   await page.locator(".ws__rail").waitFor({ state: "visible" });
   assert.equal(await openPanel(page).count(), 0);
+  assert.equal(await page.evaluate(() => location.hash), "", "All collections went back in history rather than adding #all");
   assert.deepEqual(errors, []);
   await ctx.close();
 });
@@ -168,6 +169,8 @@ test("reading pages keep one h1, their sections, and a working contents list", a
     const phone = await open(PHONE, path);
     await phone.page.locator(".doc__minitoc summary").tap();
     assert.ok(await phone.page.locator(`.doc__minitoc a[href="#${first}"]`).isVisible(), `${path} contents opens on phones`);
+    await phone.page.locator(`.doc__minitoc a[href="#${first}"]`).tap();
+    assert.equal(await phone.page.locator(".doc__minitoc").getAttribute("open"), null, `${path} contents closes after a pick`);
     await noSideScroll(phone.page, path);
     await phone.ctx.close();
   }

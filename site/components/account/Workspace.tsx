@@ -30,6 +30,7 @@ export function Workspace({ rail, newCollection, boot, children }: { rail: RailE
   // A collection just created here, waiting for its hashchange. A ref, so it survives the effect re-running
   // (another revalidation) before the event fires.
   const landing = useRef<string | null>(null);
+  const openedFromList = useRef(false);
 
   useEffect(() => {
     const w = root.current;
@@ -67,9 +68,20 @@ export function Workspace({ rail, newCollection, boot, children }: { rail: RailE
     const onHash = () => {
       const created = landing.current !== null && hashId() === landing.current;
       landing.current = null;
+      const fromList = d.getAttribute("data-ws-view") === "list";
       apply(created ? "panel" : true);
+      openedFromList.current = fromList && d.getAttribute("data-ws-view") === "detail";
     };
     window.addEventListener("hashchange", onHash);
+
+    // "All collections" after opening one from the list here goes back in history, so the browser's Back button
+    // then leaves the page instead of reopening the collection. Arriving straight on a collection, it is a link.
+    const onBack = (e: MouseEvent) => {
+      if (!(e.target as Element).closest?.(".ws__back") || !openedFromList.current) return;
+      e.preventDefault();
+      history.back();
+    };
+    w.addEventListener("click", onBack);
 
     // A collection that just appeared was just created here: open it (through the hash, so Back works).
     const before = prev.current;
@@ -82,7 +94,7 @@ export function Workspace({ rail, newCollection, boot, children }: { rail: RailE
     if (added.length === 1) { landing.current = added[0]; location.hash = added[0]; }
     else if (removed && h && h !== "all" && !list.includes(h)) history.replaceState(null, "", location.pathname + location.search);
     apply(removed ? "landed" : false);
-    return () => window.removeEventListener("hashchange", onHash);
+    return () => { window.removeEventListener("hashchange", onHash); w.removeEventListener("click", onBack); };
   }, [idKey]);
 
   // Leaving the page: clear the choice from <html> so it can't style anything else.

@@ -137,8 +137,15 @@ function ItemGroup({ title, items, c, actions }: { title: string; items: Resolve
   // In the workspace the panel's name is the h2; on the shared page the group itself is the next level under h1.
   const H = actions ? "h3" : "h2";
   const rowH = actions ? "h4" : "h3";
-  const prompts = items.filter((i) => i.kind === "prompt");
   const skills = items.filter((i) => i.kind === "skill");
+  // Prompt refs are matched without regard to case, so a stored "a01" shows as A01. Remove must send the ref as
+  // stored (the delete is exact), and two stored spellings of one prompt show once.
+  const storedRef = new Map<string, string>();
+  for (const i of items) {
+    const p = i.kind === "prompt" ? getPromptById(i.ref) : undefined;
+    if (p && !storedRef.has(p.id)) storedRef.set(p.id, i.ref);
+  }
+  const slugs = [...storedRef.keys()].map((id) => getPromptById(id)!.slug);
   const remove = actions && ((kind: "prompt" | "skill", ref: string, name: string) => (
     <Pop summary={X} summaryClass="col__rm" label={`Remove ${name} from ${c.name}`}>
       <ActionForm action={actions.removeItem} className="col__popform">
@@ -151,8 +158,8 @@ function ItemGroup({ title, items, c, actions }: { title: string; items: Resolve
   return (
     <section className="cgroup" aria-labelledby={hid}>
       <H id={hid}>{title} <span className="cgroup__n">{items.length}</span></H>
-      {prompts.length > 0
-        ? <PromptRows as={rowH} slugs={prompts.map((i) => getPromptById(i.ref)?.slug).filter((x): x is string => Boolean(x))} action={remove && ((p) => remove("prompt", p.id, p.t))} />
+      {slugs.length > 0
+        ? <PromptRows as={rowH} slugs={slugs} action={remove && ((p) => remove("prompt", storedRef.get(p.id) ?? p.id, p.t))} />
         : <SkillCards as={rowH} names={skills.map((i) => i.ref)} action={remove && ((sk) => remove("skill", sk.name, sk.name))} />}
     </section>
   );
@@ -175,7 +182,8 @@ export function SharedCollection({ c, own = false, manageHref = "/account", self
         </p>
         <h1>{c.name}</h1>
         <p className="lead ink2">{parts.length ? `A collection of ${parts.join(" and ")} from the Agent Kit library.` : <>This collection is empty. Browse the <Link className="lic" href="/prompts">prompts</Link> and <Link className="lic" href="/skills">skills</Link> to find something to save.</>}</p>
-        {own && <p className="shared__own"><Link className="btn btn--sm" href={`${manageHref}#${c.id}`}>Manage in Collections</Link></p>}
+        {/* A plain link: Collections' boot script only runs on a full page load, and it picks this collection before paint. */}
+        {own && <p className="shared__own"><a className="btn btn--sm" href={`${manageHref}#${c.id}`}>Manage in Collections</a></p>}
       </div>
       {install && (
         <section className="shared__install" aria-labelledby="install-h">

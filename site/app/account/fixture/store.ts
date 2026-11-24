@@ -25,3 +25,5 @@ const g = globalThis as unknown as { __accountFixture?: CollectionData[] };
 export const store = () => (g.__accountFixture ??= seed());
 export const reset = () => { g.__accountFixture = seed(); };
 export const SAMPLE_PATH = "/account/fixture";
+// Creating or renaming a collection to exactly this name returns an error, so the failure message can be reviewed.
+export const FAIL_NAME = "Show an error";
