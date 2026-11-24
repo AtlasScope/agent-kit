@@ -24,8 +24,12 @@ type Group = { label: string; items: Entry[] };
 
 let indexPromise: Promise<Entry[]> | null = null;
 let loaded: Entry[] | null = null;
+// The browser may keep the index for an hour. If a deploy in that time removed a result, its Copy text is gone
+// (404); the palette then drops its copy of the index and the next open fetches a fresh one past the cache.
+let stale = false;
+function dropIndex() { loaded = null; indexPromise = null; stale = true; }
 function loadIndex() {
-  indexPromise ??= fetch("/search-index.json").then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+  indexPromise ??= fetch("/search-index.json", stale ? { cache: "reload" } : undefined).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
     .then((e: Entry[]) => (loaded = e));
   indexPromise.catch(() => { indexPromise = null; });
   return indexPromise;
@@ -40,7 +44,7 @@ function copyText(e: Entry): Promise<string> {
   const k = keyOf(e);
   let p = texts.get(k);
   if (!p) {
-    p = fetch(copyUrl(e)).then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status))))).then((t) => { known.set(k, t); return t; });
+    p = fetch(copyUrl(e)).then((r) => (r.ok ? r.text() : Promise.reject(new Error(r.status === 404 ? "gone" : String(r.status))))).then((t) => { known.set(k, t); return t; });
     p.catch(() => texts.delete(k));
     texts.set(k, p);
   }
@@ -193,15 +197,23 @@ export function Search() {
   useEffect(() => { setCur(0); list.current?.scrollTo({ top: 0 }); }, [q, scope]);
   // The preview (wide screens only) shows what Copy sends. It is fetched once the selection rests for a moment,
   // so holding an arrow key doesn't request every result it passes.
-  const [payload, setPayload] = useState<{ key: string; text: string } | null>(null);
+  // `text: null` means the fetch failed; Copy tries again and, if it succeeds, fills the preview.
+  const [payload, setPayload] = useState<{ key: string; text: string | null } | null>(null);
+  const [wide, setWide] = useState(false);
   useEffect(() => {
-    if (!open || !active?.copy || !matchMedia("(min-width: 900px)").matches) return;
+    if (!open) return;
+    const mq = matchMedia("(min-width: 900px)"), on = () => setWide(mq.matches);
+    on(); mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, [open]);
+  useEffect(() => {
+    if (!open || !wide || !active?.copy) return;
     const k = keyOf(active), have = knownText(active);
     if (have !== undefined) { setPayload({ key: k, text: have }); return; }
     let live = true;
-    const t = setTimeout(() => copyText(active).then((text) => { if (live) setPayload({ key: k, text }); }, () => {}), 120);
+    const t = setTimeout(() => copyText(active).then((text) => { if (live) setPayload({ key: k, text }); }, () => { if (live) setPayload({ key: k, text: null }); }), 120);
     return () => { live = false; clearTimeout(t); };
-  }, [open, active]);
+  }, [open, wide, active]);
   const shown = active && payload?.key === keyOf(active) ? payload.text : undefined;
   useEffect(() => {
     if (!active) return;
@@ -222,14 +234,18 @@ export function Search() {
   const copy = async (e: Entry) => {
     const c = e.copy;
     if (!c) { say("Nothing to copy here. Press Enter to open it."); return; }
-    const have = knownText(e);
+    const have = knownText(e), k = keyOf(e);
+    let loadFailed: unknown = null;
     try {
       if (have !== undefined) await navigator.clipboard.writeText(have);
       else {
         const text = copyText(e);
+        text.then((t) => setPayload((p) => (p?.key === k ? { key: k, text: t } : p)), (err) => { loadFailed = err ?? true; });
         try {
           if (typeof ClipboardItem === "undefined" || !navigator.clipboard.write) throw new Error("unsupported");
-          await navigator.clipboard.write([new ClipboardItem({ "text/plain": text.then((t) => new Blob([t], { type: "text/plain" })) })]);
+          const blob = text.then((t) => new Blob([t], { type: "text/plain" }));
+          blob.catch(() => {});
+          await navigator.clipboard.write([new ClipboardItem({ "text/plain": blob })]);
         } catch {
           // Writes the text once it arrives; a failed fetch rejects here and is reported below.
           await navigator.clipboard.writeText(await text);
@@ -237,7 +253,8 @@ export function Search() {
       }
       say(c.done); remember(e);
     } catch {
-      say(texts.has(keyOf(e)) || have !== undefined ? "Copy was blocked. Open the page and copy from there." : "Couldn’t load the text to copy. Open the page and copy from there.");
+      if (loadFailed instanceof Error && loadFailed.message === "gone") { dropIndex(); say("This result changed since the page loaded. Close and search again."); }
+      else say(loadFailed ? "Couldn’t load the text to copy. Open the page and copy from there." : "Copy was blocked. Open the page and copy from there.");
     }
   };
 
@@ -318,7 +335,8 @@ export function Search() {
               <p className="cmdk__meta"><span className="cmdk__dot" aria-hidden="true" data-kind={active.kind} />{active.meta}</p>
               <h2 className="cmdk__ph" translate={active.kind === "skill" || active.kind === "kit" ? "no" : undefined}>{active.title}</h2>
               {active.summary && <p className="cmdk__ps">{active.summary}</p>}
-              {active.copy && shown !== undefined && <pre className="cmdk__payload" data-long={shown.length > 360 || undefined} aria-label={`${active.copy.label.replace(/^Copy /, "")} text`}>{shown}</pre>}
+              {active.copy && typeof shown === "string" && <pre className="cmdk__payload" data-long={shown.length > 360 || undefined} aria-label={`${active.copy.label.replace(/^Copy /, "")} text`}>{shown}</pre>}
+              {active.copy && shown === null && <p className="cmdk__ps">The text didn’t load. Copy will try again.</p>}
               <div className="cmdk__actions">
                 <button type="button" className="cmdk__btn cmdk__btn--main" onClick={() => go(active)}>Open<kbd aria-hidden="true">↵</kbd></button>
                 {active.copy && <button type="button" className="cmdk__btn" onClick={() => copy(active)}>{active.copy.label}<kbd aria-hidden="true">{mod}↵</kbd></button>}

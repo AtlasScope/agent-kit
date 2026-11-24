@@ -27,6 +27,7 @@ const PAGES: { ref: string; title: string; href: string; summary: string; aka: s
 // index the browser downloads leaves the text out (paletteIndex), and each text is served on its own at
 // /search-copy/<kind>/<ref> (paletteCopy), so a phone pays for one prompt's text only when it previews or copies it.
 let built: Entry[] | null = null;
+let texts: Map<string, string> | null = null;
 function entries(): Entry[] {
   if (built) return built;
   const out: Entry[] = [];
@@ -76,4 +77,7 @@ export function paletteIndex(): Entry[] {
 }
 
 export const paletteCopies = (): { kind: string; ref: string }[] => entries().filter((e) => e.copy).map((e) => ({ kind: e.kind, ref: e.ref }));
-export const paletteCopy = (kind: string, ref: string): string | undefined => entries().find((e) => e.kind === kind && e.ref === ref)?.copy?.text;
+export function paletteCopy(kind: string, ref: string): string | undefined {
+  texts ??= new Map(entries().flatMap((e) => (e.copy?.text !== undefined ? [[`${e.kind}:${e.ref}`, e.copy.text] as const] : [])));
+  return texts.get(`${kind}:${ref}`);
+}
