@@ -72,7 +72,7 @@ Both splits from the old single `globals.css` were mechanical. Rules moved only 
 
 | Lane | Files |
 |---|---|
-| W1 design system | `tokens.css`, `base.css`, `primitives.css`, `layout.css`, `app/design-system/**` (the contract page, `noindex`, not in the sitemap), `components/ui/**`, `CopyButton.tsx`, `Crumbs.tsx`, `DESIGN.md` (not the Homepage section), `app/layout.tsx` fonts and theme colour, this file |
+| W1 design system | `tokens.css`, `base.css`, `primitives.css`, `layout.css`, `app/design-system/**` (the contract page, `noindex`, not in the sitemap), `components/ui/**`, `CopyButton.tsx`, `Crumbs.tsx`, `Pop.tsx`, `DESIGN.md` (not the Homepage section), `app/layout.tsx` fonts and theme colour, this file |
 | W2 shell | `Nav.tsx`, `NavLinks.tsx`, `NavMenu.tsx`, `AuthNav.tsx`, `Footer.tsx`, `components/shell/**`, `shell.css`, `app/layout.tsx` body structure, `app/not-found.tsx`. `AtlasScopeLogo.tsx` is generated and never hand-edited |
 | W3 search | `Search.tsx`, `components/search/**`, `search.css`, `app/api/search/route.ts`, `lib/search.ts`. W2 renders `<Search />` and owns the slot's size, position and breakpoints |
 | W4 prompt browsing | `app/prompts/page.tsx`, `components/prompts/AreaPage.tsx`, `components/prompts/browse/**`, `Cards.tsx`, `ScardMore.tsx`, `library.css` |
@@ -81,10 +81,21 @@ Both splits from the old single `globals.css` were mechanical. Rules moved only 
 | W7 skill and kit detail | `app/skills/[name]/page.tsx`, `app/kits/[kit]/page.tsx`, `components/skills/detail/**`, `detail-skill.css` |
 | W8 Start, Learn and Fix | `app/start/**` (with `start.css`), `app/learn/**`, `app/fix/**`, `GuideProgress.tsx`, `StartWelcome.tsx`, `components/guide/**`, `guide.css`, `fix.css` |
 | W9 install | `InstallPage.tsx`, `components/install/**`, `app/install/**`, `quiet.css`. Never `install-choice.ts` or the handoff timing |
-| W10 accounts and utility | `app/account/**`, `app/collections/**`, `app/sign-in/**`, `CollectionsView.tsx`, `ActionForm.tsx`, `Pop.tsx`, `components/auth/**`, `components/account/**`, `lib/clerk-appearance.ts`, `app/{about,privacy,terms,mcp-setup}/**`, `DocPage.tsx`, `reading.css`, `account.css` |
+| W10 accounts and utility | `app/account/**`, `app/collections/**`, `app/sign-in/**`, `CollectionsView.tsx`, `ActionForm.tsx`, `components/auth/**`, `components/account/**`, `lib/clerk-appearance.ts`, `app/{about,privacy,terms,mcp-setup}/**`, `DocPage.tsx`, `reading.css`, `account.css` |
 | Coordinator | `overrides.css`, `globals.css` (the import order), `lib/site.ts`, `lib/content.ts`, `lib/copy.ts`, `install-choice.ts`, `app/mcp/route.ts`, `next.config.ts`, `proxy.ts`, `package.json` |
 
 Need a change in a file you don't own? Ask its owner with the exact selector or prop. Don't patch around it with a higher-specificity override in your own file.
+
+## Smoke tests
+
+Smoke files in `site/tests/smoke/` run in parallel, and each starts its own `next start`, so each needs its own port. Ports count down from 3999. Claim one here in the same pull request that adds the file.
+
+| Port | File |
+|---|---|
+| 3999 | `journeys.smoke.mjs` |
+| 3998 | `install.smoke.mjs` |
+| 3997 | `library.smoke.mjs` |
+| 3994 | The smoke file added in #136 |
 
 ## Frozen APIs
 
