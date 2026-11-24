@@ -259,7 +259,7 @@ Rules:
   - A job that offers choices (shape, variants): one shot per choice and one step per choice. No `problems`.
   - A job with no screen to show (init, document): no screenshot. The headline says what was written, and `also` lists what the person should check.
 - `details` has no limit and is the only place for commands, file names and exact values.
-- `tab` is the two or three words on the page's tab: the job and, after an edit, what changed.
+- `tab` is the page's name in two or three words: the job and, after an edit, what changed. The newest page is the one shown; earlier ones sit in one small menu at the top, so name each so it can be told apart there.
 - `steps` are the ranked next steps, up to three, and may be empty: when nothing is worth doing next, say "Nothing" in `report.todo` and offer none. Give a step `options` when more than one job could do it, best first; the person sees a job picker on that step. A step with one way to do it has just `command`.
 - `menu` is every other job that could run on this screen, so the person is never limited to your ranking. List Keen's other jobs, and any other installed Agent Kit command the findings point to.
 - A pin's `x` and `y` are percentages of the image, and its `n` is the number of the problem it marks. Put it beside the thing, not on top of the words it is about.

@@ -176,11 +176,10 @@ body{margin:0;background:radial-gradient(1200px 420px at 50% -120px,rgba(0,220,1
 .brand{display:inline-flex;align-items:center;gap:10px;font-weight:650;font-size:17px;letter-spacing:-0.02em}
 .brand svg{display:block;width:17px;height:24px;flex:none}
 .tool{font:500 12px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--on-green);background:var(--green);border-radius:999px;padding:5px 9px;flex:none}
-nav.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;flex:1 1 auto;min-width:0;margin:0 4px}
-nav.tabs::-webkit-scrollbar{display:none}
-nav.tabs[hidden]{display:none}
-nav.tabs button{min-height:36px;padding:0 12px;font-weight:500;font-size:14px;border:0;background:transparent;color:var(--soft);border-radius:8px;white-space:nowrap}
-nav.tabs button[aria-selected=true]{background:rgba(255,255,255,.1);color:var(--ink)}
+.pick{flex:0 1 auto;min-width:0;margin-left:auto}
+.pick[hidden]{display:none}
+.pick:not([hidden])+.state{margin-left:0}
+.pick select{min-height:36px;font-size:14px;max-width:260px;background:transparent;color:var(--soft);border-color:var(--line2)}
 .state{margin-left:auto;flex:none;display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:var(--soft);border:1px solid var(--line);border-radius:999px;padding:6px 12px 6px 10px;max-width:46vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .state i{width:8px;height:8px;border-radius:50%;background:var(--dim);flex:none}
 .state[data-is=listening]{color:var(--ink)}.state[data-is=listening] i{background:var(--green);box-shadow:0 0 10px rgba(0,220,130,.8)}
@@ -268,7 +267,7 @@ dl{margin:0}dt{color:var(--ink);font-weight:600}dd{margin:0 0 10px}
 .allrow{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:14px 0 0;max-width:none;color:var(--soft);font-size:14px}
 pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12.5px/1.6 var(--mono);color:var(--soft);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0 0}
 @media (max-width:820px){.trio{grid-template-columns:1fr}.hero{padding:20px 0 18px}.sec{margin-top:32px}.gallery{padding:16px;border-radius:14px}main{padding-bottom:230px}}
-@media (max-width:560px){.top .in{flex-wrap:wrap;padding:8px 16px;gap:8px}nav.tabs{order:3;flex-basis:100%;margin:0 -4px}main{padding-left:16px;padding-right:16px}.state{max-width:60vw}#bar{padding:10px 10px 10px 14px}#copyall[disabled]{display:none}}`;
+@media (max-width:560px){.top .in{flex-wrap:wrap;padding:8px 16px;gap:8px}.pick select{max-width:44vw}main{padding-left:16px;padding-right:16px}.state{max-width:60vw}#bar{padding:10px 10px 10px 14px}#copyall[disabled]{display:none}}`;
 
 // The page's own script. It reads everything it needs from DATA and never builds markup from text.
 const CLIENT = `const tabs=document.getElementById("tabs"),book=document.getElementById("book"),queueEl=document.getElementById("queue"),hint=document.getElementById("hint"),startBtn=document.getElementById("start"),copyAll=document.getElementById("copyall"),clearBtn=document.getElementById("clear"),statusEl=document.getElementById("status"),heldEl=document.getElementById("held"),stateEl=document.getElementById("state"),stateText=document.getElementById("statetext");
@@ -276,8 +275,9 @@ let pages=DATA.pages,current=pages.length-1,queue=[],live=DATA.live||{working:[]
 const say=(t)=>{statusEl.textContent=t};
 const optionOf=(p,pick)=>pick[0]==="s"?pages[p].steps[pick[1]][pick[2]||0]:pages[p].menu[pick[1]];
 async function copy(text){try{await navigator.clipboard.writeText(text);return true}catch{}const ta=document.createElement("textarea");ta.value=text;document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand("copy")}catch{}ta.remove();return ok}
-function show(i){current=i;[...book.children].forEach((el,n)=>{el.hidden=n!==i});[...tabs.children].forEach((el,n)=>el.setAttribute("aria-selected",String(n===i)));queue=[];draw()}
-function buildTabs(){tabs.textContent="";pages.forEach((p,i)=>{const b=document.createElement("button");b.type="button";b.setAttribute("role","tab");b.textContent=(i+1)+". "+p.tab;b.addEventListener("click",()=>{show(i);scrollTo(0,0)});tabs.appendChild(b)});tabs.hidden=pages.length<2}
+function show(i){current=i;[...book.children].forEach((el,n)=>{el.hidden=n!==i});tabs.value=String(i);queue=[];draw()}
+function buildTabs(){tabs.textContent="";for(let i=pages.length-1;i>=0;i--){const o=document.createElement("option");o.value=String(i);o.textContent=i===pages.length-1?"Latest: "+pages[i].tab:(i+1)+". "+pages[i].tab;tabs.appendChild(o)}document.getElementById("pick").hidden=pages.length<2}
+tabs.addEventListener("change",()=>{show(Number(tabs.value));scrollTo(0,0)});
 function selected(step){const s=book.children[current].querySelector('select[data-step="'+step+'"]');return s?Number(s.value):0}
 function drawState(){
   const working=live.working.length>0;
@@ -349,7 +349,7 @@ export function render(pages, { baseDir = process.cwd(), live = null } = {}) {
 <title>${esc(list.at(-1)?.title || "Keen")}</title>
 <style>${STYLE}</style>
 <body>
-<header class="top"><div class="in"><span class="brand"><svg viewBox="0 0 23 32" fill="currentColor" aria-hidden="true"><path d="M9.66 4L13.34 4L21.72 22.63A21.2 21.2 0 0 0 16.42 20.58L11.5 9.66L6.59 20.58A21.2 21.2 0 0 0 1.28 22.63ZM0 25.83A19.2 19.2 0 0 1 23 25.83L20.61 29.03A15.2 15.2 0 0 0 2.4 29.03Z"/></svg>AtlasScope</span><span class="tool">${esc(list.at(-1)?.area || "Keen")}</span><nav class="tabs" id="tabs" role="tablist" aria-label="Pages" hidden></nav><span class="state" id="state" role="status" aria-live="polite"><i aria-hidden="true"></i><span id="statetext"></span></span></div></header>
+<header class="top"><div class="in"><span class="brand"><svg viewBox="0 0 23 32" fill="currentColor" aria-hidden="true"><path d="M9.66 4L13.34 4L21.72 22.63A21.2 21.2 0 0 0 16.42 20.58L11.5 9.66L6.59 20.58A21.2 21.2 0 0 0 1.28 22.63ZM0 25.83A19.2 19.2 0 0 1 23 25.83L20.61 29.03A15.2 15.2 0 0 0 2.4 29.03Z"/></svg>AtlasScope</span><span class="tool">${esc(list.at(-1)?.area || "Keen")}</span><label class="pick" id="pick" hidden><select id="tabs" aria-label="Pages in this piece of work"></select></label><span class="state" id="state" role="status" aria-live="polite"><i aria-hidden="true"></i><span id="statetext"></span></span></div></header>
 <main>
 <div id="book">${html.map((h) => `<section class="page">${h}</section>`).join("\n")}</div>
 </main>
