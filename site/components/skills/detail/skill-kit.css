@@ -1,0 +1,142 @@
+/* Skill and kit detail pages (lane W7). Imported only by app/skills/[name] and app/kits/[kit].
+   Uses existing tokens and primitives (.block, .btn, .lic, .note, .credit, .prose); flat, hairlines only.
+   Every class here starts with sd- (skill detail, also shared by the kit page head) or kd- (kit detail). */
+
+/* Page head: eyebrow, name, one-sentence purpose, the rest of the description, then four facts. */
+.sd-head { display: grid; gap: var(--space-sm); max-width: var(--measure); }
+.sd-head h1 { font-size: clamp(2.125rem, 2.8vw + 1rem, 3.25rem); line-height: 1.05; letter-spacing: -0.035em; }
+.sd-eyebrow { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs); margin: var(--space-xs) 0 0; font-size: 0.8125rem; color: var(--color-muted); }
+.sd-lead { max-width: 56ch; color: var(--color-ink); }
+.sd-more { max-width: 68ch; margin: 0; font-size: 0.9375rem; line-height: 1.55; color: var(--color-muted); text-wrap: pretty; }
+.sd-spec { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); margin: var(--space-sm) 0 var(--space-xs); border-block: 1px solid var(--color-rule); }
+.sd-spec > div { display: grid; align-content: start; gap: 4px; padding: var(--space-sm) var(--space-md) var(--space-sm) 0; }
+.sd-spec > div:nth-child(even) { padding-left: var(--space-md); border-left: 1px solid var(--color-rule); }
+.sd-spec > div:nth-child(n + 3) { border-top: 1px solid var(--color-rule); }
+.sd-spec dt { font-size: 0.75rem; font-weight: 550; letter-spacing: 0.02em; color: var(--color-muted); }
+.sd-spec dd { margin: 0; font-size: 0.875rem; line-height: 1.45; color: var(--color-ink-2); text-wrap: pretty; }
+.sd-spec code { font-size: 0.8125rem; color: var(--color-ink); overflow-wrap: anywhere; }
+
+/* Body: the SKILL.md on the left, install and the section list in a rail on the right. The rail comes first in the
+   source, so on a phone install shows before the long text. */
+.sd-body { display: grid; grid-template-columns: minmax(0, 1fr) 22rem; grid-template-areas: "head rail" "doc rail"; gap: var(--space-xl) var(--space-2xl); align-items: start; }
+.sd-body > .sd-head { grid-area: head; }
+.sd-rail { grid-area: rail; display: grid; gap: var(--space-xl); align-self: stretch; align-content: start; min-width: 0; padding-top: 2.75rem; }
+.sd-doc { grid-area: doc; min-width: 0; }
+
+/* Install: two commands, each shown as it copies. */
+.sd-install { display: grid; gap: var(--space-sm); }
+.sd-install__h, .sd-sub, .kd-h2 { margin: 0; font: 650 clamp(1.125rem, 0.4vw + 1rem, 1.25rem)/1.25 var(--font-body); letter-spacing: -0.02em; color: var(--color-ink); }
+.sd-cmd .block__head { min-height: 44px; font-size: 0.8125rem; }
+.sd-cmd__label { display: grid; gap: 1px; line-height: 1.3; }
+.sd-cmd__label b { font-weight: 600; color: var(--color-ink); }
+.sd-cmd__label span { font-size: 0.75rem; }
+.sd-cmd .block__head > span > b:only-child { font-weight: 600; color: var(--color-ink); }
+.sd-cmd pre { overflow-wrap: break-word; padding: var(--space-sm) var(--space-md); font-size: 0.8125rem; line-height: 1.6; }
+.sd-install__note { margin: 0; font-size: 0.8125rem; line-height: 1.5; color: var(--color-muted); }
+
+/* Section list: sticks under the header while the text scrolls. The section you're reading is marked with a
+   short ink bar; green is kept for copy and status. */
+.sd-toc { position: sticky; top: calc(var(--header-h) + var(--space-lg)); max-height: calc(100dvh - var(--header-h) - 2 * var(--space-lg)); overflow-y: auto; overscroll-behavior: contain; display: grid; gap: var(--space-xs); }
+.sd-toc__h { margin: 0; font-size: 0.75rem; font-weight: 550; letter-spacing: 0.02em; color: var(--color-muted); }
+.sd-toc ol { margin: 0; padding: 0; list-style: none; border-left: 1px solid var(--color-rule); }
+.sd-toc a { position: relative; display: block; padding: 5px 0 5px var(--space-md); font-size: 0.8125rem; line-height: 1.4; color: var(--color-muted); text-decoration: none; transition: color var(--dur-micro) var(--ease-out); }
+.sd-toc a::before { content: ""; position: absolute; left: -1px; top: 6px; bottom: 6px; width: 2px; border-radius: 2px; background: transparent; transition: background-color var(--dur-micro) var(--ease-out); }
+.sd-toc a[aria-current] { color: var(--color-ink); }
+.sd-toc a[aria-current]::before { background: var(--color-ink); }
+@media (hover: hover) and (pointer: fine) { .sd-toc a:hover { color: var(--color-ink); } }
+
+/* The SKILL.md itself: a labelled document with a hairline head, set for long reading. */
+.sd-doc__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-md); padding-bottom: var(--space-sm); margin-bottom: var(--space-lg); border-bottom: 1px solid var(--color-rule); }
+.sd-doc__h { margin: 0; font: 500 0.8125rem/1.3 var(--font-mono); color: var(--color-muted); letter-spacing: 0; }
+.sd-doc__src { font-size: 0.8125rem; }
+.sd-jump { display: none; }
+.sd-prose { max-width: 70ch; font-size: 1rem; line-height: 1.7; color: var(--color-ink-2); }
+.sd-prose > :first-child { margin-top: 0; }
+.sd-prose h2 { margin: 0 0 0.9em; font: 650 1.5rem/1.2 var(--font-body); letter-spacing: -0.025em; color: var(--color-ink); }
+.sd-prose h3 { margin: 2.4em 0 0.7em; padding-top: 1.4em; border-top: 1px solid var(--color-rule); font: 650 1.1875rem/1.3 var(--font-body); letter-spacing: -0.018em; scroll-margin-top: calc(var(--header-h) + var(--space-md)); }
+.sd-prose h2 + h3 { margin-top: 1.2em; padding-top: 0; border-top: 0; }
+.sd-prose h4, .sd-prose h5, .sd-prose h6 { margin: 1.8em 0 0.5em; font: 600 1rem/1.4 var(--font-body); letter-spacing: -0.01em; }
+.sd-prose h2[id] { scroll-margin-top: calc(var(--header-h) + var(--space-md)); }
+.sd-prose p, .sd-prose li { max-width: 68ch; }
+.sd-prose ul, .sd-prose ol { padding-left: 1.25em; }
+.sd-prose li + li { margin-top: 0.35em; }
+.sd-prose li::marker { color: var(--color-rule-2); }
+.sd-prose strong { font-weight: 600; color: var(--color-ink); }
+.sd-prose :not(pre) > code { padding: 0.1em 0.35em; border: 1px solid var(--color-rule); border-radius: 5px; background: var(--color-paper-2); font-size: 0.84em; overflow-wrap: anywhere; }
+.sd-prose pre { margin: 1.2em 0; padding: var(--space-md) var(--space-lg); line-height: 1.6; font-size: 0.8125rem; }
+.sd-prose pre code { font-size: inherit; }
+.sd-prose table { margin: 1.2em 0; font-size: 0.875rem; line-height: 1.5; }
+.sd-prose th { font-weight: 600; color: var(--color-ink); background: var(--color-paper-2); }
+.sd-prose hr { margin: 2.4em 0; border: 0; border-top: 1px solid var(--color-rule); }
+.sd-prose blockquote { margin: 1.2em 0; }
+
+/* After the text: what's in the folder, and who wrote it. */
+.sd-foot { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: var(--space-2xl); padding-top: var(--space-xl); border-top: 1px solid var(--color-rule); }
+.sd-files, .sd-credit { display: grid; align-content: start; gap: var(--space-sm); min-width: 0; }
+.sd-filelist { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin: 0; padding: 0; list-style: none; }
+.sd-filelist a { display: inline-flex; align-items: center; min-height: 34px; padding: 0 var(--space-sm); border: 1px solid var(--color-rule-2); border-radius: 8px; background: var(--color-paper-2); color: var(--color-ink); text-decoration: none; transition: background-color var(--dur-micro) var(--ease-out); }
+.sd-filelist code { font-size: 0.8125rem; }
+@media (hover: hover) and (pointer: fine) { .sd-filelist a:hover { background: var(--color-paper-3); } }
+.sd-credit .credit { max-width: none; }
+
+/* Kit page: install message beside the manual commands. */
+.kd-install { gap: var(--space-md); }
+.kd-install__grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: var(--space-lg) var(--space-xl); align-items: start; }
+.kd-install__main, .kd-install__manual { display: grid; gap: var(--space-sm); min-width: 0; }
+.kd-install .kitin__or { margin: 0; font: 550 0.875rem/1.3 var(--font-body); color: var(--color-muted); }
+.kd-install .kitin__msg pre { font-size: 0.875rem; line-height: 1.65; }
+
+/* Kit contents: rows, not cards. Name, one sentence, how it runs and who wrote it, then the star. */
+.kd-contents { gap: var(--space-lg); }
+.kd-contents__head { display: grid; gap: 6px; }
+.kd-groups { display: grid; gap: var(--space-xl); }
+.kd-group { display: grid; gap: var(--space-xs); }
+.kd-group__h { display: flex; align-items: baseline; gap: var(--space-xs); margin: 0; font: 600 0.875rem/1.3 var(--font-body); color: var(--color-ink); }
+.kd-group__n { font: 400 0.75rem/1 var(--font-mono); color: var(--color-muted); font-variant-numeric: tabular-nums; }
+.kd-rows { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--color-rule); }
+.kd-row { position: relative; display: grid; grid-template-columns: 14rem minmax(0, 1fr) 13rem 44px; grid-template-areas: "name d m star"; align-items: baseline; column-gap: var(--space-lg); padding: var(--space-sm) 0; border-bottom: 1px solid var(--color-rule); transition: background-color var(--dur-micro) var(--ease-out); }
+.kd-row__name { grid-area: name; margin: 0; min-width: 0; font: 500 0.9375rem/1.4 var(--font-mono); letter-spacing: -0.01em; overflow-wrap: anywhere; }
+.kd-row__name a { color: var(--color-ink); text-decoration: none; }
+.kd-row__name a::after { content: ""; position: absolute; inset: 0; }
+.kd-row__name a:focus-visible { outline: none; }
+.kd-row:has(.kd-row__name a:focus-visible) { outline: 2px solid var(--color-focus); outline-offset: 2px; border-radius: 6px; }
+.kd-row__d { grid-area: d; margin: 0; font-size: 0.875rem; line-height: 1.5; color: var(--color-ink-2); text-wrap: pretty; }
+.kd-row__m { grid-area: m; display: flex; flex-wrap: wrap; gap: 2px var(--space-sm); margin: 0; font-size: 0.75rem; line-height: 1.5; color: var(--color-muted); }
+.kd-row__star { grid-area: star; position: relative; z-index: 1; justify-self: end; align-self: center; }
+@media (hover: hover) and (pointer: fine) {
+  .kd-row:hover { background: var(--color-paper-2); }
+  .kd-row:hover .kd-row__name a { text-decoration: underline; text-decoration-color: var(--color-rule-2); text-underline-offset: 0.2em; }
+}
+
+/* Tablet and down */
+@media (max-width: 64rem) {
+  .sd-body { grid-template-columns: minmax(0, 1fr); grid-template-areas: "head" "rail" "doc"; gap: var(--space-xl); }
+  .sd-rail { padding-top: 0; }
+  .sd-toc { display: none; }
+  .sd-jump { display: block; margin-bottom: var(--space-lg); border: 1px solid var(--color-rule); border-radius: var(--radius); background: var(--color-paper-2); }
+  .sd-jump summary { display: flex; align-items: center; gap: var(--space-xs); min-height: 44px; padding: 0 var(--space-md); font-size: 0.875rem; font-weight: 550; color: var(--color-ink); cursor: pointer; }
+  .sd-jump__n { font: 400 0.75rem/1 var(--font-mono); color: var(--color-muted); }
+  .sd-jump ol { margin: 0; padding: 0 var(--space-md) var(--space-sm); list-style: none; border-top: 1px solid var(--color-rule); }
+  .sd-jump a { display: flex; align-items: center; min-height: 40px; font-size: 0.875rem; line-height: 1.35; color: var(--color-ink-2); text-decoration: none; }
+  .sd-foot { grid-template-columns: minmax(0, 1fr); gap: var(--space-xl); }
+  .kd-install__grid { grid-template-columns: minmax(0, 1fr); }
+  .kd-row { grid-template-columns: minmax(0, 1fr) 44px; grid-template-areas: "name star" "d d" "m m"; row-gap: 4px; }
+}
+/* Install sits in a two-column band between phone and desktop widths, so it doesn't stretch across a tablet. */
+@media (min-width: 40rem) and (max-width: 64rem) {
+  .sd-install { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--space-md); }
+  .sd-install__h, .sd-install__note { grid-column: 1 / -1; }
+}
+@media (max-width: 40rem) {
+  .sd-spec > div { padding-right: var(--space-sm); }
+  .sd-spec > div:nth-child(even) { padding-left: var(--space-sm); }
+  .sd-prose { font-size: 0.9375rem; line-height: 1.65; }
+  .sd-prose h2 { font-size: 1.3125rem; }
+  .sd-prose h3 { font-size: 1.0625rem; }
+  .sd-prose pre { margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter); border-radius: 0; border-inline: 0; }
+  .sd-prose table { margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter); }
+}
+@media (pointer: coarse) {
+  .sd-filelist a { min-height: 44px; }
+  .sd-doc__src { display: inline-flex; align-items: center; min-height: 44px; }
+}
