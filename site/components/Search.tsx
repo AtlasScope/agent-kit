@@ -30,6 +30,8 @@ let loaded: Entry[] | null = null;
 // the drop taking effect, `textGen` a text fetch from before it refilling the text cache.
 // (Vercel purges its CDN on each deploy, so skipping the browser cache is enough to reach the new index.)
 let stale = false, gen = 0, textGen = 0;
+// Results whose text came back gone, left out of the list until a fresh index replaces it.
+const goneKeys = new Set<string>();
 function dropIndex() {
   texts.clear(); known.clear(); textGen++;
   if (stale) return;   // a fresh index is already on its way, or will be fetched on the next open
@@ -38,7 +40,13 @@ function dropIndex() {
 function loadIndex() {
   const g = gen;
   indexPromise ??= fetch("/search-index.json", stale ? { cache: "reload" } : undefined).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-    .then((e: Entry[]) => { if (g === gen) { stale = false; loaded = e; } return e; });
+    .then((e: Entry[]) => {
+      if (g !== gen) return e;
+      // A fresh index after a drop: texts requested under the old one no longer count, 404s included.
+      if (stale) { texts.clear(); known.clear(); textGen++; goneKeys.clear(); }
+      stale = false; loaded = e;
+      return e;
+    });
   const mine = indexPromise;
   indexPromise.catch(() => { if (indexPromise === mine) indexPromise = null; });
   return indexPromise;
@@ -53,8 +61,9 @@ const known = new Map<string, string>();
 // index. The first handler to see it marks it, so every other waiter on the same request reads it the same way.
 type Gone = Error & { gen?: number; seen?: boolean };
 const gone = (err: unknown) => err instanceof Error && err.message === "gone" && ((err as Gone).seen || (err as Gone).gen === textGen);
-function claimGone(err: unknown) {
+function claimGone(err: unknown, e: Entry) {
   if (!gone(err)) return false;
+  goneKeys.add(keyOf(e));
   if (!(err as Gone).seen) { (err as Gone).seen = true; dropIndex(); }
   return true;
 }
@@ -95,6 +104,7 @@ export function Search() {
   const [scope, setScope] = useState<Scope>("all");
   const [cur, setCur] = useState(0);
   const [entries, setEntries] = useState<Entry[] | null>(null);
+  useEffect(() => { hasEntries.current = !!entries; }, [entries]);
   const [status, setStatus] = useState<Status>("idle");
   const [fallback, setFallback] = useState<Entry[]>([]);
   const [fallbackFor, setFallbackFor] = useState("");
@@ -113,16 +123,17 @@ export function Search() {
   // A failed load is retried at most every 15 seconds, however often the button is hovered or the palette opened.
   const failed = useRef(false);
   const lastTry = useRef(0);
-  // After a removed result (`stale`) the old list is cleared at once, so its dead results can't be opened, and the
-  // retry throttle doesn't apply. A load made obsolete by a drop in the meantime is ignored.
+  // After a removed result (`stale`) the old list stays up without the results found gone, until the fresh index
+  // arrives; if that fetch fails the palette keeps the old list. A load made obsolete by a drop is ignored.
+  const hasEntries = useRef(false);
   const warm = useCallback(() => {
     if (loaded) { setEntries(loaded); setStatus("ready"); return; }
-    if (stale) setEntries(null);
-    else if (failed.current && Date.now() - lastTry.current < 15000) return;
+    if (failed.current && Date.now() - lastTry.current < 15000) return;
     lastTry.current = Date.now();
-    if (!failed.current) setStatus("loading");
+    if (stale) setEntries((prev) => prev && prev.filter((x) => !goneKeys.has(keyOf(x))));
+    else if (!failed.current) setStatus("loading");
     loadIndex().then((e) => { if (loaded !== e) return; failed.current = false; setEntries(e); setStatus("ready"); },
-      () => { failed.current = true; setStatus("error"); });
+      () => { failed.current = true; setStatus(hasEntries.current ? "ready" : "error"); });
   }, []);
 
   // Opens synchronously inside the click or key event, so iOS Safari raises the keyboard for the field.
@@ -244,7 +255,7 @@ export function Search() {
     let live = true;
     const e = active;
     const t = setTimeout(() => copyText(e).then((text) => { if (live) setPayload({ key: k, text }); },
-      (err) => { if (live) setPayload({ key: k, text: null, gone: claimGone(err) }); }), 120);
+      (err) => { if (live) setPayload({ key: k, text: null, gone: claimGone(err, e) }); }), 120);
     const w = setTimeout(() => setWaiting(true), 400);
     return () => { live = false; clearTimeout(t); clearTimeout(w); };
   }, [open, wide, active]);
@@ -269,12 +280,12 @@ export function Search() {
     const c = e.copy;
     if (!c) { say("Nothing to copy here. Press Enter to open it."); return; }
     const have = knownText(e), k = copyUrl(e);
-    let loadFailed: unknown = null;
+    let text: Promise<string> | null = null;
     try {
       if (have !== undefined) await navigator.clipboard.writeText(have);
       else {
-        const text = copyText(e);
-        text.then((t) => setPayload((p) => (p?.key === k ? { key: k, text: t } : p)), (err) => { loadFailed = err ?? true; });
+        text = copyText(e);
+        text.then((t) => setPayload((p) => (p?.key === k ? { key: k, text: t } : p)), () => {});
         try {
           if (typeof ClipboardItem === "undefined" || !navigator.clipboard.write) throw new Error("unsupported");
           const blob = text.then((t) => new Blob([t], { type: "text/plain" }));
@@ -287,7 +298,9 @@ export function Search() {
       }
       say(c.done); remember(e);
     } catch {
-      if (claimGone(loadFailed)) { setPayload((p) => (p?.key === k ? { key: k, text: null, gone: true } : p)); say(GONE); }
+      // Settle the text first: the clipboard can fail before the fetch does, and the fetch is the real cause.
+      const loadFailed = text ? await text.then(() => null, (err: unknown) => err ?? true) : null;
+      if (claimGone(loadFailed, e)) { setPayload((p) => (p?.key === k ? { key: k, text: null, gone: true } : p)); say(GONE); }
       else say(loadFailed ? "Couldn’t load the text to copy. Open the page and copy from there." : "Copy was blocked. Open the page and copy from there.");
     }
   };
@@ -370,9 +383,8 @@ export function Search() {
               <h2 className="cmdk__ph" translate={active.kind === "skill" || active.kind === "kit" ? "no" : undefined}>{active.title}</h2>
               {active.summary && <p className="cmdk__ps">{active.summary}</p>}
               {active.copy && typeof shown?.text === "string" && <pre className="cmdk__payload" data-long={shown.text.length > 360 || undefined} aria-label={`${active.copy.label.replace(/^Copy /, "")} text`}>{shown.text}</pre>}
-              {active.copy && <p className="cmdk__ps cmdk__pnote" aria-live="polite">
-                {shown?.text === null ? (shown.gone ? GONE : "The text didn’t load. Copy will try again.") : !shown && waiting ? "Loading the text…" : ""}
-              </p>}
+              {active.copy && !shown && waiting && <p className="cmdk__ps">Loading the text…</p>}
+              <p className="cmdk__ps cmdk__pnote" aria-live="polite">{active.copy && shown?.text === null ? (shown.gone ? GONE : "The text didn’t load. Copy will try again.") : ""}</p>
               <div className="cmdk__actions">
                 <button type="button" className="cmdk__btn cmdk__btn--main" onClick={() => go(active)}>Open<kbd aria-hidden="true">↵</kbd></button>
                 {active.copy && <button type="button" className="cmdk__btn" onClick={() => copy(active)}>{active.copy.label}<kbd aria-hidden="true">{mod}↵</kbd></button>}
