@@ -183,7 +183,8 @@ function runStep(dir, spec, step, logFile, home) {
   const clean = (s) => {
     let t = String(s ?? "");
     for (const [from, to] of [[realDir, "<copy>"], [dir, "<copy>"], [os.homedir(), "~"]]) if (from) t = t.split(from).join(to);
-    return t.length > OUTPUT_MAX ? t.slice(0, OUTPUT_MAX) + `\n... (${t.length - OUTPUT_MAX} more characters)` : t;
+    // keep the start and the end: errors come first, summaries last
+    return t.length > OUTPUT_MAX ? `${t.slice(0, 1000)}\n... (${t.length - OUTPUT_MAX} characters left out) ...\n${t.slice(-(OUTPUT_MAX - 1000))}` : t;
   };
   const result = {
     exit: res.status,
