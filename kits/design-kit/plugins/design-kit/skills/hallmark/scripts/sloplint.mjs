@@ -189,7 +189,7 @@ function parseHtml(file, src, kind = 'html') {
     styles.push({ css: m[1], lineOffset: lineOf(m.index) - 1 });
   }
   let scripts = '';
-  const scriptRe = /<script\b[^>]*>([\s\S]*?)<\/script>/gi;
+  const scriptRe = /<script\b[^>]*>([\s\S]*?)<\/script(?:\s[^>]*)?>/gi;
   while ((m = scriptRe.exec(src))) scripts += m[1] + '\n';
 
   const pad = (t) => t.replace(/[^\n]/g, ' ');
@@ -211,14 +211,12 @@ function parseHtml(file, src, kind = 'html') {
       line: lineOf(m.index),
     });
   }
-  const noScript = src.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
-    .replace(/<!--[\s\S]*?-->/g, ' ');
+  const noScript = stripAll(stripAll(stripAll(src, /<script\b[^>]*>[\s\S]*?<\/script(?:\s[^>]*)?>/gi, ' '), /<style\b[^>]*>[\s\S]*?<\/style(?:\s[^>]*)?>/gi, ' '), /<!--[\s\S]*?--!?>/g, ' ');
   const text = noScript.replace(/<[^>]*>/g, ' ')
     .replace(/&quot;|&#0?34;/g, '"').replace(/&#0?39;|&apos;/g, "'")
     .replace(/&hellip;|&#8230;/g, '\u2026').replace(/&mdash;|&#8212;|&#x2014;/gi, '\u2014').replace(/&ndash;|&#8211;|&#x2013;/gi, '\u2013')
-    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-    .replace(/&nbsp;/g, ' ').replace(/[ \t]+/g, ' ');
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/[ \t]+/g, ' ');
   return { file, src, masked, styles, scripts, tags, text, lineOf, kind, comps };
 }
 
@@ -526,7 +524,7 @@ function classCalls(src, sites) {
 
 function scriptSites(src, kind) {
   const ranges = [];
-  for (const m of src.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) ranges.push([m.index + m[0].length - m[1].length - 9, m.index + m[0].length - 9]);
+  for (const m of src.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script(?:\s[^>]*)?>/gi)) { const end = m.index + m[0].lastIndexOf('<'); ranges.push([end - m[1].length, end]); }
   const fm = kind === 'astro' ? FRONTMATTER.exec(src) : null;
   if (fm) ranges.push([0, fm[0].length]);
   const sites = [];
@@ -608,13 +606,16 @@ function ancestorMap(doc) {
   return map;
 }
 
+// Removes a pattern until none is left, so a removal cannot join two halves into a new match.
+const stripAll = (text, re, by = '') => { for (let prev; prev !== text;) { prev = text; text = text.replace(re, by); } return text; };
+
 function plainText(html) {
   return html.replace(/<[^>]*>/g, ' ')
     .replace(/&middot;|&#0?183;|&#x0?b7;/gi, '·').replace(/&bull;|&#8226;|&#x2022;/gi, '•').replace(/&mdash;|&#8212;|&#x2014;/gi, '\u2014').replace(/&ndash;|&#8211;|&#x2013;/gi, '\u2013')
     .replace(/&rarr;|&#8594;|&#x2192;|&xrarr;|&#10230;/gi, '\u2192').replace(/&raquo;|&#187;|&#xbb;/gi, '\u00bb').replace(/&rsaquo;|&#8250;|&#x203a;/gi, '\u203a')
-    .replace(/&nbsp;|&#160;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&nbsp;|&#160;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
     .replace(/&rsquo;|&lsquo;|&#8217;|&#8216;|&#x2019;|&#x2018;/gi, '\u2019').replace(/&rdquo;|&ldquo;|&#8220;|&#8221;/gi, '"')
-    .replace(/&#\d+;|&[a-z]+;/gi, ' ')
+    .replace(/&#\d+;|&(?!amp;)[a-z]+;/gi, ' ').replace(/&amp;/g, '&')
     .replace(/\s+/g, ' ').trim();
 }
 
@@ -1692,7 +1693,7 @@ function check30(ctx) {
       const iconish = /icon|card|step|tier|feature|value|prop|badge/i.test(cls);
       const inner = innerOf(doc, i);
       if (!inner) continue;
-      const content = inner.inner.replace(/<[^>]*>/g, '').trim();
+      const content = stripAll(inner.inner, /<[^>]*>/g).trim();
       if (content && content.length <= 4 && EMOJI.test(content) && (iconish || !/<[a-z]/.test(inner.inner))) {
         lines.add(doc.lineOf(t.end + inner.inner.search(EMOJI)));
         report('30a', 'FAIL', doc.file, t.line, `emoji icon "${content}" in <${t.name} class="${trunc(cls, 28)}">`, 'One icon library or custom SVG');
@@ -3150,7 +3151,7 @@ function check70(ctx) {
   const SUCCESS = /\b(sent|thanks|thank you|reserved|booked|on the list|subscribed|in touch|received|confirmed|ordered|chosen|on its way|signed up|all set|you're in|you are in|done)\b/i;
   const NEG = /\b(not|nothing|no|never|isn't|wasn't|didn't|cannot|can't|failed|try again|soon)\b/i;
   for (const doc of ctx.docs) {
-    const js = (doc.scripts && typeof doc.scripts === 'string') ? doc.scripts : (doc.src.match(/<script\b[^>]*>([\s\S]*?)<\/script>/gi) || []).join('\n');
+    const js = (doc.scripts && typeof doc.scripts === 'string') ? doc.scripts : (doc.src.match(/<script\b[^>]*>([\s\S]*?)<\/script(?:\s[^>]*)?>/gi) || []).join('\n');
     if (!/<form\b|type\s*=\s*["']submit/i.test(doc.src) || !js) continue;
     let m = null;
     for (const x of js.matchAll(/(["'`])((?:(?!\1)[^\\\n]|\\.){4,140})\1/g)) {
@@ -4170,7 +4171,7 @@ const SNAP = join(process.cwd(), '.hallmark', 'before.json');
 const squash = (t) => t.replace(/\s+/g, ' ').trim();
 const escRe = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 function wiringOf(src) {
-  const body = src.replace(/<!--[\s\S]*?-->/g, '');
+  const body = stripAll(src, /<!--[\s\S]*?--!?>/g);
   const w = { handlers: [], links: [], fields: [], hooks: [], ids: [], scripts: [] };
   const val = String.raw`("[^"]*"|'[^']*'|\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\})`;
   for (const m of body.matchAll(new RegExp(String.raw`(?<![\w-])(on[A-Z]\w*|on:[\w|]+|@[a-z][\w.:-]*|v-on:[\w.:-]+|on(?:click|submit|change|input|keydown|keyup|blur|focus))\s*=\s*` + val, 'g'))) w.handlers.push(`${m[1]}=${squash(m[2])}`);
@@ -4207,7 +4208,7 @@ function scriptSelectors(doc) {
   return [...sels].sort();
 }
 function scriptHooks(doc) {
-  const markup = (doc.raw || doc.src).replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
+  const markup = stripAll(doc.raw || doc.src, /<script\b[^>]*>[\s\S]*?<\/script(?:\s[^>]*)?>/gi);
   const has = (tok) => tok[0] === '#' ? new RegExp(`(?<![\\w-])id\\s*=\\s*["']${escRe(tok.slice(1))}["']`).test(markup)
     : tok[0] === '.' ? new RegExp(`(?<![\\w-])class\\s*=\\s*["'][^"']*(?<![\\w-])${escRe(tok.slice(1))}(?![\\w-])`).test(markup)
       : markup.includes(tok.slice(1));
