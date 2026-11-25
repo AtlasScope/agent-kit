@@ -3,32 +3,23 @@
 // Set SMOKE_URL to test a running site instead of starting `next start` here.
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
+import { smokeTarget } from "./run.mjs";
 import { chromium } from "playwright";
 import { AGENTS, INSTALL_MESSAGE, KITS } from "../../lib/site.ts";
 
-const PORT = 3998;
-let base = process.env.SMOKE_URL?.replace(/\/$/, "");
-let server, browser;
+let target, base, browser;
 const SIZES = [
   { name: "desktop", viewport: { width: 1440, height: 900 } },
   { name: "phone", viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true },
 ];
 
 before(async () => {
-  if (!base) {
-    server = spawn("npx", ["next", "start", "-p", String(PORT)], { cwd: new URL("../..", import.meta.url), stdio: "ignore", detached: true });
-    base = `http://localhost:${PORT}`;
-    for (let i = 0; i < 60; i++) {
-      try { if ((await fetch(base)).ok) break; } catch {}
-      await new Promise((r) => setTimeout(r, 500));
-    }
-  }
+  target = await smokeTarget();
+  base = target.url;
   browser = await chromium.launch();
 });
 after(async () => {
-  await browser?.close();
-  if (server) process.kill(-server.pid, "SIGTERM");
+  try { await browser?.close(); } finally { await target?.close(); }
 });
 
 async function open(size, path, { clipboard = true } = {}) {

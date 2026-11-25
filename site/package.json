@@ -13,7 +13,7 @@
     "db:migrate": "node --env-file-if-exists=.env.local scripts/migrate.mjs",
     "test": "node --test \"tests/**/*.test.mjs\"",
     "pretest": "npm run content",
-    "smoke": "node --test \"tests/smoke/*.smoke.mjs\"",
+    "smoke": "node tests/smoke/run.mjs",
     "lab": "node scripts/orbit-lab.mjs"
   },
   "dependencies": {

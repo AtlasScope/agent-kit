@@ -11,9 +11,11 @@ npm run dev        # builds content/generated.json from the repo, then starts Ne
 npm run typecheck  # TypeScript check (requires content/generated.json)
 npm test           # unit tests for copy, hero, install, search, starting points, and the orbit scene's arithmetic
 npm run build      # builds content/generated.json and runs next build
-npx playwright install chromium && npm run smoke   # browser journeys against the built app
+npx playwright install chromium && npm run smoke   # shared public server + isolated account fixture server
 npm run lab        # local graphics lab (development only)
 ```
+
+For a targeted smoke suite, run `node --test tests/smoke/install.smoke.mjs` against a built app. `SMOKE_URL` and `SMOKE_ACCOUNT_URL` can point to existing servers; the latter must be a long-lived sample-data server, not production or a serverless preview.
 
 Everything is read from the repo at build time by `scripts/build-content.mjs`: `library/library.json`, every `kits/*/plugins/*/skills/*/SKILL.md`, each kit's `THIRD_PARTY.md`, and the root `CREDITS.md`. Edit those, not `site/content/generated.json`, to change what a page says. The build stops if two pages would get the same URL.
 

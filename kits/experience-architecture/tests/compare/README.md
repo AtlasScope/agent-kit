@@ -1,20 +1,7 @@
-# Comparison harness
+# Historical comparisons
 
-Runs the same prompt against the same app in three setups and keeps every transcript:
+These are the prompts used for the v0.2 comparisons recorded in [tests/results](../results/README.md). Preserve the apps, keys and results as source evidence, not a standing test obligation.
 
-- `baseline`: Claude with no plugin and no skill;
-- `skill`: the standalone experience-architecture skill, copied into the run's `.claude/skills/`;
-- `plugin`: this plugin, loaded with `--plugin-dir`.
+The original harness copied each app, initialized Git, isolated Claude's project settings and connectors, and compared baseline, standalone skill and installed plugin on the same prompts. Judges received anonymized reports and the answer key. The original runner and scoring scripts are recoverable from [the pre-cleanup repository](https://github.com/AtlasScope/agent-kit/tree/20877937ffb9bcbf629d45f3d0846afb42701b34/kits/experience-architecture/tests/compare). They are retired because they assume an old scratch layout, fixed model and costly batch protocol, and the runner could terminate an unrelated listener on a selected port.
 
-Every run gets a fresh copy of the app (git-initialised so source edits show up as a diff), a copy of Playwright, `--setting-sources project` and `--strict-mcp-config` so the user's own instructions and connectors do not leak in, and a settings file that denies reads of personal folders (`isolate.example.json`; adjust the paths). Runs use Sonnet.
-
-```bash
-export EA_COMPARE_DIR=/path/to/scratch          # holds runs/, plugin/, pwrt/node_modules, isolate.json
-export EA_STANDALONE_SKILL=/path/to/standalone/experience-architecture
-# one line per run: scenario arm rep port app_dir prompt_file
-xargs -P 6 -L 1 tests/compare/run_one.sh < jobs.txt
-```
-
-Before a batch: copy the plugin without `evals/` into `$EA_COMPARE_DIR/plugin`, Playwright into `$EA_COMPARE_DIR/pwrt/node_modules`, and the isolation settings into `$EA_COMPARE_DIR/isolate.json`. Prompts may contain `{{PORT}}`.
-
-Scoring is done by fresh agents that see the answer key and the reports with the setup names replaced by letters. Results from the v0.2 comparison are in `tests/results/v0.2-comparison/`.
+For a new comparison, select the smallest meaningful scenario, isolate the candidate and baseline with no personal context or real credentials, use the same task and model for both, and keep only evidence needed to support the decision.
