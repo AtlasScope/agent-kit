@@ -119,7 +119,7 @@ node library/build.mjs
 
 - `kits/<name>/`: each kit's README, license, scripts, tests, and `THIRD_PARTY.md` (when it carries borrowed skills), with the installable plugin under `kits/<name>/plugins/<name>/`. `design-kit`, `engineering-kit`, and `experience-architecture` were separate repos until November 2026 and keep their git history here.
 - `.claude-plugin/marketplace.json` and `.agents/plugins/marketplace.json`: catalogs listing all five plugins.
-- `library/`: prompt library source (`library.json`, `audit.json`, `template.html`), editorial log (`EDITORIAL.md`), build and check scripts, and generated `dist/` outputs.
+- `library/`: prompt library source (`library.json`, `template.html`), editorial standard, shared build and check scripts, and public generated `dist/` exports.
 - `site/`: the Next.js website and MCP server.
 - `scripts/`: repo-wide checks and the optional local installer.
 - `tests/`: router test cases and log-to-case converter (`tests/routing/`).
