@@ -283,7 +283,7 @@ class Repo {
         const hit = star < 0 ? spec === pattern : spec.startsWith(pattern.slice(0, star)) && spec.endsWith(pattern.slice(star + 1));
         if (!hit) continue;
         const mid = star < 0 ? "" : spec.slice(star, spec.length - (pattern.length - star - 1));
-        for (const t of targets) { const r = tryFile(norm(P.join(cfg.paths.from, t.replace("*", mid)))); if (r) return r; }
+        for (const t of targets) { const r = tryFile(norm(P.join(cfg.paths.from, t.replaceAll("*", mid)))); if (r) return r; }
       }
     }
     if (cfg?.baseUrl !== null && cfg?.baseUrl !== undefined) { const r = tryFile(norm(P.join(cfg.baseUrl, spec))); if (r && this.tracked.has(r)) return r; }
@@ -762,7 +762,7 @@ export function buildGraph(root) {
       const toks = [];
       toks.comments = [];
       const starts = lineStarts(src);
-      for (const m of src.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) { const part = tokenize(m[1], lineAt(starts, m.index + m[0].indexOf(">") + 1)); toks.push(...part); toks.comments.push(...part.comments); }
+      for (const m of src.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script[^>]*>/gi)) { const part = tokenize(m[1], lineAt(starts, m.index + m[0].indexOf(">") + 1)); toks.push(...part); toks.comments.push(...part.comments); }
       const a = analyzeCode(repo, file, toks);
       code.set(file, { toks, ...a });
       edges.push(...a.edges.filter((e) => e.kind !== "mentions"), ...analyzeText(repo, file, src));
