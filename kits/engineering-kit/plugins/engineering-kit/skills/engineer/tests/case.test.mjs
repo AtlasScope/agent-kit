@@ -69,6 +69,46 @@ test("baseline and candidate run the same steps in their own copies; the checkou
 test("a case file must stay inside the repository and say what it expects in known terms", () => {
   assert.throws(() => validate({ ...spec, steps: [{ id: "x", run: ["node"], change: [{ write: "../outside", text: "" }] }] }), /inside the repository/);
   assert.throws(() => validate({ ...spec, steps: [{ id: "x", run: ["node"], expect: { fast: true } }] }), /unknown expectation/);
+  assert.throws(() => validate({ ...spec, steps: [{ id: "x", run: ["node"], expect: { candidate: { fast: true } } }] }), /unknown expectation/);
+  assert.throws(() => validate({ ...spec, steps: [{ id: "x", run: ["node"], expect: { exit: 0, candidate: { exit: 1 } } }] }), /not a mix/);
+  assert.throws(() => validate({ ...spec, candidate: undefined, steps: [{ id: "x", run: ["node"], expect: { candidate: { exit: 1 } } }] }), /no "candidate"/);
   assert.throws(() => validate({ ...spec, steps: [{ id: "a", run: ["node"] }, { id: "a", run: ["node"] }] }), /unique/);
+  assert.throws(() => validate({ ...spec, link: ["deps"], copy: ["deps"] }), /named twice/);
+  assert.throws(() => validate({ ...spec, copy: ["../deps"] }), /inside the repository/);
   assert.ok(validate(spec));
+});
+
+test("each variant can expect its own result, so a mutation run can expect the candidate to fail", (t) => {
+  const dir = fixture();
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  // the repairing baseline passes on the repeat; the comparing candidate keeps failing, as it should
+  const out = runCase(dir, { ...spec, steps: [spec.steps[1], { id: "repeat", run: [process.execPath, "check.mjs"], expect: { baseline: { exit: 0 }, candidate: { exit: 1, writes: 0 } } }] });
+  const repeat = out.steps.find((s) => s.id === "repeat").results;
+  assert.deepEqual([repeat.baseline.pass, repeat.baseline.expect], [true, { exit: true }]);
+  assert.deepEqual([repeat.candidate.pass, repeat.candidate.expect], [true, { exit: true, writes: true }]);
+  // an expectation given once still applies to both
+  const stale = out.steps.find((s) => s.id === "stale").results;
+  assert.deepEqual([stale.baseline.expect.unchanged, stale.candidate.expect.unchanged], [false, true]);
+});
+
+test("a copied folder is a real folder inside each clone, unlike a link; started programs show the arguments they were given", (t) => {
+  const dir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "engineer-case-copy-")));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  // the step runs in app/, reads ../deps the way a bundler reads node_modules, and starts a program with flags
+  const probe = 'import fs from "node:fs";\nimport path from "node:path";\nimport { execFileSync } from "node:child_process";\nexecFileSync(process.execPath, ["-e", "0"]);\nconst real = fs.realpathSync("../deps/lib.txt");\nif (path.relative(fs.realpathSync(".."), real).startsWith("..")) { console.error("deps leads out of the project: " + real); process.exit(3); }\nconsole.log(fs.readFileSync(real, "utf8"));\n';
+  fs.mkdirSync(path.join(dir, "app"));
+  fs.writeFileSync(path.join(dir, "app/probe.mjs"), probe);
+  fs.writeFileSync(path.join(dir, ".gitignore"), "deps/\n");
+  run(dir, "init", "-q");
+  run(dir, "add", "-A");
+  run(dir, "commit", "-qm", "fixture");
+  fs.mkdirSync(path.join(dir, "deps"));
+  fs.writeFileSync(path.join(dir, "deps/lib.txt"), "from deps");
+  const step = { id: "probe", cwd: "app", run: [process.execPath, "probe.mjs"] };
+  const copied = runCase(dir, { title: "copy", baseline: "HEAD", copy: ["deps"], steps: [{ ...step, expect: { exit: 0, output: "from deps" } }] }).steps[0].results.baseline;
+  const linked = runCase(dir, { title: "link", baseline: "HEAD", link: ["deps"], steps: [{ ...step, expect: { exit: 3, output: "leads out" } }] }).steps[0].results.baseline;
+  assert.equal(copied.pass, true, copied.stderr);
+  assert.equal(linked.pass, true, linked.stderr);
+  assert.deepEqual(copied.children, [`${path.basename(process.execPath)} -e 0`]);
+  assert.equal(fs.readFileSync(path.join(dir, "deps/lib.txt"), "utf8"), "from deps");
 });

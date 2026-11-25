@@ -12,6 +12,9 @@
 //     "candidate": "working-tree",        optional; omit to run the baseline alone
 //     "link": ["site/node_modules"],      optional: ignored folders to link in from the checkout (shared, not copied);
 //                                         { "path": "site/node_modules", "from": "<folder>" } links one from elsewhere
+//     "copy": ["site/node_modules"],      optional: the same two forms, copied into each clone instead of linked. Use it
+//                                         when a tool refuses files outside its project: Next.js with Turbopack fails
+//                                         on a linked node_modules, because the link leads out of the clone
 //     "env": "inherit",                   or "minimal" (PATH, HOME, temp and locale only)
 //     "timeout": 120,                     seconds per step
 //     "steps": [
@@ -24,7 +27,9 @@
 // copy before the step (write, append or delete); "run" is an argument list, or a string for the shell (on
 // Windows a .cmd program such as npm needs the string form); "cwd" runs it in a folder of the copy.
 // "expect" is optional: exit (a number), unchanged (no project file changed, added or deleted), writes (most
-// project files written, identical bytes included), output (text that must appear in stdout or stderr).
+// project files written, identical bytes included), output (text that must appear in stdout or stderr). It
+// applies to both variants, or give each its own, as in a mutation run where the candidate breaks the code on
+// purpose and the check should catch it: "expect": { "baseline": { "exit": 0 }, "candidate": { "exit": 1 } }.
 //
 // The copies live in the system temp folder and are deleted afterwards (--keep leaves them). Nothing is written
 // to the checkout itself, except through folders named in "link". This is isolation of files, not a sandbox:
@@ -39,6 +44,14 @@ import { fileURLToPath } from "node:url";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const TRACER = path.join(here, "case-trace.cjs");
 const OUTPUT_MAX = 4000;
+const EXPECTATIONS = ["exit", "unchanged", "writes", "output"];
+const VARIANTS = ["baseline", "candidate"];
+
+/** What a step expects of one variant: its own expectations when it gives them per variant, else the shared ones. */
+export function expectationsFor(step, variant) {
+  const e = step.expect || {};
+  return Object.keys(e).some((k) => VARIANTS.includes(k)) ? e[variant] || {} : e;
+}
 
 const git = (cwd, args, input) => execFileSync("git", ["-c", "core.quotepath=false", ...args], { cwd, encoding: "utf8", input, maxBuffer: 256 * 1024 * 1024, stdio: ["pipe", "pipe", "pipe"], env: { ...process.env, GIT_OPTIONAL_LOCKS: "0" } });
 const sha256 = (buf) => crypto.createHash("sha256").update(buf).digest("hex");
@@ -78,13 +91,27 @@ export function validate(spec) {
       inside("/x", c[keys[0]]);
     }
     if (s.cwd !== undefined) inside("/x", s.cwd);
-    const e = s.expect || {};
-    for (const k of Object.keys(e)) if (!["exit", "unchanged", "writes", "output"].includes(k)) fail(`step ${s.id}: unknown expectation ${k}`);
+    const e = s.expect ?? {};
+    const known = (x, where) => {
+      if (!x || typeof x !== "object" || Array.isArray(x)) fail(`${where}: "expect" is an object such as { "exit": 0 }`);
+      for (const k of Object.keys(x)) if (!EXPECTATIONS.includes(k)) fail(`${where}: unknown expectation ${k}`);
+    };
+    const own = e && typeof e === "object" ? Object.keys(e).filter((k) => VARIANTS.includes(k)) : [];
+    if (!own.length) known(e, `step ${s.id}`);
+    else {
+      const shared = Object.keys(e).filter((k) => !VARIANTS.includes(k));
+      if (shared.length) fail(`step ${s.id}: "expect" is either for both variants ({ "exit": 0 }) or for each ({ "baseline": {...}, "candidate": {...} }), not a mix (${shared.join(", ")})`);
+      for (const v of own) known(e[v], `step ${s.id}, ${v}`);
+      if (e.candidate && !spec.candidate) fail(`step ${s.id}: expects something of the candidate, but the case has no "candidate"`);
+    }
   }
-  for (const l of spec.link || []) {
-    if (typeof l === "string") inside("/x", l);
-    else if (l && typeof l.path === "string" && typeof l.from === "string") inside("/x", l.path);
-    else fail('each link is a path, or { "path": ..., "from": <folder elsewhere, such as the main checkout\'s node_modules> }');
+  const placed = new Set();
+  for (const how of ["link", "copy"]) for (const l of spec[how] || []) {
+    const rel = typeof l === "string" ? l : l?.path;
+    if (typeof l !== "string" && !(l && typeof l.path === "string" && typeof l.from === "string")) fail(`each ${how} is a path, or { "path": ..., "from": <folder elsewhere, such as the main checkout's node_modules> }`);
+    inside("/x", rel);
+    if (placed.has(rel)) fail(`${rel} is named twice in link and copy`);
+    placed.add(rel);
   }
   if (spec.env !== undefined && !["inherit", "minimal"].includes(spec.env)) fail('"env" is "inherit" or "minimal"');
   if (spec.timeout !== undefined && !(Number.isFinite(spec.timeout) && spec.timeout > 0 && spec.timeout <= 3600)) fail('"timeout" is 1 to 3600 seconds');
@@ -135,7 +162,7 @@ function environment(kind, home) {
   return base;
 }
 
-function runStep(dir, spec, step, logFile, home) {
+function runStep(dir, spec, step, variant, logFile, home) {
   for (const c of step.change || []) {
     if ("delete" in c) fs.rmSync(inside(dir, c.delete), { force: true, recursive: true });
     else {
@@ -169,8 +196,12 @@ function runStep(dir, spec, step, logFile, home) {
   const written = new Map(), outside = new Set();
   const processes = new Set(events.map((e) => e.pid)).size;
   const children = [];
+  // A started program as it was started: arguments as given, an absolute path inside the copy as a repository
+  // path, any other absolute path by its last part. A program given as a command line keeps its words.
+  const copyPaths = (s) => [realDir, dir].reduce((t, from) => t.split(from).join("<copy>"), s);
+  const shown = (a) => (path.isAbsolute(a) ? rel(a) ?? path.basename(a) : copyPaths(a));
   for (const e of events) {
-    if (e.kind === "spawn") { if (children.length < 30) children.push([path.basename(e.program), ...e.args.map((a) => rel(path.resolve(e.cwd || dir, a)) ?? (path.isAbsolute(a) ? path.basename(a) : a))].join(" ").slice(0, 160)); continue; }
+    if (e.kind === "spawn") { if (children.length < 30) children.push([/\s/.test(e.program) ? copyPaths(e.program) : path.basename(e.program), ...e.args.map(shown)].join(" ").slice(0, 160)); continue; }
     if (!["write", "delete", "rename"].includes(e.kind)) continue;
     const r = rel(e.path);
     if (r === null) { outside.add(e.path); continue; }
@@ -199,7 +230,7 @@ function runStep(dir, spec, step, logFile, home) {
     nodeProcesses: processes,
     children,
   };
-  const e = step.expect || {};
+  const e = expectationsFor(step, variant);
   const met = {};
   if ("exit" in e) met.exit = result.exit === e.exit;
   if ("unchanged" in e) met.unchanged = e.unchanged === (!modified.length && !added.length && !deleted.length);
@@ -219,19 +250,21 @@ export function runCase(root, spec, { keep = false } = {}) {
     for (const [name, ref] of variants) {
       const dir = path.join(base, name);
       const copy = makeCopy(root, ref, dir);
-      for (const l of spec.link || []) {
+      for (const how of ["link", "copy"]) for (const l of spec[how] || []) {
         const rel = typeof l === "string" ? l : l.path;
         const src = typeof l === "string" ? inside(root, l) : path.resolve(root, l.from);
-        if (!fs.existsSync(src)) throw new Error(`link ${rel}: ${typeof l === "string" ? "not in the checkout" : `${l.from} does not exist`}`);
+        if (!fs.existsSync(src)) throw new Error(`${how} ${rel}: ${typeof l === "string" ? "not in the checkout" : `${l.from} does not exist`}`);
         const dst = inside(dir, rel);
-        if (fs.existsSync(dst)) throw new Error(`link ${rel}: the copy already has it; link only ignored folders such as node_modules`);
+        if (fs.existsSync(dst)) throw new Error(`${how} ${rel}: the copy already has it; ${how} only ignored folders such as node_modules`);
         fs.mkdirSync(path.dirname(dst), { recursive: true });
-        fs.symlinkSync(src, dst, process.platform === "win32" ? "junction" : "dir");
+        if (how === "link") fs.symlinkSync(src, dst, process.platform === "win32" ? "junction" : "dir");
+        // Links inside the folder (node_modules/.bin) keep their own targets, so they stay inside the clone too.
+        else fs.cpSync(src, dst, { recursive: true, verbatimSymlinks: true, mode: fs.constants.COPYFILE_FICLONE });
       }
       out.variants[name] = { ref, revision: copy.revision, workingTree: copy.working, uncommittedFiles: copy.changed, ...(keep ? { copy: dir } : {}) };
       const home = path.join(base, `${name}-home`);
       fs.mkdirSync(home);
-      spec.steps.forEach((step, i) => { out.steps[i].results[name] = runStep(dir, spec, step, path.join(base, `${name}-${step.id}.log`), home); });
+      spec.steps.forEach((step, i) => { out.steps[i].results[name] = runStep(dir, spec, step, name, path.join(base, `${name}-${step.id}.log`), home); });
     }
   } finally {
     if (!keep) fs.rmSync(base, { recursive: true, force: true, maxRetries: 3 });
@@ -254,7 +287,7 @@ function summarize(step, name, r) {
 }
 
 export function report(root, spec, out) {
-  const limits = "Each variant ran in its own temporary clone of the repository (a candidate \"working-tree\" includes uncommitted and untracked, unignored files). File effects are measured two ways: before-and-after hashes of every project file, which see any program, and a write tracer loaded into Node processes, which also sees writes that left the bytes unchanged but misses non-Node programs. Commands kept network access and the environment" + (spec.env === "minimal" ? " minus all but PATH, temp and locale variables" : "") + "; folders named in link were shared with the checkout. One run per step: timing is not a benchmark, and a flaky command needs repeated runs.";
+  const limits = "Each variant ran in its own temporary clone of the repository (a candidate \"working-tree\" includes uncommitted and untracked, unignored files). File effects are measured two ways: before-and-after hashes of every project file, which see any program, and a write tracer loaded into Node processes, which also sees writes that left the bytes unchanged but misses non-Node programs. Commands kept network access and the environment" + (spec.env === "minimal" ? " minus all but PATH, temp and locale variables" : "") + "; folders named in link were shared with the checkout, and folders named in copy were copied from it. One run per step: timing is not a benchmark, and a flaky command needs repeated runs.";
   const subjects = new Map(), observations = [];
   const subj = (kind, key, label) => { if (!subjects.has(`${kind}:${key}`)) subjects.set(`${kind}:${key}`, { kind, key, label }); return key; };
   for (const step of out.steps) {

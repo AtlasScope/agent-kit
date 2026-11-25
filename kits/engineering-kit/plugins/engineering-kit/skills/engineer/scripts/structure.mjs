@@ -1106,10 +1106,11 @@ function main(argv) {
   if (!opts.targets.length) throw new Error("Name at least one file or folder. Usage: node structure.mjs <path>... [--symbol <name>] [--json]");
   if (!Number.isInteger(opts.depth) || opts.depth < 1 || opts.depth > 10) throw new Error("--depth must be 1 to 10");
   if (!Number.isInteger(opts.limit) || opts.limit < 1) throw new Error("--limit must be a positive whole number");
-  const cwd = process.cwd();
-  const root = fs.realpathSync(execFileSync("git", ["rev-parse", "--show-toplevel"], { cwd: opts.root ? path.resolve(opts.root) : cwd, encoding: "utf8" }).trim());
+  // With --root, a relative path names a file in that checkout, not one next to where the command was run.
+  const base = opts.root ? path.resolve(opts.root) : process.cwd();
+  const root = fs.realpathSync(execFileSync("git", ["rev-parse", "--show-toplevel"], { cwd: base, encoding: "utf8" }).trim());
   const rel = (t) => {
-    const abs = path.resolve(cwd, t);
+    const abs = path.resolve(base, t);
     let real = abs;
     try { real = fs.realpathSync(abs); } catch { /* deleted path: keep as given */ }
     const r = path.relative(root, real).split(path.sep).join("/");

@@ -139,3 +139,13 @@ test("the report's evidence names observations by id and every subject it uses",
   assert.ok(r.consumers.every((c) => /^o\d+$/.test(c.id)));
   assert.throws(() => query(g, ["missing.js"]), /not a tracked file/);
 });
+
+test("with --root, a relative path names a file in that checkout, wherever the command runs", (t) => {
+  const dir = fixture(FILES);
+  const elsewhere = fixture({ "README.md": "another checkout\n" });
+  t.after(() => { fs.rmSync(dir, { recursive: true, force: true }); fs.rmSync(elsewhere, { recursive: true, force: true }); });
+  const script = path.resolve(import.meta.dirname, "../scripts/structure.mjs");
+  const r = JSON.parse(execFileSync(process.execPath, [script, "app/lib/copy.ts", "--root", dir, "--json"], { cwd: elsewhere, encoding: "utf8" }));
+  assert.deepEqual(r.targets, ["app/lib/copy.ts"]);
+  assert.ok(r.consumers.some((c) => c.to === "app/lib/content.ts"));
+});
