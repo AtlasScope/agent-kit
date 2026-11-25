@@ -125,8 +125,3 @@ body:has(main.home) .foot { display: none; }
 .footer a { display: inline-flex; align-items: center; min-height: 24px; text-decoration: none; }
 @media (hover: hover) and (pointer: fine) { .footer a:hover { color: var(--c-fg); } }
 @media (pointer: coarse) { .footer a { min-width: 44px; min-height: 44px; } }
-
-/* Atmosphere on interior pages: the horizon's light at the top of the page, as if the planet's limb were just above the
-   window, in the homepage's blue and green. Static, behind everything, gone by the second screen. The stage has the
-   planet itself. */
-body:not(:has(.stage))::before { content: ""; position: absolute; z-index: -1; top: 0; left: 0; right: 0; height: min(620px, 80vh); pointer-events: none; background: var(--atmo); }

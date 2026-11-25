@@ -114,7 +114,7 @@ export function StartCard({ s }: { s: Start }) {
   return (
     <article className="pcard scard" data-sec={p.sec} id={s.slug}>
       <div className="pcard__top">
-        <h3 className="pcard__t"><i className="dot" />{s.job}</h3>
+        <h3 className="pcard__t">{s.job}</h3>
         <Star kind="prompt" refId={p.id} title={p.t} />
       </div>
       <p className={p.t.startsWith("/") ? "scard__pick scard__pick--cmd" : "scard__pick"}><Link href={`/prompts/${p.slug}`} translate={p.t.startsWith("/") ? "no" : undefined}>{p.t}</Link></p>

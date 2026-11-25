@@ -22,7 +22,7 @@ export function AreaPage({ a }: { a: Area }) {
     <main className="page lib">
       <div className="page-head">
         <Crumbs items={[["Prompts", "/prompts"], [a.title, `/prompts/${a.slug}`]]} />
-        <p className="kicker" data-sec={a.sec}><i className="dot" /><Link href={`/prompts#${a.sec}`}>{s.title}</Link></p>
+        <p className="kicker" data-sec={a.sec}><Link href={`/prompts#${a.sec}`}>{s.title}</Link></p>
         <h1>{a.title}</h1>
         <p className="lead ink2">{a.blurb || s.blurb}</p>
         {a.sec === "work" && <p className="note">Write your request as usual, then paste one of these after it.</p>}

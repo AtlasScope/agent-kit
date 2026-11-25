@@ -23,7 +23,7 @@
 @media (hover: hover) and (pointer: fine) { .btn--danger:hover { background: color-mix(in oklab, var(--c-danger), #000 10%); } }
 /* Brand: the homepage's Install object, small. A green pill with a lit satin finish: a narrow tonal range, a soft
    bloom from above, a fine bright line under the top edge, a darker edge a pixel outside it and the light it casts.
-   One per page: the thing the page is for. Hover lifts the light; a press sinks it at once. No sheen or loop here. */
+   At most one per page, and only where the page has a thing it is for; reading and browsing pages have none. Hover lifts the light; a press sinks it at once. No sheen or loop here. */
 .btn--brand { --lift: 0; border: 0; border-radius: var(--radius-pill); color: var(--c-on-brand); font-weight: var(--weight-semibold); letter-spacing: -0.01em;
   background: radial-gradient(130% 110% at 50% -40%, oklch(100% 0 0 / calc(.16 + .06 * var(--lift))), transparent 64%),
     linear-gradient(180deg, color-mix(in oklab, var(--c-brand), var(--c-brand-hi) 34%), color-mix(in oklab, var(--c-brand), var(--c-brand-lo) 30%));
@@ -36,9 +36,6 @@
 .btn--brand:active { transition-duration: 70ms; filter: brightness(.97); }
 /* Copied: the key steps back to glass so the green dot or tick beside its words is the state, as on /install. */
 .btn--brand[data-copied] { filter: none; background: var(--c-fill-2); color: var(--c-fg); box-shadow: inset 0 0 0 1px var(--c-line-2); }
-/* A page with its own lit action keeps the header's Install quiet, so there is never more than one. */
-:root:has(main .btn--brand) .nav__install.btn--brand { --lift: 0; border: 1px solid var(--c-line-2); background: var(--c-fill); color: var(--c-fg); box-shadow: none; }
-@media (hover: hover) and (pointer: fine) { :root:has(main .btn--brand) .nav__install.btn--brand:hover { background: var(--c-fill-2); filter: none; } }
 /* Glass: the panel that holds what a page is for (a prompt, a command, a message), as on /install. A lit rim brighter
    above than below, a deep soft shadow and a faint green underglow. One or two per page. */
 .glass { border: 0; border-radius: var(--radius-xl); background: var(--glass-bg); box-shadow: var(--glass-rim), var(--glass-shadow); }
@@ -83,8 +80,9 @@
 /* Code: a block with a labelled head and Copy, or a single command line. Payload text is shown exactly. */
 /* Code blocks take the glass finish without its glow, so a page of them stays calm; .glass on a block adds the glow
    for the one that is the page's payload. */
-.block { position: relative; overflow: hidden; border: 0; border-radius: var(--radius-lg); background: var(--glass-bg); box-shadow: var(--glass-rim), var(--shadow-1); }
-.block.glass { border-radius: var(--radius-xl); box-shadow: var(--glass-rim), var(--glass-shadow); }
+.block { position: relative; overflow: hidden; border: 1px solid var(--c-line); border-radius: var(--radius-lg); background: var(--c-surface); box-shadow: var(--shadow-1); }
+/* The page's principal payload only: the same block in glass. Every other snippet stays a solid utility surface. */
+.block.glass { border: 0; border-radius: var(--radius-xl); background: var(--glass-bg); box-shadow: var(--glass-rim), var(--glass-shadow); }
 .block__head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); min-height: 44px; padding: 6px 6px 6px var(--space-4);
   border-bottom: 1px solid var(--c-line); background: var(--c-fill); color: var(--c-fg-3); font-size: var(--type-xs); font-weight: var(--weight-medium); }
 .block pre { margin: 0; padding: var(--space-4) var(--space-5); white-space: pre-wrap; overflow-wrap: anywhere; font: 400 var(--type-code)/var(--lh-code) var(--font-mono); color: var(--c-fg); tab-size: 2; }
@@ -115,13 +113,6 @@
 .star--label[aria-pressed="true"] .i { color: var(--c-warm); }
 @media (hover: hover) and (pointer: fine) { .star:hover { color: var(--c-fg); background: var(--c-fill); } }
 @media (pointer: coarse) { .star { min-width: 44px; min-height: 44px; } }
-/* Section hues: a small flat dot beside a title. */
-[data-sec="inv"] { --tone: var(--s-inv); }
-[data-sec="db"] { --tone: var(--s-db); }
-[data-sec="think"] { --tone: var(--s-think); }
-[data-sec="ecmd"] { --tone: var(--s-ecmd); }
-[data-sec="dcmd"] { --tone: var(--s-dcmd); }
-[data-sec="recipe"] { --tone: var(--s-recipe); }
 .dot { display: inline-block; flex: none; width: 8px; height: 8px; margin-right: 10px; border-radius: 50%; background: var(--tone, var(--c-fg-3)); }
 .kicker .dot { margin-right: 2px; }
 /* LED: the site's one status light. 7px, lit only where something is true now. Unlit it is a socket. */

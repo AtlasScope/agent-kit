@@ -48,7 +48,7 @@ export default function Prompts() {
         {index.map(({ s, as, n }) => (
           <div key={s.id} id={s.id} className="browse" data-sec={s.id}>
             <div className="browse__head">
-              <h3 className="browse__h"><i className="dot" />{s.title} <span className="browse__n">{n}<span className="sr"> prompts</span></span></h3>
+              <h3 className="browse__h">{s.title} <span className="browse__n">{n}<span className="sr"> prompts</span></span></h3>
               <p className="browse__d">{s.blurb}</p>
             </div>
             <nav className="areas" aria-label={s.title}>

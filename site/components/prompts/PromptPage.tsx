@@ -50,7 +50,7 @@ export function PromptPage({ p }: { p: Prompt }) {
       <header className="page-head pd-head">
         <Crumbs items={[["Prompts", "/prompts"], [a.title, `/prompts/${a.slug}`], [p.t, `/prompts/${p.slug}`]]} />
         <p className="kicker pd-kicker" data-sec={p.sec}>
-          <i className="dot" /><span>{kindLabel(p)}</span>
+          <span>{kindLabel(p)}</span>
           <span aria-hidden="true">·</span><span>{p.sec === "plan" ? a.title : p.group}</span>
           {p.badge && <><span aria-hidden="true">·</span><span>{p.badge}</span></>}
           {p.fresh && <><span aria-hidden="true">·</span><span>New, not yet run on a real project</span></>}

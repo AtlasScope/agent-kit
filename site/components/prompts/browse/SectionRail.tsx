@@ -49,7 +49,6 @@ export function SectionRail({ items, label }: { items: RailItem[]; label: string
         {items.map((i) => (
           <li key={i.id}>
             <a className="rail__a" href={`#${i.id}`} data-sec={i.sec} aria-current={current === i.id ? "location" : undefined}>
-              {i.sec && <i className="dot" aria-hidden="true" />}
               <span>{i.label}</span>
               {i.n != null && <span className="rail__n">{i.n}<span className="sr"> prompts</span></span>}
             </a>
