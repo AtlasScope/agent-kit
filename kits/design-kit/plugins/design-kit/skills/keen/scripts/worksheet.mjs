@@ -228,7 +228,9 @@ export function tuneValue(t, raw) {
   if (t.type === "color") return /^#[0-9a-f]{6}$/i.test(v) ? v.toLowerCase() : null;
   if (t.type === "choice") return (t.options || []).some((o) => o.value === v) ? v : null;
   if (t.type !== "number" || !/^-?\d+(\.\d+)?$/.test(v)) return null;
-  const n = Number(v), places = Math.min(6, (String(t.step).split(".")[1] || "").length);
+  const decimals = (x) => (String(x).split(".")[1] || "").length;
+  // Every value on the slider is min plus whole steps, so it needs the decimals of both.
+  const n = Number(v), places = Math.min(6, Math.max(decimals(t.step), decimals(t.min)));
   return n >= t.min - 1e-9 && n <= t.max + 1e-9 ? `${Number(n.toFixed(places))}${t.unit || ""}` : null;
 }
 

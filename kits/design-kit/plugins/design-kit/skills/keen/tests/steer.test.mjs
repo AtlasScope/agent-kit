@@ -52,6 +52,9 @@ test("a tuned value is read the same way on the page and by the server", () => {
   assert.equal(tuneValue(spacing, "18; color:red"), null);
   assert.equal(tuneValue(corners, "22px"), "22px");
   assert.equal(tuneValue(corners, "23px"), null);
+  // A minimum finer than the step keeps its decimals: values are the minimum plus whole steps.
+  const offset = { type: "number", min: 1.25, max: 3.25, step: 1, value: 1.25, unit: "" };
+  assert.deepEqual([tuneValue(offset, "1.25"), tuneValue(offset, "2.25")], ["1.25", "2.25"]);
 });
 
 test("a part the person pointed at is reduced to plain, capped data", () => {
