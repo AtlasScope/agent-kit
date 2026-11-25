@@ -1,7 +1,7 @@
 {
   "name": "engineering-kit",
-  "description": "Engineering skills for AI coding agents, vetted and pinned: bug diagnosis, test-first work, architecture scans, plan interviews, retros, primary-source research, setup wizards and read-only PostgreSQL investigations. Every command runs only when you call it, unless you choose at install to let /engineer and /database start on their own.",
-  "version": "1.7.0",
+  "description": "Engineering skills for AI coding agents. /engineer understands, diagnoses and fixes difficult codebases with evidence: what a change would reach, what the Git history shows, and before-and-after runs in throwaway copies. Also vetted, pinned skills for bug diagnosis, test-first work, architecture scans, plan interviews, retros, primary-source research, setup wizards and read-only PostgreSQL investigations. Every command runs only when you call it, unless you choose at install to let /engineer and /database start on their own.",
+  "version": "1.8.0",
   "author": {
     "name": "AtlasScope"
   },

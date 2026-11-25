@@ -242,13 +242,15 @@ Do not edit any files yet. Inspect the codebase and tell me your plan in plain E
 
 ## Wrapping an investigation prompt
 
-An investigation prompt is sent as: the prompt, one mode line, an optional scope line, then the footer.
+An investigation prompt is sent as: the prompt, one mode line, the separate-database line when the investigation is marked `iso`, an optional scope line, then the footer.
 
 Modes:
 
 - `read` (Read-only): Treat this as a read-only investigation. Do not edit code, data, configuration, credentials or infrastructure. Report each finding with file:line or a command I can rerun, and a confidence.
 - `repro` (Reproducer only): You may add a failing test or a small reproduction script for the highest-risk finding. Do not change application code, data or configuration.
 - `change` (Propose a fix): After reporting, propose the smallest fix for the top confirmed finding as a diff for my review. Do not apply it to production, run migrations, or delete anything.
+
+Separate database (`iso`): Anything that changes state, such as a rebuild, replay or migration test, runs only on a separate database with safe test data, never on production.
 
 Scopes:
 

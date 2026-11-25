@@ -33,7 +33,7 @@ Ask them in this order. Each has exactly the values listed; save nothing else.
 
 **1. How should `/engineer` and `/database` start?**
 
-These are the kit's two front doors. `/engineer` takes a description of what is going on in a codebase (a bug, a worry, a plan) and suggests one starting move: an investigation, a skill to run, or a thinking prompt. `/database` does the same for PostgreSQL problems and runs its investigation read-only. One answer covers both.
+These are the kit's two front doors. `/engineer` takes a description of what is going on in a codebase (a bug, a worry, a plan) and works on it: it investigates without changing anything, and edits only when you ask for a fix. Asked what to do, it suggests one starting move. `/database` picks an investigation for a PostgreSQL problem and runs it read-only. One answer covers both.
 
 - **Typed** (the default): they run only when you type `/engineer` or `/database`. Talking about code or databases in a normal chat never starts them.
 - **Automatic**: they also start when you describe that kind of problem in your own words, such as "checkout got slow after yesterday's deploy". The first line then says it started on its own, so you can stop it. Only these two work this way; every other engineering command still waits to be typed.

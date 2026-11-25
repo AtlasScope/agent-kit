@@ -59,14 +59,15 @@ jobs:
           [ "$skillshape" = true ] && catalog=true
           motion=$(has '^kits/motion-kit/plugins/motion-kit/skills/motion/(scripts|tests)/')
           keen=$(has '^kits/design-kit/plugins/design-kit/skills/keen/(scripts|tests)/')
+          engineer=$(has '^kits/engineering-kit/plugins/engineering-kit/skills/engineer/(scripts|tests)/')
           ea=$(has '^kits/experience-architecture/(plugins/experience-architecture/scripts/|tests/(data/|journeys/|proposals/|[^/]+\.test\.mjs$)|fixtures/(northwind|fernway|kestrel)/|package(-lock)?\.json$)')
-          [ "$all" = true ] && site=true build=true unit=true browser=true library=true routing=true checker=true public=true catalog=true motion=true keen=true ea=true
+          [ "$all" = true ] && site=true build=true unit=true browser=true library=true routing=true checker=true public=true catalog=true motion=true keen=true engineer=true ea=true
           # A required check always reports, but irrelevant changes need no checkout or install.
           checkout=false
-          for flag in "$site" "$library" "$routing" "$checker" "$public" "$catalog" "$motion" "$keen" "$ea"; do
+          for flag in "$site" "$library" "$routing" "$checker" "$public" "$catalog" "$motion" "$keen" "$engineer" "$ea"; do
             [ "$flag" = true ] && checkout=true
           done
-          for name in site build unit browser library routing checker public catalog motion keen ea checkout; do
+          for name in site build unit browser library routing checker public catalog motion keen engineer ea checkout; do
             echo "$name=${!name}" >> "$GITHUB_OUTPUT"
           done
 
@@ -129,6 +130,11 @@ jobs:
         env:
           KEEN_REQUIRE_BROWSER: "1"
         run: node --test "kits/design-kit/plugins/design-kit/skills/keen/tests/*.test.mjs"
+
+      # The instruments read and clone Git repositories they make in temp folders; they need git, no browser.
+      - name: Test the engineer instruments
+        if: steps.changes.outputs.engineer == 'true'
+        run: node --test "kits/engineering-kit/plugins/engineering-kit/skills/engineer/tests/*.test.mjs"
 
       - name: Test Experience Architecture's deterministic toolkit
         if: steps.changes.outputs.ea == 'true'

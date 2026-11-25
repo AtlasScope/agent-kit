@@ -8,7 +8,7 @@ It is the engineering sibling of [design-kit](https://github.com/AtlasScope/agen
 
 | Command | What it does |
 |---|---|
-| `/engineer` | Describe what is going on and get one starting move: an investigation prompt to paste, the skill to run, or a thinking prompt. It suggests and stops; it runs nothing until you say go. Catalog from `library/library.json` (originally the Agent Engineering Field Guide). |
+| `/engineer` | Describe what is going on and it does the job you asked for: maps what a change would reach, diagnoses a bug or slowdown, simplifies, fixes or verifies. It reads unless you ask for a fix, and a fix stops before commits, pushes and deploys. Three scripts give it evidence: who depends on a file and what running it writes, what the Git history shows changing together, and before-and-after runs in throwaway copies. A hard problem can end on the AtlasScope page, where you check the evidence behind each next step and start the one you want. Ask only what to do and it names one starting move from the field guide in `library/library.json` (originally the Agent Engineering Field Guide). |
 | `/database` | Describe a PostgreSQL problem in plain words (wrong numbers, heavy writes, a crowded schema, cost, a risky migration) and get one database investigation, run read-only when the session can reach the code and database. Works on any Postgres host. Prompts come from the prompt library. |
 | `/diagnosing-bugs` | Hard bugs and performance regressions: build a loop that goes red, minimise, rank hypotheses, instrument, fix with a regression test, clean up. |
 | `/tdd` | Test-first work in vertical slices, with the seams agreed before any test is written. |
