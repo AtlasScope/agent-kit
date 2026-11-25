@@ -28,6 +28,10 @@
 // large, one or two at a time. The person switches between them, types what should change in one, and applies
 // the one they choose. Adding a page with the same workspace id again updates that page in place, so a
 // revision appears where the person is already looking. workspace.mjs keeps the alternatives' source files.
+// In a running alternative the person can also point at a part and say what should change there, and move the
+// few CSS custom properties the alternative offers in `tune`. The running alternative stays boxed in; what it
+// reports is data, and only the person's own press sends anything. A revise then hands "wait" one NOTE line of
+// JSON with the parts (selector, tag, text, box, computed styles, their words) and the tuned values.
 // "wait" prints NO_CHOICE and exits 3 if nobody presses Start within --minutes (default 30).
 //
 // It needs only Node. It listens on this computer alone, accepts a start only with the key in the page's own
@@ -120,10 +124,13 @@ function stepCard(step, index, claimTitles = new Map()) {
 
 // The most words each part of a page may hold. A page is glanced at on a small laptop beside a conversation,
 // so the program refuses a long one and says which parts to cut: the writer shortens it, not the reader.
-export const LIMITS = { verdict: 16, todo: 12, subtitle: 14, statLabel: 6, problemTitle: 9, problemBody: 45, line: 16, stepLabel: 8, why: 18, order: 20, happened: 30, means: 30, notChecked: 40, termMeans: 25, change: 20, brief: 30, viewName: 4, bet: 18, viewNote: 18 };
+export const LIMITS = { verdict: 16, todo: 12, subtitle: 14, statLabel: 6, problemTitle: 9, problemBody: 45, line: 16, stepLabel: 8, why: 18, order: 20, happened: 30, means: 30, notChecked: 40, termMeans: 25, change: 20, brief: 30, viewName: 4, bet: 18, viewNote: 18, tuneLabel: 3 };
 export const COUNTS = { stats: 3, problems: 3, also: 5, working: 3, steps: 3, terms: 3, changes: 5 };
 export const VIEWS = 5; // the original and up to four alternatives
 export const NOTE_MAX = 600; // characters of a typed request
+export const TUNE = 4; // values one version can offer for tuning
+export const POINTS = 8; // notes on parts of one version in one request
+export const POINT_SAY = 300; // characters of a note on one part
 const words = (v) => String(v ?? "").trim().split(/\s+/).filter(Boolean).length;
 
 /** Every part of a page that is too long, as plain sentences. Empty when the page is short enough. */
@@ -155,15 +162,300 @@ export function tooLong(page) {
   if (page.workspace) {
     check("workspace.brief", page.workspace.brief, LIMITS.brief);
     count("workspace.views", page.workspace.views, VIEWS);
-    (page.workspace.views || []).forEach((v, i) => { check(`workspace.views[${i}].name`, v?.name, LIMITS.viewName); check(`workspace.views[${i}].bet`, v?.bet, LIMITS.bet); check(`workspace.views[${i}].note`, v?.note, LIMITS.viewNote); });
+    (page.workspace.views || []).forEach((v, i) => {
+      const at = `workspace.views[${i}]`;
+      check(`${at}.name`, v?.name, LIMITS.viewName); check(`${at}.bet`, v?.bet, LIMITS.bet); check(`${at}.note`, v?.note, LIMITS.viewNote);
+      count(`${at}.tune`, v?.tune, TUNE);
+      (Array.isArray(v?.tune) ? v.tune : []).forEach((t, j) => { check(`${at}.tune[${j}].label`, t?.label, LIMITS.tuneLabel); (Array.isArray(t?.options) ? t.options : []).forEach((o, k) => check(`${at}.tune[${j}].options[${k}].label`, o?.label, LIMITS.tuneLabel)); });
+    });
   }
   return out;
+}
+
+// Tuning. A running version can offer a few of the CSS custom properties it is built on, each as a real control.
+// The agent that made the version chooses them; the page only draws them and sets them inside the running version.
+const TUNE_VAR = /^--[A-Za-z][\w-]{0,40}$/;
+const TUNE_UNITS = ["", "px", "rem", "em", "%", "ms", "s", "deg", "vw", "vh", "ch", "fr"];
+const CHOICE_VALUE = /^[^;{}<>"'`\\\u0000-\u001f\u007f]{1,60}$/;
+
+/** What is wrong with a view's `tune`, as plain sentences. Empty when the page can draw it. */
+export function tuneProblems(view, where = "view") {
+  if (view?.tune === undefined) return [];
+  if (!Array.isArray(view.tune)) return [`${where}.tune must be a list.`];
+  const out = [];
+  if (!view.live) out.push(`${where}.tune needs a live page: the controls set values inside the running version.`);
+  if (!view.revise) out.push(`${where}.tune needs a revise command, so the tuned values can come back to you.`);
+  const seen = new Set();
+  view.tune.forEach((t, i) => {
+    const at = `${where}.tune[${i}]`;
+    if (!t || typeof t !== "object") { out.push(`${at} must be an object.`); return; }
+    const name = String(t.var ?? "");
+    if (!TUNE_VAR.test(name)) out.push(`${at}.var must be a CSS custom property, such as --accent.`);
+    else if (seen.has(name)) out.push(`${at}.var ${name} is listed twice.`);
+    seen.add(name);
+    if (!String(t.label ?? "").trim()) out.push(`${at} needs a label: what the person is tuning, in their words.`);
+    if (t.type === "color") {
+      if (!/^#[0-9a-f]{6}$/i.test(String(t.value ?? ""))) out.push(`${at}.value must be a colour written #rrggbb.`);
+    } else if (t.type === "number") {
+      const [min, max, step, value] = [t.min, t.max, t.step, t.value].map((n) => (typeof n === "number" ? n : NaN));
+      if (![min, max, step, value].every(Number.isFinite) || !(min < max) || !(step > 0) || value < min || value > max) out.push(`${at} needs numbers min < max, a step above 0 and a value between them.`);
+      if (!TUNE_UNITS.includes(String(t.unit ?? ""))) out.push(`${at}.unit must be one of: ${TUNE_UNITS.filter(Boolean).join(", ")}, or left out.`);
+    } else if (t.type === "choice") {
+      const options = Array.isArray(t.options) ? t.options : [];
+      if (options.length < 2 || options.length > 5 || options.some((o) => !String(o?.label ?? "").trim() || !CHOICE_VALUE.test(String(o?.value ?? "")))) out.push(`${at}.options must be two to five, each with a label and a plain CSS value.`);
+      else if (!options.some((o) => String(o.value) === String(t.value ?? ""))) out.push(`${at}.value must be one of its options' values.`);
+    } else out.push(`${at}.type must be color, number or choice.`);
+  });
+  return out;
+}
+
+/** A view's tuning controls as the page uses them. Only for a view whose tune was checked when it was added. */
+export function tuneOf(view) {
+  if (!Array.isArray(view?.tune)) return [];
+  return view.tune.filter((t) => t && typeof t === "object" && TUNE_VAR.test(String(t.var ?? ""))).map((t) => ({
+    var: String(t.var), label: String(t.label ?? t.var), type: String(t.type), value: t.type === "color" ? String(t.value).toLowerCase() : String(t.value ?? ""),
+    min: Number(t.min), max: Number(t.max), step: Number(t.step), unit: String(t.unit ?? ""),
+    options: Array.isArray(t.options) ? t.options.map((o) => ({ label: String(o?.label ?? ""), value: String(o?.value ?? "") })) : [],
+  }));
+}
+
+/**
+ * The CSS value one tuning control gives for a raw value from the page, or null when the control cannot take it.
+ * The page runs this same function, so what the person sees is what the agent is told.
+ */
+export function tuneValue(t, raw) {
+  const v = String(raw ?? "").trim();
+  if (t.type === "color") return /^#[0-9a-f]{6}$/i.test(v) ? v.toLowerCase() : null;
+  if (t.type === "choice") return (t.options || []).some((o) => o.value === v) ? v : null;
+  if (t.type !== "number" || !/^-?\d+(\.\d+)?$/.test(v)) return null;
+  const n = Number(v), places = Math.min(6, (String(t.step).split(".")[1] || "").length);
+  return n >= t.min - 1e-9 && n <= t.max + 1e-9 ? `${Number(n.toFixed(places))}${t.unit || ""}` : null;
+}
+
+/**
+ * One part of a running version the person pointed at, as the page reports it: whitelisted keys, plain one-line
+ * strings with a fixed most, whole numbers. Null when it is not a part. Everything in it came from the running
+ * version, which is generated code, so it is only ever data. The page runs this same function.
+ */
+export function cleanPoint(x) {
+  const STYLES = ["display", "font-family", "font-size", "font-weight", "line-height", "letter-spacing", "text-align", "text-transform", "color", "background", "padding", "margin", "gap", "border", "border-radius", "box-shadow", "opacity"];
+  const str = (v, n) => (typeof v === "string" ? v.slice(0, n * 4).replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]+/g, " ").replace(/\s+/g, " ").trim().slice(0, n) : "");
+  const num = (v) => (typeof v === "number" && Number.isFinite(v) ? Math.round(Math.max(-1e6, Math.min(1e6, v))) : 0);
+  if (!x || typeof x !== "object") return null;
+  const tag = str(x.tag, 40).toLowerCase(), selector = str(x.selector, 400);
+  if (!/^[a-z][a-z0-9-]*$/.test(tag) || !selector) return null;
+  const box = x.box && typeof x.box === "object" ? x.box : {}, styles = {};
+  if (x.styles && typeof x.styles === "object") for (const k of STYLES) { const v = str(x.styles[k], 120); if (v) styles[k] = v; }
+  return { tag, selector, text: str(x.text, 160), label: str(x.label, 120), box: { x: num(box.x), y: num(box.y), w: num(box.w), h: num(box.h) }, viewport: num(x.viewport), styles };
+}
+
+/**
+ * What a revise or an apply hands the agent on its NOTE line. A revise with only words stays the person's words,
+ * one plain line. Notes on parts or tuned values make it one line of JSON:
+ *   { "say": "...", "points": [{ "n", "say", "tag", "selector", "text", "label", "box", "viewport", "styles" }],
+ *     "tuned": [{ "var", "label", "from", "to" }] }
+ * An apply carries only tuned values, or nothing. Throws on anything the page would not send.
+ */
+export function noteFor(view, kind, data = {}) {
+  const tune = tuneOf(view), given = data.tuned ?? {};
+  if (!given || typeof given !== "object" || Array.isArray(given)) throw new Error("tuned values must be an object");
+  for (const name of Object.keys(given)) if (!tune.some((t) => t.var === name)) throw new Error(`${name} is not offered for tuning on this version`);
+  const tuned = [];
+  for (const t of tune) {
+    if (!Object.hasOwn(given, t.var)) continue;
+    const to = tuneValue(t, given[t.var]), from = tuneValue(t, t.value);
+    if (to === null) throw new Error(`${t.var} cannot take that value`);
+    if (to !== from) tuned.push({ var: t.var, label: t.label, from, to });
+  }
+  if (kind === "a") return tuned.length ? JSON.stringify({ tuned }) : "";
+  const say = cleanNote(data.note), list = data.points ?? [];
+  if (!Array.isArray(list) || list.length > POINTS) throw new Error(`at most ${POINTS} notes on parts`);
+  if (list.length && !view.live) throw new Error("only a running version can be pointed at");
+  const points = list.map((p, i) => {
+    const el = cleanPoint(p?.el), words = cleanNote(p?.say).slice(0, POINT_SAY);
+    if (!el || !words) throw new Error("a note on a part needs the part and the words");
+    return { n: i + 1, say: words, ...el };
+  });
+  if (!points.length && !tuned.length) return say;
+  return JSON.stringify({ ...(say ? { say } : {}), ...(points.length ? { points } : {}), ...(tuned.length ? { tuned } : {}) });
 }
 
 // One line that opens when pressed. Everything past the headline, the picture and the next steps is one of these,
 // so the page shows its point and the reader chooses what to read.
 const row = (title, inner, { n = "", open = false, quiet = false } = {}) => `<details class="row${quiet ? " quiet" : ""}"${open ? " open" : ""}><summary>${n ? `<span class="num">${esc(n)}</span>` : ""}<span>${esc(title)}</span></summary><div class="body">${inner}</div></details>`;
 const list = (items, cls = "") => `<ul${cls ? ` class="${cls}"` : ""}>${items.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>`;
+
+// What runs inside a running version that can be steered. /live puts it first in the version's document, and it
+// removes its own script tag. Until the Keen page asks for something it does nothing but listen for the page's
+// messages: no element, no style, and its other listeners return at once. Pointing lays a clear sheet over the
+// version, so the version's own code sees no press while the person points, and nothing of the version changes
+// when pointing stops. Tuning sets the version's own CSS custom properties on its root element. Whatever it
+// reports, the Keen page treats as data from generated code.
+function inFrame() {
+  const self = document.currentScript;
+  if (self) self.remove();
+  if (window.parent === window) return;
+  const home = location.protocol + "//" + location.host;
+  const READ = ["display", "font-family", "font-size", "font-weight", "line-height", "letter-spacing", "text-align", "text-transform", "color", "padding", "margin", "gap", "border", "border-radius", "box-shadow", "opacity"];
+  const PLAIN = /^(normal|none|auto|0px|0px 0px|0px 0px 0px 0px|1|start)$|^0px none /;
+  const SKIP = /^(script|style|template|noscript|meta|link|title|br|wbr|keen-point)$/;
+  const PRESS = ["pointerdown", "pointermove", "pointerup", "pointercancel", "pointerover", "pointerout", "pointerenter", "pointerleave", "mousedown", "mousemove", "mouseup", "mouseover", "mouseout", "mouseenter", "mouseleave", "click", "dblclick", "auxclick", "contextmenu", "touchstart", "touchmove", "touchend", "touchcancel", "wheel"];
+  const KEYS = ["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Enter", " ", "Escape"];
+  let host = null, root = null, sheet = null, frame = 0, pointing = false, cand = null, picked = null, pickedN = 0, marks = [];
+  const before = new Map();
+  const post = (m) => { try { parent.postMessage(Object.assign({ keen: 1 }, m), home); } catch (e) { /* not inside the Keen page */ } };
+  const flat = (s, n) => String(s || "").replace(/\s+/g, " ").trim().slice(0, n);
+  const esc = (s) => (window.CSS && CSS.escape ? CSS.escape(s) : String(s).replace(/[^\w-]/g, "\\$&"));
+  const find = (sel) => { try { return document.querySelector(sel); } catch (e) { return null; } };
+  const only = (sel) => { try { return document.querySelectorAll(sel).length === 1; } catch (e) { return false; } };
+  function selectorOf(el) {
+    if (el.id && only("#" + esc(el.id))) return "#" + esc(el.id);
+    const parts = [];
+    for (let n = el; n && n.nodeType === 1 && n !== document.documentElement; n = n.parentElement) {
+      if (n !== el && n.id && only("#" + esc(n.id))) { parts.unshift("#" + esc(n.id)); break; }
+      let part = n.localName;
+      const cls = Array.from(n.classList).filter((c) => /^[A-Za-z_][\w-]*$/.test(c)).slice(0, 2);
+      if (cls.length) part += "." + cls.map(esc).join(".");
+      const up = n.parentElement;
+      if (up) { const same = Array.from(up.children).filter((c) => c.localName === n.localName); if (same.length > 1) part += ":nth-of-type(" + (same.indexOf(n) + 1) + ")"; }
+      parts.unshift(part);
+      if (n === document.body) break;
+    }
+    return parts.join(" > ");
+  }
+  function describe(el) {
+    const r = el.getBoundingClientRect(), cs = getComputedStyle(el), styles = {};
+    for (const k of READ) { const v = cs.getPropertyValue(k).trim(); if (v && !PLAIN.test(v)) styles[k] = v.slice(0, 120); }
+    for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
+      const s = getComputedStyle(n);
+      if (s.backgroundImage && s.backgroundImage !== "none") { styles.background = s.backgroundImage.slice(0, 120); break; }
+      if (s.backgroundColor && !/^(transparent|rgba\(0, 0, 0, 0\))$/.test(s.backgroundColor)) { styles.background = s.backgroundColor; break; }
+    }
+    const text = typeof el.innerText === "string" ? el.innerText : el.textContent;
+    const label = el.getAttribute("aria-label") || el.getAttribute("alt") || el.getAttribute("title") || el.getAttribute("placeholder") || "";
+    return { tag: el.localName.toLowerCase(), selector: selectorOf(el), text: flat(text, 160), label: flat(label, 120), box: { x: Math.round(r.left + scrollX), y: Math.round(r.top + scrollY), w: Math.round(r.width), h: Math.round(r.height) }, at: { x: r.left, y: r.top, w: r.width, h: r.height }, viewport: innerWidth, styles };
+  }
+  const named = (el) => (el ? { tag: el.localName.toLowerCase(), text: flat(typeof el.innerText === "string" ? el.innerText : el.textContent, 60), label: flat(el.getAttribute("aria-label") || el.getAttribute("alt") || "", 60) } : null);
+  const later = () => { if (!frame) frame = requestAnimationFrame(draw); };
+  function ensure() {
+    if (host) return;
+    host = document.createElement("keen-point");
+    host.setAttribute("aria-hidden", "true");
+    host.style.cssText = "all:initial!important;position:fixed!important;inset:0!important;z-index:2147483647!important;pointer-events:none!important;display:block!important";
+    root = host.attachShadow({ mode: "open" });
+    const css = document.createElement("style");
+    css.textContent = ".m{position:fixed;box-sizing:border-box;border-radius:4px;box-shadow:0 0 0 2px #03130a,0 0 0 4px oklch(0.86 0.21 150);pointer-events:none}.m.c{background:rgba(46,204,113,.12);box-shadow:0 0 0 2px #03130a,0 0 0 4px rgba(255,255,255,.9)}.m.p{background:rgba(46,204,113,.16)}.m b{position:absolute;left:-4px;top:-28px;min-width:24px;height:24px;padding:0 7px;box-sizing:border-box;border-radius:12px;background:oklch(0.86 0.21 150);color:#03130a;font:700 13px/24px system-ui,-apple-system,sans-serif;text-align:center;box-shadow:0 0 0 2px #03130a}.m b.in{top:4px;left:4px}.s{position:fixed;inset:0;cursor:crosshair;pointer-events:none}";
+    sheet = document.createElement("div");
+    sheet.className = "s";
+    root.append(css, sheet);
+    document.documentElement.appendChild(host);
+    addEventListener("scroll", later, true);
+    addEventListener("resize", later);
+  }
+  function drop() {
+    if (!host) return;
+    host.remove(); host = root = sheet = null;
+    removeEventListener("scroll", later, true);
+    removeEventListener("resize", later);
+  }
+  function draw() {
+    frame = 0;
+    if (!root) return;
+    root.querySelectorAll(".m").forEach((n) => n.remove());
+    const outline = (el, cls, n) => {
+      if (!el || !el.isConnected) return;
+      const r = el.getBoundingClientRect();
+      if (!r.width && !r.height) return;
+      const d = document.createElement("div");
+      d.className = "m " + cls;
+      d.style.cssText = "left:" + r.left + "px;top:" + r.top + "px;width:" + r.width + "px;height:" + r.height + "px";
+      if (n) { const b = document.createElement("b"); b.textContent = String(n); if (r.top < 30) b.className = "in"; d.appendChild(b); }
+      root.appendChild(d);
+    };
+    for (const m of marks) outline(find(m.selector), "", m.n);
+    if (picked) outline(picked, "p", pickedN);
+    if (pointing && cand && cand !== picked) outline(cand, "c", 0);
+    if (!pointing && !marks.length && !picked) drop();
+  }
+  const under = (x, y) => { for (const el of document.elementsFromPoint(x, y)) if (el !== host && el !== document.documentElement && el !== document.body) return el; return null; };
+  // Said aloud on the Keen page, so only a move made from the keyboard is reported; the mouse has the outline.
+  const hover = () => post({ type: "hover", el: named(cand) });
+  function pick(el) { picked = el; pickedN = 0; later(); post({ type: "picked", el: describe(el) }); }
+  function start() {
+    ensure();
+    pointing = true;
+    sheet.style.pointerEvents = "auto";
+    const f = document.activeElement;
+    if (!cand && f && f !== document.body && f !== document.documentElement) { cand = f; hover(); }
+    later();
+  }
+  function stop() { pointing = false; cand = null; if (sheet) sheet.style.pointerEvents = "none"; later(); }
+  function step(dir) {
+    const all = Array.from(document.body ? document.body.querySelectorAll("*") : []).filter((el) => !SKIP.test(el.localName) && el.getClientRects().length > 0);
+    if (!all.length) return;
+    let i = cand ? all.indexOf(cand) : -1;
+    i = i < 0 ? (dir > 0 ? 0 : all.length - 1) : Math.max(0, Math.min(all.length - 1, i + dir));
+    cand = all[i];
+    cand.scrollIntoView({ block: "nearest", inline: "nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "auto" });
+    later(); hover();
+  }
+  // While pointing, every press lands on the sheet and stops here, before the version's own listeners.
+  const press = (e) => {
+    if (!pointing || e.target !== host) return;
+    e.stopImmediatePropagation();
+    if (e.type === "pointermove" || e.type === "mousemove") { const el = under(e.clientX, e.clientY); if (el !== cand) { cand = el; later(); } return; }
+    if (e.type === "click") { const el = under(e.clientX, e.clientY); if (el) pick(el); }
+    if (e.cancelable && !/^(touch|wheel)/.test(e.type)) e.preventDefault();
+  };
+  for (const type of PRESS) addEventListener(type, press, /^(touch|wheel)/.test(type) ? { capture: true, passive: true } : true);
+  const keys = (e) => {
+    if (!pointing || !KEYS.includes(e.key) || e.metaKey || e.ctrlKey || e.altKey) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    if (e.type !== "keydown") return;
+    if (e.key === "Escape") { stop(); post({ type: "exit" }); }
+    else if (e.key === "Enter" || e.key === " ") { if (cand) pick(cand); }
+    else step(e.key === "ArrowDown" || e.key === "ArrowRight" ? 1 : -1);
+  };
+  for (const type of ["keydown", "keypress", "keyup"]) addEventListener(type, keys, true);
+  addEventListener("focusin", (e) => { if (pointing && e.target && e.target.nodeType === 1 && e.target !== document.body && e.target !== host) { cand = e.target; later(); hover(); } }, true);
+  function tune(values) {
+    const want = values && typeof values === "object" ? values : {}, style = document.documentElement.style;
+    for (const [name, was] of Array.from(before)) if (!Object.prototype.hasOwnProperty.call(want, name)) { if (was) style.setProperty(name, was); else style.removeProperty(name); before.delete(name); }
+    for (const name of Object.keys(want).slice(0, 8)) {
+      const value = want[name];
+      if (!/^--[A-Za-z][\w-]{0,40}$/.test(name) || typeof value !== "string" || value.length > 80) continue;
+      if (!before.has(name)) before.set(name, style.getPropertyValue(name));
+      style.setProperty(name, value);
+    }
+    later();
+  }
+  addEventListener("message", (e) => {
+    if (e.source !== parent) return;
+    const d = e.data;
+    if (!d || typeof d !== "object" || d.keen !== 1) return;
+    e.stopImmediatePropagation();
+    if (d.type === "point") { if (d.on) start(); else stop(); }
+    else if (d.type === "marks") {
+      marks = (Array.isArray(d.marks) ? d.marks : []).slice(0, 12).filter((m) => m && typeof m.selector === "string").map((m) => ({ n: Number(m.n) || 0, selector: m.selector }));
+      picked = d.pending && typeof d.pending.selector === "string" ? find(d.pending.selector) : null;
+      pickedN = d.pending ? Number(d.pending.n) || 0 : 0;
+      if (marks.length || picked) ensure();
+      later();
+    } else if (d.type === "tune") tune(d.values);
+  }, true);
+  const ready = () => post({ type: "ready" });
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", ready, { once: true }); else ready();
+}
+const IN_FRAME = Buffer.from(`<script>(${inFrame.toString()})();</script>`);
+if (/<\/script/i.test(inFrame.toString())) throw new Error("The frame script must not close its own tag.");
+
+/** A running version's document with the steering script placed first: after any doctype, before anything else. */
+export function withSteering(html) {
+  const buf = Buffer.isBuffer(html) ? html : Buffer.from(String(html));
+  const lead = /^(?:﻿|\xEF\xBB\xBF)?\s*(?:<!--[\s\S]*?-->\s*)*(?:<!doctype[^>]*>)?/i.exec(buf.toString("latin1"));
+  const at = lead ? lead[0].length : 0;
+  return Buffer.concat([buf.subarray(0, at), IN_FRAME, buf.subarray(at)]);
+}
 
 const SIZES = { phone: [390, 800], desktop: [1440, 900] };
 const LOCAL_URL = /^http:\/\/(127\.0\.0\.1|localhost)(:\d{2,5})?(\/[^\s"'<>]*)?$/;
@@ -192,9 +484,12 @@ ${ws.brief ? `<p class="brief"><b>Brief</b> ${esc(ws.brief)}</p>` : ""}
 <div class="seg" role="group" aria-label="Size"><button type="button" data-size="phone" aria-pressed="false">Phone</button><button type="button" data-size="desktop" aria-pressed="false">Desktop</button></div>
 <label class="pick">Beside <select data-compare><option value="-1">Nothing</option>${views.map((v, i) => `<option value="${i}">${esc(v.name)}</option>`).join("")}</select></label></div>
 <p class="stale" data-stale role="status" hidden></p>
-<div class="stage"><div class="pane" data-pane="0"></div><div class="pane" data-pane="1" hidden></div></div>
+<div class="steer" data-steer hidden><button type="button" class="point" data-point><span class="ring" aria-hidden="true"></span><span data-point-label>Point at a part</span></button><button type="button" class="tunes" data-tunes aria-expanded="false" hidden>Tune</button><div class="tune" data-tune role="group" data-folded></div><button type="button" class="reset" data-tune-reset hidden>Reset</button></div>
+<p class="phint" data-point-hint role="status" aria-live="polite"></p>
+<div class="stage"><div class="pane" data-pane="0"></div><div class="pane" data-pane="1" hidden></div>
+<form class="pop" data-pop hidden><div class="pophead"><p class="what" data-pop-what></p><button type="button" class="x" data-pop-cancel>Cancel</button></div><label for="pop-${esc(ws.id || "ws")}">What should change here?</label><div class="poprow"><input id="pop-${esc(ws.id || "ws")}" type="text" maxlength="${POINT_SAY}" autocomplete="off" enterkeyhint="done" data-pop-input><button type="submit" class="add">Add note</button></div></form></div>
 <div class="wsfoot"><div class="about"><h3 data-ws-name></h3><p data-ws-bet></p><p class="rev" data-ws-note></p></div>
-<form data-revise><label for="ask-${esc(ws.id || "ws")}">What should change in <b data-ws-short></b>?</label><textarea id="ask-${esc(ws.id || "ws")}" rows="3" maxlength="${NOTE_MAX}" placeholder="Say it in your own words. Your agent revises this version and it updates here."></textarea>
+<form data-revise><div class="pnotes" data-pnotes hidden><p class="plabel" data-pnotes-label></p><ol data-pnote-list></ol></div><label for="ask-${esc(ws.id || "ws")}">What should change in <b data-ws-short></b>?</label><textarea id="ask-${esc(ws.id || "ws")}" rows="3" maxlength="${NOTE_MAX}" placeholder="Say it in your own words. Your agent revises this version and it updates here."></textarea>
 <div class="acts"><button type="submit" data-ask>Ask for this change</button><button type="button" class="go" data-apply>Apply this one</button></div></form></div>
 <div hidden>${views.map((v, i) => media(v, "phone", i, liveKey) + media(v, "desktop", i, liveKey)).join("")}</div>
 </section>`;
@@ -477,6 +772,41 @@ button.jump{min-height:34px;padding:4px 12px;font-size:13.5px;line-height:1.3;bo
 .props{margin-top:28px}.props .label{margin-bottom:12px}.props ul{list-style:none;padding:0;margin:0;max-width:none;display:grid;gap:10px}
 .prop{margin:0;padding:14px 16px;border:1px dashed var(--line2);border-radius:12px}.prop .ptag{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:0 0 10px}.prop h4{font-size:16px;font-weight:600;letter-spacing:-0.01em;margin:0 0 6px}.prop p{font-size:14.5px;color:var(--soft)}.prop .rests{margin:10px 0 0}
 .evin>.rows{margin-top:24px}
+.steer{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;margin:0 0 10px;padding:6px;border:1px solid var(--line);border-radius:14px;background:var(--card)}.steer[hidden]{display:none}
+.steer>button{min-height:40px}
+button.point{display:inline-flex;align-items:center;gap:9px}
+.ring{position:relative;width:14px;height:14px;border-radius:50%;border:1.5px solid currentColor;flex:none}.ring::after{content:"";position:absolute;inset:2.5px;border-radius:50%;background:currentColor}
+.ws[data-pointing] button.point,.ws[data-pointing] button.point:hover{background:var(--green);border-color:var(--green);color:var(--on-green)}
+.tune{display:flex;flex-wrap:wrap;align-items:center;gap:0 20px;min-width:0}.tune[hidden]{display:none}
+.tv{display:inline-flex;align-items:center;gap:10px;min-height:44px;margin:0;font-size:14px;color:var(--soft)}
+.tn{color:var(--ink);font-weight:500;white-space:nowrap}
+.tv input[type=range]{width:128px;height:32px;margin:0;accent-color:oklch(0.86 0.21 150);background:transparent;cursor:pointer}
+.tv input[type=color]{width:40px;height:32px;padding:2px;border:1px solid var(--line2);border-radius:8px;background:var(--card2);cursor:pointer}
+.tv output{font:500 12.5px/1 var(--mono);color:var(--soft);min-width:6ch}
+.tv .seg{padding:2px}.tv .seg button{min-height:32px;padding:0 10px;font-size:13.5px}
+.tv input:focus-visible,.pop input:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+button.reset,button.tunes,.pop button.x,.pnotes li button{background:transparent;border-color:transparent;color:var(--soft)}button.reset:hover,.pop button.x:hover,.pnotes li button:hover{color:var(--ink)}
+button.reset{padding:0 10px}button.tunes{display:none}
+.phint{max-width:none;margin:-2px 0 10px;font-size:14px;color:var(--soft)}.phint:empty{display:none}
+.stage{position:relative}
+.ws[data-pointing] [data-pane="0"] .dev{border-color:var(--green);box-shadow:0 0 0 1px var(--green)}
+.dev:focus-within{outline:2px solid var(--green);outline-offset:3px}
+.pop{position:absolute;z-index:2;left:8px;top:8px;width:min(360px,calc(100% - 16px));display:grid;gap:8px;margin:0;padding:10px 10px 12px 14px;border-radius:14px;background:rgba(18,18,18,.97);border:1px solid var(--line2);box-shadow:0 24px 60px -12px rgba(0,0,0,.95)}.pop[hidden]{display:none}
+.pophead{display:flex;align-items:center;gap:8px}
+.what{flex:1 1 auto;min-width:0;margin:0;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:var(--ink);overflow-wrap:anywhere}
+.pop label{font-size:13.5px;color:var(--soft)}
+.poprow{display:flex;gap:8px}
+.pop input{flex:1 1 auto;min-width:0;font:inherit;font-size:16px;min-height:44px;padding:0 12px;border-radius:10px;border:1px solid var(--line2);background:var(--card2);color:var(--ink)}
+.pop button.x{min-height:36px;padding:0 10px;font-size:13.5px}
+.pn{flex:none;display:inline-block;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--green);color:var(--on-green);font:700 12px/22px var(--sans);text-align:center}
+.pnotes{border:1px solid var(--line);border-radius:12px;background:var(--card)}.pnotes[hidden]{display:none}
+.plabel{margin:0;padding:10px 12px 0;font:500 11px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.pnotes ol{list-style:none;margin:0;padding:2px 0;max-width:none}
+.pnotes li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:start;margin:0;padding:8px 6px 8px 12px}.pnotes li+li{border-top:1px solid var(--line)}.pnotes li .pn{margin-top:1px}
+.pw{display:block;font-size:13px;color:var(--dim);overflow-wrap:anywhere}.ps{display:block;font-size:15px;color:var(--ink);overflow-wrap:anywhere}
+.pnotes li button{min-height:36px;padding:0 10px;font-size:13px}
+button.tunes::after{content:"";width:7px;height:7px;margin:0 2px 3px 10px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg)}button.tunes[aria-expanded=true]::after{transform:rotate(225deg);margin-bottom:-3px}
+@media (max-width:699px){button.tunes:not([hidden]){display:inline-flex;align-items:center}.steer>button.point{flex:1 1 auto;justify-content:center}.tune{flex-basis:100%;flex-direction:column;align-items:stretch;gap:0;padding:0 6px}.tune[data-folded]{display:none}.tv .tn{flex:1 1 auto}.tv input[type=range]{width:min(170px,42vw)}}
 @media (max-width:820px){.ws.two .stage{grid-template-columns:1fr}.trio{grid-template-columns:1fr}.hero{padding:20px 0 18px}.sec{margin-top:32px}.gallery{padding:16px;border-radius:14px}main{padding-bottom:230px}}
 @media (max-width:560px){.top .in{flex-wrap:wrap;padding:8px 16px;gap:8px}.pick select{max-width:44vw}main{padding-left:16px;padding-right:16px}.state{max-width:60vw}#bar{padding:10px 10px 10px 14px}#copyall[disabled]{display:none}
 .evbox>summary{padding-left:14px}.evin{padding:0 14px 16px}.evbar .pick{flex:1 1 100%}.evbar .pick select{max-width:none}.evcount{margin-left:0}.claim{grid-template-columns:36px minmax(0,1fr)}.cb{padding-right:4px}.ob{padding:10px 12px}}`;
@@ -502,37 +832,121 @@ function drawState(){
   book.querySelectorAll("[data-stale]").forEach((el)=>{el.hidden=moved.length===0;el.textContent=moved.length?"The project's files changed after these previews were made ("+moved.join(", ")+"). Applying keeps those edits where it can and stops if it cannot.":""});
 }
 function fit(pane){pane.querySelectorAll(".dev").forEach((d)=>{const w=Number(d.dataset.w),h=Number(d.dataset.h),s=Math.min(1,(pane.clientWidth||w)/w),f=d.firstElementChild;d.style.width=w*s+"px";d.style.height=h*s+"px";f.style.width=w+"px";f.style.height=h+"px";f.style.transform="scale("+s+")"})}
+// A running version that can be steered talks to this page only through messages. Each one is checked against the
+// frame it must come from, read as data, capped and shown as text; none of them can start, apply or revise anything.
+const frames=new WeakMap(),steers={};
+addEventListener("message",(e)=>{const f=frames.get(e.source);if(!f||e.origin!=="null")return;const d=e.data;if(!d||typeof d!=="object"||Array.isArray(d)||d.keen!==1||typeof d.type!=="string")return;if(f.ws.isConnected&&f.ws._msg)f.ws._msg(f,d)});
+const NAMES={a:"Link",button:"Button",h1:"Heading",h2:"Heading",h3:"Heading",h4:"Heading",h5:"Heading",h6:"Heading",p:"Text",span:"Text",strong:"Text",em:"Text",small:"Text",b:"Text",i:"Text",label:"Label",img:"Picture",picture:"Picture",figure:"Figure",figcaption:"Caption",svg:"Drawing",canvas:"Drawing",path:"Shape",rect:"Shape",circle:"Shape",input:"Field",textarea:"Field",select:"Menu",li:"List item",ul:"List",ol:"List",dl:"List",nav:"Navigation",header:"Header",footer:"Footer",main:"Main area",section:"Section",article:"Card",aside:"Side panel",form:"Form",table:"Table",tr:"Table row",td:"Cell",th:"Cell",div:"Block",time:"Time",blockquote:"Quote",hr:"Divider"};
+const partName=(el)=>{const t=String(el.text||el.label||"");return (NAMES[el.tag]||el.tag)+(t?" “"+(t.length>44?t.slice(0,43)+"…":t)+"”":"")};
+const rectOf=(a)=>{const n=(v)=>typeof v==="number"&&isFinite(v)?Math.max(-1e5,Math.min(1e5,v)):0;return a&&typeof a==="object"?{x:n(a.x),y:n(a.y),w:n(a.w),h:n(a.h)}:{x:0,y:0,w:0,h:0}};
+const pointingHint=()=>matchMedia("(pointer: coarse)").matches?"Tap a part of this version to say what should change there.":"Click a part of this version, or use the arrow keys and Enter. Esc stops.";
 function wireWs(page,p){
   const ws=page.querySelector("[data-ws]");if(!ws)return;
   const views=pages[p].views,key=pages[p].ws,first=Math.max(0,views.findIndex((v)=>v.suggested)>=0?views.findIndex((v)=>v.suggested):views.findIndex((v)=>!v.original));
-  const st=picked[key]||(picked[key]={view:first,size:"phone",cmp:-1});
+  const st=picked[key]||(picked[key]={view:first,size:"phone",cmp:-1,pointing:false,open:false});
   if(st.view>=views.length)st.view=first;if(st.cmp>=views.length)st.cmp=-1;
-  const panes=[...ws.querySelectorAll("[data-pane]")],form=ws.querySelector("[data-revise]"),box=form.querySelector("textarea"),applyBtn=ws.querySelector("[data-apply]"),cmp=ws.querySelector("[data-compare]");
-  const fill=(pane,i)=>{pane.textContent="";const cap=document.createElement("p");cap.className="cap";cap.textContent=views[i].name+(views[i].rev>1?" · revision "+views[i].rev:"");const m=ws.querySelector('[data-media="'+i+":"+st.size+'"]').cloneNode(true);m.removeAttribute("data-media");pane.append(cap,m);m.querySelectorAll("iframe[data-src]").forEach((f)=>{f.src=f.dataset.src});fit(pane)};
+  const $=(s)=>ws.querySelector(s);
+  const panes=[...ws.querySelectorAll("[data-pane]")],form=$("[data-revise]"),box=form.querySelector("textarea"),applyBtn=$("[data-apply]"),askBtn=$("[data-ask]"),cmp=$("[data-compare]");
+  const bar=$("[data-steer]"),pointBtn=$("[data-point]"),pointLabel=$("[data-point-label]"),tunesBtn=$("[data-tunes]"),tuneEl=$("[data-tune]"),resetBtn=$("[data-tune-reset]"),hintEl=$("[data-point-hint]");
+  const pop=$("[data-pop]"),popWhat=$("[data-pop-what]"),popInput=$("[data-pop-input]"),notesEl=$("[data-pnotes]"),notesLabel=$("[data-pnotes-label]"),notesList=$("[data-pnote-list]");
+  // What the person has pointed at and tuned, per version and revision: a new revision starts clean.
+  const steerOf=(i)=>{const v=views[i],k=key+"\\n"+v.name+"\\n"+v.rev;return steers[k]||(steers[k]={points:[],pending:null,tuned:{},draft:""})};
+  const steering=()=>Boolean(TOKEN&&views[st.view].steer);
+  const main=()=>panes[0].querySelector("iframe");
+  const tell=(f,msg)=>{try{if(f&&f.contentWindow)f.contentWindow.postMessage(Object.assign({keen:1},msg),"*")}catch{}};
+  const values=(i)=>{const s=steerOf(i),out={};(views[i].tune||[]).forEach((t)=>{if(s.tuned[t.var]!==undefined){const v=tuneValue(t,s.tuned[t.var]);if(v!==null)out[t.var]=v}});return out};
+  const tunedCount=(i)=>Object.keys(steerOf(i).tuned).length;
+  const marks=()=>{const s=steerOf(st.view);tell(main(),{type:"marks",marks:s.points.map((q)=>({n:q.n,selector:q.el.selector})),pending:s.pending?{n:s.points.length+1,selector:s.pending.el.selector}:null})};
+  const hint=(t)=>{hintEl.textContent=t};
+  const restHint=()=>{const n=steerOf(st.view).points.length;hint(st.pointing?pointingHint():n?(n===1?"1 note on this version. It goes with Ask for this change.":n+" notes on this version. They go with Ask for these changes."):"")};
+  const fill=(pane,i)=>{pane.textContent="";const cap=document.createElement("p");cap.className="cap";cap.textContent=views[i].name+(views[i].rev>1?" · revision "+views[i].rev:"");const m=ws.querySelector('[data-media="'+i+":"+st.size+'"]').cloneNode(true);m.removeAttribute("data-media");pane.append(cap,m);m.querySelectorAll("iframe[data-src]").forEach((f)=>{f.src=f.dataset.src;if(views[i].steer)frames.set(f.contentWindow,{ws,i,el:f,main:pane===panes[0]})});fit(pane)};
+  const labels=()=>{
+    const v=views[st.view],s=steerOf(st.view),n=s.points.length,t=tunedCount(st.view);
+    askBtn.textContent=n+t>0?"Ask for these changes":"Ask for this change";
+    applyBtn.textContent=v.original?"Keep it as it is":"Apply "+v.name+(t?" as tuned":"");
+    resetBtn.hidden=!t;tunesBtn.textContent=t?"Tune · "+t+" changed":"Tune";
+    notesEl.hidden=!n;notesLabel.textContent=n===1?"1 note on a part":n+" notes on parts";notesList.textContent="";
+    s.points.forEach((q,j)=>{const li=document.createElement("li"),b=document.createElement("span"),txt=document.createElement("div"),w=document.createElement("span"),said=document.createElement("span"),x=document.createElement("button");b.className="pn";b.textContent=String(q.n);w.className="pw";w.textContent=partName(q.el);said.className="ps";said.textContent=q.say;txt.append(w,said);x.type="button";x.textContent="Remove";x.setAttribute("aria-label","Remove note "+q.n);x.addEventListener("click",()=>{s.points.splice(j,1);s.points.forEach((r,m)=>{r.n=m+1});labels();marks();restHint();(notesList.querySelector("button")||box).focus()});li.append(b,txt,x);notesList.appendChild(li)});
+  };
+  const setTuned=(t,raw)=>{const s=steerOf(st.view);if(tuneValue(t,raw)===tuneValue(t,t.value))delete s.tuned[t.var];else s.tuned[t.var]=String(raw);tell(main(),{type:"tune",values:values(st.view)});labels()};
+  const drawTune=()=>{
+    const s=steerOf(st.view),list=steering()?views[st.view].tune||[]:[];tuneEl.textContent="";
+    list.forEach((t)=>{
+      const raw=s.tuned[t.var]!==undefined?s.tuned[t.var]:t.value,name=document.createElement("span");name.className="tn";name.textContent=t.label;
+      if(t.type==="choice"){const g=document.createElement("div"),seg=document.createElement("div");g.className="tv";g.setAttribute("role","group");g.setAttribute("aria-label",t.label);seg.className="seg";
+        t.options.forEach((o)=>{const b=document.createElement("button");b.type="button";b.textContent=o.label;b.setAttribute("aria-pressed",String(o.value===raw));b.addEventListener("click",()=>{setTuned(t,o.value);seg.querySelectorAll("button").forEach((x,m)=>x.setAttribute("aria-pressed",String(t.options[m].value===o.value)))});seg.appendChild(b)});
+        g.append(name,seg);tuneEl.appendChild(g);return}
+      const l=document.createElement("label"),input=document.createElement("input"),out=document.createElement("output");l.className="tv";input.type=t.type==="color"?"color":"range";input.setAttribute("aria-label",t.label);
+      if(t.type==="number"){input.min=String(t.min);input.max=String(t.max);input.step=String(t.step)}
+      input.value=String(raw);out.textContent=tuneValue(t,raw)||"";input.addEventListener("input",()=>{setTuned(t,input.value);out.textContent=tuneValue(t,input.value)||""});
+      l.append(name,input,out);tuneEl.appendChild(l)});
+    tunesBtn.hidden=!list.length;tuneEl.hidden=!list.length;
+    if(st.open)tuneEl.removeAttribute("data-folded");else tuneEl.setAttribute("data-folded","");tunesBtn.setAttribute("aria-expanded",String(st.open));
+  };
+  const setPointing=(on)=>{st.pointing=Boolean(on)&&steering();ws.toggleAttribute("data-pointing",st.pointing);pointLabel.textContent=st.pointing?"Stop pointing":"Point at a part";tell(main(),{type:"point",on:st.pointing});if(st.pointing){const f=main();if(f)f.focus()}restHint()};
+  // The note card sits beside the part the person picked, inside the stage, and is clamped to it.
+  const placePop=()=>{
+    const s=steerOf(st.view),f=main();if(!s.pending||!f||!steering()){pop.hidden=true;return}
+    pop.hidden=false;const stage=pop.parentElement,sr=stage.getBoundingClientRect(),fr=f.getBoundingClientRect(),dev=f.parentElement,k=fr.width/(Number(dev.dataset.w)||fr.width||1),a=s.pending.at,w=pop.offsetWidth,h=pop.offsetHeight;
+    const ox=fr.left-sr.left-stage.clientLeft,oy=fr.top-sr.top-stage.clientTop,top=Math.max(0,a.y)*k,bottom=Math.min(Number(dev.dataset.h)||1e4,a.y+a.h)*k;
+    let y=oy+bottom+12;if(y+h>stage.clientHeight-8)y=oy+top-h-12;y=Math.max(8,Math.min(y,stage.clientHeight-h-8));
+    const x=Math.max(8,Math.min(ox+Math.max(0,a.x)*k,stage.clientWidth-w-8));pop.style.left=x+"px";pop.style.top=y+"px";
+  };
+  const openPop=(el,at)=>{const s=steerOf(st.view);if(s.points.length>=DATA.max.points){hint("That is the most notes for one request. Send these first.");return}s.pending={el,at};popWhat.textContent="";const b=document.createElement("span");b.className="pn";b.textContent=String(s.points.length+1);popWhat.append(b,document.createTextNode(partName(el)));popInput.value=s.draft;placePop();popInput.focus();marks()};
+  const closePop=(back)=>{const s=steerOf(st.view);s.pending=null;pop.hidden=true;marks();if(back){const f=main();if(st.pointing&&f)f.focus();else pointBtn.focus()}};
+  ws._msg=(f,d)=>{
+    if(d.type==="ready"){if(tunedCount(f.i))tell(f.el,{type:"tune",values:values(f.i)});if(f.main&&f.i===st.view&&f.el===main()){if(steerOf(f.i).points.length)marks();if(st.pointing)tell(f.el,{type:"point",on:true})}return}
+    if(!f.main||f.el!==main()||f.i!==st.view||!st.pointing||!steering()||book.children[current]!==page)return;
+    if(d.type==="hover"){const el=d.el&&typeof d.el==="object"?cleanPoint({tag:d.el.tag,text:d.el.text,label:d.el.label,selector:"-"}):null;hint(el?partName(el)+". Press Enter to pick it.":pointingHint())}
+    else if(d.type==="picked"){const el=cleanPoint(d.el);if(el){hint(pointingHint());openPop(el,rectOf(d.el.at))}}
+    else if(d.type==="exit"){setPointing(false);pointBtn.focus()}
+  };
   const drawWs=()=>{
     const v=views[st.view];
     ws.querySelectorAll("[data-view]").forEach((b)=>b.setAttribute("aria-pressed",String(Number(b.dataset.view)===st.view)));
     ws.querySelectorAll("[data-size]").forEach((b)=>b.setAttribute("aria-pressed",String(b.dataset.size===st.size)));
     cmp.value=String(st.cmp);const two=st.cmp>=0&&st.cmp!==st.view;ws.classList.toggle("two",two);panes[1].hidden=!two;
+    steerOf(st.view).pending=null;pop.hidden=true;if(!steering())st.pointing=false;
     fill(panes[0],st.view);if(two)fill(panes[1],st.cmp);else panes[1].textContent="";
-    ws.querySelector("[data-ws-name]").textContent=v.name+(v.rev>1?" · revision "+v.rev:"");
-    ws.querySelector("[data-ws-bet]").textContent=v.bet;
-    ws.querySelector("[data-ws-note]").textContent=v.rev>1&&v.note?"Changed: "+v.note:"";
-    ws.querySelector("[data-ws-short]").textContent=v.name;
+    $("[data-ws-name]").textContent=v.name+(v.rev>1?" · revision "+v.rev:"");
+    $("[data-ws-bet]").textContent=v.bet;
+    $("[data-ws-note]").textContent=v.rev>1&&v.note?"Changed: "+v.note:"";
+    $("[data-ws-short]").textContent=v.name;
     if(v.revise)form.removeAttribute("data-plain");else form.setAttribute("data-plain","");
-    applyBtn.textContent=v.original?"Keep it as it is":"Apply "+v.name;applyBtn.hidden=!v.apply;applyBtn.disabled=!TOKEN;
-    form.querySelector("[data-ask]").disabled=!TOKEN;
+    applyBtn.hidden=!v.apply;applyBtn.disabled=!TOKEN;askBtn.disabled=!TOKEN;
+    bar.hidden=!steering();ws.toggleAttribute("data-pointing",st.pointing);pointLabel.textContent=st.pointing?"Stop pointing":"Point at a part";
+    drawTune();labels();restHint();
   };
-  const send=async(kind,note)=>{const v=views[st.view];try{const res=await fetch("/choose",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({k:TOKEN,page:p,picks:[[kind,st.view]],note})});if(!res.ok)throw new Error(String(res.status));const out=await res.json();live=out.live;const what=kind==="r"?"Asked for a change to "+v.name:v.original?"Keeping it as it is":"Applying "+v.name;say(out.delivered?what+". This page updates when it is done.":live.working.length?what+". It starts when the current work is done.":what+". Your agent is not listening right now. Say \\"continue\\" in the chat and it will pick this up.");if(kind==="r")box.value=""}catch{say("That did not go through. This page may have lost its connection. Ask your agent to open it again.")}drawState()};
+  const send=async(kind,note)=>{
+    const v=views[st.view],s=steerOf(st.view),body={k:TOKEN,page:p,picks:[[kind,st.view]],note};
+    if(v.steer){body.tuned=Object.assign({},s.tuned);if(kind==="r")body.points=s.points.map((q)=>({say:q.say,el:q.el}))}
+    try{
+      const res=await fetch("/choose",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)});if(!res.ok)throw new Error(String(res.status));
+      const out=await res.json();live=out.live;
+      const parts=[];if(kind==="r"&&s.points.length)parts.push(s.points.length===1?"1 note on a part":s.points.length+" notes on parts");if(tunedCount(st.view))parts.push("your tuning");
+      const what=(kind==="r"?"Asked for a change to "+v.name:v.original?"Keeping it as it is":"Applying "+v.name)+(parts.length?", with "+parts.join(" and "):"");
+      say(out.delivered?what+". This page updates when it is done.":live.working.length?what+". It starts when the current work is done.":what+". Your agent is not listening right now. Say \\"continue\\" in the chat and it will pick this up.");
+      if(kind==="r"){box.value="";s.points=[];s.pending=null;s.draft="";pop.hidden=true;marks();labels();restHint()}
+    }catch{say("That did not go through. This page may have lost its connection. Ask your agent to open it again.")}
+    drawState();
+  };
   ws.querySelectorAll("[data-view]").forEach((b)=>b.addEventListener("click",()=>{st.view=Number(b.dataset.view);drawWs()}));
   ws.querySelectorAll("[data-size]").forEach((b)=>b.addEventListener("click",()=>{st.size=b.dataset.size;drawWs()}));
   cmp.addEventListener("change",()=>{st.cmp=Number(cmp.value);drawWs()});
-  form.addEventListener("submit",(e)=>{e.preventDefault();const note=box.value.trim();if(!note){say("Say what should change first.");box.focus();return}send("r",note)});
+  form.addEventListener("submit",(e)=>{e.preventDefault();const note=box.value.trim(),s=steerOf(st.view);if(!note&&!s.points.length&&!tunedCount(st.view)){say(steering()?"Say what should change first, point at a part, or tune a value.":"Say what should change first.");box.focus();return}send("r",note)});
   applyBtn.addEventListener("click",()=>send("a",""));
-  ws._key=(n)=>{if(n<views.length){st.view=n;drawWs()}};ws._fit=()=>panes.forEach(fit);
+  pointBtn.addEventListener("click",()=>setPointing(!st.pointing));
+  tunesBtn.addEventListener("click",()=>{st.open=!st.open;drawTune()});
+  resetBtn.addEventListener("click",()=>{steerOf(st.view).tuned={};drawTune();tell(main(),{type:"tune",values:{}});labels();(tuneEl.querySelector("input,button")||pointBtn).focus()});
+  pop.addEventListener("submit",(e)=>{e.preventDefault();const s=steerOf(st.view),said=popInput.value.trim().slice(0,DATA.max.say);if(!s.pending)return;if(!said){hint("Say what should change in this part first.");popInput.focus();return}s.points.push({n:s.points.length+1,el:s.pending.el,say:said});s.draft="";popInput.value="";closePop(true);labels();hint("Note "+s.points.length+" added."+(!st.pointing?"":matchMedia("(pointer: coarse)").matches?" Tap another part, or Stop pointing.":" Point at another part, or press Esc to stop."))});
+  popInput.addEventListener("input",()=>{steerOf(st.view).draft=popInput.value});
+  pop.addEventListener("keydown",(e)=>{if(e.key==="Escape"){e.preventDefault();e.stopPropagation();closePop(true)}});
+  $("[data-pop-cancel]").addEventListener("click",()=>closePop(true));
+  ws._key=(n)=>{if(n<views.length){st.view=n;drawWs()}};ws._fit=()=>{panes.forEach(fit);placePop()};
+  ws._esc=()=>{if(st.pointing){setPointing(false);pointBtn.focus()}};
   drawWs();
 }
-addEventListener("keydown",(e)=>{if(e.metaKey||e.ctrlKey||e.altKey||/^(TEXTAREA|INPUT|SELECT)$/.test(e.target.tagName)||!/^[1-9]$/.test(e.key))return;const ws=book.children[current]&&book.children[current].querySelector("[data-ws]");if(ws&&ws._key)ws._key(Number(e.key)-1)});
+addEventListener("keydown",(e)=>{const ws=book.children[current]&&book.children[current].querySelector("[data-ws]");if(e.key==="Escape"&&ws&&ws._esc){ws._esc();return}if(e.metaKey||e.ctrlKey||e.altKey||/^(TEXTAREA|INPUT|SELECT)$/.test(e.target.tagName)||!/^[1-9]$/.test(e.key))return;if(ws&&ws._key)ws._key(Number(e.key)-1)});
 addEventListener("resize",()=>{const ws=book.children[current]&&book.children[current].querySelector("[data-ws]");if(ws&&ws._fit)ws._fit()});
 function draw(){
   queueEl.textContent="";
@@ -620,7 +1034,10 @@ async function poll(){
 [...book.children].forEach(wire);buildTabs();show(current);
 if(TOKEN){poll();setInterval(poll,1500)}`;
 
-const clientData = (pages) => pages.map((p, i) => ({ tab: String(p.tab || p.title || `Page ${i + 1}`), steps: (p.steps || []).map(optionsOf), menu: (p.menu || []).filter((m) => m.command).map((m) => ({ label: String(m.label ?? ""), why: String(m.why ?? ""), command: String(m.command) })), ws: String(p.workspace?.id ?? ""), views: viewsOf(p).map((v) => ({ name: String(v.name), bet: String(v.bet ?? ""), note: String(v.note ?? ""), rev: Number(v.rev) || 1, original: Boolean(v.original), suggested: Boolean(v.suggested), apply: Boolean(v.apply), revise: Boolean(v.revise) })), evidence: p.evidence || null }));
+const clientData = (pages) => pages.map((p, i) => ({ tab: String(p.tab || p.title || `Page ${i + 1}`), steps: (p.steps || []).map(optionsOf), menu: (p.menu || []).filter((m) => m.command).map((m) => ({ label: String(m.label ?? ""), why: String(m.why ?? ""), command: String(m.command) })), ws: String(p.workspace?.id ?? ""), views: viewsOf(p).map((v) => ({ name: String(v.name), bet: String(v.bet ?? ""), note: String(v.note ?? ""), rev: Number(v.rev) || 1, original: Boolean(v.original), suggested: Boolean(v.suggested), apply: Boolean(v.apply), revise: Boolean(v.revise), steer: Boolean(v.revise && LIVE_FILE.test(String(v.live ?? ""))), tune: v.revise && v.live ? tuneOf(v) : [] })), evidence: p.evidence || null }));
+// The page reads points and tuned values with the same functions the server checks them with.
+const STEER = `${cleanPoint.toString()}\n${tuneValue.toString()}`;
+if (/<\/?script|<!--/i.test(STEER)) throw new Error("cleanPoint and tuneValue are placed inside the page's script and must not hold a script tag.");
 const inScript = (value) => JSON.stringify(value).replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
 const NO_LIVE = { working: [], held: [], listening: false, progress: "", stale: [] };
 const liveKeyOf = (token) => (token ? crypto.createHash("sha256").update(`${token}:live`).digest("hex").slice(0, 32) : "");
@@ -642,12 +1059,13 @@ export function render(pages, { baseDir = process.cwd(), live = null } = {}) {
 </main>
 <div id="bar"><p id="status" role="status" aria-live="polite"></p><p id="held"></p><div class="in"><p class="hint" id="hint"></p><ol id="queue" aria-label="Your run, in order"></ol><button type="button" id="clear" hidden>Clear</button><button type="button" id="copyall">Copy</button><button type="button" class="go" id="start">Start</button></div></div>
 <script>
-const DATA = ${inScript({ pages: clientData(list), live: live?.state || NO_LIVE, rev: live?.rev || "" })};
+const DATA = ${inScript({ pages: clientData(list), live: live?.state || NO_LIVE, rev: live?.rev || "", max: { points: POINTS, say: POINT_SAY } })};
 const TOKEN = ${inScript(live?.token || "")};
 const EV = (() => {
 ${ENGINE}
 return { evidencePacket };
 })();
+${STEER}
 ${CLIENT}
 </script>
 </body>
@@ -734,6 +1152,8 @@ export function addPage(dir, page, { baseDir = process.cwd() } = {}) {
     if (!/^[a-z0-9][a-z0-9-]{0,40}$/.test(id)) throw new Error("A workspace needs an id: a short lowercase name such as pricing-header.");
     const views = viewsOf(page);
     if (views.length < 2) throw new Error("A workspace needs at least two views: the original and one alternative.");
+    const tuning = views.flatMap((v, i) => tuneProblems(v, `workspace.views[${i}] (${v.name})`));
+    if (tuning.length) throw new Error(`The workspace's tuning cannot be drawn. Fix these and add it again:\n- ${tuning.join("\n- ")}`);
     stored.workspace = { ...page.workspace, id, views: views.map((v) => {
       const out = { ...v };
       for (const size of ["phone", "desktop"]) if (v[size]) out[size] = image(v[size], baseDir);
@@ -760,7 +1180,7 @@ export function addPage(dir, page, { baseDir = process.cwd() } = {}) {
   const same = Boolean(stored.workspace && last?.workspace?.id === stored.workspace.id);
   if (stored.workspace) for (const v of stored.workspace.views) {
     const was = same ? last.workspace.views.find((o) => o.name === v.name) : null;
-    const shown = (x) => JSON.stringify([x.live, x.url, x.phone, x.desktop]);
+    const shown = (x) => JSON.stringify([x.live, x.url, x.phone, x.desktop, x.tune]);
     v.rev = was ? (Number(was.rev) || 1) + (shown(was) === shown(v) ? 0 : 1) : 1;
   }
   if (book.length && JSON.stringify(last) === JSON.stringify(stored)) return book.length; // the same page sent twice is one page
@@ -770,6 +1190,7 @@ export function addPage(dir, page, { baseDir = process.cwd() } = {}) {
 }
 
 const LIVE_MAX = 4_000_000;
+const BODY_MAX = 65_536; // a start from the page: a request with notes on parts is the largest
 const SLICE_MS = 240_000; // a wait is answered at least this often, so no connection sits idle long enough to be cut
 const IDLE_MS = 12 * 60 * 60_000;
 
@@ -841,7 +1262,7 @@ export async function serve(dir, { port, idleMs = IDLE_MS, sliceMs = SLICE_MS } 
       const send = (code, body, type = "text/plain; charset=utf-8") => { res.writeHead(code, { "content-type": type, "cache-control": "no-store", "x-content-type-options": "nosniff" }); res.end(body); };
       const json = (code, value) => send(code, JSON.stringify(value), "application/json; charset=utf-8");
       const keyed = url.searchParams.get("k") === token;
-      const body = (then) => { let text = ""; req.on("data", (c) => { text += c; if (text.length > 8192) req.destroy(); }); req.on("end", () => { let data; try { data = JSON.parse(text); } catch { return send(400, "bad request"); } if (data?.k !== token) return send(403, "forbidden"); then(data); }); };
+      const body = (then) => { let text = ""; req.on("data", (c) => { text += c; if (text.length > BODY_MAX) req.destroy(); }); req.on("end", () => { let data; try { data = JSON.parse(text); } catch { return send(400, "bad request"); } if (data?.k !== token) return send(403, "forbidden"); then(data); }); };
       if (req.method === "GET" && url.pathname === "/health") return json(200, { keen: true });
       if (req.method === "GET" && url.pathname === "/") return keyed ? send(200, render(pages(), { baseDir: dir, live: { token, state: live(), rev: rev() } }), "text/html; charset=utf-8") : send(403, "This link is missing its key. Open the full address your agent gave you.");
       if (req.method === "GET" && url.pathname === "/state") return keyed ? json(200, { count: pages().length, rev: rev(), live: live() }) : send(403, "forbidden");
@@ -852,7 +1273,9 @@ export async function serve(dir, { port, idleMs = IDLE_MS, sliceMs = SLICE_MS } 
         const name = url.pathname.slice(6);
         if (url.searchParams.get("l") !== liveKey || !LIVE_FILE.test(name) || !fs.existsSync(path.join(dir, name))) return send(404, "not found");
         res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff", "content-security-policy": "sandbox allow-scripts allow-forms", "referrer-policy": "no-referrer" });
-        return res.end(fs.readFileSync(path.join(dir, name)));
+        // Only a version the person can steer gets the steering script; the original is served exactly as it is.
+        const html = fs.readFileSync(path.join(dir, name));
+        return res.end(pages().some((p) => viewsOf(p).some((v) => v.live === name && v.revise)) ? withSteering(html) : html);
       }
       // The agent's side. Asking to wait means the agent has finished whatever it was doing.
       if (req.method === "GET" && url.pathname === "/wait") {
@@ -869,7 +1292,10 @@ export async function serve(dir, { port, idleMs = IDLE_MS, sliceMs = SLICE_MS } 
       if (req.method === "POST" && url.pathname === "/choose") return body((data) => {
         const book = pages();
         if (!Number.isInteger(data.page) || !book[data.page] || !Array.isArray(data.picks) || !data.picks.length || data.picks.length > 12) return send(400, "unknown choice");
-        const items = data.picks.map((pick) => { const command = commandFor(book[data.page], pick); if (!command) return null; const [kind, a, b = 0] = pick; const view = viewsOf(book[data.page])[a]; const label = kind === "s" ? optionsOf(book[data.page].steps[a])[b].label : kind === "m" ? String(book[data.page].menu[a].label ?? command) : `${kind === "a" ? (view.original ? "Keep" : "Apply") : "Revise"} ${view.name}`; return { command, label: label || command, note: kind === "r" ? cleanNote(data.note) : "", asks: kind === "r", claims: kind === "s" ? optionsOf(book[data.page].steps[a])[b].claims : [] }; });
+        let items;
+        try {
+          items = data.picks.map((pick) => { const command = commandFor(book[data.page], pick); if (!command) return null; const [kind, a, b = 0] = pick; const view = viewsOf(book[data.page])[a]; const label = kind === "s" ? optionsOf(book[data.page].steps[a])[b].label : kind === "m" ? String(book[data.page].menu[a].label ?? command) : `${kind === "a" ? (view.original ? "Keep" : "Apply") : "Revise"} ${view.name}`; return { command, label: label || command, note: kind === "r" || kind === "a" ? noteFor(view, kind, data) : "", asks: kind === "r", claims: kind === "s" ? optionsOf(book[data.page].steps[a])[b].claims : [] }; });
+        } catch { return send(400, "that change could not be read"); }
         if (items.some((i) => i && i.asks && !i.note)) return send(400, "say what should change");
         if (items.some((i) => !i) || state.held.length + items.length > 24) return send(400, "unknown choice");
         // A step that rests on claims goes with a packet of them, written now, from the page the person started it on.
