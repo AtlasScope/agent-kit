@@ -41,10 +41,13 @@ test("an investigation may change only what its mode in library.json allows", ()
     assert.equal(out.includes(lib.composer.iso), !!e.iso || own(lib.composer.iso), `${e.id} separate-database line`);
     assert.ok(out.startsWith(e.p.trim()) && out.endsWith(PLAIN_REPORT), `${e.id} changes its own text or loses the report line`);
   }
-  // Everything else adds no permission of its own: whatever it says about changes is in its own text.
+  // Everything else adds no permission of its own: whatever it says about changes is in its own text, or, for a
+  // workflow, is a safeguard of an investigation it embeds.
+  const byId = new Map(lib.entries.map((e) => [e.id, e]));
   for (const e of [...lib.entries.filter((x) => !inv.includes(x)), ...lib.v3.recipes]) {
     const out = copy.text(e);
-    const own = (line) => [e.p, e.copy, ...(e.steps || []).map(([ref]) => copy.step(ref))].some((t) => t?.includes(line));
+    const embedded = (e.flow || []).flatMap(([, ids]) => ids).map((id) => byId.get(id)).filter((s) => s?.iso).map(() => lib.composer.iso);
+    const own = (line) => [e.p, e.copy, ...embedded, ...(e.steps || []).map(([ref]) => copy.step(ref))].some((t) => t?.includes(line));
     for (const line of [...MODES.map(([, l]) => l), lib.composer.iso]) if (out.includes(line)) assert.ok(own(line), `${e.id} gains "${line.slice(0, 40)}..."`);
   }
 });
@@ -77,4 +80,20 @@ test("each kind of item copies its own format", () => {
     `Find it.\n\n${composer.mode.repro[1]}\nGive me: The query.\nAvoid: Guessing.\nWatch for: Agents blame the ORM.\nIf this describes the project, say so and stop instead: Fast pages.\n${PLAIN_REPORT}`);
   assert.throws(() => one({ id: "X", sec: "inv", t: "T", p: "x", mode: "anything" }), /mode "anything"/);
   assert.throws(() => makeCopy({ entries: [], composer: { mode: composer.mode } }).text({ id: "Y", sec: "db", t: "T", p: "x", mode: "read", iso: true }), /no iso line/);
+});
+
+test("a workflow keeps the safeguards of every investigation it embeds, hidden ones included", () => {
+  const compose = makeCopy(lib), byId = new Map(lib.entries.map((e) => [e.id, e]));
+  const flows = lib.entries.filter((e) => e.flow);
+  assert.ok(flows.length > 0);
+  for (const w of flows) {
+    const text = compose.text(w);
+    for (const id of new Set(w.flow.flatMap(([, ids]) => ids))) {
+      const s = byId.get(id);
+      if (!s || s.flow || s.steps) continue;
+      const line = text.split("\n").find((l) => l.startsWith(`- ${id}: `)) || "";
+      if (s.iso) assert.ok(line.includes(lib.composer.iso), `${w.id} keeps ${id}'s separate-database rule`);
+      if (s.avoid) assert.ok(line.includes(s.avoid.trim().replace(/[.!?)]$/, "")), `${w.id} keeps ${id}'s Avoid line`);
+    }
+  }
 });
