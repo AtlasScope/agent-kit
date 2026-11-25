@@ -580,13 +580,17 @@ export function analyzeCode(repo, file, toks) {
       for (let j = def.at + 1; j < r[0] + 3 && j < toks.length; j++) if (toks[j].v === "(" && toks[j + 1]?.t === "id") { param = toks[j + 1].v; break; }
       if (!param && toks[r[0]]?.v === "=" && toks[r[0] + 1]?.t === "id" && toks[r[0] + 2]?.v === "=>") param = toks[r[0] + 1].v;
       if (!param) continue;
+      // every effect the parameter reaches; a helper that deletes or writes is a writer
+      const kinds = new Set();
       for (let j = r[0]; j < r[1]; j++) {
         const kind = callKind(j) ?? (wrappers.has(toks[j].v) && toks[j + 1]?.v === "(" && toks[j - 1]?.v !== "." ? wrappers.get(toks[j].v) : null);
         if (!kind || kind === "network") continue;
         const a = args(toks, j + 1);
-        const pick = kind === "spawn" ? a.slice(0, 2) : a.slice(0, 1);
-        if (pick.some(([lo, hi]) => toks.slice(lo, hi).some((x) => x.t === "id" && x.v === param))) { wrappers.set(def.name, kind); break; }
+        const pick = kind === "spawn" ? a.slice(0, 2) : TWO_ARG.has(toks[j].v) ? a.slice(0, 2) : a.slice(0, 1);
+        if (pick.some(([lo, hi]) => toks.slice(lo, hi).some((x) => x.t === "id" && x.v === param))) kinds.add(kind);
       }
+      const primary = ["spawn", "write", "delete", "read"].find((x) => kinds.has(x));
+      if (primary) wrappers.set(def.name, primary);
     }
   }
 
@@ -679,7 +683,10 @@ export function analyzeCode(repo, file, toks) {
     const to = repo.module(im.spec, file);
     if (to && to !== file) edges.push({ kind: "import", from: to, to: file, line: im.line, basis: im.how, names: im.names, spec: im.spec, endLine: toks[im.at].line });
   }
-  return { edges, effects, imports, defs, wrappers: [...wrappers] };
+  // two calls on one line with the same effect and target read as one
+  const seenFx = new Set();
+  const uniqueEffects = effects.filter((x) => { const k = `${x.kind}\0${x.line}\0${x.target ?? ""}`; if (seenFx.has(k)) return false; seenFx.add(k); return true; });
+  return { edges, effects: uniqueEffects, imports, defs, wrappers: [...wrappers] };
 }
 
 // ------------------------------------------------------------------------------------- text analysis
@@ -829,14 +836,13 @@ export function relations(g, targets, depth = 3) {
 export const generatedFiles = (g) => new Set(g.edges.filter((e) => e.kind === "generates").map((e) => e.to));
 
 /** Long literals (six words or more) that another tracked file repeats word for word. */
-function sharedText(g, file, range) {
+function sharedText(g, file, ranges) {
   const info = g.code.get(file);
   if (!info) return [];
-  const [lo, hi] = range || [0, info.toks.length];
   // prose only: six words or more, no markup or code
   const prose = (s) => s.split(/\s+/).filter(Boolean).length >= 6 && !/[<>{}=;]|\$\{\}/.test(s);
   const lits = [];
-  for (let k = lo; k < hi; k++) {
+  for (const [lo, hi] of ranges || [[0, info.toks.length]]) for (let k = lo; k < hi; k++) {
     const t = info.toks[k];
     if (t.t === "str" || t.t === "tpl") for (const piece of t.v.split("${}")) if (prose(piece.trim())) lits.push({ v: piece.trim(), line: t.line });
   }
@@ -905,7 +911,7 @@ export function query(g, rawTargets, { symbol = null, depth = 3 } = {}) {
   const effects = [...g.effects].filter(([f]) => isT(f)).flatMap(([f, list]) => list.map((x) => ({ path: f, ...x })));
   let inferred = [], defined = [], symbolUses = null;
   const derivedCopies = {};
-  const shared = (file, range) => { const st = sharedText(g, file, range); Object.assign(derivedCopies, st.derivedCopies); return st; };
+  const shared = (file, ranges) => { const st = sharedText(g, file, ranges); Object.assign(derivedCopies, st.derivedCopies); return st; };
   const fileTargets = targets.filter((t) => !t.endsWith("/"));
   if (symbol) {
     if (fileTargets.length !== 1) throw new Error("--symbol needs exactly one file");
@@ -938,7 +944,16 @@ export function query(g, rawTargets, { symbol = null, depth = 3 } = {}) {
     // only the importers that use the name; mentions of the file say nothing about one symbol
     consumers = uses;
     const r = bodyRange(info.toks, defs[0].at);
-    inferred = [...sameName(g, file, new Set([symbol])), ...shared(file, r ? [r[0], r[1] + 1] : null)];
+    // the symbol's own text and the text of same-file constants it uses (a rule kept in a const beside the function)
+    const ranges = r ? [[r[0], r[1] + 1]] : [];
+    if (r) {
+      const local = new Map(info.defs.filter((d) => d.name !== symbol && ["const", "let", "var"].includes(d.decl)).map((d) => [d.name, d]));
+      for (const name of new Set(info.toks.slice(r[0], r[1] + 1).filter((x) => x.t === "id" && local.has(x.v)).map((x) => x.v))) {
+        const cr = bodyRange(info.toks, local.get(name).at);
+        if (cr) ranges.push([cr[0], cr[1] + 1]);
+      }
+    }
+    inferred = [...sameName(g, file, new Set([symbol])), ...shared(file, ranges.length ? ranges : null)];
   } else {
     for (const file of fileTargets) {
       const info = g.code.get(file);

@@ -210,7 +210,7 @@ Find out why something broke or got slow, prove it, and fix the cause. Type /eng
 
 ### Start here
 
-**EC01 · /engineer** Takes your plain-English description of a bug, slowdown, or worry and picks the single best starting prompt or skill from this library, explaining why. (In Codex: `$engineer`.)
+**EC01 · /engineer** Understands, diagnoses and fixes a difficult codebase with evidence you can check, and only reads unless you ask for a fix. Ask what to do and it picks the best starting prompt or skill from this library. (In Codex: `$engineer`.)
 
 ```text
 /engineer

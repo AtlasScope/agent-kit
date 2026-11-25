@@ -10,7 +10,8 @@
 //     "title": "The library check leaves stale files stale",
 //     "baseline": "HEAD",                 a revision, or "working-tree" (HEAD plus uncommitted and untracked, unignored files)
 //     "candidate": "working-tree",        optional; omit to run the baseline alone
-//     "link": ["site/node_modules"],      optional: ignored folders to link in from the checkout (shared, not copied)
+//     "link": ["site/node_modules"],      optional: ignored folders to link in from the checkout (shared, not copied);
+//                                         { "path": "site/node_modules", "from": "<folder>" } links one from elsewhere
 //     "env": "inherit",                   or "minimal" (PATH, HOME, temp and locale only)
 //     "timeout": 120,                     seconds per step
 //     "steps": [
@@ -20,7 +21,8 @@
 //     ]
 //   }
 // Steps run in order in the same copy, so a step sees what the steps before it left behind. "change" edits the
-// copy before the step (write, append or delete); "run" is an argument list, or a string for the shell.
+// copy before the step (write, append or delete); "run" is an argument list, or a string for the shell (on
+// Windows a .cmd program such as npm needs the string form); "cwd" runs it in a folder of the copy.
 // "expect" is optional: exit (a number), unchanged (no project file changed, added or deleted), writes (most
 // project files written, identical bytes included), output (text that must appear in stdout or stderr).
 //
@@ -79,7 +81,11 @@ export function validate(spec) {
     const e = s.expect || {};
     for (const k of Object.keys(e)) if (!["exit", "unchanged", "writes", "output"].includes(k)) fail(`step ${s.id}: unknown expectation ${k}`);
   }
-  for (const l of spec.link || []) inside("/x", l);
+  for (const l of spec.link || []) {
+    if (typeof l === "string") inside("/x", l);
+    else if (l && typeof l.path === "string" && typeof l.from === "string") inside("/x", l.path);
+    else fail('each link is a path, or { "path": ..., "from": <folder elsewhere, such as the main checkout\'s node_modules> }');
+  }
   if (spec.env !== undefined && !["inherit", "minimal"].includes(spec.env)) fail('"env" is "inherit" or "minimal"');
   if (spec.timeout !== undefined && !(Number.isFinite(spec.timeout) && spec.timeout > 0 && spec.timeout <= 3600)) fail('"timeout" is 1 to 3600 seconds');
   return spec;
@@ -213,10 +219,11 @@ export function runCase(root, spec, { keep = false } = {}) {
       const dir = path.join(base, name);
       const copy = makeCopy(root, ref, dir);
       for (const l of spec.link || []) {
-        const src = inside(root, l);
-        if (!fs.existsSync(src)) throw new Error(`link ${l}: not in the checkout`);
-        const dst = inside(dir, l);
-        if (fs.existsSync(dst)) throw new Error(`link ${l}: the copy already has it; link only ignored folders such as node_modules`);
+        const rel = typeof l === "string" ? l : l.path;
+        const src = typeof l === "string" ? inside(root, l) : path.resolve(root, l.from);
+        if (!fs.existsSync(src)) throw new Error(`link ${rel}: ${typeof l === "string" ? "not in the checkout" : `${l.from} does not exist`}`);
+        const dst = inside(dir, rel);
+        if (fs.existsSync(dst)) throw new Error(`link ${rel}: the copy already has it; link only ignored folders such as node_modules`);
         fs.mkdirSync(path.dirname(dst), { recursive: true });
         fs.symlinkSync(src, dst, process.platform === "win32" ? "junction" : "dir");
       }
@@ -292,8 +299,11 @@ export function toText(r) {
       if (x.writes.files.length) out.push(`      wrote ${x.writes.files.slice(0, 8).join(", ")}${x.writes.files.length > 8 ? ", ..." : ""}`);
       if (x.writes.ignored || x.writes.outside) out.push(`      also wrote ${x.writes.ignored} ignored file(s) in the copy and ${x.writes.outside} outside it (temp folders and the like)`);
       for (const [label, list] of [["changed", x.modified], ["added", x.added], ["deleted", x.deleted]]) if (list.length) out.push(`      ${label} ${list.slice(0, 8).join(", ")}${list.length > 8 ? `, ... (${list.length})` : ""}`);
-      const tail = (x.stderr.trim() || x.stdout.trim()).split("\n").slice(-3).join(" / ");
-      if (tail) out.push(`      output: ${tail.slice(0, 300)}`);
+      // the line that says what went wrong, when there is one, then the last line
+      const lines = (x.stderr.trim() || x.stdout.trim()).split("\n").map((l) => l.trim()).filter(Boolean);
+      const key = lines.find((l) => /\b\w*Error\b|\berror:|\bnot ok\b|✖|\bfailed\b/i.test(l) || /\bFAIL\b/.test(l));
+      const shown = [...new Set([key, lines.at(-1)].filter(Boolean))].join(" … ");
+      if (shown) out.push(`      output: ${shown.slice(0, 300)}`);
     }
   }
   out.push("", `Limits: ${r.coverage}`);

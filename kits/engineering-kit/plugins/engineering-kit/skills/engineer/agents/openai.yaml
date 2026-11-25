@@ -1,5 +1,5 @@
 interface:
   display_name: "Engineer"
-  short_description: "Suggest the right investigation or skill"
+  short_description: "Understand, diagnose and fix code with evidence"
 policy:
   allow_implicit_invocation: false

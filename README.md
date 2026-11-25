@@ -24,7 +24,7 @@ Agent Kit has 5 kits (66 skills total) and 255 library entries.
 |---|---|---|
 | [design-kit](kits/design-kit) | 40 | `/design` routes to the right design skill or recipe: layout, typography, color, motion, UX writing, usability, landing copy, native iOS, and more. Includes `/design-setup`, `/palette-builder`, `fix-writing` and an early `/keen`, Agent Kit's own design command. |
 | [motion-kit](kits/motion-kit) | 1 | `/motion` sets up a motion system, storyboards a sequence, builds an animation, and reviews or fixes existing motion using code scans and browser frame captures. |
-| [engineering-kit](kits/engineering-kit) | 17 | `/engineer` routes to bug diagnosis, test-first work, architecture scans, plan interviews, retros, and research. `/database` picks and runs a read-only PostgreSQL investigation. Includes `/engineering-setup`. |
+| [engineering-kit](kits/engineering-kit) | 17 | `/engineer` understands, diagnoses and fixes difficult codebases with evidence, or points to the right skill: bug diagnosis, test-first work, architecture scans, plan interviews, retros, and research. `/database` picks and runs a read-only PostgreSQL investigation. Includes `/engineering-setup`. |
 | [experience-architecture](kits/experience-architecture) | 4 | `diagnose`, `rethink`, `verify`, and `walkthrough` (preview) inspect and test how a web app's pages, navigation, URLs, and Back button hang together. |
 | [working-style](kits/working-style) | 4 | `/ceo` explains in plain English, `/recommend` makes the call, `/harsh-review` gives direct critique, and `/viewport-proof` checks a screen across sizes. |
 

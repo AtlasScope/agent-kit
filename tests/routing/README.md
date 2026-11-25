@@ -33,7 +33,7 @@ Routes are written as the router shows them: a command (`/impeccable critique`),
    - the route is in `expect`, or in `without` when the first pick's plugin is missing;
    - the route is not in `disallowed`;
    - the first line says why and whether the pick edits, only reads or advises, and states the router's own approval boundary:
-     - `/engineer`: nothing runs until they say go;
+     - `/engineer`: a request for advice runs nothing; a request for the work starts it, read-only unless they asked for a fix, and a fix stops before commits, pushes and deploys;
      - `/design`: it starts the pick, and edits are shown before anything is committed;
      - `/database`: it runs the investigation read-only, and any fix waits for a yes;
    - a fallback for a report-only pick also only reports;
