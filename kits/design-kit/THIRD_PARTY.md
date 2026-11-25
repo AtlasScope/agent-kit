@@ -42,6 +42,8 @@ Every skill below was reviewed before it was added: its instructions read for hi
 
 Changes from upstream: every skill in the table except `apple-design`, `break-ui`, `color-expert`, `mobile-native` and `stop-slop` carries `disable-model-invocation: true` in its frontmatter, added here where upstream did not set it. That keeps the skill out of the list an agent reads at the start of every session; it runs when the user types its name or `/design` picks it. Repository READMEs, evals, demo videos and build files were left out; each skill folder is otherwise as published.
 
+`hallmark`: its `sloplint.mjs`, `refcheck.mjs` and `picture.mjs` carry small fixes made here for code-scanning findings. Closing script tags and HTML comments are matched in every valid form, entities are decoded with `&amp;` last, tags are stripped until none remain, and a theme name is escaped before it goes into a pattern. Lint results on real pages are unchanged.
+
 `design` (the router), `design-setup`, `fix-writing`, and `palette-builder` are original to this repo and MIT licensed.
 
 Scripts that ship with a skill: Hallmark includes Node scripts for linting and screenshots. Its image script calls Together's API only when `TOGETHER_API_KEY` is set and the user asked for generated images, and its edit-time hook is installed only if someone runs `install-hook.mjs` by hand. No other skill here runs code.

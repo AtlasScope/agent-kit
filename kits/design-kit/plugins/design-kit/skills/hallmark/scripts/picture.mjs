@@ -61,7 +61,7 @@ await browser.close();
 if (shape && hero) {
   let src = readFileSync(themeFile, 'utf8');
   const short = shape.trim().split(/\s*[(;,:]/)[0].replace(/,\s*$/, '');
-  const way = (new RegExp(`\\b${slug}:\\s*([a-z][a-z-]*)`).exec(head) || [])[1];
+  const way = (new RegExp(`\\b${slug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}:\\s*([a-z][a-z-]*)`).exec(head) || [])[1];
   const fallback = (/`([a-z][a-z-]*)`\s*\(default\)/.exec(src) || [])[1];
   const line = `pictured: ${short}, ${hero.trim().split(/[ ,(]/)[0]} hero${way && fallback && way !== fallback ? `, in the ${way} colourway` : ''}`;
   src = /^pictured:.*$/m.test(src) ? src.replace(/^pictured:.*$/m, line) : src.replace(/^(material:.*)$/m, `$1\n${line}`);

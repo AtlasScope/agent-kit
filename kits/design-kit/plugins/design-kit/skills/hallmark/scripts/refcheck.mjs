@@ -199,7 +199,9 @@ if (themeVersion !== VERSION) add('error', join(ROOT, 'scripts', 'theme.mjs'), 1
 for (const f of MD) {
   const src = read(f);
   for (const m of src.matchAll(/```html\n([\s\S]*?)```/g)) {
-    const html = m[1].replace(/<!--[\s\S]*?-->/g, '').replace(/<(script|style)[\s\S]*?<\/\1>/g, '');
+    // Strip until none is left, so a removal cannot join two halves into a new comment or script.
+    let html = m[1];
+    for (let prev; prev !== html;) { prev = html; html = html.replace(/<!--[\s\S]*?--!?>/g, '').replace(/<(script|style)\b[\s\S]*?<\/\1[^>]*>/gi, ''); }
     for (const t of html.matchAll(/>([^<>]*)</g)) {
       const text = t[1];
       const line = lineAt(src, m.index + m[0].indexOf(m[1]) + t.index);
