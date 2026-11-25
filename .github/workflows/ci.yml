@@ -1,7 +1,7 @@
 # Fast checks for pull requests. One job, named "ci", which branch rules require.
 # It always reports, and skips the steps whose files the PR does not touch, so a
-# docs-only PR finishes in seconds. Site changes also get a production build and
-# browser smoke journeys (home, prompt, skill) at desktop and phone sizes.
+# docs-only PR finishes quickly. Catalog content gets site validation and a
+# production build; site behavior changes also get browser smoke journeys.
 name: CI
 
 on:
@@ -30,14 +30,20 @@ jobs:
           files=$(gh pr diff "$PR" --repo "$GITHUB_REPOSITORY" --name-only)
           printf '%s\n' "$files"
           has() { printf '%s\n' "$files" | grep -qE "$1" && echo true || echo false; }
-          all=$(has '^\.github/workflows/')
-          site=$(has '^(site|library|kits)/')
-          library=$(has '^(library|kits|tests/routing|tests/library)/')
-          public=$(has '^(kits/|library/|scripts/check-public|[A-Z]+\.md$)')
-          catalog=$(has '^(kits/|\.claude-plugin/|\.agents/|scripts/check-catalog)')
-          motion=$(has '^kits/motion-kit/')
-          keen=$(has '^kits/design-kit/plugins/design-kit/skills/keen/')
-          [ "$all" = true ] && site=true library=true public=true catalog=true motion=true keen=true
+          all=$(has '^\.github/workflows/ci\.yml$')
+          # Catalog data can affect static pages; internal kit fixtures and research cannot.
+          content=$(has '^(library/library\.json$|CREDITS\.md$|kits/[^/]+/(plugins/|THIRD_PARTY\.md$))')
+          web=$(has '^site/(app/|components/|lib/|public/|db/|next\.config\.ts$|proxy\.ts$|package(-lock)?\.json$|tsconfig\.json$|scripts/(build-content|design-jobs|migrate)\.mjs$|tests/[^/]+\.test\.mjs$|tests/smoke/)')
+          browser=$web
+          site=false
+          if [ "$web" = true ] || [ "$content" = true ]; then site=true; fi
+          library=$(has '^(library/|kits/[^/]+/(plugins/|scripts/)|tests/routing/|tests/library/|site/scripts/design-jobs\.mjs$)')
+          public=$(has '^(kits/[^/]+/plugins/|library/library\.json$|scripts/check-public|[A-Z]+\.md$)')
+          catalog=$(has '^(kits/[^/]+/plugins/|\.claude-plugin/|\.agents/|scripts/check-catalog)')
+          motion=$(has '^kits/motion-kit/plugins/motion-kit/skills/motion/(scripts|tests)/')
+          keen=$(has '^kits/design-kit/plugins/design-kit/skills/keen/(scripts|tests)/')
+          [ "$all" = true ] && site=true browser=true library=true public=true catalog=true motion=true keen=true
+          echo "browser=$browser" >> "$GITHUB_OUTPUT"
           echo "site=$site" >> "$GITHUB_OUTPUT"
           echo "library=$library" >> "$GITHUB_OUTPUT"
           echo "public=$public" >> "$GITHUB_OUTPUT"
@@ -54,7 +60,7 @@ jobs:
         if: steps.changes.outputs.site == 'true' || steps.changes.outputs.library == 'true' || steps.changes.outputs.public == 'true' || steps.changes.outputs.catalog == 'true'
         with:
           node-version: 22
-          cache: ${{ hashFiles('site/package-lock.json') != '' && 'npm' || '' }}
+          cache: ${{ steps.changes.outputs.site == 'true' && 'npm' || '' }}
           cache-dependency-path: site/package-lock.json
 
       - name: Check shipped files for personal references
@@ -108,10 +114,15 @@ jobs:
           npm run typecheck
           node --test "tests/**/*.test.mjs"
 
-      - name: Build the site and run browser smoke journeys
+      - name: Build the site
         if: steps.changes.outputs.site == 'true' && hashFiles('site/package.json') != ''
         working-directory: site
+        run: npx next build
+
+      - name: Run browser smoke journeys
+        if: steps.changes.outputs.browser == 'true' && hashFiles('site/package.json') != ''
+        working-directory: site
         run: |
-          npx playwright install --with-deps chromium
-          npx next build
+          # The kit suites use the same pinned Playwright/browser version.
+          if [ -z "${MOTION_PLAYWRIGHT_DIR:-}" ]; then npx playwright install --with-deps chromium; fi
           npm run smoke

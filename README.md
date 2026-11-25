@@ -85,7 +85,7 @@ npx skills add AtlasScope/agent-kit
 
 This copies the skill folders into `.agents/skills` in the current project (`npx skills remove --all` removes them). For Cursor, Gemini CLI, or GitHub Copilot, pass `-a cursor`, `-a gemini-cli`, or `-a github-copilot`. This copies files only: it doesn't register Claude Code's install choices or install companion plugins that some recipes call.
 
-**What's been tested.** On 9 Nov 2026 in a clean config: the Claude Code marketplace add, `design-kit` install, update, and uninstall (Claude Code 2.1.321), and `npx skills add` and `remove` (skills 1.7.6). The Codex, Cursor, Gemini CLI, and GitHub Copilot install commands are documented but haven't been tested yet.
+**What's been tested.** On 9 Nov 2026 in a clean config: the Claude Code marketplace add, `design-kit` install, update, and uninstall (Claude Code 2.1.321), and `npx skills add` and `remove` (skills 1.7.6). Codex installation and Cursor skill copying were tested on 23 Nov 2026 (codex-cli 0.171.0 and cursor-agent 2026.11.19). Gemini CLI and GitHub Copilot remain documented but untested.
 
 ### Working from a local clone
 
@@ -121,9 +121,9 @@ node library/build.mjs
 - `.claude-plugin/marketplace.json` and `.agents/plugins/marketplace.json`: catalogs listing all five plugins.
 - `library/`: prompt library source (`library.json`, `audit.json`, `template.html`), editorial log (`EDITORIAL.md`), build and check scripts, and generated `dist/` outputs.
 - `site/`: the Next.js website and MCP server.
-- `scripts/`: repo-wide checks (`check-public.mjs`, `check-catalog.mjs`), local installer (`install-local.sh`), and worktree helper (`lanes.mjs`).
+- `scripts/`: repo-wide checks and the optional local installer.
 - `tests/`: router test cases and log-to-case converter (`tests/routing/`).
-- `docs/`: architecture decision records (`docs/adr/`), design notes, and handoffs.
+- [`PRODUCT.md`](PRODUCT.md), [`DESIGN.md`](DESIGN.md), [`AGENTS.md`](AGENTS.md) and [`CONTRIBUTING.md`](CONTRIBUTING.md): current product and engineering context.
 
 ## Contributing and security
 
@@ -131,4 +131,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) to add or improve a prompt or skill, [GLO
 
 ## License
 
-[MIT](LICENSE) covers everything written for Agent Kit: the routers, the 16 original skills, the prompt library, and the website. Borrowed skills keep their own licenses (MIT, and CC BY 4.0 for `color-expert`), shipped in each skill's folder and listed in [CREDITS.md](CREDITS.md) and each kit's `THIRD_PARTY.md`. The MIT license here does not replace them.
+[MIT](LICENSE) covers everything written for Agent Kit: the routers, the original skills, the prompt library, and the website. Borrowed skills keep their own licenses (MIT, and CC BY 4.0 for `color-expert`), shipped in each skill's folder and listed in [CREDITS.md](CREDITS.md) and each kit's `THIRD_PARTY.md`. The MIT license here does not replace them.

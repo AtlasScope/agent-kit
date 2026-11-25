@@ -1,48 +1,40 @@
 # Contributing
 
-Agent Kit is a curated library, so a new entry has to earn its place. Before adding anything, check whether an existing prompt or skill already does the job. A clearer version of an existing entry is more useful than a near-duplicate.
+Every addition must do a job better than what already exists. Improve or replace overlapping content before adding another entry. Read the relevant consumers; preserve compatibility and attribution.
 
-## Add or change a prompt
+## Prompts and recipes
 
-1. Edit [`library/library.json`](library/library.json) (and [`library/audit.json`](library/audit.json) for new entries). Each entry needs a stable `id`, a title (`t`), the text people copy (`p` or `cmd`), a `dmode` or `mode`, and a `why` line that says what it finds. Database prompts also need `ev` (evidence to ask for), `skip`, `avoid`, `tools`, `plat`, and `tags`.
-2. Run the checks and rebuild the generated files (including router references if you touched `/design`, `/engineer`, or `/database` entries):
+Edit `library/library.json` (including its category and recipe references). Keep existing IDs stable: URLs, stars, recipes and router references depend on them. Supply the text people copy, why it exists, expected evidence or output, actual scope and stop conditions. Do not invent usage or testing history. Existing `library/audit.json` records editorial evidence and overlap; add a note there only if it helps a real decision, not a score for every entry.
 
-   ```sh
-   node library/build.mjs
-   node kits/design-kit/scripts/build_references.mjs
-   node kits/engineering-kit/scripts/build_references.mjs
-   node kits/engineering-kit/scripts/build_database_references.mjs
-   node library/check.mjs
-   ```
-
-3. Keep an entry's `id` when you rewrite it. Pages, stars, and links depend on it.
-
-## Add a skill
-
-- **Written by you:** put it in the kit it belongs to under `kits/<kit>/plugins/<kit>/skills/<name>/SKILL.md` (with `name` matching `<name>`), add `agents/openai.yaml` for Codex, list it in `kits/<kit>/plugins/<kit>/README.md` (keeping 40+ words outside code blocks), and say what it does that no existing skill does. If it's a command in `design-kit`, add its job entry in `site/scripts/design-jobs.mjs` and its `library/library.json` entry.
-- **Borrowed from someone else:** copy it at a pinned commit, keep its `LICENSE` file in the skill folder, and add a row to the kit's `THIRD_PARTY.md` (source, commit, license) and to [CREDITS.md](CREDITS.md). Read the whole skill, including any scripts, before adding it, and note every change you make under "Changes from upstream". Don't reword someone else's skill to make it look original.
-- Address the person running the agent as "the user". Public skills must not assume one person's name, machine, accounts, or projects.
-
-## Run the checks
+Rebuild affected public exports and shipped references:
 
 ```sh
-node scripts/check-public.mjs   # no personal names, paths, or machine notes in shipped files
-node scripts/check-catalog.mjs  # both plugin catalogs, kit manifests, and skill folders agree
-node library/check.mjs          # prompt library IDs, links, audit rows, and generated refs
-node tests/routing/check.mjs    # routing test cases resolve to real entries and skills
-node --test "kits/motion-kit/plugins/motion-kit/skills/motion/tests/*.test.mjs"
-(cd kits/experience-architecture && npm test)
-(cd site && npm ci && npm run content && npm run typecheck && npm test)
-(cd site && npx playwright install chromium && npx next build && npm run smoke)
+node library/build.mjs
+node kits/design-kit/scripts/build_references.mjs
+node kits/engineering-kit/scripts/build_references.mjs
+node kits/engineering-kit/scripts/build_database_references.mjs
+node library/check.mjs
 ```
 
-CI runs the checks that cover the files your pull request touches (except `kits/experience-architecture` `npm test` and `tests/routing/from-log.test.mjs`, which are local-only).
+The last command checks reproducibility without rewriting tracked files. Run only the generators that affect your change; Keen job/menu changes also feed the library.
 
-## What reviewers look for
+## Skills and plugins
 
-- A distinct job: someone can tell in one line when to use this instead of what's already here.
-- Usable text: it names the evidence it wants and when to stop, instead of "be thorough" or "act as an expert".
-- Honest scope: read-only versus changes code is stated, and optional tools it calls are named as optional.
-- Clear source and license for anything not written here.
+- Put a skill in `kits/<kit>/plugins/<kit>/skills/<name>/SKILL.md` with matching frontmatter name and `agents/openai.yaml`. For explicitly invoked commands, set `disable-model-invocation: true` and `allow_implicit_invocation: false`. Keep plugin README prose at 40+ words for the catalog validator.
+- Design command jobs also use `site/scripts/design-jobs.mjs` and library entries as applicable. Preserve the command and install contracts.
+- For borrowed skills, pin the upstream commit, retain its LICENSE, record the source, changes and license in the kit's THIRD_PARTY.md and CREDITS.md; their table formats are parsed by the site. Never disguise another author's work as original.
+- Changing shipped kit files requires bumping the version in both plugin manifests, the Claude marketplace and library badges where applicable, then rebuilding library outputs. A removed public command is a breaking change.
+- Address the person running the skill as "the user". Public content must be portable and free of personal setup or secret information.
 
-Keep pull requests small and about one outcome (and keep kit or library changes separate from `site/` changes). Say what problem it fixes, what changed, how you checked it, and what is still unverified.
+## Verify the outcome
+
+```sh
+node scripts/check-public.mjs
+node scripts/check-catalog.mjs
+node library/check.mjs
+node tests/routing/check.mjs
+```
+
+Run these only for relevant changes; [CI](.github/workflows/ci.yml) selects checks by path. For changed runnable skill code, run the affected kit's tests; browser-dependent tests require a browser as described in the workflow or kit README. For site work see [site/README.md](site/README.md).
+
+Do not repeat a full production build or browser suite for a wording-only change when CI already covers the real risk. Reserve expensive comparison runs for decisions they can change. Submit one coherent pull request, explaining what changed, what was actually verified and what remains uncertain.

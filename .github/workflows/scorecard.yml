@@ -1,7 +1,7 @@
 # OpenSSF Scorecard: grades the repo on supply-chain basics (pinned actions,
 # token permissions, branch protection, dependency updates). Results land in
 # Security > Code scanning. Not a required check; it runs on pushes to main and
-# every three hours, because auto-merges (made with GITHUB_TOKEN) start no push
+# weekly, because auto-merges (made with GITHUB_TOKEN) start no push
 # run.
 name: Scorecard
 
@@ -9,7 +9,7 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: "23 */3 * * *"
+    - cron: "23 5 * * 1"
   workflow_dispatch:
 
 permissions: read-all

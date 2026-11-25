@@ -12,20 +12,20 @@ npm run typecheck  # TypeScript check (requires content/generated.json)
 npm test           # unit tests for copy, hero, install, search, starting points, and the orbit scene's arithmetic
 npm run build      # builds content/generated.json and runs next build
 npx playwright install chromium && npm run smoke   # browser journeys against the built app
-npm run lab        # the orbit lab: tune the homepage's scene (development only, not part of the site)
+npm run lab        # local graphics lab (development only)
 ```
 
 Everything is read from the repo at build time by `scripts/build-content.mjs`: `library/library.json`, every `kits/*/plugins/*/skills/*/SKILL.md`, each kit's `THIRD_PARTY.md`, and the root `CREDITS.md`. Edit those, not `site/content/generated.json`, to change what a page says. The build stops if two pages would get the same URL.
 
-The homepage hero headline and worked example live in `lib/site.ts` (`HERO`). Change the headline there only.
+The homepage headline and install payloads live in `lib/site.ts`; preserve the shared Home/Install handoff in `components/install-choice.ts`. See the root [site contract](../DESIGN-CONTRACT.md).
 
-The view behind it is drawn from code in `components/orbit/`; its README says how it works, how to tune it in the lab, and how to remake the still images (`node scripts/build-hero-images.mjs`) after changing the look.
+Home and Install share the Horizon stage (`app/(stage)/`, `components/stage/`, `components/horizon/`). See the Horizon README, PRODUCTION.md and SOURCES.md for the live renderer, historical imagery provenance, map generation and static fallbacks. The earlier procedural orbit and its lab remain available for graphics development.
 
 ## Pages
 
 | URL | What it is |
 |---|---|
-| `/` | One-screen orbit hero with a live scene drawn from code, worked `/design` example, and Install hand-off. |
+| `/` | Shared cinematic stage with the Install handoff. |
 | `/install` | Agent-specific install commands, test status, and next steps. |
 | `/start`, `/start/<step>` | Eight-step guide from no coding agent to a deployed reading-list app (untested with first-time users). |
 | `/learn`, `/learn/<lesson>` | Five short lessons on working with a coding agent. |
@@ -54,7 +54,7 @@ Sign-in methods (GitHub, Google, email code) are switched on in the Clerk dashbo
 
 ## MCP server limits
 
-The server at `/mcp` is public and read-only. Four limits keep a runaway client from costing money (ADR 0003):
+The server at `/mcp` is public and read-only. Four limits keep a runaway client from costing money:
 
 1. **Per-visitor rate limit:** a Vercel Firewall rule on `/mcp` (rate limit, 60 requests per minute per IP, then 429). The server also keeps a rough per-instance limit (`MCP_PER_MINUTE`, default 60) as a backstop.
 2. **Daily cap:** `MCP_DAILY_CAP` calls per UTC day across everyone (default 20000), counted in Neon `mcp_usage`. Past it, calls get an error until midnight UTC.
