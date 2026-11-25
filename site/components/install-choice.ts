@@ -11,13 +11,15 @@ export const lastAgent = (): Agent => {
   try { const id = localStorage.getItem(AGENT_KEY)?.replace(/^t-/, ""); return SHOWN.find((a) => a.id === id) ?? SHOWN[0]; } catch { return SHOWN[0]; }
 };
 export const commandFor = (a: Agent) => a.steps.join("\n");
+// Where the homepage's "Open <agent>" link goes: the agent's own site. "Any agent" has none, so no link.
+export const OPEN_URL: Record<string, string> = { claude: "https://claude.ai/code", codex: "https://chatgpt.com/codex", cursor: "https://cursor.com" };
 
 // The hand-off from the homepage's Install button to the install page: which agent's command was copied, or that the
 // browser blocked it, and when. The install page believes it only for a few seconds, so a hand-off that never landed
 // can't claim a copy later, and it is read without being removed, so a remount of the page (the sign-in wrapper does
 // this when it loads) still finds it.
-const COPIED_KEY = "agent-kit:copied";
-const FRESH_MS = 10_000;
+export const COPIED_KEY = "agent-kit:copied";
+export const FRESH_MS = 10_000;
 export type Handoff = { message: true } | { agent: string } | { blocked: true };
 export const saveHandoff = (h: Handoff) => { try { sessionStorage.setItem(COPIED_KEY, JSON.stringify({ ...h, at: Date.now() })); } catch {} };
 export const clearHandoff = () => { try { sessionStorage.removeItem(COPIED_KEY); } catch {} };

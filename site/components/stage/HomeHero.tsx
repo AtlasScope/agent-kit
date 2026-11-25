@@ -8,7 +8,8 @@ import { HERO, INSTALL_MESSAGE, SITE } from "@/lib/site";
 //
 // Install copies one message inside the click (browsers allow it only there) and the link navigates at once. What the
 // clipboard did is saved for the install page to report, and announced with an event in case that page is already up
-// when the answer arrives. A modified click is left to the link, which opens the page in a new tab and copies nothing.
+// when the answer arrives. The install page does not show the message: it says Copied and offers to open the agent.
+// A modified click is left to the link, which opens the page in a new tab and copies nothing.
 //
 // The words rise once on a full page load (the inline script marks it; React does not run the script on an in-site
 // navigation, where the stage's own arrival plays instead).
@@ -36,7 +37,11 @@ export function HomeHero() {
         <p className="hero__lede">Skills and prompts for Claude Code, Codex and Cursor.</p>
         <div className="hero__cta">
           <Link className="launch__go" href="/install" onClick={install} aria-describedby="hero-note">
-            <span className="launch__label">Install Agent Kit</span>
+            <span className="launch__fx" aria-hidden="true" />
+            <span className="launch__label">
+              <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="8" y="8" width="12" height="12" rx="3" /><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" /></svg>
+              Install Agent Kit
+            </span>
           </Link>
           <p className="hero__note" id="hero-note">Copies one message to paste into your agent.</p>
         </div>
