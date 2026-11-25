@@ -1,9 +1,11 @@
 // Checks that the two plugin catalogs, each kit's manifests and its skill folders agree, so an
-// install command on the site can't point at a plugin or skill that isn't there.
+// install command on the site can't point at a plugin or skill that isn't there, and that every copy of
+// Keen's page files in another skill matches Keen's (scripts/sync-page.mjs).
 //   node scripts/check-catalog.mjs
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { drift } from "./sync-page.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (p) => JSON.parse(fs.readFileSync(path.join(root, p), "utf8"));
@@ -80,6 +82,9 @@ for (const p of claude.plugins) {
     else seen.set(s, p.name);
   }
 }
+
+// A skill outside Keen that publishes to the AtlasScope page carries an exact copy of Keen's page files.
+drift(root).forEach(fail);
 
 if (problems.length) {
   console.error(problems.map((p) => `- ${p}`).join("\n"));
