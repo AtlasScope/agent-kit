@@ -1,6 +1,6 @@
 # AtlasScope identity specification
 
-Version 0.4, 2026-11-09. Foundation only: symbol, wordmark, lockup, icons. Status: built and checked, waiting for Austin's sign-off.
+Version 0.5. Symbol, wordmark, lockup, icons and web exports. The site preview is available for review.
 
 AtlasScope is Austin's personal identity for building, researching and writing about AI and software. Projects such as Agent Kit sit beside it and keep their own names and marks.
 
@@ -23,18 +23,18 @@ Drawn on a grid where the A is 100 units tall. All values are in [source/geometr
 |---|---|
 | Leg slope | 0.45 across per 1 up (24.2° from vertical) |
 | Leg thickness, square to the leg | 21 |
-| Flat top width | 23 |
-| Horizon band thickness | 21, the same as the leg |
-| Gap between feet and band | 12 |
+| Flat top width | 22.75 |
+| Horizon band thickness | 21.25 |
+| Gap between feet and band | 12.625 |
 | Band outer radius | 120 |
-| Band reach past the outer foot corner | 10 each side |
-| Overall box | 147.9 wide × 154.0 tall |
+| Band reach past the outer foot corner | 9.375 each side |
+| Overall box | 146.18 wide × 154.30 tall |
 
 The feet, the gap and both edges of the band are arcs of circles with one shared centre on the symbol's centre line. The band ends are cut along lines through that centre. The inner notch is a sharp point. Nothing is rounded.
 
 These proportions were measured from the selected Orbit reference image (`selected-orbit-symbol.png` in the v0.1 handoff) and then made exact. Laid over that reference, the redraw matches to within a pixel or two at the feet and band ends, which is where the reference itself was irregular.
 
-Small drawing (32 px and below): leg 25, band 24, gap 14, reach 8. The 16 px favicon uses a flatter band (radius 260) so the gap falls on one clean pixel row.
+Small drawing (32 px and below): leg 25, band 24, gap 14, reach 8. The 16 px favicon uses a dedicated band (radius 150) that rises at the centre while retaining a one-pixel gap at the axis.
 
 ## Wordmark construction
 
@@ -48,8 +48,8 @@ Small drawing (32 px and below): leg 25, band 24, gap 14, reach 8. The 16 px fav
 | A leg thickness | 131, which is 1.05 × the stem of the l (125) |
 | A flat top | 150 |
 | A width | 780 (1.11 × its height) |
-| Pair adjustments | A–t −32, t–l +4, l–a +2, a–s −2, s–S +4, S–c +2, o–p +2 |
-| Wordmark ink box | 5538 wide × 936 tall |
+| Pair adjustments | A–t −38, t–l +1, l–a −16, a–s −7, s–S +18, S–c +6, c–o +3, o–p −14, p–e +8 |
+| Wordmark ink box | 5519.11 wide × 936 tall |
 
 The A is drawn by hand. Two other letters carry a small detail, chosen by Austin on the decision board: the t has its crossbar on the right of the stem only, the tops of the t and l end in a shallow angled cut (it falls 46 units across the stem, low at the left), and the foot of the p carries the same cut turned half a circle. The remaining letters are Montserrat's own outlines with spacing reset. The details are switched on and off by name in `CUSTOM` in `source/geometry.py`. S, c, o, a, s and e are left alone: they are curves, and cutting curves is what made earlier versions look sci-fi.
 
@@ -58,7 +58,7 @@ The A is drawn by hand. Two other letters carry a small detail, chosen by Austin
 - The symbol's A is exactly as tall as the wordmark's A and stands on the same baseline. The horizon band hangs below the baseline.
 - Symbol scale is 7 × its grid, so its legs measure 147 against the wordmark A's 131. The two A's are the same height and angle; the symbol is slightly heavier, following the selected Orbit reference.
 - Space between the symbol and the wordmark: 385 units (0.55 × cap height).
-- Ink box: 6958 wide × 1120 tall. It reaches 742 above the baseline (top of the l) and 378 below it (the band).
+- Ink box: 6927.34 wide × 1122.13 tall. It reaches 742 above the baseline (top of the l) and 380.13 below it (the band).
 - In a header, centre the cap height on the bar's centre line, so the name lines up with the navigation text. Do not centre the whole box.
 
 ## Clear space and minimum sizes
@@ -70,7 +70,7 @@ Clear space on every side is X, where X is half the cap height. The files in `sv
 | Lockup | 14 px cap height (about 139 px wide) |
 | Wordmark | 12 px cap height (about 95 px wide) |
 | Symbol, regular drawing | 40 px wide |
-| Symbol, small drawing | 12 px wide (16 px favicon tile) |
+| Symbol, small drawing | 12 px wide for the standalone symbol. Use the dedicated 16 px tile in tabs. |
 
 Below the lockup minimum, use the wordmark alone or the symbol alone.
 
@@ -105,7 +105,7 @@ Licence: Montserrat is under the SIL Open Font License 1.1 ([source/fonts/Montse
 
 | Folder | Holds |
 |---|---|
-| `svg/` | Master vectors, cropped tight. Import these into Figma |
+| `svg/` | Master vectors, cropped tight |
 | `svg/padded/` | The same with clear space built in |
 | `png/` | Transparent PNGs: lockup 600/1200/2400, wordmark 500/1000/2000, symbol 256/512/1024 wide |
 | `icons/` | `favicon.svg`, `favicon.ico` (16, 32, 48), `apple-touch-icon.png` (180), app icons 64 to 1024, maskable 192 and 512 |
@@ -158,9 +158,8 @@ Checked in the SVG source of the v0.1 handoff package.
 4. **Lockup alignment.** The two A's are the same height on one baseline, with the band below. This makes the lockup taller below the baseline than a plain line of type.
 5. **Ink is `#0B0C12`.** Taken from the system board. The v0.1 package used `#120F1E`, sampled from the Orbit reference, which has a visible violet tint, and `#FAFAFA` in place of white. A neutral ink fits "monochrome" better; it is one constant in `build.py` if you prefer the violet. The Agent Kit site uses a warmer `#0B0A08`, to be reconciled when site work starts.
 
-## Not production-ready yet
+## Site placement
 
-- No Figma file. Figma was not connected in this session, so the masters are SVG. They import cleanly as vector shapes.
-- No formal trademark search (see above).
-- The 16 px favicon is at the limit: the gap is one pixel and the band reads as a bar. It is legible, but the arc's curve is not visible at that size.
-- Nothing is wired into the site.
+- Desktop header and shared footer use the 159 × 32 CSS px lockup. The compact header uses a 24 × 32 CSS px symbol. Keep both at intrinsic size; the site aligns the SVG origin to the device grid.
+- The site uses the refined 1200 × 630 card for Open Graph and X, the 512 × 512 light icon for organization metadata, and advertises dedicated 16, 32 and 48 px PNG favicons alongside the fallback ICO. The SVG is available at `/icon.svg`.
+- The favicon, Apple touch icon, social card, organization logo and generated navigation component are copied into the site by `source/export_site.py`.

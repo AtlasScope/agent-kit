@@ -55,7 +55,7 @@ float through(vec3 p){
   if (len <= 0.) return 1.;
   float od = 0., top;
   const int M = 14;
-  for (int j = 0; j < M; j++) {
+  for (int j = 0; j < M + uZ; j++) {
     float u0 = float(j)/float(M), u1 = float(j + 1)/float(M);
     float t0 = len*u0*sqrt(u0), t1 = len*u1*sqrt(u1), t = .5*(t0 + t1);
     od += cloudDensity(p + uSun*t, clamp(log2(1. + t*.25), 0., 6.), top)*(t1 - t0);

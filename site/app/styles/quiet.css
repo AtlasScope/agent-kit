@@ -1,0 +1,14 @@
+/* The dark stage behind /install: black, hairlines, one centred column, always dark like the homepage it continues
+   from. Owner: W9 install (DESIGN-CONTRACT.md).
+   Depth: the grid is a floor that recedes to a horizon in the first screen, with a faint green and blue glow where it
+   meets the dark. */
+.quiet { --bg: var(--c-canvas); --card: var(--c-surface); --line: var(--c-line); --line-2: var(--c-line-2); --t1: var(--c-fg); --t2: var(--c-fg-2); --t3: var(--c-fg-3); --ok: var(--c-signal);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative; isolation: isolate; margin-inline: calc(50% - 50vw); background: var(--bg); color: var(--t1); overflow-x: clip; }
+.quiet::before { content: ""; position: absolute; left: 0; right: 0; top: 34svh; height: 72svh; z-index: -1; pointer-events: none; opacity: .9;
+  background-image: linear-gradient(rgba(255,255,255,.10) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.10) 1px, transparent 1px);
+  background-size: 64px 64px; background-position: center top;
+  transform: perspective(520px) rotateX(64deg); transform-origin: 50% 0%;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 30%, #000 70%, transparent 100%); mask-image: linear-gradient(to bottom, transparent 0%, #000 30%, #000 70%, transparent 100%); }
+.quiet::after { content: ""; position: absolute; left: 0; right: 0; top: 22svh; height: 260px; z-index: -1; pointer-events: none;
+  background: radial-gradient(60% 50% at 50% 50%, color-mix(in oklab, var(--led) 10%, transparent), color-mix(in oklab, var(--s-dcmd) 5%, transparent) 45%, transparent 75%); }

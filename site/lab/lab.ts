@@ -13,8 +13,11 @@
 //   ?still           hold everything at rest, as the homepage's still image is made
 //   ?world=ink       one of the directions that were tried and set aside (see worlds.ts): day, ink
 //   ?cloudSteps=8    with ?airSteps= and ?pixels=: change the chosen tier's numbers, to cost one technique
-import { DEFAULTS, OPENING_SECONDS, TIERS, createOrbit, play } from "../components/orbit/index";
-import type { Cue, Params } from "../components/orbit/index";
+//   ?climate=12      play the climate (components/orbit/climate.ts) for visit seed 12, over the sliders' look
+//   ?speed=10        with ?climate: run the climate ten times faster (the aurora's own motion keeps its pace)
+//   ?t=95            with ?climate: hold the climate at 95 seconds into the visit
+import { DEFAULTS, OPENING_SECONDS, TIERS, climate, createOrbit, play, visit, weatherClock } from "../components/orbit/index";
+import type { Cue, Mood, Params } from "../components/orbit/index";
 import { WORLDS } from "./worlds";
 
 type Row = [keyof Params, number, number, number];
@@ -31,7 +34,8 @@ const GROUPS: [string, Row[]][] = [
   ["Motion", [["drift", -4, 4, 0.05], ["stormSpin", -30, 30, 0.5]]],
   ["Cloud light", [["cloudSigma", 0.5, 20, 0.1], ["cloudRelief", 0, 3, 0.02], ["cloudHollows", 0, 1, 0.01], ["cloudRim", 0, 2, 0.01], ["shadowSigma", 0, 6, 0.05]]],
   ["Stars", [["stars", 0, 4, 0.02], ["starDensity", 0, 1, 0.01], ["twinkle", 0, 0.5, 0.01]]],
-  ["Print", [["exposure", 0.1, 8, 0.02], ["contrast", 0, 1, 0.01], ["saturation", 0, 2, 0.01], ["grain", 0, 2, 0.01], ["glare", 0, 4, 0.02], ["warmth", 0, 1, 0.01]]],
+  ["Print", [["exposure", 0.1, 8, 0.02], ["contrast", 0, 1, 0.01], ["saturation", 0, 2, 0.01], ["grain", 0, 2, 0.01], ["glare", 0, 4, 0.02], ["warmth", 0, 1, 0.01], ["bloom", 0, 0.3, 0.005], ["bloomSpread", 0, 0.5, 0.01], ["dawn", 0, 2, 0.01], ["dawnSpread", 0, 2, 0.01], ["aureole", 0, 4, 0.02], ["split", 0, 1.5, 0.01]]],
+  ["Aurora surge", [["surgeBearing", -60, 60, 0.5], ["surgeWidth", 1, 90, 0.5], ["surgeRest", 0, 1, 0.01]]],
 ];
 const SIZES: [string, number, number][] = [["Fill", 0, 0], ["Desktop 1440 x 835", 1440, 835], ["Laptop 1280 x 655", 1280, 655], ["Full HD 1920 x 1015", 1920, 1015], ["Phone 390 x 779", 390, 779], ["Small phone 375 x 602", 375, 602], ["Tablet 820 x 1115", 820, 1115]];
 
@@ -145,20 +149,36 @@ if (query.has("bare")) document.body.classList.add("bare");
 if (query.has("words")) toggle("words");
 sync();
 
+// The climate, when asked for: the visit's plan, and the time into it (held, or running at `speed`).
+const sky = query.has("climate") ? visit(Number(query.get("climate")) || 1) : null;
+const speed = Number(query.get("speed") || 1);
+let skyHeld: number | null = query.has("t") ? Number(query.get("t")) : null;
+let weights: Record<Mood, number> | null = null;
+let motionHeld: number | null = null;
+
 let frames = 0, lastStats = started, fps = 0;
 function frame(now: number) {
   requestAnimationFrame(frame);
   stage.classList.toggle("narrow", stage.clientWidth < 760);
   pointer.x += (pointer.tx - pointer.x) * 0.06;
   pointer.y += (pointer.ty - pointer.y) * 0.06;
-  const cue: Cue = { opening: held ?? (now - openingAt) / 1000, leave: 0, time: query.has("still") ? 0 : (now - started) / 1000, px: pointer.x, py: pointer.y };
-  const shot = play(cue, params);
+  const cue: Cue = { opening: held ?? (now - openingAt) / 1000, leave: 0, time: query.has("still") ? 0 : motionHeld ?? (now - started) / 1000, px: pointer.x, py: pointer.y };
+  let look = params;
+  if (sky) {
+    const at = skyHeld ?? cue.time * speed, weather = climate(sky, at);
+    look = { ...params, ...weather.look };
+    orbit?.set(look);
+    weights = weather.weights;
+    cue.clock = weatherClock(sky, at);
+  }
+  const shot = play(cue, look);
   if (query.has("clock")) shot.clock = Number(query.get("clock"));
   if (orbit?.render({ ...shot, debug, steady: true })) { frames++; if (!firstFrame) { orbit.finish(); firstFrame = performance.now() - created; } }
   if (now - lastStats > 500) {
     fps = (frames * 1000) / (now - lastStats); frames = 0; lastStats = now;
     const s = orbit?.stats();
-    if (s) statsBox.textContent = `${s.tier}  ${s.width} x ${s.height} (${Math.round(s.scale * 100)}%)  map ${s.map[0]} x ${s.map[1]}\n${fps.toFixed(0)} fps  gpu ${s.gpuMs ? s.gpuMs.toFixed(1) : "?"} ms  cpu ${s.cpuMs.toFixed(2)} ms\nopening ${Math.min(cue.opening, 99).toFixed(1)} / ${OPENING_SECONDS} s`;
+    if (s) statsBox.textContent = `${s.tier}  ${s.width} x ${s.height} (${Math.round(s.scale * 100)}%)  map ${s.map[0]} x ${s.map[1]}\n${fps.toFixed(0)} fps  gpu ${s.gpuMs ? s.gpuMs.toFixed(1) : "?"} ms  cpu ${s.cpuMs.toFixed(2)} ms\nopening ${Math.min(cue.opening, 99).toFixed(1)} / ${OPENING_SECONDS} s` +
+      (sky && weights ? `\nsky ${sky.seed} (${sky.opening})  ${(skyHeld ?? cue.time * speed).toFixed(0)} s  quiet ${weights.quiet.toFixed(2)}  luminous ${weights.luminous.toFixed(2)}  magnetic ${weights.magnetic.toFixed(2)}` : "");
   }
 }
 requestAnimationFrame(frame);
@@ -189,7 +209,11 @@ function bakeBench() {
 }
 
 // For the console and for capture scripts.
-Object.assign(window, { lab: { orbit, params, sync, bench, bakeBench, firstFrame: () => firstFrame, replay: () => { openingAt = performance.now(); } } });
+Object.assign(window, { lab: { orbit, params, sync, bench, bakeBench, firstFrame: () => firstFrame, replay: () => { openingAt = performance.now(); },
+  // Captures: hold the climate at `at` seconds into the visit (null lets it run), and report its moods there.
+  // `motion` also holds the clock that the aurora, the stars and the float run on, so a sequence of frames can be
+  // made at any rate (a condensed film: the climate fast, everything else at its own pace).
+  sky: () => sky, at: (at: number | null, motion: number | null = null) => { skyHeld = at; motionHeld = motion; return sky ? climate(sky, at ?? 0).weights : null; } } });
 
 // Reload when the renderer or the lab changes on disk.
 new EventSource("/__reload").addEventListener("message", () => location.reload());

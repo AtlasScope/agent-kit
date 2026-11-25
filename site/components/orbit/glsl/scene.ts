@@ -53,7 +53,7 @@ vec3 shadeGround(vec3 n, vec3 v){
   float m2 = .003 + .00512*wind;
   sea += sun*glitter(n, v, uSun, m2) + moon*glitter(n, v, uMoon, m2);
   // What the currents carry glows faintly of its own accord once the sun has gone.
-  sea += uSeaGlow*A.g*A.g*(1. - smoothstep(-.3, -.12, mu));
+  sea += uSeaGlow*pow(A.g, 1.7)*(1. - smoothstep(-.3, -.1, mu));
 
   vec3 col = mix(sea, land, smoothstep(-.012, .012, h));
   // Ice and snow: fresh snow, wind-scoured blue ice where it is thin or old, lit by its own slope.
@@ -90,7 +90,8 @@ uniform float uMulti;                       // how much twice-scattered light th
 uniform float uAirglow;                     // how bright the airglow is
 out vec4 o;
 
-const float SUN_L = 45730.;                 // the sun's disc, in units of a white surface it lights square-on
+const float SUN_L = 45730.;
+const float SUN_CAP = 24.;                // the brightest the disc is drawn (see the sky below)                 // the sun's disc, in units of a white surface it lights square-on
 
 // One random number per pixel, to nudge where each ray is sampled. Plain white noise: what is left of it in the
 // picture reads as film grain, where a patterned noise would show its pattern across the smooth air.
@@ -123,7 +124,7 @@ void scatterAlong(vec3 d, float t0, float t1, bool thickEnd, float jit, vec2 cos
   vec3 moonR = uMoonFill*uMoonAir*phaseR(cosLight.y), moonM = uMoonFill*uMoonAir*phaseM(cosLight.y, uMieG);
   bool night = dot(normalize(uCam + d*(thickEnd ? t1 : t0)), uSun) < -.3;
   int steps = night ? max(AIR_STEPS/3, 2) : AIR_STEPS;
-  for (int i = 0; i < steps; i++) {
+  for (int i = 0; i < steps + uZ; i++) {
     float u0 = float(i)/float(steps), u1 = float(i + 1)/float(steps);
     float um = (float(i) + .5 + (jit - .5)*.5)/float(steps);
     float s0, s1, sm;
@@ -161,7 +162,7 @@ Cloud marchClouds(vec3 d, bool ground, float jit){
   float l2 = dot(l, l);
   float tPrev = b - sqrt(max(RC*RC - l2, 0.)), od = 0., lo = -1., hi = -1., top;
   // Down through the shell.
-  for (int i = 1; i <= CLOUD_STEPS; i++) {
+  for (int i = 1; i <= CLOUD_STEPS + uZ; i++) {
     float r = RP + levelHeight(float(i) - jit);
     float disc = r*r - l2;
     if (disc < 0.) break;                       // the ray turns upward before it gets this low
@@ -173,7 +174,7 @@ Cloud marchClouds(vec3 d, bool ground, float jit){
   }
   // And, for a ray that clears the ground, up the far side.
   if (!ground) {
-    for (int i = CLOUD_STEPS; i >= 1; i--) {
+    for (int i = CLOUD_STEPS + uZ; i >= 1; i--) {
       float r = RP + levelHeight(float(i) - jit);
       float disc = r*r - l2;
       if (disc < 0.) continue;
@@ -185,7 +186,7 @@ Cloud marchClouds(vec3 d, bool ground, float jit){
     }
   }
   if (lo < 0.) return c;
-  for (int i = 0; i < 5; i++) {
+  for (int i = 0; i < 5 + uZ; i++) {
     float m = .5*(lo + hi);
     if (cloudDensity(uCam + d*m, uLod, top) > .04) hi = m; else lo = m;
   }
@@ -194,11 +195,13 @@ Cloud marchClouds(vec3 d, bool ground, float jit){
   return c;
 }
 
-// How a face of cloud takes a light: brightest square-on, and never quite dark, because light that enters a cloud
-// wanders through it and leaks out of every side.
-float cloudFace(vec3 N, vec3 l, float muL, float hollow){
-  float facing = sat((dot(N, l) + .3)/1.3);
-  return facing*facing*.78 + .22*sat(muL*4. + .35)*hollow;
+// How a face of cloud takes a light. Light that enters a cloud wanders through it and leaks out of every side, so a
+// face turned away is never dark (wrapped lighting), and a thick cloud gives back more of what falls on it than a
+// thin one, which lets some through (the depth of cloud under a point, from its top).
+float cloudFace(vec3 N, vec3 l, float muL, float hollow, float thick){
+  float facing = sat((dot(N, l) + .45)/1.45);
+  float back = 1. - exp(-thick*.9);
+  return (facing*facing*(.55 + .45*back) + .2*sat(muL*4. + .35)*hollow)*(.6 + .4*back);
 }
 
 vec3 shadeCloud(vec3 q, vec3 d){
@@ -210,9 +213,11 @@ vec3 shadeCloud(vec3 q, vec3 d){
   vec2 uv = mapUV(m), here = mapUV(n);
   vec4 A = textureLod(uCloudA, uv, uLod), B = textureLod(uCloudB, uv, uLod);
   float shS = textureLod(uShade, here, 0.).r, shM = textureLod(uShadeMoon, here, 0.).r;
-  // The slope of the top was stored where the cloud was baked; bring it round to where the cloud is now.
+  // The slope of the top was stored where the cloud was baked; bring it round to where the cloud is now. The
+  // smallest heaps tilt the light least: their slope is blended with that of the broad shape around them, which
+  // keeps the deck from reading as gravel.
   vec3 ePhi, eA; mapFrame(m, ePhi, eA);
-  vec2 s = unpackSlope(A.ba)*uCloudLook.y;
+  vec2 s = mix(unpackSlope(A.ba), unpackSlope(textureLod(uCloudA, uv, uLod + 2.).ba), .5)*uCloudLook.y;
   vec3 N = normalize(m - s.x*ePhi - s.y*eA);
   N = turn(vec3(uDriftCS.x*N.x + uDriftCS.y*N.z, N.y, -uDriftCS.y*N.x + uDriftCS.x*N.z), uSpin.xyz, turned);
   float mu = dot(n, uSun), muM = dot(n, uMoon);
@@ -221,9 +226,10 @@ vec3 shadeCloud(vec3 q, vec3 d){
   // Hollows between the heaps are darker than the heaps: compare this top with the tops around it.
   float around = textureLod(uCloudA, uv, uLod + 3.5).r;
   float hollow = clamp(1. - uCloudLook.z*(around - A.r)*CLOUD_TOP, .45, 1.2);
-  vec3 lit = sun*cloudFace(N, uSun, mu, hollow) + moon*cloudFace(N, uMoon, muM, hollow);
+  float thick = max(A.r*CLOUD_TOP - CLOUD_BASE, 0.)*A.g;
+  vec3 lit = sun*cloudFace(N, uSun, mu, hollow, thick) + moon*cloudFace(N, uMoon, muM, hollow, thick);
   // Thin edges seen against the light glow.
-  lit += (sun*phaseM(dot(d, uSun), .72) + moon*phaseM(dot(d, uMoon), .72))*uCloudLook.w*(1. - A.g);
+  lit += (sun*phaseM(dot(d, uSun), .72) + moon*phaseM(dot(d, uMoon), .72))*uCloudLook.w*(1. - A.g*(1. - exp(-thick*2.)));
   vec3 sky = skylight(r, mu)*(.6 + .4*dot(N, n))*hollow;
 #ifdef DEBUG
   if (uDebug > .5) {
@@ -234,7 +240,7 @@ vec3 shadeCloud(vec3 q, vec3 d){
     return vec3(hollow*.8);                                    // 5: hollows
   }
 #endif
-  return (.92*lit + .9*sky)*(1. - .3*B.b);
+  return (.95*lit + .9*sky)*(1. - .25*B.b);
 }
 
 void main(){
@@ -245,7 +251,7 @@ void main(){
   // The sun's disc, darker toward its edge. What dims and reddens it is the air it is seen through, below.
   float ang = cosLight.x > 0. ? length(cross(d, uSun)) : 1.;
   float sunDisc = SUN_L*smoothstep(SUN_R + px, SUN_R - px, ang)*(.4 + .6*sqrt(max(1. - sq(ang/SUN_R), 0.)));
-  vec3 col = vec3(sunDisc);
+  vec3 col = vec3(min(sunDisc, SUN_CAP));
   float alpha = 1.;
   bool ground = false;
 
@@ -278,7 +284,11 @@ void main(){
         scatterAlong(d, b, tA.y, false, jit, cosLight, L, cols);
         vec3 T = extinction(cols);
         backAlpha = dot(T, vec3(.3333));
-        back = L + T*sunDisc;
+        // The disc as it comes through the air, held to a ceiling that keeps its hue. Far past white once exposed,
+        // so it looks the same; but the bloom (post.ts) averages the picture into ever smaller copies, and the
+        // sun's full strength would swamp them as a square. The glare round the disc is drawn there analytically.
+        vec3 disc = T*sunDisc;
+        back = L + disc*min(1., SUN_CAP/max(max(disc.r, disc.g), max(disc.b, 1e-6)));
       }
     }
     col = back; alpha = backAlpha;

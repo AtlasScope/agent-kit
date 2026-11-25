@@ -116,3 +116,81 @@ test("the opening is a sunrise that never runs backward and ends at rest", () =>
   const farthest = score.play(cue(1e6, { time: 1e6 }), DEFAULTS).clock;
   assert.ok((DEFAULTS.drift * farthest) / 60 < 5, `the clouds turn ${((DEFAULTS.drift * farthest) / 60).toFixed(1)} degrees at most`);
 });
+
+test("the resolution governor counts slow frames, and tells slow pixels from a slow page", async () => {
+  const { governor, govern } = await import("../components/orbit/governor.ts");
+  // Frames `ms` apart for `seconds`, all steady; the cost may depend on how many pixels are drawn.
+  const run = (g, seconds, cost) => { const start = g.last || 1000, acts = []; for (let t = start; t < start + seconds * 1000;) { t += cost(g.fit); acts.push(govern(g, t, true)); } return acts; };
+
+  // A machine that draws every frame on time is left alone.
+  const fast = governor();
+  run(fast, 5, () => 16.7);
+  assert.equal(fast.fit, 1);
+
+  // A graphics chip that cannot keep up: frames 45 ms apart at full size, in proportion to the pixels. Frames that
+  // late must count (the review of #123 found they were dropped), and each step that helps leads to the next.
+  const slow = governor();
+  run(slow, 10, (fit) => 45 * fit * fit);
+  assert.ok(slow.fit < 0.8 && slow.fit >= 0.5, `stepped down to ${slow.fit.toFixed(2)}`);
+
+  // Hitches on a fast machine (a long frame now and then, from the heap or a busy page) are not slowness.
+  const hitched = governor();
+  let n = 0;
+  run(hitched, 10, () => (++n % 8 === 0 ? 100 : 16.7));
+  assert.equal(hitched.fit, 1);
+
+  // A page held to thirty frames a second whatever it draws: one step is tried, buys nothing, and is put back.
+  const held = governor();
+  run(held, 10, () => 33.3);
+  assert.equal(held.fit, 1);
+  assert.equal(held.held, true);
+
+  // Gaps the caller does not vouch for (a pause off screen, the idle pace) are not measured.
+  const paused = governor();
+  for (let t = 1000; t < 20000; t += 500) assert.equal(govern(paused, t, false), "same");
+  assert.equal(paused.fit, 1);
+
+  // Far too slow even at half size, or far too slow at any size: give up, and the page keeps its still.
+  const pixels = governor();
+  assert.ok(run(pixels, 20, (fit) => 360 * fit * fit).includes("give up"));
+  const anyway = governor();
+  assert.ok(run(anyway, 20, () => 90).includes("give up"));
+});
+
+// The climate (components/orbit/climate.ts): what changes while the page stays open.
+const sky = await import("../components/orbit/climate.ts");
+const { SURFACE_KEYS, CLOUD_KEYS } = await import("../components/orbit/params.ts");
+
+test("the climate never touches a number that would rebuild a map", () => {
+  for (const key of sky.CLIMATE_KEYS) assert.ok(!SURFACE_KEYS.includes(key) && !CLOUD_KEYS.includes(key), key);
+  const v = sky.visit(7);
+  for (let t = 0; t < 900; t += 7) for (const key of Object.keys(sky.climate(v, t).look)) assert.ok(sky.CLIMATE_KEYS.includes(key), key);
+});
+
+test("the same seed gives the same visit, and visits differ", () => {
+  assert.deepEqual(sky.visit(42), sky.visit(42));
+  const openings = new Set(Array.from({ length: 60 }, (_, i) => sky.visit(i + 1).opening));
+  assert.ok(openings.size >= 3, [...openings].join());
+});
+
+test("the sky changes continuously: nothing jumps between frames", () => {
+  for (const seed of [1, 2, 3, 5, 8, 13]) {
+    const v = sky.visit(seed);
+    let last = sky.climate(v, 0).look;
+    for (let t = 1 / 30; t < 900; t += 1 / 30) {
+      const now = sky.climate(v, t).look;
+      for (const key of sky.CLIMATE_KEYS) assert.ok(Math.abs(now[key] - last[key]) <= Math.max(1e-6, Math.abs(last[key]) * 0.01 + 0.05), `${seed} ${key} at ${t.toFixed(2)}s`);
+      last = now;
+    }
+  }
+});
+
+test("spectacle has room to breathe: passages never overlap and quiet always follows", () => {
+  for (let seed = 1; seed <= 200; seed++) {
+    const ps = sky.visit(seed).passages;
+    for (let i = 1; i < ps.length; i++) {
+      const end = ps[i - 1].start + ps[i - 1].rise + ps[i - 1].hold + ps[i - 1].fall;
+      assert.ok(ps[i].start - end >= 55, `seed ${seed}: only ${(ps[i].start - end).toFixed(0)} s of quiet`);
+    }
+  }
+});

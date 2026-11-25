@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 
 const CopyIcon = () => (
   <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -7,19 +8,31 @@ const CopyIcon = () => (
   </svg>
 );
 
+const BLOCKED = "Copy blocked: select the text";
+
+// data-copied is set while "Copied" shows and data-blocked while the blocked label shows, so a page can react
+// (select its text, restyle) without reading the label. A press while a message shows first commits a reset to the
+// plain label (no attribute), so a repeat outcome sets its attribute afresh; FloatingCopy relies on that.
 // `name` is what a screen reader hears when the visible label alone ("Copy") would be ambiguous on the page.
 export function CopyButton({ text, label = "Copy", className = "copy", icon = false, name }: { text: string; label?: string; className?: string; icon?: boolean; name?: string }) {
   const [state, setState] = useState(label);
+  // One reset timer per button: a second press restarts it, so an earlier timer never overwrites a newer state.
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const alive = useRef(true);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; clearTimeout(timer.current); }; }, []);
+  const show = (next: string, ms: number) => { if (!alive.current) return; clearTimeout(timer.current); setState(next); timer.current = setTimeout(() => setState(label), ms); };
   return (
     <button
       type="button"
       className={className}
       data-copied={state === "Copied" || undefined}
+      data-blocked={state === BLOCKED || undefined}
       aria-label={name}
       onClick={async () => {
-        try { await navigator.clipboard.writeText(text); setState("Copied"); }
-        catch { setState("Copy blocked: select the text"); setTimeout(() => setState(label), 5000); return; }
-        setTimeout(() => setState(label), 1600);
+        // Each press starts fresh, so a repeat result re-announces and a page watching the attributes sees it again.
+        if (state !== label) { clearTimeout(timer.current); flushSync(() => setState(label)); }
+        try { await navigator.clipboard.writeText(text); show("Copied", 1600); }
+        catch { show(BLOCKED, 5000); }
       }}
     >
       {icon && <CopyIcon />}<span aria-live="polite">{state}</span>

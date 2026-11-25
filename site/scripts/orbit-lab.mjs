@@ -19,11 +19,11 @@ const HOST = process.env.HOST || "127.0.0.1";
 const TYPES = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".mjs": "text/javascript; charset=utf-8",
   ".ts": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".json": "application/json",
-  ".png": "image/png", ".webp": "image/webp", ".avif": "image/avif", ".svg": "image/svg+xml",
+  ".png": "image/png", ".jpg": "image/jpeg", ".webp": "image/webp", ".avif": "image/avif", ".svg": "image/svg+xml",
 };
 
 // Only these folders are served: the lab page, the renderer, and the hero stills for side-by-side comparison.
-const ALLOWED = ["lab", "components/orbit", "public/hero"].map((dir) => path.join(ROOT, dir) + path.sep);
+const ALLOWED = ["lab", "components/orbit", "components/horizon", "public/hero", "public/horizon"].map((dir) => path.join(ROOT, dir) + path.sep);
 const clients = new Set();
 
 // The file an address names, or null. The address is resolved against the site folder and must then lie inside it,
@@ -72,7 +72,7 @@ const server = createServer(async (req, res) => {
 });
 
 let pending = 0;
-for (const dir of ["lab", "components/orbit"]) {
+for (const dir of ["lab", "components/orbit", "components/horizon"]) {
   watch(path.join(ROOT, dir), { recursive: true }, () => {
     clearTimeout(pending);
     pending = setTimeout(() => { for (const client of clients) client.write("data: reload\n\n"); }, 80);
