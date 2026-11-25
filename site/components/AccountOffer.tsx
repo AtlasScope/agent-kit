@@ -59,7 +59,7 @@ export function AccountOffer({ copied, prompts, picks, onDone }: { copied: boole
       <span className="inst__acct-rim" aria-hidden="true" />
       <div className="inst__acct-say">
         <h2 id="inst-acct-h">Keep the prompts you use</h2>
-        <p>Your agent has the skills now. Star any of the {prompts} prompts and find them in one list, wherever you sign in.</p>
+        <p>The kits add skills to your agent. Star any of the {prompts} prompts and find them in one list, wherever you sign in.</p>
       </div>
       {picks.length > 0 && (
         <div className="inst__acct-list" aria-hidden="true">
