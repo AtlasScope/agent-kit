@@ -113,7 +113,8 @@ const MODE_LABEL = { read: "Report only", repro: "Adds a test that shows it", ch
 const auditCols = (id) => {
   const a = audit.entries[id] || { s: "" };
   const flags = [...(a.flags || []), ...(a.dupOf ? ["duplicate of " + a.dupOf] : [])].join("; ");
-  return [[...a.s].reduce((t, d) => t + +d, 0) + "/14 (" + a.s + ")", role.get(id) || "", flags, a.note || ""];
+  const score = a.s ? [...a.s].reduce((t, d) => t + +d, 0) + "/14 (" + a.s + ")" : "";
+  return [score, role.get(id) || "", flags, a.note || ""];
 };
 const csv = (v) => (/[",\n]/.test(String(v ?? "")) ? `"${String(v).replace(/"/g, '""')}"` : String(v ?? ""));
 const audit = JSON.parse(fs.readFileSync(path.join(here, "audit.json"), "utf8"));

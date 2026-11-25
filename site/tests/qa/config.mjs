@@ -16,7 +16,7 @@ for (const d of DEVICES) delete d.ctx.defaultBrowserType;
 
 export const SCHEMES = ["light", "dark"];
 
-// Touch-target floor from DESIGN-CONTRACT.md rule 6 (44px on coarse pointers).
+// Touch-target floor for coarse pointers.
 export const TOUCH_MIN = 44;
 
 // One or two pages per route family, picked from the built content so the sample follows the data.
@@ -32,28 +32,28 @@ export function routeSample(data) {
   const fix = data.fixes?.[0];
   const step = STEPS[0], lesson = LESSONS[0];
   return [
-    { path: "/", family: "home", owner: "Fable (home)" },
-    { path: "/install", family: "install", owner: "W9" },
-    { path: "/start", family: "guide", owner: "W8" },
-    step && { path: `/start/${step.slug}`, family: "guide", owner: "W8" },
-    { path: "/learn", family: "guide", owner: "W8" },
-    lesson && { path: `/learn/${lesson.slug}`, family: "guide", owner: "W8" },
-    { path: "/fix", family: "guide", owner: "W8" },
-    fix && { path: `/fix/${fix.slug}`, family: "guide", owner: "W8" },
-    { path: "/prompts", family: "prompts-browse", owner: "W4" },
-    area && { path: `/prompts/${area.slug}`, family: "prompts-browse", owner: "W4" },
-    { path: `/prompts/${prompt.slug}`, family: "prompt-detail", owner: "W5" },
-    recipe && { path: `/prompts/${recipe.slug}`, family: "prompt-detail", owner: "W5" },
-    command && { path: `/prompts/${command.slug}`, family: "prompt-detail", owner: "W5" },
-    { path: "/skills", family: "skills-browse", owner: "W6" },
-    { path: "/kits", family: "skills-browse", owner: "W6" },
-    { path: `/skills/${skill.name}`, family: "skill-detail", owner: "W7" },
-    { path: `/kits/${kit.name}`, family: "skill-detail", owner: "W7" },
-    { path: "/mcp-setup", family: "utility", owner: "W10" },
-    { path: "/about", family: "utility", owner: "W10" },
-    { path: "/privacy", family: "utility", owner: "W10" },
-    { path: "/terms", family: "utility", owner: "W10" },
-    { path: "/this-page-does-not-exist", family: "utility", owner: "W2", status: 404 },
+    { path: "/", family: "home", owner: "Home" },
+    { path: "/install", family: "install", owner: "Install" },
+    { path: "/start", family: "guide", owner: "Guides" },
+    step && { path: `/start/${step.slug}`, family: "guide", owner: "Guides" },
+    { path: "/learn", family: "guide", owner: "Guides" },
+    lesson && { path: `/learn/${lesson.slug}`, family: "guide", owner: "Guides" },
+    { path: "/fix", family: "guide", owner: "Guides" },
+    fix && { path: `/fix/${fix.slug}`, family: "guide", owner: "Guides" },
+    { path: "/prompts", family: "prompts-browse", owner: "Prompts" },
+    area && { path: `/prompts/${area.slug}`, family: "prompts-browse", owner: "Prompts" },
+    { path: `/prompts/${prompt.slug}`, family: "prompt-detail", owner: "Prompt detail" },
+    recipe && { path: `/prompts/${recipe.slug}`, family: "prompt-detail", owner: "Prompt detail" },
+    command && { path: `/prompts/${command.slug}`, family: "prompt-detail", owner: "Prompt detail" },
+    { path: "/skills", family: "skills-browse", owner: "Skills" },
+    { path: "/kits", family: "skills-browse", owner: "Skills" },
+    { path: `/skills/${skill.name}`, family: "skill-detail", owner: "Skill detail" },
+    { path: `/kits/${kit.name}`, family: "skill-detail", owner: "Skill detail" },
+    { path: "/mcp-setup", family: "utility", owner: "Utility" },
+    { path: "/about", family: "utility", owner: "Utility" },
+    { path: "/privacy", family: "utility", owner: "Utility" },
+    { path: "/terms", family: "utility", owner: "Utility" },
+    { path: "/this-page-does-not-exist", family: "utility", owner: "Shell", status: 404 },
   ].filter(Boolean);
 }
 

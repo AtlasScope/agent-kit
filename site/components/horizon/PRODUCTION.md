@@ -1,6 +1,6 @@
 # What stands between the horizon scene and production
 
-Written 24 November 2026. Each item says what is settled, what is only documented, and what nobody has tested.
+Historical production-readiness record, written 24 November 2026 before PR #153 merged the Horizon stage. Preserve the imagery provenance and unresolved rights/device risks below; statements about branch or production status describe that checkpoint, not current deployment. See SOURCES.md and the live stage for the current implementation.
 
 ## What the picture is, and what to call it
 

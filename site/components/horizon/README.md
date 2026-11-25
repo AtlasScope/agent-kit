@@ -1,6 +1,6 @@
 # Horizon: the real planet, lit by computed air
 
-An experiment, on its own branch, in what the homepage's view from orbit could be. It is not linked from the site. The procedural planet in `components/orbit/` is untouched and stays the baseline; `/horizon/orbit` shows it on the same page for comparison.
+The renderer used by the shared homepage/Install stage (merged in PR #153). Historical comparison routes and the procedural renderer in `components/orbit/` remain available for development. Source imagery, terms and production caveats live in `SOURCES.md` and `PRODUCTION.md`; the latter is a dated record, not current release status.
 
 ## The idea
 
@@ -44,4 +44,4 @@ npm run lab                      # then http://localhost:4317/lab/horizon.html?d
 - Weather: the clouds drift along the mean wind for their latitude (trade easterlies, mid-latitude westerlies) on a clock 150 times faster than life, slowing to a stop after about eighteen hours of drift. They are carried, not evolved: no cloud forms or dissolves, and storms do not turn. Real evolution needs a sequence of real frames (geostationary imagery or a weather model's cloud fields).
 - On a phone the shade is deepened over the lower third so the text there stays readable, which dims the planet under it.
 - Clouds are a lit layer with relief, not volumes: no towers casting long shadows across a deck.
-- With reduced motion the experimental pages show no scene yet (there is no still).
+- The shipping stage uses matching AVIF stills with reduced motion and when the live renderer is unavailable.

@@ -2,6 +2,7 @@
 // Evidence for the homepage and its move to the install page: stills, a strip of frames through the move, and
 // recordings at actual speed. Point it at a running site (a production build for anything that is to be judged).
 //   node scripts/stage-capture.mjs <base url> <folder> [stills] [strip] [video] [checks]
+// Defaults to checks only; request stills, strip or video explicitly.
 // Everything is headless Chromium. "phone" is that browser emulating a 390 by 844 touch screen, not a phone.
 import { spawn } from "node:child_process";
 import { readdirSync } from "node:fs";
@@ -11,7 +12,7 @@ import path from "node:path";
 import { launch } from "./orbit-browser.mjs";
 
 const [base, folder, ...asked] = process.argv.slice(2);
-const want = (k) => !asked.length || asked.includes(k);
+const want = (k) => asked.length ? asked.includes(k) : k === "checks";
 await mkdir(folder, { recursive: true });
 const SIZES = {
   desktop: { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 },

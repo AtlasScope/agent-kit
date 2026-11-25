@@ -33,19 +33,22 @@ jobs:
           all=$(has '^\.github/workflows/ci\.yml$')
           # Catalog data can affect static pages; internal kit fixtures and research cannot.
           content=$(has '^(library/library\.json$|CREDITS\.md$|kits/[^/]+/(plugins/|THIRD_PARTY\.md$))')
-          web=$(has '^site/(app/|components/|lib/|public/|db/|next\.config\.ts$|proxy\.ts$|package(-lock)?\.json$|tsconfig\.json$|scripts/(build-content|design-jobs|migrate)\.mjs$|tests/[^/]+\.test\.mjs$|tests/smoke/)')
+          web=$(has '^site/(app/|components/|lib/|public/|db/|next\.config\.ts$|proxy\.ts$|package(-lock)?\.json$|tsconfig\.json$|scripts/(build-content|design-jobs|migrate)\.mjs$|tests/[^/]+\.mjs$|tests/smoke/)')
           browser=$web
           site=false
           if [ "$web" = true ] || [ "$content" = true ]; then site=true; fi
           library=$(has '^(library/|kits/[^/]+/(plugins/|scripts/)|tests/routing/|tests/library/|site/scripts/design-jobs\.mjs$)')
+          # Exercise failure/non-mutation scenarios when the checker or its generators change.
+          checker=$(has '^(library/(check\.mjs|build\.mjs|template\.html)$|kits/(design-kit|engineering-kit)/scripts/|tests/library/)')
           public=$(has '^(kits/[^/]+/plugins/|library/library\.json$|scripts/check-public|[A-Z]+\.md$)')
           catalog=$(has '^(kits/[^/]+/plugins/|\.claude-plugin/|\.agents/|scripts/check-catalog)')
           motion=$(has '^kits/motion-kit/plugins/motion-kit/skills/motion/(scripts|tests)/')
           keen=$(has '^kits/design-kit/plugins/design-kit/skills/keen/(scripts|tests)/')
-          [ "$all" = true ] && site=true browser=true library=true public=true catalog=true motion=true keen=true
+          [ "$all" = true ] && site=true browser=true library=true checker=true public=true catalog=true motion=true keen=true
           echo "browser=$browser" >> "$GITHUB_OUTPUT"
           echo "site=$site" >> "$GITHUB_OUTPUT"
           echo "library=$library" >> "$GITHUB_OUTPUT"
+          echo "checker=$checker" >> "$GITHUB_OUTPUT"
           echo "public=$public" >> "$GITHUB_OUTPUT"
           echo "catalog=$catalog" >> "$GITHUB_OUTPUT"
           echo "motion=$motion" >> "$GITHUB_OUTPUT"
@@ -79,8 +82,8 @@ jobs:
         if: steps.changes.outputs.library == 'true'
         run: node tests/routing/check.mjs
 
-      - name: Check that the library check never writes tracked files
-        if: steps.changes.outputs.library == 'true'
+      - name: Test the library verifier's failure and non-mutation behavior
+        if: steps.changes.outputs.checker == 'true'
         run: node --test tests/library/check-read-only.test.mjs
 
       # The capture tests need a browser. Playwright goes in a folder outside the checkout, because the
