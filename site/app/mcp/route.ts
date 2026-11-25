@@ -2,8 +2,9 @@ import { createMcpHandler } from "mcp-handler";
 import { z } from "zod";
 import { guard, switchSource } from "@/lib/mcp-guard";
 import { SITE } from "@/lib/site";
-import { areas, fixes, getArea, getFix, getPrompt, getPromptById, getSkill, search, counts } from "@/lib/content";
+import { areas, fixes, getArea, getFix, getPrompt, getPromptById, getSkill, search, counts, listed, copyText, copyLabel, kindLabel, whatOf, skillInstall } from "@/lib/content";
 import { promptMd, skillMd, areaMd, fixMd } from "@/lib/markdown";
+import { isRecipe, recipesFor, recipeListText, recipeDetailMd } from "@/lib/recipes";
 
 export const maxDuration = 30;
 
@@ -71,6 +72,32 @@ const handler = createMcpHandler(
       const f = problem ? getFix(problem) : undefined;
       if (f) return text(fixMd(f));
       return text(`${problem ? `No problem page called "${problem}". ` : ""}Problems:\n${fixes.map((x) => `- ${x.slug}: ${x.title}`).join("\n")}`);
+    });
+
+    // Recipes: added after the tools above, which are unchanged. Same ids and slugs as the website.
+    server.registerTool("find_recipes", {
+      title: "Find recipes",
+      description: `Search or list Agent Kit's recipes: a bigger job as prompts and commands in order ("a bug you can't explain", "before you ship a change"). Without a query, lists every recipe. Fetch one with get_recipe.`,
+      inputSchema: z.object({
+        query: z.string().max(200).optional(),
+        limit: z.number().int().min(1).max(50).optional(),
+      }),
+      annotations: READ,
+    }, async ({ query, limit }) => {
+      const hits = recipesFor(listed, search, query).slice(0, limit ?? 50);
+      return text(recipeListText(hits, query, { siteUrl: SITE.url, kindLabel, whatOf }));
+    });
+
+    server.registerTool("get_recipe", {
+      title: "Get a recipe",
+      description: "Return one recipe in full: its steps, the prompts and skills it uses with their text and install commands, and exactly what the website's Copy button copies. Takes the slug or id (such as RX06) from find_recipes.",
+      inputSchema: z.object({ id: z.string().min(1).max(120) }),
+      annotations: READ,
+    }, async ({ id }) => {
+      const p = getPrompt(id) || getPromptById(id);
+      if (!p) return text(`No recipe called "${id}". Use find_recipes to list them.`);
+      if (!isRecipe(p)) return text(`"${id}" is not a recipe. Use get_prompt for it.`);
+      return text(recipeDetailMd(p, { promptMd, copyText, copyLabel, getPrompt, getSkill, skillInstall: (n) => skillInstall(getSkill(n)!).any, siteUrl: SITE.url }));
     });
   },
   {
