@@ -128,7 +128,8 @@ export function InstallPage({ kits, skills, kitLines, account, children }: { kit
   // again whether they are signed in now, and the offer goes away if they are.
   useEffect(() => {
     if (!said1) return;
-    const ask = () => setGuest(!document.documentElement.hasAttribute("data-auth"));
+    // Clerk's own signed-out rule (lib/auth-hint.ts): __client_uat is 0 when signed out. The cookie, unlike data-auth, changes when another tab signs in.
+      const ask = () => setGuest(!/(?:^|; )__client_uat[^=]*=(?!0(?:;|$))[^;]/.test(document.cookie));
     ask();
     addEventListener("focus", ask); document.addEventListener("visibilitychange", ask);
     return () => { removeEventListener("focus", ask); document.removeEventListener("visibilitychange", ask); };
