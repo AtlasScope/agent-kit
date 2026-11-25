@@ -2,7 +2,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
-import { demote, withAnchors, describe, sentences, isAgentSentence, isReserved } from "../components/skills/detail/prose.ts";
+import { demote, withAnchors, isReserved } from "../components/skills/detail/prose.ts";
+import { describe, sentences, isAgentSentence } from "../lib/search.ts";
 
 const { skills, kits } = createRequire(import.meta.url)("../content/generated.json");
 

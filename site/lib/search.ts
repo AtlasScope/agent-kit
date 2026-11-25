@@ -1,8 +1,79 @@
 // Ranked search over prompts and skills: id or command first, then title, then other names and
 // tags, then descriptions, then the body. Pure, so tests can run it on content/generated.json.
-type SPrompt = { id: string; slug: string; t: string; why?: string; use?: string; aka?: string; tags?: string; cmd?: string; group: string; sub?: string; p?: string; ev?: string; skip?: string; avoid?: string; tools?: string; steps?: [string, string][] };
+type SPrompt = { id: string; slug: string; t: string; line?: string; why?: string; use?: string; when?: string; aka?: string; tags?: string; cmd?: string; group: string; sub?: string; p?: string; ev?: string; skip?: string; avoid?: string; tools?: string; steps?: [string, string][]; planSteps?: { label: string; note: string }[] };
 type SSkill = { name: string; kit: string; description: string; bodyMd: string; credit: { author: string } | null };
-const lc = (...xs: unknown[]) => xs.flat(2).filter(Boolean).join(" ").toLowerCase();
+
+// What a library entry does, in one line: its `line` where the library has written one (recipes have only that),
+// otherwise `why` or `use`.
+export const whatOf = (e: { line?: string; why?: string; use?: string }) => e.line || e.why || e.use || "";
+
+// Skill descriptions are written for the agent that loads them, and many carry trigger rules ("Use only when the
+// user explicitly invokes /keen", "Also trigger when…"). Those make a poor summary. describe() sorts the
+// description's sentences, keeping every one and their order within each group:
+//   lead   the first sentence written for a person (a short one takes the next with it),
+//   more   the rest of those sentences,
+//   agent  the trigger rules, shown on the skill page behind a disclosure.
+// When no sentence fits as a lead, lead is empty and fallback, when it can, says what the skill is for, taken from the
+// first trigger rule ("When the user wants to optimize conversions…" gives "Optimize conversions…").
+// It lives here so the skill page, Markdown twins, search, the MCP server and the browser palette share one copy.
+const SENTENCE = /(?<=[.!?])\s+(?=[A-Z/"'(`])/;
+const ABBR = /\b(e\.g|i\.e|vs|etc|cf|approx|incl)\.$/i;
+// "The user" counts only with a verb that asks for something, so a sentence about the user's code stays prose.
+const ASKS = "(wants|asks|says|mentions|invokes|needs|types|requests|shares|is)";
+const AGENT = [
+  new RegExp(`^(also )?use (this skill )?(only )?(when|whenever|if)\\b[^.]*\\b(the user ${ASKS}\\b|explicitly|invokes?|invoked)`, "i"),
+  /^(only use|use only)\b/i,
+  new RegExp(`^(also )?when the user ${ASKS}\\b`, "i"),
+  /^(also )?trigger(s|ed)?\b/i,
+  /\bmust not activate\b/i,
+  /^only runs when explicitly invoked\b/i,
+  /^called by\b/i,
+  /^(never|don't|do not) (use|invoke|trigger)\b/i,
+];
+const CROSSREF = /^for [^.]*,\s*(see|use)\b/i;
+export const isAgentSentence = (x: string) => AGENT.some((r) => r.test(x.trim()));
+
+export function sentences(d: string): string[] {
+  const out: string[] = [];
+  for (const part of d.split(SENTENCE)) {
+    // Rejoin a split made after an abbreviation ("e.g. React").
+    if (out.length && ABBR.test(out[out.length - 1])) out[out.length - 1] += ` ${part}`;
+    else out.push(part);
+  }
+  return out;
+}
+
+export type Described = { lead: string; more: string; agent: string; fallback?: string };
+
+const WANTS = /^(also )?(use (this( skill)? )?)?when (the )?user (wants|asks|needs) (you )?to\s+/i;
+function purpose(rule: string | undefined): string | undefined {
+  if (!rule || !WANTS.test(rule)) return undefined;
+  const t = rule.replace(WANTS, "").split(/\s+[—–]\s+|;\s+/)[0].replace(/[\s,.:]+$/, "");
+  return t.length >= 12 ? `${t[0].toUpperCase()}${t.slice(1)}.` : undefined;
+}
+
+export function describe(d: string): Described {
+  const all = sentences(d.trim());
+  const agent = all.filter(isAgentSentence);
+  const human = all.filter((x) => !isAgentSentence(x));
+  const i = human.findIndex((x) => !CROSSREF.test(x));
+  if (i < 0) return { lead: "", more: human.join(" "), agent: agent.join(" "), fallback: purpose(agent[0]) };
+  let lead = human[i];
+  const rest = human.filter((_, j) => j !== i);
+  // A short lead takes the next sentence with it, but only the one the author wrote right after it.
+  const next = all[all.indexOf(human[i]) + 1];
+  if (lead.length < 30 && next && next === rest[i] && !CROSSREF.test(next)) { lead = `${lead} ${next}`; rest.splice(i, 1); }
+  return { lead, more: rest.join(" "), agent: agent.join(" ") };
+}
+
+// The line that stands for a skill outside its own page: search results, the MCP server, Markdown twins, cards, kit
+// rows and saved lists. Its page shows the whole description, trigger rules included.
+export const skillLead = (s: { description: string; kit: string }) => {
+  const x = describe(s.description);
+  return x.lead || x.fallback || `One of the ${s.kit} skills.`;
+};
+
+const lc =(...xs: unknown[]) => xs.flat(2).filter(Boolean).join(" ").toLowerCase();
 const STOP = new Set("a an the my our your is are was be to of in on for it its and or with i me we us this that too how what why do does can not no my".split(" "));
 const stem = (w: string) => (w.length > 4 ? w.replace(/(ing|ed|es|s)$/, "") : w);
 const escRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -20,18 +91,20 @@ export const INTENTS: [RegExp, string[]][] = [
   [/\b(doesn.?t|does not|isn.?t|won.?t) work\b|\bbroken\b|\bbug(s|gy)?\b|^fix$/, ["engineer", "diagnosing-bugs"]],
   [/^(make it|improve it) better$|^improve$/, ["design", "engineer", "this-page-kind-of-stinks"]],
   [/^help$|where (do|should) i start|not sure (what|where)/, ["engineer", "design", "recommend"]],
-  [/\bdata\b.*\b(off|wrong|weird|bad)\b|\b(off|wrong|weird|bad)\b.*\bdata\b/, ["is-the-data-actually-right", "find-data-that-is-internally-consistent-but-wrong"]],
-  [/\b(fast|faster|slow|slower|speed|performance|laggy)\b/, ["slowest-journeys-end-to-end", "one-slow-step-that-blocks-the-rest", "impeccable-optimize"]],
+  [/\bdata\b.*\b(off|wrong|weird|bad)\b|\b(off|wrong|weird|bad)\b.*\bdata\b/, ["is-the-data-actually-right-rdbr01", "find-data-that-is-internally-consistent-but-wrong"]],
+  [/\b(fast|faster|slow|slower|speed|performance|laggy)\b/, ["slowest-journeys-end-to-end", "impeccable-optimize"]],
   [/\b(leave|leaving|churn|drift|drop off|retention)\b/, ["people-sign-up-and-drift-away", "improve-retention"]],
   [/\b(bad|ugly|stinks?|meh)\b.*\b(design|page|screen|ui)\b|\b(design|page|screen|ui)\b.*\b(bad|ugly|stinks?)\b/, ["this-page-kind-of-stinks", "design", "impeccable-critique"]],
+  [/\b(alternatives?|versions|variants|side by side)\b.*\b(designs?|interfaces?|ui|pages?|screens?|layouts?)\b|\b(designs?|interfaces?|ui|pages?|screens?|layouts?)\b.*\b(alternatives?|versions|variants|side by side)\b|\blooks? (better|nicer|prettier)\b/, ["s:keen", "fix-a-screen-that-feels-off"]],
   [/accessib|a11y|screen reader|contrast/, ["web-design-guidelines", "impeccable-audit"]],
   [/\b(error messages?|wording|copy|labels?|microcopy)\b|\bbuttons?\b.*\bclear/, ["ux-writing", "s:ux-writing", "impeccable-clarify"]],
   [/\b(pull request|pr|diff)\b|\breview (my|the|this) (code|change|changes)\b/, ["code-review", "differential-review-diff-review"]],
-  [/\b(deploy|release|production|prod)\b.*\b(broke|broken|down|failed|failing)\b|\b(broke|broken)\b.*\b(production|prod)\b/, ["ship-or-recover-safely", "why-production-might-not-match-main"]],
+  [/\b(change|changes|pr|diff)\b.*\b(break|breaks|affect|affects)\b|\bblast radius\b/, ["s:engineer", "who-notices-this-change", "differential-review-diff-review"]],
+  [/\b(deploy|release|production|prod)\b.*\b(broke|broken|down|failed|failing)\b|\b(broke|broken)\b.*\b(production|prod)\b/, ["ship-or-recover-safely-rdbr05", "why-production-might-not-match-main"]],
   [/\b(complicated|complex|messy|tangled|spaghetti|hard to change)\b/, ["improve-codebase-architecture", "s:improve-codebase-architecture", "layers-that-dont-earn-their-keep"]],
   [/\b(database|db|postgres\w*)\b.*\b(expensive|costs?|bill)\b|\b(expensive|costs?|bill)\b.*\b(database|db|postgres\w*)\b/, ["find-the-true-sources-of-database-waste", "reduce-postgresql-resource-cost-rdbr04"]],
-  [/\b(duplicated?|duplicates|duplication)\b.*\b(data|records?|rows?)\b|\bsame (truth|data|record)\b/, ["two-systems-that-disagree", "find-where-records-silently-change-identity"]],
-  [/\btests?\b.*\b(pass|passing|green)\b|\bfalse (comfort|confidence)\b/, ["unit-tests-that-give-false-comfort", "what-the-tests-really-prove", "tests-that-cant-fail"]],
+  [/\b(duplicated?|duplicates|duplication)\b.*\b(data|records?|rows?)\b|\bsame (truth|data|record)\b/, ["find-where-records-silently-change-identity", "two-systems-that-disagree"]],
+  [/\btests?\b.*\b(pass|passing|green)\b|\bfalse (comfort|confidence)\b/, ["what-the-tests-really-prove"]],
 ];
 const BOOST = 150;
 
@@ -41,15 +114,18 @@ const BOOST = 150;
 export type Kind = "prompt" | "skill" | "kit" | "fix" | "area" | "guide" | "page";
 export type Doc = { kind: Kind; ref: string; title: string; summary: string; fields: [string, number][] };
 
+// A recipe has `line` and `when` instead of `why`, so its line takes the description's weight. Every entry's line,
+// when and recipe steps also count with the body, without reshuffling entries that already had a `why`.
 export const promptDoc = (e: SPrompt): Doc => ({
-  kind: "prompt", ref: e.slug, title: e.t, summary: e.why || e.use || "",
+  kind: "prompt", ref: e.slug, title: e.t, summary: whatOf(e),
   fields: [
-    [lc(e.id), 60], [lc(e.t), 40], [lc(e.aka, e.tags, e.cmd), 25], [lc(e.why, e.use, e.group, e.sub), 10],
-    [lc(e.p, e.ev, e.skip, e.avoid, e.tools, (e.steps || []).map((s) => s.join(" "))), 3],
+    [lc(e.id), 60], [lc(e.t), 40], [lc(e.aka, e.tags, e.cmd), 25], [lc(e.why || e.line, e.use, e.group, e.sub), 10],
+    [lc(e.line, e.when, e.p, e.ev, e.skip, e.avoid, e.tools, (e.steps || []).map((s) => s.join(" ")), (e.planSteps || []).map((s) => [s.label, s.note])), 3],
   ],
 });
+// The summary is the person-facing lead; the full description, trigger rules included, stays searchable.
 export const skillDoc = (s: SSkill): Doc => ({
-  kind: "skill", ref: s.name, title: s.name, summary: s.description,
+  kind: "skill", ref: s.name, title: s.name, summary: skillLead(s),
   fields: [[lc(s.name), 60], [lc(s.name.replace(/-/g, " ")), 40], [lc(s.kit, s.credit?.author), 25], [lc(s.description), 10], [lc(s.bodyMd.slice(0, 1500)), 2]],
 });
 

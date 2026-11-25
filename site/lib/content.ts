@@ -1,5 +1,5 @@
 import data from "@/content/generated.json";
-import { makeSearch } from "./search";
+import { makeSearch, whatOf } from "./search";
 
 export type Prompt = {
   id: string; slug: string; sec: string; group: string; area: string; t: string; p?: string;
@@ -66,8 +66,8 @@ export const copyText = (p: Prompt) => p.payload;
 export const isCommand = (p: Prompt) => p.sec === "ecmd" || p.sec === "dcmd";
 export const kindLabel = (p: Prompt) =>
   ({ ecmd: "Command", dcmd: "Command", recipe: "Older recipe", plan: "Recipe", think: "Way of working" } as Record<string, string>)[p.sec] || "Investigation";
-// What a card or page says the entry does, and when to reach for it.
-export const whatOf = (p: Prompt) => p.line || p.why || p.use || "";
+// What a card or page says the entry does (the same line search and the MCP server give), and when to reach for it.
+export { whatOf };
 export const whenOf = (p: Prompt) => {
   const w = (p.when || (p.line ? p.use : "") || "").replace(/^Use it (when )?/i, "").trim();
   return w ? w[0].toUpperCase() + w.slice(1).replace(/([^.!?])$/, "$1.") : "";

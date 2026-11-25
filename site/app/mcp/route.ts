@@ -5,6 +5,7 @@ import { SITE } from "@/lib/site";
 import { areas, fixes, getArea, getFix, getPrompt, getPromptById, getSkill, search, counts, listed, copyText, copyLabel, kindLabel, whatOf, skillInstall } from "@/lib/content";
 import { promptMd, skillMd, areaMd, fixMd } from "@/lib/markdown";
 import { isRecipe, recipesFor, recipeListText, recipeDetailMd } from "@/lib/recipes";
+import { skillLead } from "@/lib/search";
 
 export const maxDuration = 30;
 
@@ -97,7 +98,7 @@ const handler = createMcpHandler(
       const p = getPrompt(id) || getPromptById(id);
       if (!p) return text(`No recipe called "${id}". Use find_recipes to list them.`);
       if (!isRecipe(p)) return text(`"${id}" is not a recipe. Use get_prompt for it.`);
-      return text(recipeDetailMd(p, { promptMd, copyText, copyLabel, getPrompt, getSkill, skillInstall: (n) => skillInstall(getSkill(n)!).any, siteUrl: SITE.url }));
+      return text(recipeDetailMd(p, { promptMd, copyText, copyLabel, getPrompt, getSkill, skillLead, skillInstall: (n) => skillInstall(getSkill(n)!).any, siteUrl: SITE.url }));
     });
   },
   {

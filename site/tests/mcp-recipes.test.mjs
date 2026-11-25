@@ -3,7 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { makeSearch } from "../lib/search.ts";
+import { makeSearch, skillLead } from "../lib/search.ts";
 import { isRecipe, recipesFor, recipeListText, recipeDetailMd } from "../lib/recipes.ts";
 
 const data = JSON.parse(fs.readFileSync(new URL("../content/generated.json", import.meta.url), "utf8"));
@@ -16,7 +16,7 @@ const deps = {
 };
 const detail = (p) => recipeDetailMd(p, {
   promptMd: (x) => `# ${x.t}\n\nbody`, copyText: (x) => x.payload, copyLabel: (x) => (x.split ? "Copy step 1" : "Copy recipe"),
-  getPrompt: (s) => data.prompts.find((x) => x.slug === s), getSkill: (n) => data.skills.find((s) => s.name === n),
+  getPrompt: (s) => data.prompts.find((x) => x.slug === s), getSkill: (n) => data.skills.find((s) => s.name === n), skillLead,
   skillInstall: (n) => `npx skills add AtlasScope/agent-kit --skill ${n}`, siteUrl: URL_,
 });
 
@@ -76,10 +76,11 @@ test("a prompt that is not a recipe is not one", () => {
 });
 
 // find's results, captured from the running server before recipes were added. Recipes only filter this
-// ranking, so these must never move.
+// ranking, so these move only with a deliberate ranking change: since each entry's line became searchable,
+// a step chain that names slow APIs is fifth for "my API is slow".
 test("find's top results for existing queries are unchanged", () => {
   const top = (q, n = 5) => search(q, 60).slice(0, n).map((h) => h.ref);
-  assert.deepEqual(top("my API is slow"), ["slowest-journeys-end-to-end", "impeccable-optimize", "it-got-slow", "is-our-ingestion-process-more-complicated-than-necessary", "the-apps-own-ai-calls"]);
+  assert.deepEqual(top("my API is slow"), ["slowest-journeys-end-to-end", "impeccable-optimize", "it-got-slow", "is-our-ingestion-process-more-complicated-than-necessary", "steps-that-wait-for-no-reason"]);
   assert.deepEqual(top("review typography"), ["review-animations", "steve-jobs-design-review", "web-typography", "harsh-review", "differential-review-diff-review"]);
   assert.deepEqual(top("landing page"), ["new-landing-page", "landing-page-that-converts", "a-landing-page-that-gets-people-to-act", "this-page-kind-of-stinks", "cinematic-launch-page"]);
   assert.deepEqual(top("recipe"), ["design", "new-landing-page", "new-dashboard-or-tool", "this-page-kind-of-stinks", "rethink-it-rules-off"]);

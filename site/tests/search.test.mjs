@@ -1,22 +1,38 @@
-// Search benchmark: 20 plain-language queries and 10 vague or misleading ones, run against the real
-// built content. Each query lists the results that genuinely answer it; one of them must be in the top
-// three. "s:" marks a skill, anything else is a prompt slug. When a query fails, fix the ranking or the
-// synonyms in lib/search.ts, not the expectation, unless the expectation was wrong.
+// Search benchmark: plain-language queries and vague or misleading ones, run against the real built content.
+// Each query lists the results that genuinely answer it; one of them must be in the top three. "s:" marks a
+// skill, anything else is a prompt slug. When a query fails, fix the ranking or the synonyms in lib/search.ts,
+// not the expectation, unless the expectation was wrong.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { makeSearch } from "../lib/search.ts";
+import { makeSearch, promptDoc, skillDoc, isAgentSentence, INTENTS } from "../lib/search.ts";
 
 const data = JSON.parse(fs.readFileSync(new URL("../content/generated.json", import.meta.url), "utf8"));
 // Retired entries keep their pages but leave search (lib/content.ts), so the benchmark runs on what the site searches.
-const search = makeSearch(data.prompts.filter((p) => !p.replacedBy), data.skills);
+const listed = data.prompts.filter((p) => !p.replacedBy);
+const search = makeSearch(listed, data.skills);
 const key = (r) => (r.kind === "skill" ? "s:" : "") + r.ref;
 
 import { PLAIN, VAGUE } from "./search-cases.mjs";
 
-const slugs = new Set([...data.prompts.map((p) => p.slug), ...data.skills.map((s) => "s:" + s.name)]);
-test("every expected answer exists", () => {
-  for (const [q, ok] of [...PLAIN, ...VAGUE]) for (const k of ok) assert.ok(slugs.has(k), `${q}: no such result ${k}`);
+// A retired entry never comes back from search, so an answer or a synonym row naming one can never count.
+const slugs = new Set([...listed.map((p) => p.slug), ...data.skills.map((s) => "s:" + s.name)]);
+test("every expected answer and synonym target is in search", () => {
+  for (const [q, ok] of [...PLAIN, ...VAGUE]) for (const k of ok) assert.ok(slugs.has(k), `${q}: no listed result ${k}`);
+  for (const [re, refs] of INTENTS) for (const k of refs) assert.ok(slugs.has(k), `${re}: no listed result ${k}`);
+});
+
+// What find and the palette show under each title: a real line for every prompt, and for a skill the line written
+// for a person, never one of its trigger rules.
+test("every result has a summary, and no skill's summary is a trigger rule", () => {
+  for (const d of [...listed.map(promptDoc), ...data.skills.map(skillDoc)]) {
+    assert.ok(d.summary.trim(), `${key(d)} has no summary`);
+    if (d.kind === "skill") assert.ok(!isAgentSentence(d.summary) && !/\b(explicitly invokes|must not activate)\b/i.test(d.summary), `${key(d)}: ${d.summary}`);
+  }
+});
+
+test("Keen leads its own jobs", () => {
+  for (const q of ["compare design alternatives", "make my page look better", "an original design direction"]) assert.equal(key(search(q, 1)[0]), "s:keen", q);
 });
 
 for (const [name, set] of [["plain", PLAIN], ["vague", VAGUE]]) {

@@ -6,11 +6,12 @@ import {
   listed, skills, kits, fixes, areas, sections, counts, getPrompt, getSkill, getArea,
   copyText, kindLabel, whatOf, whenOf, skillInstall, MODES, TOPO,
 } from "./content";
+import { describe, skillLead } from "./search";
 
 const u = (p: string) => `${SITE.url}${p}`;
 const fence = (t: string) => "```text\n" + t + "\n```";
 const promptLink = (slug: string) => { const p = getPrompt(slug); return p ? `- [${p.t}](${u(`/prompts/${slug}`)})${whatOf(p) ? `: ${whatOf(p)}` : ""}` : ""; };
-const skillLink = (name: string) => { const s = getSkill(name); return s ? `- [${s.name}](${u(`/skills/${name}`)}): ${s.description.split(/(?<=\.)\s/)[0]}` : ""; };
+const skillLink = (name: string) => { const s = getSkill(name); return s ? `- [${s.name}](${u(`/skills/${name}`)}): ${skillLead(s)}` : ""; };
 
 export function promptMd(p: Prompt) {
   const area = getArea(p.area)!;
@@ -39,7 +40,12 @@ export function promptMd(p: Prompt) {
 
 export function skillMd(s: Skill, full = true) {
   const i = skillInstall(s);
-  const out = [`# ${s.name}`, "", s.description, "", `Kit: [${s.kit}](${u(`/kits/${s.kit}`)})`, ""];
+  // The page's order: what it is for, the rest of the description, then the trigger rules, so every sentence is here.
+  const { more, agent } = describe(s.description);
+  const out = [`# ${s.name}`, "", skillLead(s), ""];
+  if (more) out.push(more, "");
+  if (agent) out.push(`**When an agent uses it:** ${agent}`, "");
+  out.push(`Kit: [${s.kit}](${u(`/kits/${s.kit}`)})`, "");
   if (s.credit) {
     const c = s.credit;
     out.push(`Written by ${c.author}. Source: [${c.repo}](${c.url}), copied at commit \`${c.commit}\`. License: ${c.license}. ${c.change ? `Change in Agent Kit: ${c.change}` : "Copied unchanged."}`, "");
