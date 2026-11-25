@@ -489,7 +489,7 @@ ${ws.brief ? `<p class="brief"><b>Brief</b> ${esc(ws.brief)}</p>` : ""}
 <div class="stage"><div class="pane" data-pane="0"></div><div class="pane" data-pane="1" hidden></div>
 <form class="pop" data-pop hidden><div class="pophead"><p class="what" data-pop-what></p><button type="button" class="x" data-pop-cancel>Cancel</button></div><label for="pop-${esc(ws.id || "ws")}">What should change here?</label><div class="poprow"><input id="pop-${esc(ws.id || "ws")}" type="text" maxlength="${POINT_SAY}" autocomplete="off" enterkeyhint="done" data-pop-input><button type="submit" class="add">Add note</button></div></form></div>
 <div class="wsfoot"><div class="about"><h3 data-ws-name></h3><p data-ws-bet></p><p class="rev" data-ws-note></p></div>
-<form data-revise><div class="pnotes" data-pnotes hidden><p class="plabel" data-pnotes-label></p><ol data-pnote-list></ol></div><label for="ask-${esc(ws.id || "ws")}">What should change in <b data-ws-short></b>?</label><textarea id="ask-${esc(ws.id || "ws")}" rows="3" maxlength="${NOTE_MAX}" placeholder="Say it in your own words. Your agent revises this version and it updates here."></textarea>
+<form data-revise><div class="pnotes" data-pnotes hidden><p class="plabel" data-pnotes-label></p><ol data-pnote-list></ol></div><p class="ptuned" data-ptuned hidden></p><label for="ask-${esc(ws.id || "ws")}">What should change in <b data-ws-short></b>?</label><textarea id="ask-${esc(ws.id || "ws")}" rows="3" maxlength="${NOTE_MAX}" placeholder="Say it in your own words. Your agent revises this version and it updates here."></textarea>
 <div class="acts"><button type="submit" data-ask>Ask for this change</button><button type="button" class="go" data-apply>Apply this one</button></div></form></div>
 <div hidden>${views.map((v, i) => media(v, "phone", i, liveKey) + media(v, "desktop", i, liveKey)).join("")}</div>
 </section>`;
@@ -787,7 +787,7 @@ button.point{display:inline-flex;align-items:center;gap:9px}
 .tv input:focus-visible,.pop input:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 button.reset,button.tunes,.pop button.x,.pnotes li button{background:transparent;border-color:transparent;color:var(--soft)}button.reset:hover,.pop button.x:hover,.pnotes li button:hover{color:var(--ink)}
 button.reset{padding:0 10px}button.tunes{display:none}
-.phint{max-width:none;margin:-2px 0 10px;font-size:14px;color:var(--soft)}.phint:empty{display:none}
+.phint{max-width:none;margin:-2px 0 10px;font-size:14px;line-height:1.5;color:var(--soft)}.phint:empty{display:none}.steer:not([hidden])+.phint{display:block;min-height:1.5em}
 .stage{position:relative}
 .ws[data-pointing] [data-pane="0"] .dev{border-color:var(--green);box-shadow:0 0 0 1px var(--green)}
 .dev:focus-within{outline:2px solid var(--green);outline-offset:3px}
@@ -800,6 +800,7 @@ button.reset{padding:0 10px}button.tunes{display:none}
 .pop button.x{min-height:36px;padding:0 10px;font-size:13.5px}
 .pn{flex:none;display:inline-block;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--green);color:var(--on-green);font:700 12px/22px var(--sans);text-align:center}
 .pnotes{border:1px solid var(--line);border-radius:12px;background:var(--card)}.pnotes[hidden]{display:none}
+.ptuned{max-width:none;margin:0;font-size:14px;color:var(--soft)}.ptuned[hidden]{display:none}
 .plabel{margin:0;padding:10px 12px 0;font:500 11px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
 .pnotes ol{list-style:none;margin:0;padding:2px 0;max-width:none}
 .pnotes li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:start;margin:0;padding:8px 6px 8px 12px}.pnotes li+li{border-top:1px solid var(--line)}.pnotes li .pn{margin-top:1px}
@@ -848,7 +849,7 @@ function wireWs(page,p){
   const $=(s)=>ws.querySelector(s);
   const panes=[...ws.querySelectorAll("[data-pane]")],form=$("[data-revise]"),box=form.querySelector("textarea"),applyBtn=$("[data-apply]"),askBtn=$("[data-ask]"),cmp=$("[data-compare]");
   const bar=$("[data-steer]"),pointBtn=$("[data-point]"),pointLabel=$("[data-point-label]"),tunesBtn=$("[data-tunes]"),tuneEl=$("[data-tune]"),resetBtn=$("[data-tune-reset]"),hintEl=$("[data-point-hint]");
-  const pop=$("[data-pop]"),popWhat=$("[data-pop-what]"),popInput=$("[data-pop-input]"),notesEl=$("[data-pnotes]"),notesLabel=$("[data-pnotes-label]"),notesList=$("[data-pnote-list]");
+  const pop=$("[data-pop]"),popWhat=$("[data-pop-what]"),popInput=$("[data-pop-input]"),notesEl=$("[data-pnotes]"),notesLabel=$("[data-pnotes-label]"),notesList=$("[data-pnote-list]"),tunedEl=$("[data-ptuned]");
   // What the person has pointed at and tuned, per version and revision: a new revision starts clean.
   const steerOf=(i)=>{const v=views[i],k=key+"\\n"+v.name+"\\n"+v.rev;return steers[k]||(steers[k]={points:[],pending:null,tuned:{},draft:""})};
   const steering=()=>Boolean(TOKEN&&views[st.view].steer);
@@ -865,6 +866,9 @@ function wireWs(page,p){
     askBtn.textContent=n+t>0?"Ask for these changes":"Ask for this change";
     applyBtn.textContent=v.original?"Keep it as it is":"Apply "+v.name+(t?" as tuned":"");
     resetBtn.hidden=!t;tunesBtn.textContent=t?"Tune · "+t+" changed":"Tune";
+    const shown=(t,raw)=>t.type==="choice"?((t.options.find((o)=>o.value===raw)||{}).label||raw):(tuneValue(t,raw)||raw);
+    const tl=(v.tune||[]).filter((t)=>s.tuned[t.var]!==undefined).map((t)=>t.label+" "+shown(t,t.value)+" \u2192 "+shown(t,s.tuned[t.var]));
+    tunedEl.hidden=!tl.length;tunedEl.textContent=tl.length?"Tuned: "+tl.join(" · ")+". These values go with your request.":"";
     notesEl.hidden=!n;notesLabel.textContent=n===1?"1 note on a part":n+" notes on parts";notesList.textContent="";
     s.points.forEach((q,j)=>{const li=document.createElement("li"),b=document.createElement("span"),txt=document.createElement("div"),w=document.createElement("span"),said=document.createElement("span"),x=document.createElement("button");b.className="pn";b.textContent=String(q.n);w.className="pw";w.textContent=partName(q.el);said.className="ps";said.textContent=q.say;txt.append(w,said);x.type="button";x.textContent="Remove";x.setAttribute("aria-label","Remove note "+q.n);x.addEventListener("click",()=>{s.points.splice(j,1);s.points.forEach((r,m)=>{r.n=m+1});labels();marks();restHint();(notesList.querySelector("button")||box).focus()});li.append(b,txt,x);notesList.appendChild(li)});
   };
