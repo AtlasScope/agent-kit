@@ -88,7 +88,8 @@ for (const size of SIZES) {
     await rows.first().getByRole("button", { name: /^Copy/ }).click();
     assert.equal(await page.evaluate(() => navigator.clipboard.readText()), composeCopy(first));
     // The rail (computer) and the selector (phone) both mark this page.
-    for (const href of await page.locator(`.sibs a[aria-current="page"]`).evaluateAll((as) => as.map((x) => x.getAttribute("href")))) assert.equal(href, `/prompts/${a.slug}`);
+    const current = await page.locator(`.sibs a[aria-current="page"]`).evaluateAll((as) => as.map((x) => x.getAttribute("href")));
+    assert.deepEqual(current, [`/prompts/${a.slug}`, `/prompts/${a.slug}`]);
     assert.deepEqual(errors, []);
     await ctx.close();
   });

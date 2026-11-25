@@ -50,7 +50,6 @@
   --glass-bg: linear-gradient(180deg, oklch(100% 0 0), oklch(98.4% .002 260));
   --glass-rim: inset 0 1px 0 oklch(100% 0 0), inset 0 0 0 1px oklch(18.5% .006 265 / .09);
   --glass-shadow: 0 1px 2px oklch(20% .01 265 / .06), 0 18px 40px -22px oklch(20% .01 265 / .28), 0 24px 60px -40px color-mix(in oklab, var(--c-brand-glow) 40%, transparent);
-  --atmo: radial-gradient(60% 70% at 50% -20%, oklch(80% .06 250 / .35), transparent 70%), radial-gradient(34% 40% at 28% -8%, color-mix(in oklab, var(--c-brand-glow) 14%, transparent), transparent 72%);
 
   /* Section hues */
   --s-inv: #00704A; --s-db: #5C6B00; --s-think: #5A2FC2; --s-ecmd: #006C80; --s-dcmd: #1849C4; --s-recipe: #BF1F5E;
@@ -119,7 +118,6 @@
   --glass-bg: linear-gradient(180deg, oklch(22% .008 250 / .78), oklch(13% .006 250 / .82) 60%, oklch(11% .008 200 / .86));
   --glass-rim: inset 0 1px 0 oklch(100% 0 0 / .1), inset 0 0 0 1px oklch(100% 0 0 / .06);
   --glass-shadow: 0 1px 2px oklch(0% 0 0 / .5), 0 24px 48px -18px oklch(0% 0 0 / .9), 0 30px 80px -34px color-mix(in oklab, var(--c-brand-glow) 22%, transparent);
-  --atmo: radial-gradient(60% 70% at 50% -18%, oklch(62% .09 250 / .28), transparent 70%), radial-gradient(34% 40% at 28% -6%, color-mix(in oklab, var(--c-brand-glow) 14%, transparent), transparent 72%);
 } }
 :root[data-theme="dark"] {
   color-scheme: dark;
@@ -139,7 +137,6 @@
   --glass-bg: linear-gradient(180deg, oklch(22% .008 250 / .78), oklch(13% .006 250 / .82) 60%, oklch(11% .008 200 / .86));
   --glass-rim: inset 0 1px 0 oklch(100% 0 0 / .1), inset 0 0 0 1px oklch(100% 0 0 / .06);
   --glass-shadow: 0 1px 2px oklch(0% 0 0 / .5), 0 24px 48px -18px oklch(0% 0 0 / .9), 0 30px 80px -34px color-mix(in oklab, var(--c-brand-glow) 22%, transparent);
-  --atmo: radial-gradient(60% 70% at 50% -18%, oklch(62% .09 250 / .28), transparent 70%), radial-gradient(34% 40% at 28% -6%, color-mix(in oklab, var(--c-brand-glow) 14%, transparent), transparent 72%);
 }
 /* The stage: the homepage and /install are dark in both themes, over the view from orbit (components/stage). It is the
    dark set above on a black canvas, plus the brand green: the main action is a lit green object, the header carries a

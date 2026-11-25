@@ -12,7 +12,7 @@
 .way__d { color: var(--c-fg-3); font-size: var(--type-xs); line-height: 1.5; }
 .way__go { justify-self: start; display: inline-flex; align-items: center; gap: 6px; min-height: 32px; margin-top: var(--space-2); padding: 0 var(--space-3); border: 1px solid var(--c-edge); border-radius: var(--radius-sm); font: 600 0.8125rem/1 var(--font-body); }
 .way--lead { border-color: var(--c-fg); }
-.way__go.btn--brand { border: 0; padding: 0 var(--space-3); }
+.way__go.btn--brand { border: 0; border-radius: var(--radius-pill); padding: 0 var(--space-3); }
 .way__go .i { width: 14px; height: 14px; transition: transform var(--dur-fast) var(--ease-out); }
 @media (hover: hover) and (pointer: fine) {
   .way:hover { border-color: var(--c-fg); }

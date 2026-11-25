@@ -81,8 +81,7 @@ main:has(.lead-act) .guide-next.btn--brand { --lift: 0; border: 1px solid var(--
 .tag--signal::before, .tag--warn::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--c-signal); }
 .tag--warn::before { background: var(--c-warm); }
 /* Code: a block with a labelled head and Copy, or a single command line. Payload text is shown exactly. */
-/* Code blocks take the glass finish without its glow, so a page of them stays calm; .glass on a block adds the glow
-   for the one that is the page's payload. */
+/* Code blocks are a solid utility surface, so a page of them stays calm. */
 .block { position: relative; overflow: hidden; border: 1px solid var(--c-line); border-radius: var(--radius-lg); background: var(--c-surface); box-shadow: var(--shadow-1); }
 /* The page's principal payload only: the same block in glass. Every other snippet stays a solid utility surface. */
 .block.glass { border: 0; border-radius: var(--radius-xl); background: var(--glass-bg); box-shadow: var(--glass-rim), var(--glass-shadow); }
@@ -173,7 +172,7 @@ main:has(.lead-act) .guide-next.btn--brand { --lift: 0; border: 1px solid var(--
 .fcopy__copy[data-copied] .i { display: none; }
 .fcopy__copy[data-copied]::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--c-signal); }
 @media (max-width: 40rem) {
-  .fcopy { top: auto; left: 0; right: 0; bottom: 0; max-width: none; border-width: 1px 0 0; border-radius: 0;
+  .fcopy { top: auto; left: 0; right: 0; bottom: 0; max-width: none; border: 0; border-top: 1px solid var(--c-line); border-radius: 0; box-shadow: var(--shadow-3);
     padding: var(--space-2) max(var(--gutter), env(safe-area-inset-right)) calc(var(--space-2) + env(safe-area-inset-bottom)) max(var(--gutter), env(safe-area-inset-left));
     transform: translateY(calc(var(--space-2) * var(--travel))); }
   .fcopy__label { flex: 1; }

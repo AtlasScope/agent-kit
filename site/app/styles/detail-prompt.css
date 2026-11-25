@@ -18,8 +18,9 @@
 .pd-grid { display: grid; grid-template-columns: minmax(0, 1fr) 17.5rem; grid-template-areas: "main fit" "main aside"; grid-template-rows: auto 1fr; gap: var(--space-6) var(--space-12); align-items: start; }
 .pd-main { grid-area: main; display: grid; gap: var(--space-10); min-width: 0; }
 .pd-aside { grid-area: aside; padding-top: var(--space-6); border-top: 1px solid var(--c-line); }
+.pd-grid:not(:has(.pd-fit)) { grid-template-areas: "main aside"; grid-template-rows: auto; }
 .pd-grid:not(:has(.pd-fit)) .pd-aside { padding-top: 0; border-top: 0; }
-@media (max-width: 64rem) { .pd-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "fit" "main" "aside"; grid-template-rows: auto; }
+@media (max-width: 64rem) { .pd-grid, .pd-grid:not(:has(.pd-fit)) { grid-template-columns: minmax(0, 1fr); grid-template-areas: "fit" "main" "aside"; grid-template-rows: auto; }
   .pd-fit { grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); column-gap: var(--space-10); } }
 
 /* The payload panel. Its head sticks under the site header so Copy stays in reach through

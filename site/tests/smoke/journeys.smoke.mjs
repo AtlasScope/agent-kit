@@ -233,7 +233,7 @@ for (const size of SIZES) {
     assert.equal(await cards.count(), STARTS.length);
     for (let i = 0; i < STARTS.length; i++) {
       const p = data.prompts.find((x) => x.id === STARTS[i].pick);
-      await cards.nth(i).locator(".pcard__a button").click();
+      await cards.nth(i).locator(".pcard__a").getByRole("button", { name: /^Copy/ }).click();
       assert.equal(await clipboard(page), composeCopy(p), `${STARTS[i].slug} copies ${p.id}`);
     }
     assert.deepEqual(errors, []);
