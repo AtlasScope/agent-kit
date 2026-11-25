@@ -1,4 +1,5 @@
-// PostgreSQL behavior the skill relies on, checked on a real server. Skips unless AGENT_KIT_PG_URL is set.
+// PostgreSQL behavior the skill relies on, checked on a real server. Skips unless AGENT_KIT_PG_URL is set; with
+// AGENT_KIT_REQUIRE_PG=1 (as in CI) a missing URL, psql or server fails instead.
 //
 // AGENT_KIT_PG_URL must point at a DISPOSABLE database. The tests create a schema and a role named
 // agent_kit_t_<random>, fill them with synthetic rows, and drop both at the end. The connecting role needs to
@@ -15,7 +16,10 @@ import { connectionEnv, parseOutput, runPlan } from "../scripts/run.mjs";
 const URL_ = process.env.AGENT_KIT_PG_URL;
 const PSQL = process.env.AGENT_KIT_PSQL || "psql";
 const hasPsql = () => { try { execFileSync(PSQL, ["--version"], { stdio: "ignore" }); return true; } catch { return false; } };
-const skip = !URL_ ? "AGENT_KIT_PG_URL is not set (point it at a disposable database to run these)" : !hasPsql() ? `psql not found (${PSQL})` : false;
+const missing = !URL_ ? "AGENT_KIT_PG_URL is not set (point it at a disposable database to run these)" : !hasPsql() ? `psql not found (${PSQL})` : false;
+// CI sets AGENT_KIT_REQUIRE_PG=1, so a missing or unreachable database fails these tests instead of skipping them.
+const required = process.env.AGENT_KIT_REQUIRE_PG === "1";
+const skip = required ? false : missing;
 
 const tag = `agent_kit_t_${crypto.randomBytes(4).toString("hex")}`;
 const S = ident(tag), READER = ident(`${tag}_reader`);
@@ -36,6 +40,7 @@ const count = (sql) => Number(lastLine(psql(sql)));
 
 describe("PostgreSQL behavior", { skip }, () => {
   before(() => {
+    assert.ok(!missing, `AGENT_KIT_REQUIRE_PG=1 but ${missing}`);
     psql(`CREATE SCHEMA ${S};
 CREATE ROLE ${READER} NOLOGIN;
 GRANT ${READER} TO CURRENT_USER;
@@ -73,6 +78,7 @@ INSERT INTO ${S}.tenant_rows VALUES (1,'north',10),(2,'north',20),(3,'south',30)
   });
 
   after(() => {
+    if (missing) return;
     try { psql(`DROP SCHEMA IF EXISTS ${S} CASCADE`); } finally { psql(`DROP OWNED BY ${READER}; DROP ROLE IF EXISTS ${READER}`); }
   });
 
