@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Writes the /engineer router's references from the prompt library, so the prompts live in one place.
-// Usage, from the repo root: node kits/engineering-kit/scripts/build_references.mjs
+// Usage, from the repo root: node kits/engineering-kit/scripts/build_references.mjs [--out <directory>]
 // Reads library/library.json and writes start-here.md and investigations.md in
 // kits/engineering-kit/plugins/engineering-kit/skills/engineer/references/.
 import fs from "node:fs";
@@ -9,7 +9,10 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const L = JSON.parse(fs.readFileSync(path.join(root, "library/library.json"), "utf8"));
-const out = path.join(root, "kits/engineering-kit/plugins/engineering-kit/skills/engineer/references");
+const outArg = process.argv.indexOf("--out");
+// --out <directory> writes the files there instead of the tracked references folder.
+const out = outArg > 0 ? path.resolve(process.argv[outArg + 1]) : path.join(root, "kits/engineering-kit/plugins/engineering-kit/skills/engineer/references");
+fs.mkdirSync(out, { recursive: true });
 const inv = L.entries.filter((e) => e.sec === "inv");
 const INV = new Set(inv.map((e) => e.id));
 const think = L.entries.filter((e) => e.sec === "think");

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Writes the /design router's references from the prompt library, so the catalog lives in one place.
-// Usage, from the repo root: node kits/design-kit/scripts/build_references.mjs
+// Usage, from the repo root: node kits/design-kit/scripts/build_references.mjs [--out <directory>]
 // Reads library/library.json (design commands, recipes, stages and overlaps) and writes catalog.md,
 // recipes.md and situations.md in kits/design-kit/plugins/design-kit/skills/design/references/.
 // Impeccable's helper agents are not library entries (nobody types them); they come from impeccable-helpers.json.
@@ -12,7 +12,10 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "../../..");
 const L = JSON.parse(fs.readFileSync(path.join(root, "library/library.json"), "utf8"));
 const helpers = JSON.parse(fs.readFileSync(path.join(here, "impeccable-helpers.json"), "utf8"));
-const out = path.join(root, "kits/design-kit/plugins/design-kit/skills/design/references");
+const outArg = process.argv.indexOf("--out");
+// --out <directory> writes the files there instead of the tracked references folder.
+const out = outArg > 0 ? path.resolve(process.argv[outArg + 1]) : path.join(root, "kits/design-kit/plugins/design-kit/skills/design/references");
+fs.mkdirSync(out, { recursive: true });
 const head = "Generated from `library/library.json` by `kits/design-kit/scripts/build_references.mjs`; do not edit by hand.";
 // Working-style commands ship in their own kit; the router lists only itself in its own pack.
 const ELSEWHERE = ["/harsh-review", "/viewport-proof"];
