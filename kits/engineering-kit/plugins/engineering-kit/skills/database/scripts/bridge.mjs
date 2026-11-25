@@ -27,7 +27,7 @@ const DECIMAL = /^-?\d+(\.\d+)?$/;
 function parts(v, where) {
   if (typeof v === "number") { if (!Number.isSafeInteger(v)) fail(`${where}: ${v} is not a safe whole number; pass it as a decimal string`); v = String(v); }
   if (typeof v !== "string" || !DECIMAL.test(v)) fail(`${where}: expected a number or a decimal string, got ${JSON.stringify(v)}`);
-  const neg = v.startsWith("-"), [whole, frac = ""] = v.replace("-", "").split(".");
+  const neg = v.startsWith("-"), [whole, frac = ""] = (neg ? v.slice(1) : v).split(".");
   return { neg, whole, frac };
 }
 
