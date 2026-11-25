@@ -28,9 +28,9 @@ If the person needs a plan before anything is built (several screens, unclear co
 8. **Record the direction** when the work set or changed one worth keeping. Add or update `## Direction` in DESIGN.md: the idea, the stance, the commitments that carry it (each `proposed` with today's date), the invariants it respects and the opportunities you saw and did not build. With no DESIGN.md, create one holding only this section.
 9. **Show it** on the Keen page.
    - `verdict`: the idea, in one sentence a person would repeat.
-   - `shots`: the built result at phone and desktop width first. When there was exploration, then one phone shot of each other concept, captioned with its name and sentence.
+   - `shots`: the built result at phone and desktop width first. When there was exploration, put the concepts in a `workspace` instead (SKILL.md, "The workspace"): the built winner first and marked `suggested`, then each other concept as its running prototype, named and with its sentence as `bet`, so the person can try them side by side.
    - `changes`: up to five decisions that carry the idea, each with what a default would have been as `before` and what was chosen as `after` ("before": "A centred hero with two buttons", "after": "The day set as a tide table, the swim window the only colour").
-   - `steps`: the natural next work. When there was exploration, one step offers each losing concept as `/keen create <target>: build concept B (<name>) instead`. Then whatever the build left: usually `/motion storyboard` for the entrance and signature movement, then `/keen harden`.
+   - `steps`: the natural next work. When there was exploration, each losing concept's view carries `apply` set to `/keen create <target>: build concept B (<name>) instead` and a `revise` command for the built winner. Then whatever the build left: usually `/motion storyboard` for the entrance and signature movement, then `/keen harden`.
    - No `problems`.
 
 ## The brief for an independent explorer

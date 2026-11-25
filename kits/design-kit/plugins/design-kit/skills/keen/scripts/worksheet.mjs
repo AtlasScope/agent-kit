@@ -6,6 +6,7 @@
 //   node worksheet.mjs open <name>            start the page's server if it is not running; prints "URL: ..."
 //   node worksheet.mjs add  <name> < page.json   add the next page (JSON on standard input); screenshots are copied in
 //   node worksheet.mjs wait <name>            wait for a Start; prints one "CHOSEN: <command>" line per pick, in order
+//                                             (a pick made with a typed request is followed by a "NOTE: <their words>" line)
 //   node worksheet.mjs say  <name> "text"     show one line of progress on the page while you work
 //   node worksheet.mjs stop <name>            stop the server
 //
@@ -14,6 +15,11 @@
 //
 // The server stays up between waits, so the page never goes dead: it shows whether the agent is listening,
 // what it is working on, and anything started in the meantime, which is held and handed over at the next wait.
+//
+// A page may hold a workspace: the original and several working alternatives of one part of a screen, shown
+// large, one or two at a time. The person switches between them, types what should change in one, and applies
+// the one they choose. Adding a page with the same workspace id again updates that page in place, so a
+// revision appears where the person is already looking. workspace.mjs keeps the alternatives' source files.
 // "wait" prints NO_CHOICE and exits 3 if nobody presses Start within --minutes (default 30).
 //
 // It needs only Node. It listens on this computer alone, accepts a start only with the key in the page's own
@@ -25,6 +31,7 @@ import crypto from "node:crypto";
 import os from "node:os";
 import { execFileSync, spawn } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { status as sourceStatus } from "./workspace.mjs";
 
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const para = (v) => String(v ?? "").split(/\n{2,}/).filter((s) => s.trim()).map((s) => `<p>${esc(s.trim())}</p>`).join("");
@@ -38,19 +45,29 @@ export function optionsOf(step) {
   return list.map((o) => ({ label: String(o.label ?? step.label ?? ""), why: String(o.why ?? ""), command: String(o.command ?? "") })).filter((o) => o.command);
 }
 
-/** The command a pick names, or undefined. A pick is ["s", stepIndex, optionIndex] or ["m", menuIndex]. */
+/** A page's workspace views: the original and each alternative, in the order given. */
+export function viewsOf(page) {
+  const list = Array.isArray(page?.workspace?.views) ? page.workspace.views : [];
+  return list.filter((v) => v && typeof v === "object" && String(v.name ?? "").trim());
+}
+
+/**
+ * The command a pick names, or undefined. A pick is ["s", stepIndex, optionIndex], ["m", menuIndex],
+ * ["a", viewIndex] (apply that view) or ["r", viewIndex] (revise that view).
+ */
 export function commandFor(page, pick) {
   if (!Array.isArray(pick)) return undefined;
   const [kind, a, b = 0] = pick;
   if (!Number.isInteger(a) || !Number.isInteger(b)) return undefined;
   if (kind === "s") return optionsOf((page?.steps || [])[a])[b]?.command;
   if (kind === "m") return a >= 0 && (page?.menu || [])[a]?.command ? String(page.menu[a].command) : undefined;
+  if (kind === "a" || kind === "r") { const v = a >= 0 ? viewsOf(page)[a] : undefined; const c = v?.[kind === "a" ? "apply" : "revise"]; return c ? String(c) : undefined; }
   return undefined;
 }
 
 /** Every command a page offers. */
 export function commands(page) {
-  return [...(page.steps || []).flatMap((s) => optionsOf(s).map((o) => o.command)), ...(page.menu || []).map((m) => String(m.command || "")).filter(Boolean)];
+  return [...(page.steps || []).flatMap((s) => optionsOf(s).map((o) => o.command)), ...(page.menu || []).map((m) => String(m.command || "")).filter(Boolean), ...viewsOf(page).flatMap((v) => [v.apply, v.revise]).filter(Boolean).map(String)];
 }
 
 function image(src, baseDir) {
@@ -83,8 +100,10 @@ function stepCard(step, index) {
 
 // The most words each part of a page may hold. A page is glanced at on a small laptop beside a conversation,
 // so the program refuses a long one and says which parts to cut: the writer shortens it, not the reader.
-export const LIMITS = { verdict: 16, todo: 12, subtitle: 14, statLabel: 6, problemTitle: 9, problemBody: 45, line: 16, stepLabel: 8, why: 18, order: 20, happened: 30, means: 30, notChecked: 40, termMeans: 25, change: 20 };
+export const LIMITS = { verdict: 16, todo: 12, subtitle: 14, statLabel: 6, problemTitle: 9, problemBody: 45, line: 16, stepLabel: 8, why: 18, order: 20, happened: 30, means: 30, notChecked: 40, termMeans: 25, change: 20, brief: 30, viewName: 4, bet: 18, viewNote: 18 };
 export const COUNTS = { stats: 3, problems: 3, also: 5, working: 3, steps: 3, terms: 3, changes: 5 };
+export const VIEWS = 5; // the original and up to four alternatives
+export const NOTE_MAX = 600; // characters of a typed request
 const words = (v) => String(v ?? "").trim().split(/\s+/).filter(Boolean).length;
 
 /** Every part of a page that is too long, as plain sentences. Empty when the page is short enough. */
@@ -113,6 +132,11 @@ export function tooLong(page) {
     (s?.options || []).forEach((o, j) => { check(`steps[${i}].options[${j}].label`, o?.label, LIMITS.stepLabel); check(`steps[${i}].options[${j}].why`, o?.why, LIMITS.why); });
   });
   (page.menu || []).forEach((m, i) => check(`menu[${i}].why`, m?.why, LIMITS.why));
+  if (page.workspace) {
+    check("workspace.brief", page.workspace.brief, LIMITS.brief);
+    count("workspace.views", page.workspace.views, VIEWS);
+    (page.workspace.views || []).forEach((v, i) => { check(`workspace.views[${i}].name`, v?.name, LIMITS.viewName); check(`workspace.views[${i}].bet`, v?.bet, LIMITS.bet); check(`workspace.views[${i}].note`, v?.note, LIMITS.viewNote); });
+  }
   return out;
 }
 
@@ -121,8 +145,43 @@ export function tooLong(page) {
 const row = (title, inner, { n = "", open = false, quiet = false } = {}) => `<details class="row${quiet ? " quiet" : ""}"${open ? " open" : ""}><summary>${n ? `<span class="num">${esc(n)}</span>` : ""}<span>${esc(title)}</span></summary><div class="body">${inner}</div></details>`;
 const list = (items, cls = "") => `<ul${cls ? ` class="${cls}"` : ""}>${items.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>`;
 
+const SIZES = { phone: [390, 800], desktop: [1440, 900] };
+const LOCAL_URL = /^http:\/\/(127\.0\.0\.1|localhost)(:\d{2,5})?(\/[^\s"'<>]*)?$/;
+const LIVE_FILE = /^live-[0-9a-f]{16}\.html$/;
+
+// One view at one size: the running page in a frame when there is one, otherwise its screenshot.
+function media(view, size, index, liveKey) {
+  const [w, h] = SIZES[size];
+  const src = view.live && liveKey && LIVE_FILE.test(view.live) ? `/live/${view.live}?l=${liveKey}` : LOCAL_URL.test(view.url || "") ? view.url : "";
+  const label = `${view.name}, ${size}`;
+  let inner = `<p class="none">No ${size} preview of this one.</p>`;
+  // A page served from here is boxed in by the header it is served with (see /live): it cannot read this page
+  // or its key. A project's own address is another origin already.
+  if (src) inner = `<div class="dev" data-w="${w}" data-h="${h}"><iframe title="${esc(label)}" referrerpolicy="no-referrer" data-src="${esc(src)}"></iframe></div>`;
+  else if (view[size]) inner = `<div class="shot ${size}"><img src="${esc(view[size])}" alt="${esc(label)}"></div>`;
+  return `<div data-media="${index}:${size}">${inner}</div>`;
+}
+
+function workspaceSection(page, liveKey) {
+  const views = viewsOf(page);
+  if (!views.length) return "";
+  const ws = page.workspace;
+  return `<section class="ws" data-ws aria-label="Compare the versions">
+${ws.brief ? `<p class="brief"><b>Brief</b> ${esc(ws.brief)}</p>` : ""}
+<div class="wsbar"><div class="seg" role="group" aria-label="Version">${views.map((v, i) => `<button type="button" data-view="${i}" aria-pressed="false"><kbd>${i + 1}</kbd> ${esc(v.name)}</button>`).join("")}</div>
+<div class="seg" role="group" aria-label="Size"><button type="button" data-size="phone" aria-pressed="false">Phone</button><button type="button" data-size="desktop" aria-pressed="false">Desktop</button></div>
+<label class="pick">Beside <select data-compare><option value="-1">Nothing</option>${views.map((v, i) => `<option value="${i}">${esc(v.name)}</option>`).join("")}</select></label></div>
+<p class="stale" data-stale role="status" hidden></p>
+<div class="stage"><div class="pane" data-pane="0"></div><div class="pane" data-pane="1" hidden></div></div>
+<div class="wsfoot"><div class="about"><h3 data-ws-name></h3><p data-ws-bet></p><p class="rev" data-ws-note></p></div>
+<form data-revise><label for="ask-${esc(ws.id || "ws")}">What should change in <b data-ws-short></b>?</label><textarea id="ask-${esc(ws.id || "ws")}" rows="3" maxlength="${NOTE_MAX}" placeholder="Say it in your own words. Your agent revises this version and it updates here."></textarea>
+<div class="acts"><button type="submit" data-ask>Ask for this change</button><button type="button" class="go" data-apply>Apply this one</button></div></form></div>
+<div hidden>${views.map((v, i) => media(v, "phone", i, liveKey) + media(v, "desktop", i, liveKey)).join("")}</div>
+</section>`;
+}
+
 /** One page as an HTML fragment. */
-export function renderPage(page, { baseDir = process.cwd() } = {}) {
+export function renderPage(page, { baseDir = process.cwd(), liveKey = "" } = {}) {
   const r = page.report || {};
   const steps = (page.steps || []).map(stepCard).join("\n");
   const menu = (page.menu || []).filter((m) => m.command);
@@ -150,6 +209,7 @@ export function renderPage(page, { baseDir = process.cwd() } = {}) {
 ${chips ? `<p class="chips">${chips}</p>` : ""}
 ${page.subtitle ? `<p class="sub">${esc(page.subtitle)}</p>` : ""}
 </header>
+${workspaceSection(page, liveKey)}
 <div class="split${shots ? " has-shots" : ""}"><div class="main">
 ${problems ? `<section class="sec"><p class="label">Found</p><div class="rows">${problems}</div></section>` : ""}
 ${changes ? `<section class="sec"><p class="label">Changed</p><ul class="changes">${changes}</ul></section>` : ""}
@@ -249,6 +309,7 @@ button[disabled]{opacity:.4;cursor:default;box-shadow:none}
 #bar ol{margin:0;padding-left:20px;flex:1 1 240px;min-width:0;font-size:14.5px;color:var(--ink)}#bar ol:empty{display:none}
 #bar .hint{flex:1 1 200px;margin:0;color:var(--soft);font-size:14.5px}
 #bar li button{min-height:28px;padding:0 8px;margin-left:8px;font-size:12.5px}
+#bar.bare .in{display:none}#bar.bare:has(#status:empty):has(#held:empty){display:none}#bar.bare #status,#bar.bare #held{margin:0}
 #status,#held{margin:0 0 8px;font-size:14px;font-weight:500;max-width:none}#status:empty,#held:empty{display:none}
 #held{color:var(--soft)}
 .rows{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
@@ -266,16 +327,37 @@ button[disabled]{opacity:.4;cursor:default;box-shadow:none}
 dl{margin:0}dt{color:var(--ink);font-weight:600}dd{margin:0 0 10px}
 .allrow{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:14px 0 0;max-width:none;color:var(--soft);font-size:14px}
 pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12.5px/1.6 var(--mono);color:var(--soft);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0 0}
-@media (max-width:820px){.trio{grid-template-columns:1fr}.hero{padding:20px 0 18px}.sec{margin-top:32px}.gallery{padding:16px;border-radius:14px}main{padding-bottom:230px}}
+.ws{margin:4px 0 8px}
+.brief{max-width:none;color:var(--soft);font-size:15px;margin:0 0 14px}.brief b{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-right:10px}
+.wsbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}.wsbar .pick{margin:0 0 0 auto}.wsbar .pick select{min-height:40px}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line2);border-radius:12px;padding:3px;gap:3px;background:var(--card)}
+.seg button{min-height:38px;border:0;background:transparent;color:var(--soft);padding:0 14px;border-radius:9px}.seg button:hover{background:#1a1a1a}
+.seg button[aria-pressed=true],.seg button[aria-pressed=true]:hover{background:#fff;color:#000}
+kbd{font:500 11px/1 var(--mono);opacity:.6;margin-right:4px}
+.stage{display:grid;gap:12px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,#0d0d0d,#050505);padding:16px;min-height:320px}
+.ws.two .stage{grid-template-columns:repeat(2,minmax(0,1fr))}
+.pane{min-width:0;display:flex;flex-direction:column;align-items:center}.pane[hidden]{display:none}
+.cap{align-self:stretch;margin:0 0 10px;font:500 12px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--soft);max-width:none}
+.dev{position:relative;overflow:hidden;border-radius:12px;border:1px solid var(--line2);background:#fff;max-width:100%}
+.dev iframe{position:absolute;left:0;top:0;border:0;transform-origin:0 0;background:#fff}
+.shot{max-width:100%;max-height:78vh;overflow:auto;border-radius:12px;border:1px solid var(--line2)}.shot.phone{width:390px}.shot img{display:block;width:100%;height:auto}
+.none{color:var(--dim);padding:60px 0;margin:0}
+.stale{max-width:none;margin:0 0 12px;padding:10px 14px;border:1px solid var(--amber);border-radius:10px;color:var(--amber);font-size:14.5px}.stale[hidden]{display:none}
+.wsfoot{display:grid;gap:20px;margin-top:16px}@media (min-width:860px){.wsfoot{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}}
+.about p{color:var(--soft);font-size:15px}.rev{color:var(--green)!important}.rev:empty{display:none}
+form[data-revise]{margin:0;display:grid;gap:8px}form[data-revise] label{font-size:14.5px;font-weight:500;color:var(--soft)}form[data-revise] label b{color:var(--ink)}form[data-revise][data-plain] label,form[data-revise][data-plain] textarea,form[data-revise][data-plain] [data-ask]{display:none}
+textarea{font:inherit;font-size:15px;line-height:1.5;width:100%;min-height:84px;resize:vertical;padding:10px 12px;border-radius:10px;border:1px solid var(--line2);background:var(--card2);color:var(--ink)}textarea:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+@media (max-width:820px){.ws.two .stage{grid-template-columns:1fr}.trio{grid-template-columns:1fr}.hero{padding:20px 0 18px}.sec{margin-top:32px}.gallery{padding:16px;border-radius:14px}main{padding-bottom:230px}}
 @media (max-width:560px){.top .in{flex-wrap:wrap;padding:8px 16px;gap:8px}.pick select{max-width:44vw}main{padding-left:16px;padding-right:16px}.state{max-width:60vw}#bar{padding:10px 10px 10px 14px}#copyall[disabled]{display:none}}`;
 
 // The page's own script. It reads everything it needs from DATA and never builds markup from text.
 const CLIENT = `const tabs=document.getElementById("tabs"),book=document.getElementById("book"),queueEl=document.getElementById("queue"),hint=document.getElementById("hint"),startBtn=document.getElementById("start"),copyAll=document.getElementById("copyall"),clearBtn=document.getElementById("clear"),statusEl=document.getElementById("status"),heldEl=document.getElementById("held"),stateEl=document.getElementById("state"),stateText=document.getElementById("statetext");
-let pages=DATA.pages,current=pages.length-1,queue=[],live=DATA.live||{working:[],held:[],listening:false,progress:""},lost=false;
+let pages=DATA.pages,current=pages.length-1,queue=[],live=DATA.live||{working:[],held:[],listening:false,progress:"",stale:[]},lost=false,rev=DATA.rev||"";
+const picked={},barEl=document.getElementById("bar");
 const say=(t)=>{statusEl.textContent=t};
 const optionOf=(p,pick)=>pick[0]==="s"?pages[p].steps[pick[1]][pick[2]||0]:pages[p].menu[pick[1]];
 async function copy(text){try{await navigator.clipboard.writeText(text);return true}catch{}const ta=document.createElement("textarea");ta.value=text;document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand("copy")}catch{}ta.remove();return ok}
-function show(i){current=i;[...book.children].forEach((el,n)=>{el.hidden=n!==i});tabs.value=String(i);queue=[];draw()}
+function show(i){current=i;[...book.children].forEach((el,n)=>{el.hidden=n!==i});tabs.value=String(i);queue=[];draw();const ws=book.children[i]&&book.children[i].querySelector("[data-ws]");if(ws&&ws._fit)ws._fit()}
 function buildTabs(){tabs.textContent="";for(let i=pages.length-1;i>=0;i--){const o=document.createElement("option");o.value=String(i);o.textContent=i===pages.length-1?"Latest: "+pages[i].tab:(i+1)+". "+pages[i].tab;tabs.appendChild(o)}document.getElementById("pick").hidden=pages.length<2}
 tabs.addEventListener("change",()=>{show(Number(tabs.value));scrollTo(0,0)});
 function selected(step){const s=book.children[current].querySelector('select[data-step="'+step+'"]');return s?Number(s.value):0}
@@ -285,7 +367,42 @@ function drawState(){
   stateEl.dataset.is=is;
   stateText.textContent=!TOKEN?"Not connected":lost?"This page lost its connection":working?"Working: "+live.working[0]+(live.working.length>1?" (+"+(live.working.length-1)+" after)":""):live.listening?"Your agent is listening":"Your agent is not listening";
   heldEl.textContent=(live.progress?live.progress+" ":"")+(live.held.length?"Waiting its turn: "+live.held.join(", then ")+".":"");
+  const moved=live.stale||[];
+  book.querySelectorAll("[data-stale]").forEach((el)=>{el.hidden=moved.length===0;el.textContent=moved.length?"The project's files changed after these previews were made ("+moved.join(", ")+"). Applying keeps those edits where it can and stops if it cannot.":""});
 }
+function fit(pane){pane.querySelectorAll(".dev").forEach((d)=>{const w=Number(d.dataset.w),h=Number(d.dataset.h),s=Math.min(1,(pane.clientWidth||w)/w),f=d.firstElementChild;d.style.width=w*s+"px";d.style.height=h*s+"px";f.style.width=w+"px";f.style.height=h+"px";f.style.transform="scale("+s+")"})}
+function wireWs(page,p){
+  const ws=page.querySelector("[data-ws]");if(!ws)return;
+  const views=pages[p].views,key=pages[p].ws,first=Math.max(0,views.findIndex((v)=>v.suggested)>=0?views.findIndex((v)=>v.suggested):views.findIndex((v)=>!v.original));
+  const st=picked[key]||(picked[key]={view:first,size:"phone",cmp:-1});
+  if(st.view>=views.length)st.view=first;if(st.cmp>=views.length)st.cmp=-1;
+  const panes=[...ws.querySelectorAll("[data-pane]")],form=ws.querySelector("[data-revise]"),box=form.querySelector("textarea"),applyBtn=ws.querySelector("[data-apply]"),cmp=ws.querySelector("[data-compare]");
+  const fill=(pane,i)=>{pane.textContent="";const cap=document.createElement("p");cap.className="cap";cap.textContent=views[i].name+(views[i].rev>1?" · revision "+views[i].rev:"");const m=ws.querySelector('[data-media="'+i+":"+st.size+'"]').cloneNode(true);m.removeAttribute("data-media");pane.append(cap,m);m.querySelectorAll("iframe[data-src]").forEach((f)=>{f.src=f.dataset.src});fit(pane)};
+  const drawWs=()=>{
+    const v=views[st.view];
+    ws.querySelectorAll("[data-view]").forEach((b)=>b.setAttribute("aria-pressed",String(Number(b.dataset.view)===st.view)));
+    ws.querySelectorAll("[data-size]").forEach((b)=>b.setAttribute("aria-pressed",String(b.dataset.size===st.size)));
+    cmp.value=String(st.cmp);const two=st.cmp>=0&&st.cmp!==st.view;ws.classList.toggle("two",two);panes[1].hidden=!two;
+    fill(panes[0],st.view);if(two)fill(panes[1],st.cmp);else panes[1].textContent="";
+    ws.querySelector("[data-ws-name]").textContent=v.name+(v.rev>1?" · revision "+v.rev:"");
+    ws.querySelector("[data-ws-bet]").textContent=v.bet;
+    ws.querySelector("[data-ws-note]").textContent=v.rev>1&&v.note?"Changed: "+v.note:"";
+    ws.querySelector("[data-ws-short]").textContent=v.name;
+    if(v.revise)form.removeAttribute("data-plain");else form.setAttribute("data-plain","");
+    applyBtn.textContent=v.original?"Keep it as it is":"Apply "+v.name;applyBtn.hidden=!v.apply;applyBtn.disabled=!TOKEN;
+    form.querySelector("[data-ask]").disabled=!TOKEN;
+  };
+  const send=async(kind,note)=>{const v=views[st.view];try{const res=await fetch("/choose",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({k:TOKEN,page:p,picks:[[kind,st.view]],note})});if(!res.ok)throw new Error(String(res.status));const out=await res.json();live=out.live;const what=kind==="r"?"Asked for a change to "+v.name:v.original?"Keeping it as it is":"Applying "+v.name;say(out.delivered?what+". This page updates when it is done.":live.working.length?what+". It starts when the current work is done.":what+". Your agent is not listening right now. Say \\"continue\\" in the chat and it will pick this up.");if(kind==="r")box.value=""}catch{say("That did not go through. This page may have lost its connection. Ask your agent to open it again.")}drawState()};
+  ws.querySelectorAll("[data-view]").forEach((b)=>b.addEventListener("click",()=>{st.view=Number(b.dataset.view);drawWs()}));
+  ws.querySelectorAll("[data-size]").forEach((b)=>b.addEventListener("click",()=>{st.size=b.dataset.size;drawWs()}));
+  cmp.addEventListener("change",()=>{st.cmp=Number(cmp.value);drawWs()});
+  form.addEventListener("submit",(e)=>{e.preventDefault();const note=box.value.trim();if(!note){say("Say what should change first.");box.focus();return}send("r",note)});
+  applyBtn.addEventListener("click",()=>send("a",""));
+  ws._key=(n)=>{if(n<views.length){st.view=n;drawWs()}};ws._fit=()=>panes.forEach(fit);
+  drawWs();
+}
+addEventListener("keydown",(e)=>{if(e.metaKey||e.ctrlKey||e.altKey||/^(TEXTAREA|INPUT|SELECT)$/.test(e.target.tagName)||!/^[1-9]$/.test(e.key))return;const ws=book.children[current]&&book.children[current].querySelector("[data-ws]");if(ws&&ws._key)ws._key(Number(e.key)-1)});
+addEventListener("resize",()=>{const ws=book.children[current]&&book.children[current].querySelector("[data-ws]");if(ws&&ws._fit)ws._fit()});
 function draw(){
   queueEl.textContent="";
   queue.forEach((pick,n)=>{const li=document.createElement("li");li.textContent=optionOf(current,pick).label;const x=document.createElement("button");x.type="button";x.textContent="Remove";x.setAttribute("aria-label","Remove "+optionOf(current,pick).label);x.addEventListener("click",()=>{queue.splice(n,1);draw()});li.appendChild(x);queueEl.appendChild(li)});
@@ -293,6 +410,8 @@ function draw(){
   page.querySelectorAll("[data-step-card]").forEach((card)=>{const i=Number(card.dataset.stepCard),on=queue.some((q)=>q[0]==="s"&&q[1]===i);card.classList.toggle("picked",on);const b=card.querySelector("[data-add]");b.setAttribute("aria-pressed",String(on));b.textContent=on?"Added. Remove":"Add"});
   const n=queue.length,working=live.working.length>0,direct=live.listening&&!working;
   hint.hidden=n>0;
+  const hasSteps=pages[current].steps.length+pages[current].menu.length>0;
+  barEl.classList.toggle("bare",!hasSteps);
   hint.textContent=working?"Add more if you want. It waits its turn.":direct?"Pick a step above, then press Start.":"Pick a step above. Start keeps it for your agent.";
   startBtn.disabled=n===0||!TOKEN;copyAll.disabled=n===0;clearBtn.hidden=n===0;
   startBtn.textContent=n<2?(direct?"Start":"Start next"):(direct?"Start these "+n+" in order":"Start these "+n+" next");
@@ -307,6 +426,7 @@ function wire(page,p){
   if(menu){const sync=()=>{const m=pages[p].menu[Number(menu.value)];page.querySelector("[data-menu-why]").textContent=m.why;page.querySelector("[data-menu-cmd]").textContent=m.command};menu.addEventListener("change",sync);
     page.querySelector("[data-add-menu]").addEventListener("click",()=>{queue.push(["m",Number(menu.value)]);draw()});
     page.querySelector("[data-copy-menu]").addEventListener("click",async()=>{say(await copy(pages[p].menu[Number(menu.value)].command)?"Copied. Paste it into your chat to start.":"Could not copy here.")})}
+  wireWs(page,p);
 }
 async function start(){
   if(!queue.length||!TOKEN)return;const labels=queue.map((q)=>optionOf(current,q).label);
@@ -326,22 +446,24 @@ async function poll(){
   if(!TOKEN)return;
   try{
     const s=await (await fetch("/state?k="+TOKEN,{cache:"no-store"})).json();misses=0;lost=false;
-    const turned=s.count!==pages.length;
-    if(turned){const fresh=await (await fetch("/pages?k="+TOKEN,{cache:"no-store"})).json();pages=fresh.pages;book.innerHTML=fresh.html.map((h)=>'<section class="page">'+h+"</section>").join("");[...book.children].forEach(wire);buildTabs();live=s.live;show(pages.length-1);scrollTo(0,0);say("New page: "+pages[pages.length-1].tab+".")}
+    const turned=s.count!==pages.length,redone=!turned&&s.rev&&s.rev!==rev;rev=s.rev||rev;
+    if(redone){const box=book.children[current]&&book.children[current].querySelector("[data-revise] textarea"),typed=box?box.value:"",at=current;const fresh=await (await fetch("/pages?k="+TOKEN,{cache:"no-store"})).json();pages=fresh.pages;book.innerHTML=fresh.html.map((h)=>'<section class="page">'+h+"</section>").join("");[...book.children].forEach(wire);buildTabs();live=s.live;show(Math.min(at,pages.length-1));const again=book.children[current].querySelector("[data-revise] textarea");if(again)again.value=typed;say("Updated: "+pages[current].tab+".")}
+    else if(turned){const fresh=await (await fetch("/pages?k="+TOKEN,{cache:"no-store"})).json();pages=fresh.pages;book.innerHTML=fresh.html.map((h)=>'<section class="page">'+h+"</section>").join("");[...book.children].forEach(wire);buildTabs();live=s.live;show(pages.length-1);scrollTo(0,0);say("New page: "+pages[pages.length-1].tab+".")}
     else if(JSON.stringify(s.live)!==JSON.stringify(live)){live=s.live;draw()}
   }catch{misses+=1;if(misses>2&&!lost){lost=true;draw()}}
 }
 [...book.children].forEach(wire);buildTabs();show(current);
 if(TOKEN){poll();setInterval(poll,1500)}`;
 
-const clientData = (pages) => pages.map((p, i) => ({ tab: String(p.tab || p.title || `Page ${i + 1}`), steps: (p.steps || []).map(optionsOf), menu: (p.menu || []).filter((m) => m.command).map((m) => ({ label: String(m.label ?? ""), why: String(m.why ?? ""), command: String(m.command) })) }));
+const clientData = (pages) => pages.map((p, i) => ({ tab: String(p.tab || p.title || `Page ${i + 1}`), steps: (p.steps || []).map(optionsOf), menu: (p.menu || []).filter((m) => m.command).map((m) => ({ label: String(m.label ?? ""), why: String(m.why ?? ""), command: String(m.command) })), ws: String(p.workspace?.id ?? ""), views: viewsOf(p).map((v) => ({ name: String(v.name), bet: String(v.bet ?? ""), note: String(v.note ?? ""), rev: Number(v.rev) || 1, original: Boolean(v.original), suggested: Boolean(v.suggested), apply: Boolean(v.apply), revise: Boolean(v.revise) })) }));
 const inScript = (value) => JSON.stringify(value).replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
-const NO_LIVE = { working: [], held: [], listening: false, progress: "" };
+const NO_LIVE = { working: [], held: [], listening: false, progress: "", stale: [] };
+const liveKeyOf = (token) => (token ? crypto.createHash("sha256").update(`${token}:live`).digest("hex").slice(0, 32) : "");
 
 /** The whole page as one HTML document. `live` is { token, state } when a server is behind it. */
 export function render(pages, { baseDir = process.cwd(), live = null } = {}) {
   const list = Array.isArray(pages) ? pages : [pages];
-  const html = list.map((p) => renderPage(p, { baseDir }));
+  const html = list.map((p) => renderPage(p, { baseDir, liveKey: liveKeyOf(live?.token) }));
   return `<!doctype html>
 <html lang="en">
 <meta charset="utf-8">
@@ -355,7 +477,7 @@ export function render(pages, { baseDir = process.cwd(), live = null } = {}) {
 </main>
 <div id="bar"><p id="status" role="status" aria-live="polite"></p><p id="held"></p><div class="in"><p class="hint" id="hint"></p><ol id="queue" aria-label="Your run, in order"></ol><button type="button" id="clear" hidden>Clear</button><button type="button" id="copyall">Copy</button><button type="button" class="go" id="start">Start</button></div></div>
 <script>
-const DATA = ${inScript({ pages: clientData(list), live: live?.state || NO_LIVE })};
+const DATA = ${inScript({ pages: clientData(list), live: live?.state || NO_LIVE, rev: live?.rev || "" })};
 const TOKEN = ${inScript(live?.token || "")};
 ${CLIENT}
 </script>
@@ -391,17 +513,47 @@ export function bookDir(name, { cwd = process.cwd(), env = process.env } = {}) {
 export function addPage(dir, page, { baseDir = process.cwd() } = {}) {
   if (!page || typeof page !== "object" || !String(page.title || "").trim()) throw new Error("A page needs at least a title.");
   const stored = { ...page, shots: (page.shots || []).map((s) => ({ ...s, src: image(s.src, baseDir) })) };
+  const lives = [];
+  if (page.workspace) {
+    const id = String(page.workspace.id ?? "");
+    if (!/^[a-z0-9][a-z0-9-]{0,40}$/.test(id)) throw new Error("A workspace needs an id: a short lowercase name such as pricing-header.");
+    const views = viewsOf(page);
+    if (views.length < 2) throw new Error("A workspace needs at least two views: the original and one alternative.");
+    stored.workspace = { ...page.workspace, id, views: views.map((v) => {
+      const out = { ...v };
+      for (const size of ["phone", "desktop"]) if (v[size]) out[size] = image(v[size], baseDir);
+      if (v.url && !LOCAL_URL.test(v.url)) throw new Error(`View ${v.name}: url must be an http address on this computer (127.0.0.1 or localhost).`);
+      if (v.live) {
+        const html = fs.readFileSync(path.resolve(baseDir, String(v.live)));
+        if (html.length > LIVE_MAX) throw new Error(`View ${v.name}: the live page is over ${LIVE_MAX / 1e6} MB. It must be one self-contained HTML file.`);
+        out.live = `live-${crypto.createHash("sha256").update(html).digest("hex").slice(0, 16)}.html`;
+        lives.push([out.live, html]);
+      }
+      if (!out.live && !out.url && !out.phone && !out.desktop) throw new Error(`View ${v.name} has nothing to show: give it live, url, phone or desktop.`);
+      return out;
+    }) };
+  }
   const long = tooLong(page);
   if (long.length) throw new Error(`This page has too many words. Shorten these and add it again:\n- ${long.join("\n- ")}`);
   renderPage(stored); // fail now, with a clear message, on anything the page cannot show
   fs.mkdirSync(dir, { recursive: true });
   const book = readBook(dir);
-  if (book.length && JSON.stringify(book.at(-1)) === JSON.stringify(stored)) return book.length; // the same page sent twice is one page
-  const n = book.length + 1;
+  for (const [name, html] of lives) fs.writeFileSync(path.join(dir, name), html);
+  const last = book.at(-1);
+  // The same workspace sent again is the same page, updated where it stands. A view whose preview changed is a new revision.
+  const same = Boolean(stored.workspace && last?.workspace?.id === stored.workspace.id);
+  if (stored.workspace) for (const v of stored.workspace.views) {
+    const was = same ? last.workspace.views.find((o) => o.name === v.name) : null;
+    const shown = (x) => JSON.stringify([x.live, x.url, x.phone, x.desktop]);
+    v.rev = was ? (Number(was.rev) || 1) + (shown(was) === shown(v) ? 0 : 1) : 1;
+  }
+  if (book.length && JSON.stringify(last) === JSON.stringify(stored)) return book.length; // the same page sent twice is one page
+  const n = book.length + (same ? 0 : 1);
   fs.writeFileSync(path.join(dir, `page-${n}.json`), JSON.stringify(stored));
   return n;
 }
 
+const LIVE_MAX = 4_000_000;
 const SLICE_MS = 240_000; // a wait is answered at least this often, so no connection sits idle long enough to be cut
 const IDLE_MS = 12 * 60 * 60_000;
 
@@ -420,18 +572,23 @@ export function serve(dir, { port, idleMs = IDLE_MS, sliceMs = SLICE_MS } = {}) 
   const waiters = new Set();
   let cache = { stamp: "", pages: [] };
   const pages = () => {
-    const stamp = fs.readdirSync(dir).filter((n) => /^page-\d+\.json$/.test(n)).join(",");
+    const stamp = fs.readdirSync(dir).filter((n) => /^page-\d+\.json$/.test(n)).map((n) => { const st = fs.statSync(path.join(dir, n)); return `${n}:${st.size}:${st.mtimeMs}`; }).join(",");
     if (stamp !== cache.stamp) cache = { stamp, pages: readBook(dir) };
     return cache.pages;
   };
-  const live = () => ({ working: state.working.map((w) => w.label), held: state.held.map((h) => h.label), listening: waiters.size > 0, progress: state.progress });
+  // Whether the project's files moved since the previews were made is read from disk, at most once a second.
+  let seen = { at: 0, stale: [] };
+  const stale = () => { if (Date.now() - seen.at > 1000) { let changed = []; try { changed = sourceStatus(dir).changed; } catch { /* no source kept for this work */ } seen = { at: Date.now(), stale: changed }; } return seen.stale; };
+  const live = () => ({ working: state.working.map((w) => w.label), held: state.held.map((h) => h.label), listening: waiters.size > 0, progress: state.progress, stale: stale() });
+  const rev = () => { pages(); return crypto.createHash("sha256").update(cache.stamp).digest("hex").slice(0, 12); };
+  const liveKey = liveKeyOf(token);
   const handOver = () => {
     if (!state.held.length || !waiters.size || state.working.length) return false;
     const [waiter] = waiters;
     waiters.delete(waiter);
     state.working = state.held.splice(0);
     state.progress = "";
-    waiter({ chosen: state.working.map((w) => w.command) });
+    waiter({ chosen: state.working.map((w) => w.command), notes: state.working.map((w) => w.note || "") });
     return true;
   };
   return new Promise((resolve, reject) => {
@@ -446,9 +603,17 @@ export function serve(dir, { port, idleMs = IDLE_MS, sliceMs = SLICE_MS } = {}) 
       const keyed = url.searchParams.get("k") === token;
       const body = (then) => { let text = ""; req.on("data", (c) => { text += c; if (text.length > 8192) req.destroy(); }); req.on("end", () => { let data; try { data = JSON.parse(text); } catch { return send(400, "bad request"); } if (data?.k !== token) return send(403, "forbidden"); then(data); }); };
       if (req.method === "GET" && url.pathname === "/health") return json(200, { keen: true });
-      if (req.method === "GET" && url.pathname === "/") return keyed ? send(200, render(pages(), { baseDir: dir, live: { token, state: live() } }), "text/html; charset=utf-8") : send(403, "This link is missing its key. Open the full address your agent gave you.");
-      if (req.method === "GET" && url.pathname === "/state") return keyed ? json(200, { count: pages().length, live: live() }) : send(403, "forbidden");
-      if (req.method === "GET" && url.pathname === "/pages") return keyed ? json(200, { pages: clientData(pages()), html: pages().map((p) => renderPage(p, { baseDir: dir })) }) : send(403, "forbidden");
+      if (req.method === "GET" && url.pathname === "/") return keyed ? send(200, render(pages(), { baseDir: dir, live: { token, state: live(), rev: rev() } }), "text/html; charset=utf-8") : send(403, "This link is missing its key. Open the full address your agent gave you.");
+      if (req.method === "GET" && url.pathname === "/state") return keyed ? json(200, { count: pages().length, rev: rev(), live: live() }) : send(403, "forbidden");
+      if (req.method === "GET" && url.pathname === "/pages") return keyed ? json(200, { pages: clientData(pages()), html: pages().map((p) => renderPage(p, { baseDir: dir, liveKey })) }) : send(403, "forbidden");
+      // An alternative's own page, for the frame that shows it. It has its own key and is boxed in, so nothing
+      // inside it can read the Keen page or press its buttons.
+      if (req.method === "GET" && url.pathname.startsWith("/live/")) {
+        const name = url.pathname.slice(6);
+        if (url.searchParams.get("l") !== liveKey || !LIVE_FILE.test(name) || !fs.existsSync(path.join(dir, name))) return send(404, "not found");
+        res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff", "content-security-policy": "sandbox allow-scripts allow-forms", "referrer-policy": "no-referrer" });
+        return res.end(fs.readFileSync(path.join(dir, name)));
+      }
       // The agent's side. Asking to wait means the agent has finished whatever it was doing.
       if (req.method === "GET" && url.pathname === "/wait") {
         if (!keyed) return send(403, "forbidden");
@@ -464,7 +629,8 @@ export function serve(dir, { port, idleMs = IDLE_MS, sliceMs = SLICE_MS } = {}) 
       if (req.method === "POST" && url.pathname === "/choose") return body((data) => {
         const book = pages();
         if (!Number.isInteger(data.page) || !book[data.page] || !Array.isArray(data.picks) || !data.picks.length || data.picks.length > 12) return send(400, "unknown choice");
-        const items = data.picks.map((pick) => { const command = commandFor(book[data.page], pick); if (!command) return null; const [kind, a, b = 0] = pick; const label = kind === "s" ? optionsOf(book[data.page].steps[a])[b].label : String(book[data.page].menu[a].label ?? command); return { command, label: label || command }; });
+        const items = data.picks.map((pick) => { const command = commandFor(book[data.page], pick); if (!command) return null; const [kind, a, b = 0] = pick; const view = viewsOf(book[data.page])[a]; const label = kind === "s" ? optionsOf(book[data.page].steps[a])[b].label : kind === "m" ? String(book[data.page].menu[a].label ?? command) : `${kind === "a" ? (view.original ? "Keep" : "Apply") : "Revise"} ${view.name}`; return { command, label: label || command, note: kind === "r" ? cleanNote(data.note) : "", asks: kind === "r" }; });
+        if (items.some((i) => i && i.asks && !i.note)) return send(400, "say what should change");
         if (items.some((i) => !i) || state.held.length + items.length > 24) return send(400, "unknown choice");
         state.held.push(...items);
         const delivered = handOver();
@@ -488,6 +654,9 @@ export function serve(dir, { port, idleMs = IDLE_MS, sliceMs = SLICE_MS } = {}) 
     server.listen(port ?? saved.port ?? 0, "127.0.0.1");
   });
 }
+
+/** A typed request as one plain line: no control characters, no line breaks, a fixed most. */
+export const cleanNote = (text) => String(text ?? "").replace(/[\u0000-\u001f\u007f\u2028\u2029]+/g, " ").replace(/\s+/g, " ").trim().slice(0, NOTE_MAX);
 
 const origin = (info) => `http://127.0.0.1:${info.port}`;
 async function running(dir) {
@@ -517,7 +686,7 @@ export async function wait(dir, { minutes = 30 } = {}) {
     if (!info) throw new Error("The page is not open. Run: open <name>");
     let out;
     try { out = await (await fetch(`${origin(info)}/wait?k=${info.token}`, { signal: AbortSignal.timeout(Math.max(1000, Math.min(SLICE_MS + 15_000, until - Date.now()))) })).json(); } catch { continue; }
-    if (out.chosen) return out.chosen;
+    if (out.chosen) return Object.assign(out.chosen, { notes: out.notes || [] });
     if (out.stopped) return null;
   }
   return null;
@@ -546,7 +715,7 @@ async function main(argv) {
   if (verb === "wait") {
     const chosen = await wait(dir, { minutes: Number(opt("minutes")) || 30 });
     if (chosen === null) { console.log("NO_CHOICE"); process.exit(3); }
-    for (const command of chosen) console.log(`CHOSEN: ${command}`);
+    chosen.forEach((command, i) => { console.log(`CHOSEN: ${command}`); if (chosen.notes?.[i]) console.log(`NOTE: ${chosen.notes[i]}`); });
     return;
   }
   if (verb === "say") { const info = await running(dir); if (info) await post(info, "/say", { text: rest.filter((r) => !r.startsWith("--")).join(" ") }); return; }
@@ -554,4 +723,4 @@ async function main(argv) {
   console.error(usage); process.exit(2);
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main(process.argv).catch((error) => { console.error(`keen page: ${error.message}`); process.exit(1); });
+if (process.argv[1] && import.meta.url === pathToFileURL(fs.realpathSync(process.argv[1])).href) main(process.argv).catch((error) => { console.error(`keen page: ${error.message}`); process.exit(1); });

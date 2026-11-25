@@ -129,7 +129,7 @@ test("the server needs the key, and a start reaches a waiting agent in the perso
   assert.equal((await fetch(`${origin}/state`)).status, 403);
   assert.equal((await fetch(`${origin}/wait`)).status, 403);
   assert.equal((await fetch(s.url)).status, 200);
-  assert.deepEqual(await state(s), { working: [], held: [], listening: false, progress: "" });
+  assert.deepEqual(await state(s), { working: [], held: [], listening: false, progress: "", stale: [] });
 
   assert.equal((await post(s, "/choose", { page: 0, picks: [["s", 0, 0]] }, "wrong")).status, 403);
   assert.equal((await post(s, "/choose", { page: 0, picks: [["s", 9, 0]] })).status, 400);
@@ -156,7 +156,7 @@ test("a start while the agent is busy or away is held, shown, and handed over at
 
   const busy = await (await post(s, "/choose", { page: 0, picks: [["s", 1]] })).json();
   assert.equal(busy.delivered, false);
-  assert.deepEqual(busy.live, { working: ["Simplify", "Harden"], held: ["Fix the phone"], listening: false, progress: "" });
+  assert.deepEqual(busy.live, { working: ["Simplify", "Harden"], held: ["Fix the phone"], listening: false, progress: "", stale: [] });
   await post(s, "/say", { text: "Halfway" });
   assert.equal((await state(s)).progress, "Halfway");
   await post(s, "/turned");

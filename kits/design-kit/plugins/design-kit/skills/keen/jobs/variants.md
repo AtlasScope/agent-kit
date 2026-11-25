@@ -1,6 +1,6 @@
 # variants
 
-Builds three different versions of one part of a screen, shows them side by side, and applies the one the person picks.
+Builds two or three different versions of one part of a screen, shows them running beside the original, revises any of them on request, and applies the one the person picks.
 
 Interactive. Edits files only for the version chosen.
 
@@ -12,15 +12,15 @@ Most people cannot say what they want from a design until they see something the
 
 1. **Fix the target.** One part of one screen. If the request is a whole screen or a whole product, narrow it with one question, or suggest `/keen critique` to find which part matters.
 2. **Read** PRODUCT.md, DESIGN.md and the notes in that part's code. The versions use the project's own colours, fonts and components.
-3. **Capture the current version** at 390 and 1440 wide, from a clean working copy (if there are uncommitted changes in that part's files, say so and stop). Wait for any opening animation to finish before every capture in this job, so all four are caught in the same settled state. It is always shown as a fourth choice, "keep it as it is".
-4. **Choose three directions that disagree.** Pick three from the list below that suit this part, and say in one line what each is betting on.
-5. **Build each one for real**, in the project's code, with the product's real content. After building one, capture it at 390 and 1440, save the change as a patch file in a temporary folder outside the project, and put the code back exactly as it was before building the next. The working copy ends as it began.
-6. **Show them** on the Keen page.
-   - `shots`: the four phone captures, in order, captioned "Now", "A: <name>", "B: <name>", "C: <name>". The wide captures go after them only if a version differs there in a way the phone one does not show.
-   - `steps`: one per version, your recommendation marked suggested. The label is the version's name, the why is its bet and its cost in one line, and the command is `/keen variants <the part>: apply version A (<its name>)`. Put `/keen variants <the part>: keep it as it is` in `menu`.
-   - `verdict`: what the three disagree about. No `problems`.
-7. **Apply the pick.** It arrives as that command, from the page or typed. Put that version's change back, run the project's own checks, capture it again, and delete the other patch files. If they pick "keep it", change nothing and say so.
-8. **If none is right**, ask what was closest and what was wrong with it, and build one more round from that answer. Two rounds at most; after that the problem is not this part, and `/keen critique` is the better job.
+3. **Remember the current version.** Run `workspace.mjs base <name>` on every file the versions will touch (SKILL.md, "The workspace"). Uncommitted changes are fine: they are remembered as part of the original and of every version. Capture the original at 390 and 1440 wide, and as a running page when it can be one. Wait for any opening animation to finish before every capture in this job, so all are caught in the same settled state. The original is always the first view, "keep it as it is".
+4. **Choose directions that disagree.** Three is the usual number; two is right when the part has only two honest answers. Pick from the list below, and say in one line what each is betting on.
+5. **Build each one for real**, in the project's code, with the product's real content. After building one, capture it the same way as the original, then run `workspace.mjs keep <name> a` (then `b`, `c`): it saves the version outside the project and puts the code back exactly as it was before the next. The working copy ends as it began.
+6. **Show them** in a workspace on the Keen page.
+   - `workspace.views`: "Now" first, marked `original`, then "A: <name>", "B: <name>", "C: <name>", your recommendation marked `suggested`. Each has its running page or captures, its bet and cost in one line, `apply` set to `/keen variants <the part>: apply version A (<its name>)` and `revise` set to `/keen variants <the part>: revise version A (<its name>)`. The original's `apply` is `/keen variants <the part>: keep it as it is`.
+   - `workspace.brief`: the request in one line. `verdict`: what the versions disagree about. No `problems` and no `steps`.
+7. **Revise when asked.** A request arrives as a `revise` command with a `NOTE:` line holding the person's words, or typed in the conversation. Run `workspace.mjs put <name> a`, make that change and only that change, capture it again, `keep` it again, set the view's `note` to what changed, and `add` the same page. Their open page updates in place. There is no limit on rounds for one version, but if the third request contradicts the first, say so.
+8. **Apply the pick.** It arrives as that view's `apply` command, from the page or typed. Run `workspace.mjs apply <name> a` (or `base` for "keep it"), then the project's own checks, capture it again and add a before-and-after page. If `apply` prints `SOURCE_CHANGED`, follow SKILL.md: nothing of the person's is overwritten without being saved and put back.
+9. **If none is right**, ask what was closest and what was wrong with it, and build one more round from that answer. Two rounds of new versions at most; after that the problem is not this part, and `/keen critique` is the better job.
 
 ## Ways for versions to differ
 
@@ -38,8 +38,8 @@ Most people cannot say what they want from a design until they see something the
 - **Every version passes the basics.** Readable text, controls big enough to press, nothing scrolling sideways. Measure with `node <skill-dir>/scripts/measure.mjs`, running what it prints inside the page.
 - **Nothing a person can do is missing** from any version.
 - **Every version obeys DESIGN.md and the notes in the code.** If the most interesting direction would break one, build it anyway only as the third version, and say on its step which rule it breaks, so the person chooses it knowingly.
-- **Leave no trace.** Nothing from the versions not chosen stays in the code.
+- **Leave no trace.** Nothing from the versions not chosen stays in the code, and nothing is committed or stashed on the way.
 
 ## Report
 
-Follow the report shape in SKILL.md. Before the pick, "What happened" says three versions were built and put back, and "What you need to do" is to pick one. After the pick, a new page shows before and after and says what changed in plain words. Under Details, the files changed and the patch files removed. Under "Not checked", states and widths of the chosen version you did not capture.
+Follow the report shape in SKILL.md. Before the pick, "What happened" says the versions were built and put back, and "What you need to do" is to compare them, ask for changes or pick one. After the pick, a new page shows before and after and says what changed in plain words. Under Details, the files changed, and any edit of the person's that was merged or made again. Under "Not checked", states and widths of the chosen version you did not capture.
