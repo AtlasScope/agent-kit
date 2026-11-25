@@ -30,7 +30,7 @@ A second setting, the local router log, is off by default. With the session-star
 | Verify or review a change | Check behavior against what it promises; report evidence and gaps. | Nothing, unless they asked for tests or fixes |
 | Recover a broken branch or workflow | Keep their work, find the last good state, restore within what they allowed. | What recovery needs, said first |
 
-One request can hold several jobs; do them in the order the evidence suggests. Words like investigate, look into, report, read-only or don't change anything keep the whole job read-only. If their words could mean two different jobs (a review or a fix? one route or the whole app?), ask the one question that separates them and end the turn. Say in the first line what you are doing and whether it only reads or will edit.
+One request can hold several jobs; do them in the order the evidence suggests. Words like investigate, look into, report, read-only or don't change anything keep the whole job read-only. If their words could mean two different jobs (a review or a fix? one route or the whole app?), ask the one question that separates them and end the turn. Say in the first line what you are doing, whether it only reads or will edit, and which field-guide investigation or skill you are following when one fits (its ID or command is the route).
 
 ## Authority
 
