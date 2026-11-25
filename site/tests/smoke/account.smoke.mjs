@@ -137,6 +137,34 @@ test("desktop: New collection creates one and opens it; Remove takes an item out
   await ctx.close();
 });
 
+test("desktop: a star or unstar saved elsewhere updates the open rows, the counts and the install command", async () => {
+  await fetch(`${base}/account/fixture/reset`, { method: "POST" });
+  const { page, ctx, errors } = await open(DESKTOP, `/account/fixture#${STARRED}`);
+  const panel = openPanel(page);
+  const install = panel.locator(".cpanel__install code");
+  const star = (on, kind, ref) => page.evaluate(async ([on, kind, ref]) => {
+    await fetch("/account/fixture/star", { method: "POST", body: JSON.stringify({ on, kind, ref }) });
+    // What the Star button fires once its save has landed.
+    window.dispatchEvent(new Event("agentkit:me-saved"));
+  }, [on, kind, ref]);
+  assert.equal(await install.innerText(), "npx skills add AtlasScope/agent-kit --skill diagnosing-bugs");
+  const rows = await panel.locator(".prow, .srow").count();
+
+  await star(true, "skill", "grilling");
+  await page.waitForFunction(() => document.querySelector('.ws__panel[data-col$="0001"] .cpanel__install code')?.textContent?.includes("--skill grilling"), null, { timeout: 10000 });
+  assert.equal(await panel.locator(".prow, .srow").count(), rows + 1, "the starred skill appears as a row");
+  assert.match(await page.locator(`[data-for="${STARRED}"]`).innerText(), /5/, "the rail count goes up");
+
+  await star(false, "skill", "diagnosing-bugs");
+  await star(false, "skill", "grilling");
+  await page.waitForFunction(() => !document.querySelector('.ws__panel[data-col$="0001"] .cpanel__install'), null, { timeout: 10000 });
+  assert.equal(await panel.locator(".srow").count(), 0, "no skill rows remain");
+  assert.equal(await panel.locator(".prow").count(), 3, "the prompts stay");
+  assert.equal(await page.locator("html").getAttribute("data-ws-sel"), STARRED, "the open collection stays open");
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
 test("shared collection: install command, prompt copy, and the owner's way back", async () => {
   for (const size of [DESKTOP, PHONE]) {
     const { page, ctx, errors } = await open(size, `/account/fixture/shared?id=${DESIGN}`);
