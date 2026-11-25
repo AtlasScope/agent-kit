@@ -15,7 +15,7 @@ Keen has 22 jobs. Movement and animation are not among them: that is `/motion`, 
 
 ## How Keen works
 
-1. **Read the intent, not the keywords.** What outcome does the person want, for whom, on which screen? Look at the screen before deciding.
+1. **Read the intent, not the keywords.** What outcome does the person want, for whom, on which screen? Look at the screen before deciding. When nothing is built yet there is no screen to look at: go by the brief, and the report shows the result with no "before".
 2. **Sort what is fixed from what is open.** Invariants (who the product is for, accessibility, legal marks) never move. Commitments (the approved direction in DESIGN.md) move only with the person. History (whatever the code happens to do) moves freely when it stops serving the direction. Opportunities are ideas not yet tried. [references/direction.md](references/direction.md) has the detail.
 3. **Choose a stance.** Refine (the direction is right, the execution is not), reinvent (there is no direction worth keeping), experiment (asked for, or low stakes and worth learning from), or restrain (the content is the experience, and the ambitious move is to step back). Say it when it is not obvious. [references/kernel.md](references/kernel.md) explains how to tell them apart. These ideas are instruments for hard calls, not steps every request walks through.
 4. **Compose the work.** One job when one job answers it. Several, in the order that wastes least (see Next steps), when the outcome needs them: a crowded screen that also reads badly is `distill` then `type`. Say the sequence in one line and run it straight through.
@@ -175,7 +175,7 @@ A job that changes nothing visible and has no next step reports in text only.
 ### The rules
 
 - **Show the result on the live page, inside the tool the person is already using**, in your own browser panel. Open it for them. Do not ask them to open anything.
-- **Never hand over a file.** Do not write an HTML file, a report file or a page file into the project, and do not give the person a path to find. The page's contents are kept outside the project by the program itself.
+- **Never hand over a file.** Do not write an HTML file, a report file or a page file into the project, and do not give the person a path to find. The page's contents are kept outside the project by the program itself. This is about the report: a screen that `create` builds is the work itself and belongs in the project.
 - **Look at the page yourself before you say it is ready**, and confirm Start is there.
 - **Keep listening.** Whenever you are not working, you are waiting on the page. If you stop waiting, the page says "Your agent is not listening", which is true and is your fault.
 
@@ -209,6 +209,7 @@ Rules:
 - The program only reports commands written in pages you added, so what comes back is something you offered. If a chosen job edits files and ask before edits is on, pressing Start is the yes.
 - If the person answers in the conversation instead, follow the conversation, and keep `wait` running.
 - If `open` says the server did not start, the tool is not letting commands listen on this computer. Say so in one line and put the next steps in your reply, each command on its own line.
+- If `add` cannot write its pages because the tool only lets commands write inside the project, set `KEEN_HOME` to a temporary folder the tool can write to and run it again. Never point it inside the project.
 
 ### A page
 
