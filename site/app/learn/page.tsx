@@ -26,7 +26,7 @@ export default function Learn() {
 
       <section className="section" aria-labelledby="lessons-h">
         <h2 id="lessons-h" className="sr">The lessons</h2>
-        <GuideResume items={LESSONS} base="/learn" store="learn" />
+        <GuideResume items={LESSONS} base="/learn" store="learn" lead after={["Fix a real problem", "/fix"]} />
         <GuideList items={lessonItems} base="/learn" store="learn" />
       </section>
 

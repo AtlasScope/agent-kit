@@ -79,6 +79,10 @@ for (const size of SIZES) {
     const routes = page.getByRole("navigation", { name: "Guided routes" });
     assert.equal(await routes.locator('[aria-current="page"]').getAttribute("href"), "/learn");
     for (const l of LESSONS) assert.ok(await page.getByRole("link", { name: new RegExp(l.title) }).first().isVisible());
+    // A new reader gets the page's one lit action: Start, on the first lesson.
+    const start = page.getByRole("link", { name: `Start: ${LESSONS[0].title}` });
+    assert.equal(await start.getAttribute("href"), `/learn/${LESSONS[0].slug}`);
+    assert.ok(await start.isVisible());
     await page.goto(`${base}/learn/${LESSONS.at(-1).slug}`, { waitUntil: "networkidle" });
     await page.getByRole("link", { name: "Fix a real problem" }).click();
     await page.waitForURL(/\/fix$/);
