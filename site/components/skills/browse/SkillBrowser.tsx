@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Star } from "@/components/Star";
 import type { BrowseKit, BrowseSkill } from "./data";
 
@@ -9,6 +9,25 @@ type By = "kit" | "author";
 type Group = { id: string; title: string; kit?: BrowseKit; items: BrowseSkill[] };
 
 const AGENT_KIT = "Agent Kit";
+
+// The address bar's query string as a store, so the filters can follow it. Next's router changes the address with
+// history.pushState (a header link, a shared link followed from inside the site), which fires no event of its own,
+// so pushState and replaceState are wrapped once to announce themselves; Back and Forward arrive as popstate. The
+// server snapshot is empty, so the static page renders unfiltered and the URL is read after hydration.
+let wrapped = false;
+function subscribeSearch(notify: () => void) {
+  if (!wrapped) {
+    wrapped = true;
+    for (const m of ["pushState", "replaceState"] as const) {
+      const orig = history[m];
+      history[m] = function (this: History, ...a: Parameters<History[typeof m]>) { const r = orig.apply(this, a); window.dispatchEvent(new Event("urlchange")); return r; };
+    }
+  }
+  window.addEventListener("popstate", notify); window.addEventListener("urlchange", notify);
+  return () => { window.removeEventListener("popstate", notify); window.removeEventListener("urlchange", notify); };
+}
+const getSearch = () => location.search;
+const getServerSearch = () => "";
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 // The skills index. The server renders it grouped by kit with nothing filtered, so it reads the same without
@@ -25,17 +44,20 @@ export function SkillBrowser({ skills, kits }: { skills: BrowseSkill[]; kits: Br
   const ready = useRef(false);
   const field = useRef<HTMLInputElement>(null);
 
-  // Read the shared view from the URL once, after hydration, so the static page stays static.
+  // Follow the URL: the first read after hydration, and every later change to it (the header Skills link, another
+  // shared view, Back and Forward). A parameter that is absent means its default. The box's own text is compared
+  // trimmed, because the mirror below writes q trimmed and must not eat a space the visitor just typed.
+  const search = useSyncExternalStore(subscribeSearch, getSearch, getServerSearch);
   useEffect(() => {
-    const u = new URLSearchParams(location.search);
-    const fq = u.get("q"); const fw = u.get("from"); const fb = u.get("by");
-    if (fq) setQ(fq);
-    if (fw === "original" || fw === "borrowed") setWho(fw);
+    const u = new URLSearchParams(search);
+    const fq = (u.get("q") ?? "").trim(); const fw = u.get("from"); const fb = u.get("by");
+    setQ((cur) => (cur.trim() === fq ? cur : fq));
+    setWho(fw === "original" || fw === "borrowed" ? fw : "all");
     // A kit anchor (/skills#motion-kit) needs the kit grouping; an author anchor (#by-…, which the rail adds) does not.
-    const hash = decodeURIComponent(location.hash.slice(1));
-    if (fb === "author" && !kits.some((k) => k.name === hash)) setBy("author");
+    let hash = ""; try { hash = decodeURIComponent(location.hash.slice(1)); } catch {}
+    setBy(fb === "author" && !kits.some((k) => k.name === hash) ? "author" : "kit");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [search]);
 
   // Mirror the view into the URL. Skip the first run: it sees the defaults before the state read above lands,
   // and writing them would strip the shared parameters.

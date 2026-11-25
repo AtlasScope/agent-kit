@@ -23,10 +23,13 @@ export function loadMe(fresh = false) {
     .then((m) => { if (mine === gen) { me = m; emit(); } return m; });
   return inflight;
 }
+export const ME_SAVED = "agentkit:me-saved";
 export async function saveItem(body: Record<string, unknown>) {
   const r = await fetch("/api/me", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
   const err = r.ok ? "" : ((await r.json().catch(() => ({}))) as { error?: string }).error || "That didn’t save. Try again.";
   await loadMe(true);
+  // Tell the page the saved items changed, so server-rendered lists of them (Collections) can refresh.
+  window.dispatchEvent(new Event(ME_SAVED));
   return err;
 }
 export const useMe = () => useSyncExternalStore(subscribe, getMe, () => null);
