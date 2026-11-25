@@ -48,7 +48,7 @@ export function CollectionsView({ cols, actions, sharedHref = (id) => `/collecti
       rail={rail}
       boot={<><style>{selectionCss(rail.map((r) => r.id))}</style><script dangerouslySetInnerHTML={{ __html: BOOT }} /><noscript><style>{NOSCRIPT}</style></noscript></>}
       newCollection={
-        <Pop summary={<>{PLUS}New collection</>} summaryClass="btn btn--sm ws__new">
+        <Pop summary={<>{PLUS}New collection</>} summaryClass="btn btn--sm btn--brand ws__new">
           <ActionForm action={actions.create} className="col__popform" reset>
             <label className="col__poplabel" htmlFor="new-col">Name the collection</label>
             <input id="new-col" className="input" name="name" placeholder="For example, Design reviews" maxLength={80} autoComplete="off" required autoFocus />
