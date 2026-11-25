@@ -7,13 +7,14 @@
 
 /* ---------- Index and area pages ---------- */
 .lib { gap: var(--space-10); grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 40rem) { .lib { gap: var(--space-8); } }
 .lib > * { min-width: 0; }
 .lib .sec-head h2 { margin: 0; }
 .lib .kicker a { color: inherit; text-decoration: none; }
 @media (hover: hover) and (pointer: fine) { .lib .kicker a:hover { color: var(--c-fg); text-decoration: underline; text-underline-offset: 0.2em; } }
 /* Touch: the section link gets a --tap tall hit area from its top edge down, with no layout change, so it never
    overlaps the breadcrumb's own targets above it. Below it is the h1, which is not a target. */
-@media (pointer: coarse) { .lib .kicker a { position: relative; } .lib .kicker a::after { content: ""; position: absolute; inset: 0 0 auto; height: max(100%, var(--tap)); } }
+@media (pointer: coarse) { .lib .kicker a { position: relative; display: inline-flex; align-items: center; min-height: 24px; } .lib .kicker a::after { content: ""; position: absolute; inset: 0 0 auto; height: max(100%, var(--tap)); } }
 
 /* The section rail: sticky under the header, one line, scrolls sideways on a phone. */
 .rail { position: sticky; top: var(--header-h); z-index: 5; margin-block: calc(var(--space-6) * -1) calc(var(--space-3) * -1); background: var(--c-canvas); border-bottom: 1px solid var(--c-line); }
