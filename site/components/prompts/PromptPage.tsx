@@ -5,7 +5,7 @@ import { CopyButton } from "@/components/CopyButton";
 import { SaveMenu } from "@/components/SaveMenu";
 import { Payload } from "@/components/prompts/detail/Payload";
 import { authEnabled } from "@/lib/site";
-import { copyFormat } from "@/lib/copy";
+import { copyFormat } from "@/lib/copy-format";
 import { getArea, getPrompt, copyText, copyLabel, kindLabel, whatOf, whenOf, MODES, TOPO, type Prompt } from "@/lib/content";
 
 type Fact = [string, string | undefined];
