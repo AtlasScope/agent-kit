@@ -1,20 +1,18 @@
 // Collections, shared collection and reading-page journeys against a production build, at desktop and phone sizes.
 //   npm run build && npm run smoke
 // The signed-in pages are exercised through the sample-data routes (/account/fixture), which serve here because
-// this file starts `next start` with ACCOUNT_FIXTURES=1. Set SMOKE_URL to test another single long-lived server with
+// the runner starts an isolated server with ACCOUNT_FIXTURES=1. Set SMOKE_ACCOUNT_URL (or SMOKE_URL) to use a long-lived server with
 // them on (not a serverless preview: the sample store is per process).
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
+import { smokeTarget } from "./run.mjs";
 import { createRequire } from "node:module";
 import { chromium } from "playwright";
 import { composeCopy } from "../../lib/copy.ts";
 
 const require = createRequire(import.meta.url);
 const data = require("../../content/generated.json");
-const PORT = 3994; // Smoke files run in parallel; each needs its own port (journeys 3999, install 3998, library 3997).
-let base = process.env.SMOKE_URL?.replace(/\/$/, "");
-let server, browser;
+let target, base, browser;
 
 const DESKTOP = { viewport: { width: 1440, height: 900 } };
 const PHONE = { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true };
@@ -23,24 +21,15 @@ const DESIGN = "00000000-0000-4000-8000-000000000002";
 const EMPTY = "00000000-0000-4000-8000-000000000004";
 
 before(async () => {
-  if (!base) {
-    server = spawn("npx", ["next", "start", "-p", String(PORT)], {
-      cwd: new URL("../..", import.meta.url), stdio: "ignore", detached: true, env: { ...process.env, ACCOUNT_FIXTURES: "1" },
-    });
-    base = `http://localhost:${PORT}`;
-    for (let i = 0; i < 60; i++) {
-      try { if ((await fetch(base)).ok) break; } catch {}
-      await new Promise((r) => setTimeout(r, 500));
-    }
-  }
+  target = await smokeTarget({ fixtures: true });
+  base = target.url;
   const r = await fetch(`${base}/account/fixture/reset`, { method: "POST" });
   assert.equal(r.status, 204, "sample data is on at this server");
   browser = await chromium.launch();
 });
 
 after(async () => {
-  await browser?.close();
-  if (server) process.kill(-server.pid, "SIGTERM");
+  try { await browser?.close(); } finally { await target?.close(); }
 });
 
 async function open(size, path) {

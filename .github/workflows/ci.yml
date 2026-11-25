@@ -27,40 +27,56 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
         run: |
-          files=$(gh pr diff "$PR" --repo "$GITHUB_REPOSITORY" --name-only)
+          # Use statuses as well as paths: a modified nested reference is not site data,
+          # but an added/removed file can change the skill folder's published file list.
+          diff=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files?per_page=100" --jq '.[] | [.status, .filename, (.previous_filename // "")] | @tsv')
+          files=$(printf '%s\n' "$diff" | cut -f2,3 | tr '\t' '\n' | sed '/^$/d')
+          structural=$(printf '%s\n' "$diff" | awk -F '\t' '$1 != "modified" {print $2; if ($3 != "") print $3}')
           printf '%s\n' "$files"
           has() { printf '%s\n' "$files" | grep -qE "$1" && echo true || echo false; }
+          changed_shape() { printf '%s\n' "$structural" | grep -qE "$1" && echo true || echo false; }
           all=$(has '^\.github/workflows/ci\.yml$')
-          # Catalog data can affect static pages; internal kit fixtures and research cannot.
-          content=$(has '^(library/library\.json$|CREDITS\.md$|kits/[^/]+/(plugins/|THIRD_PARTY\.md$))')
-          web=$(has '^site/(app/|components/|lib/|public/|db/|next\.config\.ts$|proxy\.ts$|package(-lock)?\.json$|tsconfig\.json$|scripts/(build-content|design-jobs|migrate)\.mjs$|tests/[^/]+\.mjs$|tests/smoke/)')
-          browser=$web
+          # GitHub caps the PR-files API at 3000; never silently skip checks on a huge change.
+          [ "$(printf '%s\n' "$diff" | wc -l)" -ge 3000 ] && all=true
+          skillshape=$(changed_shape '^kits/[^/]+/plugins/')
+          content=$(has '^(library/library\.json$|CREDITS\.md$|kits/[^/]+/(THIRD_PARTY\.md$|plugins/[^/]+/(\.claude-plugin/plugin\.json$|skills/[^/]+/(SKILL\.md|LICENSE)$)))')
+          [ "$skillshape" = true ] && content=true
+          runtime=$(has '^site/(app/|components/|lib/|public/|db/|next\.config\.ts$|proxy\.ts$|package(-lock)?\.json$|tsconfig\.json$|scripts/(build-content|design-jobs|migrate)\.mjs$)')
+          unit=$(has '^site/tests/[^/]+\.mjs$')
+          browser=$(has '^site/tests/smoke/')
+          [ "$runtime" = true ] && browser=true
+          build=false
+          [ "$runtime" = true ] || [ "$content" = true ] || [ "$browser" = true ] && build=true
+          [ "$runtime" = true ] || [ "$content" = true ] && unit=true
           site=false
-          if [ "$web" = true ] || [ "$content" = true ]; then site=true; fi
-          library=$(has '^(library/|kits/[^/]+/(plugins/|scripts/)|tests/routing/|tests/library/|site/scripts/design-jobs\.mjs$)')
-          # Exercise failure/non-mutation scenarios when the checker or its generators change.
+          [ "$build" = true ] || [ "$unit" = true ] && site=true
+          library=$(has '^(library/(library\.json|audit\.json|build\.mjs|check\.mjs|template\.html|dist/)|kits/(design-kit|engineering-kit)/scripts/|kits/design-kit/plugins/design-kit/skills/(keen/(SKILL\.md$|jobs/)|design/references/(catalog|recipes|situations)\.md$)|kits/engineering-kit/plugins/engineering-kit/skills/(engineer/references/(start-here|investigations)\.md$|database/references/prompts\.md$))')
+          routing=$(has '^(library/library\.json$|tests/routing/|kits/[^/]+/plugins/[^/]+/(\.claude-plugin/plugin\.json$|skills/[^/]+/(SKILL\.md$|agents/openai\.yaml$))|kits/design-kit/plugins/design-kit/skills/design/references/recipes\.md$)')
+          [ "$skillshape" = true ] && routing=true
           checker=$(has '^(library/(check\.mjs|build\.mjs|template\.html)$|kits/(design-kit|engineering-kit)/scripts/|tests/library/)')
-          public=$(has '^(kits/[^/]+/plugins/|library/library\.json$|scripts/check-public|[A-Z]+\.md$)')
-          catalog=$(has '^(kits/[^/]+/plugins/|\.claude-plugin/|\.agents/|scripts/check-catalog)')
+          public=$(has '^(kits/|library/library\.json$|scripts/check-public|[A-Z]+\.md$)')
+          catalog=$(has '^(\.claude-plugin/|\.agents/|scripts/check-catalog|kits/[^/]+/plugins/[^/]+/(\.(claude|codex)-plugin/plugin\.json$|README\.md$|skills/[^/]+/SKILL\.md$))')
+          [ "$skillshape" = true ] && catalog=true
           motion=$(has '^kits/motion-kit/plugins/motion-kit/skills/motion/(scripts|tests)/')
           keen=$(has '^kits/design-kit/plugins/design-kit/skills/keen/(scripts|tests)/')
-          [ "$all" = true ] && site=true browser=true library=true checker=true public=true catalog=true motion=true keen=true
-          echo "browser=$browser" >> "$GITHUB_OUTPUT"
-          echo "site=$site" >> "$GITHUB_OUTPUT"
-          echo "library=$library" >> "$GITHUB_OUTPUT"
-          echo "checker=$checker" >> "$GITHUB_OUTPUT"
-          echo "public=$public" >> "$GITHUB_OUTPUT"
-          echo "catalog=$catalog" >> "$GITHUB_OUTPUT"
-          echo "motion=$motion" >> "$GITHUB_OUTPUT"
-          echo "keen=$keen" >> "$GITHUB_OUTPUT"
+          ea=$(has '^kits/experience-architecture/(plugins/experience-architecture/scripts/|tests/(data/|journeys/|proposals/|[^/]+\.test\.mjs$)|fixtures/(northwind|fernway|kestrel)/|package(-lock)?\.json$)')
+          [ "$all" = true ] && site=true build=true unit=true browser=true library=true routing=true checker=true public=true catalog=true motion=true keen=true ea=true
+          # A required check always reports, but irrelevant changes need no checkout or install.
+          checkout=false
+          for flag in "$site" "$library" "$routing" "$checker" "$public" "$catalog" "$motion" "$keen" "$ea"; do
+            [ "$flag" = true ] && checkout=true
+          done
+          for name in site build unit browser library routing checker public catalog motion keen ea checkout; do
+            echo "$name=${!name}" >> "$GITHUB_OUTPUT"
+          done
 
       - uses: actions/checkout@v7
-        if: steps.changes.outputs.site == 'true' || steps.changes.outputs.library == 'true' || steps.changes.outputs.public == 'true' || steps.changes.outputs.catalog == 'true'
+        if: steps.changes.outputs.checkout == 'true'
         with:
           persist-credentials: false
 
       - uses: actions/setup-node@v7
-        if: steps.changes.outputs.site == 'true' || steps.changes.outputs.library == 'true' || steps.changes.outputs.public == 'true' || steps.changes.outputs.catalog == 'true'
+        if: steps.changes.outputs.checkout == 'true'
         with:
           node-version: 22
           cache: ${{ steps.changes.outputs.site == 'true' && 'npm' || '' }}
@@ -79,7 +95,7 @@ jobs:
         run: node library/check.mjs
 
       - name: Check the routing cases
-        if: steps.changes.outputs.library == 'true'
+        if: steps.changes.outputs.routing == 'true'
         run: node tests/routing/check.mjs
 
       - name: Test the library verifier's failure and non-mutation behavior
@@ -108,24 +124,34 @@ jobs:
           KEEN_REQUIRE_BROWSER: "1"
         run: node --test "kits/design-kit/plugins/design-kit/skills/keen/tests/*.test.mjs"
 
-      - name: Typecheck the site
-        if: steps.changes.outputs.site == 'true' && hashFiles('site/package.json') != ''
+      - name: Test Experience Architecture's deterministic toolkit
+        if: steps.changes.outputs.ea == 'true'
+        working-directory: kits/experience-architecture
+        # The browser scenarios require a running fixture app. Keep them opt-in; do
+        # not skip the static, privacy, transition and installer regressions.
+        run: node --test "tests/*.test.mjs"
+
+      - name: Prepare site content
+        if: steps.changes.outputs.site == 'true'
         working-directory: site
         run: |
           npm ci --prefer-offline --no-audit --no-fund
           npm run content
-          npm run typecheck
-          node --test "tests/**/*.test.mjs"
 
+      - name: Test site logic
+        if: steps.changes.outputs.unit == 'true'
+        working-directory: site
+        run: node --test "tests/**/*.test.mjs"
+
+      # Next's production build already runs TypeScript validation.
       - name: Build the site
-        if: steps.changes.outputs.site == 'true' && hashFiles('site/package.json') != ''
+        if: steps.changes.outputs.build == 'true'
         working-directory: site
         run: npx next build
 
       - name: Run browser smoke journeys
-        if: steps.changes.outputs.browser == 'true' && hashFiles('site/package.json') != ''
+        if: steps.changes.outputs.browser == 'true'
         working-directory: site
         run: |
-          # The kit suites use the same pinned Playwright/browser version.
           if [ -z "${MOTION_PLAYWRIGHT_DIR:-}" ]; then npx playwright install --with-deps chromium; fi
           npm run smoke

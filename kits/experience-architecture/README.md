@@ -11,7 +11,7 @@ claude plugin marketplace add AtlasScope/agent-kit
 claude plugin install experience-architecture@agent-kit
 ```
 
-For development from `kits/experience-architecture/`, `claude --plugin-dir ./plugins/experience-architecture` loads the working copy for one session. `npm run package` writes `dist/experience-architecture-<version>.tgz`, a self-contained marketplace folder for installing without GitHub.
+For development from `kits/experience-architecture/`, `claude --plugin-dir ./plugins/experience-architecture` loads the working copy for one session.
 
 ## Layout
 
@@ -28,32 +28,12 @@ For development from `kits/experience-architecture/`, `claude --plugin-dir ./plu
 | `tests/*.test.mjs` | Toolkit tests (`npm test`) |
 | `tests/journeys/`, `tests/proposals/` | Journey, proposal and mapping examples used by the tests |
 | `tests/results/` | Recorded validation results |
-| `tests/compare/` | The harness for with/without comparisons (plain Claude, the standalone skill, the plugin) |
+| `tests/compare/` | Historical comparison prompts and methodology; not an active runner |
 | `../../.agents/plugins/marketplace.json`, `plugins/experience-architecture/skills/*/agents/openai.yaml` | Codex marketplace (at the repo root) and per-skill settings |
 | `plugins/experience-architecture/scripts/install-skills.mjs` | Installs the skills as plain folders for Cursor (or Codex, or any tool that reads skill folders) |
-| `scripts/package.sh` | Builds the release package |
 
 ## Develop
 
-From `kits/experience-architecture/`:
+From `kits/experience-architecture/`, run `npm test` for deterministic toolkit checks. No fixture app installs are needed for static analysis, transition, privacy and installer checks. If changing browser behavior, install Playwright (`npm ci`, `npx playwright install chromium`), install and start Northwind (`cd fixtures/northwind && npm ci && npm run dev -- --port 3100`), then run the affected browser tests. Validate changed manifests with `claude plugin validate plugins/experience-architecture`.
 
-```bash
-npm install                 # Playwright for browser tests
-npm run fixtures:install    # fixture app dependencies
-npm test
-claude plugin validate plugins/experience-architecture
-```
-
-Browser checks need a fixture running: `npx next dev -p 3100` in `fixtures/northwind`, `npx vite --port 3200` in `fixtures/fernway`, `npx next dev -p 3300` in `fixtures/lumen`.
-
-## How much testing a change needs
-
-Match the testing to the change. Rerun a level only when something it covers has changed.
-
-| Change | Run | Roughly |
-|---|---|---|
-| Ordinary: a bug fix, wording in a skill or reference, a scanner tweak | The unit tests for the area touched (`node --test tests/<area>.test.mjs`), plus `claude plugin validate` if a manifest or skill frontmatter changed | Seconds, no cost |
-| Important behaviour: the journey runner, the pass/fail verdict, privacy handling, packaging, how skills trigger | `npm test` with Northwind running (browser tests included), `npm run package`, and one install-and-invoke check from the package in a scratch project | A few minutes, under $1 |
-| Major capability change, or preparing a release | The full comparison in `tests/compare/` (three setups, three runs each, blind judging), including an app the change was not tuned on | An hour or more, $30 to $45 |
-
-Score or reuse earlier comparison results for anything the change did not touch.
+Fixtures, answer keys, saved reports and comparison prompts preserve actual product evidence. Run a new model comparison only if it would change a capability or release decision, with the current models and a relevant held-out app. Do not rerun the historical matrix by default. Load the working-copy plugin directly rather than building a second marketplace archive.

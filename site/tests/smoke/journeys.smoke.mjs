@@ -3,7 +3,7 @@
 // Set SMOKE_URL to test a running site instead of starting `next start` here.
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
+import { smokeTarget } from "./run.mjs";
 import { createRequire } from "node:module";
 import { chromium } from "playwright";
 import { composeCopy } from "../../lib/copy.ts";
@@ -14,9 +14,7 @@ import { LESSONS } from "../../lib/lessons.ts";
 
 const require = createRequire(import.meta.url);
 const data = require("../../content/generated.json");
-const PORT = 3999;
-let base = process.env.SMOKE_URL?.replace(/\/$/, "");
-let server, browser;
+let target, base, browser;
 
 const SIZES = [
   // Wider than the 1248px menu bar, so the full header row is under test; the tablet journey covers the menu bar.
@@ -25,21 +23,13 @@ const SIZES = [
 ];
 
 before(async () => {
-  if (!base) {
-    // Its own process group, so after() can stop next and the server process it starts.
-    server = spawn("npx", ["next", "start", "-p", String(PORT)], { cwd: new URL("../..", import.meta.url), stdio: "ignore", detached: true });
-    base = `http://localhost:${PORT}`;
-    for (let i = 0; i < 60; i++) {
-      try { if ((await fetch(base)).ok) break; } catch {}
-      await new Promise((r) => setTimeout(r, 500));
-    }
-  }
+  target = await smokeTarget();
+  base = target.url;
   browser = await chromium.launch();
 });
 
 after(async () => {
-  await browser?.close();
-  if (server) process.kill(-server.pid, "SIGTERM");
+  try { await browser?.close(); } finally { await target?.close(); }
 });
 
 async function open(size, path) {

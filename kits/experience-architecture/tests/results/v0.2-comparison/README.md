@@ -76,4 +76,4 @@ Round 1 plugin numbers come from the round-2 re-score; the first scoring pass ag
 - Every app is synthetic, and the judges are models. Nothing here has run on a real product.
 - Fieldbook and the in-sample columns overstate whichever setup was tuned on them.
 
-Files: `round1/` and `round2/` (score sheets and mappings), `kestrel-heldout/`, `run-stats.txt` (cost, turns, whether a skill fired, browser tool use, source edits per run). The prompts and harness are in `tests/compare/`. 111 runs cost $41.29 in total, excluding judging.
+Files: `round1/` and `round2/` (score sheets and mappings), `kestrel-heldout/`, `run-stats.txt` (cost, turns, whether a skill fired, browser tool use, source edits per run). The prompts remain in `tests/compare/`; the exact historical harness is linked from its README. 111 runs cost $41.29 in total, excluding judging.

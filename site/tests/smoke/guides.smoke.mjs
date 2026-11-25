@@ -3,7 +3,7 @@
 // Set SMOKE_URL to test a running site instead of starting `next start` here.
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
+import { smokeTarget } from "./run.mjs";
 import { createRequire } from "node:module";
 import { chromium } from "playwright";
 import { STEPS } from "../../lib/start.ts";
@@ -11,9 +11,7 @@ import { LESSONS } from "../../lib/lessons.ts";
 
 const require = createRequire(import.meta.url);
 const data = require("../../content/generated.json");
-const PORT = 3995;
-let base = process.env.SMOKE_URL?.replace(/\/$/, "");
-let server, browser;
+let target, base, browser;
 
 const SIZES = [
   { name: "desktop", viewport: { width: 1440, height: 900 } },
@@ -21,22 +19,13 @@ const SIZES = [
 ];
 
 before(async () => {
-  if (!base) {
-    server = spawn("npx", ["next", "start", "-p", String(PORT)], { cwd: new URL("../..", import.meta.url), stdio: "ignore", detached: true });
-    base = `http://localhost:${PORT}`;
-    let up = false;
-    for (let i = 0; i < 60 && !up; i++) {
-      try { up = (await fetch(base)).ok; } catch {}
-      if (!up) await new Promise((r) => setTimeout(r, 500));
-    }
-    if (!up) throw new Error(`next start did not answer on ${base} within 30s; run next build first`);
-  }
+  target = await smokeTarget();
+  base = target.url;
   browser = await chromium.launch();
 });
 
 after(async () => {
-  await browser?.close();
-  if (server) process.kill(-server.pid, "SIGTERM");
+  try { await browser?.close(); } finally { await target?.close(); }
 });
 
 async function open(size, path) {
