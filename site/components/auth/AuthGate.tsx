@@ -11,6 +11,8 @@ const GateContext = createContext<Gate>({ parts: null, signedInHint: false });
 export const useAuthGate = () => useContext(GateContext);
 
 const NEEDS_CLERK = /^\/(sign-in|account)(\/|$)/;
+// Without Clerk keys (a local preview before setup, the smoke tests) there is nothing to load, as in proxy.ts.
+const HAS_KEYS = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -18,7 +20,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const [parts, setParts] = useState<ClerkParts | null>(null);
   useEffect(() => { setHint(document.documentElement.hasAttribute("data-auth")); }, []);
   useEffect(() => {
-    if (parts || !(hint || NEEDS_CLERK.test(pathname))) return;
+    if (!HAS_KEYS || parts || !(hint || NEEDS_CLERK.test(pathname))) return;
     let live = true;
     import("./ClerkParts").then((m) => { if (live) setParts(m.parts); });
     return () => { live = false; };
