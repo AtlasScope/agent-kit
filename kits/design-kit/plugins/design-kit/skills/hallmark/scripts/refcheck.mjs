@@ -23,6 +23,8 @@ function walk(dir, out = []) {
 
 const FILES = walk(ROOT);
 const MD = FILES.filter((f) => f.endsWith('.md'));
+// Removes a pattern until none is left, so a removal cannot join two halves into a new match.
+const stripAll = (text, re) => { for (let prev; prev !== text;) { prev = text; text = text.replace(re, ''); } return text; };
 const TEXT = FILES.filter((f) => /\.(md|mjs|json|yaml|css|html)$/.test(f));
 const BY_BASE = new Map();
 for (const f of FILES) { const b = basename(f); if (!BY_BASE.has(b)) BY_BASE.set(b, []); BY_BASE.get(b).push(f); }
@@ -199,9 +201,7 @@ if (themeVersion !== VERSION) add('error', join(ROOT, 'scripts', 'theme.mjs'), 1
 for (const f of MD) {
   const src = read(f);
   for (const m of src.matchAll(/```html\n([\s\S]*?)```/g)) {
-    // Strip until none is left, so a removal cannot join two halves into a new comment or script.
-    let html = m[1];
-    for (let prev; prev !== html;) { prev = html; html = html.replace(/<!--[\s\S]*?--!?>/g, '').replace(/<(script|style)\b[\s\S]*?<\/\1[^>]*>/gi, ''); }
+    const html = stripAll(stripAll(m[1], /<!--[\s\S]*?--!?>/g), /<(script|style)(?=[\s/>])[\s\S]*?<\/\1(?:\s[^>]*)?>/gi);
     for (const t of html.matchAll(/>([^<>]*)</g)) {
       const text = t[1];
       const line = lineAt(src, m.index + m[0].indexOf(m[1]) + t.index);

@@ -189,7 +189,7 @@ function parseHtml(file, src, kind = 'html') {
     styles.push({ css: m[1], lineOffset: lineOf(m.index) - 1 });
   }
   let scripts = '';
-  const scriptRe = /<script\b[^>]*>([\s\S]*?)<\/script[^>]*>/gi;
+  const scriptRe = /<script\b[^>]*>([\s\S]*?)<\/script(?:\s[^>]*)?>/gi;
   while ((m = scriptRe.exec(src))) scripts += m[1] + '\n';
 
   const pad = (t) => t.replace(/[^\n]/g, ' ');
@@ -211,7 +211,7 @@ function parseHtml(file, src, kind = 'html') {
       line: lineOf(m.index),
     });
   }
-  const noScript = stripAll(stripAll(stripAll(src, /<script\b[^>]*>[\s\S]*?<\/script[^>]*>/gi, ' '), /<style\b[^>]*>[\s\S]*?<\/style[^>]*>/gi, ' '), /<!--[\s\S]*?--!?>/g, ' ');
+  const noScript = stripAll(stripAll(stripAll(src, /<script\b[^>]*>[\s\S]*?<\/script(?:\s[^>]*)?>/gi, ' '), /<style\b[^>]*>[\s\S]*?<\/style(?:\s[^>]*)?>/gi, ' '), /<!--[\s\S]*?--!?>/g, ' ');
   const text = noScript.replace(/<[^>]*>/g, ' ')
     .replace(/&quot;|&#0?34;/g, '"').replace(/&#0?39;|&apos;/g, "'")
     .replace(/&hellip;|&#8230;/g, '\u2026').replace(/&mdash;|&#8212;|&#x2014;/gi, '\u2014').replace(/&ndash;|&#8211;|&#x2013;/gi, '\u2013')
@@ -524,7 +524,7 @@ function classCalls(src, sites) {
 
 function scriptSites(src, kind) {
   const ranges = [];
-  for (const m of src.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script[^>]*>/gi)) { const end = m.index + m[0].lastIndexOf('<'); ranges.push([end - m[1].length, end]); }
+  for (const m of src.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script(?:\s[^>]*)?>/gi)) { const end = m.index + m[0].lastIndexOf('<'); ranges.push([end - m[1].length, end]); }
   const fm = kind === 'astro' ? FRONTMATTER.exec(src) : null;
   if (fm) ranges.push([0, fm[0].length]);
   const sites = [];
@@ -3151,7 +3151,7 @@ function check70(ctx) {
   const SUCCESS = /\b(sent|thanks|thank you|reserved|booked|on the list|subscribed|in touch|received|confirmed|ordered|chosen|on its way|signed up|all set|you're in|you are in|done)\b/i;
   const NEG = /\b(not|nothing|no|never|isn't|wasn't|didn't|cannot|can't|failed|try again|soon)\b/i;
   for (const doc of ctx.docs) {
-    const js = (doc.scripts && typeof doc.scripts === 'string') ? doc.scripts : (doc.src.match(/<script\b[^>]*>([\s\S]*?)<\/script[^>]*>/gi) || []).join('\n');
+    const js = (doc.scripts && typeof doc.scripts === 'string') ? doc.scripts : (doc.src.match(/<script\b[^>]*>([\s\S]*?)<\/script(?:\s[^>]*)?>/gi) || []).join('\n');
     if (!/<form\b|type\s*=\s*["']submit/i.test(doc.src) || !js) continue;
     let m = null;
     for (const x of js.matchAll(/(["'`])((?:(?!\1)[^\\\n]|\\.){4,140})\1/g)) {
@@ -4208,7 +4208,7 @@ function scriptSelectors(doc) {
   return [...sels].sort();
 }
 function scriptHooks(doc) {
-  const markup = stripAll(doc.raw || doc.src, /<script\b[^>]*>[\s\S]*?<\/script[^>]*>/gi);
+  const markup = stripAll(doc.raw || doc.src, /<script\b[^>]*>[\s\S]*?<\/script(?:\s[^>]*)?>/gi);
   const has = (tok) => tok[0] === '#' ? new RegExp(`(?<![\\w-])id\\s*=\\s*["']${escRe(tok.slice(1))}["']`).test(markup)
     : tok[0] === '.' ? new RegExp(`(?<![\\w-])class\\s*=\\s*["'][^"']*(?<![\\w-])${escRe(tok.slice(1))}(?![\\w-])`).test(markup)
       : markup.includes(tok.slice(1));
