@@ -352,41 +352,13 @@ function needs(e) {
 }
 
 // Copy hands the agent everything it needs: the prompt, what it may change, what to bring back, when to stop.
-const PLAIN = "Start your report in plain English: what you found, what it means, and whether I need to do anything. Put files, lines and commands underneath.";
-function copyText(e) {
-  if (e.sec === "keen" || e.sec === "ecmd") return e.cmd;
-  if (e.sec === "dcmd" || e.sec === "recipe" || e.sec === "think") return e.p;
-  if (e.sec === "recipe2") return recipeText(e);
-  if (e.flow) return e.p + "\n\n" + PLAIN;
-  const C = LIB.composer;
-  const parts = [e.p, e.modeText || C.mode[e.mode || "read"][1]];
-  if (e.iso) parts.push("Anything that changes state, such as a rebuild, replay or migration test, runs only on a separate database with safe test data, never on production.");
-  if (e.ev) parts.push("Bring back: " + e.ev);
-  if (e.skip) parts.push("If this describes the project, say so and stop instead: " + e.skip);
-  if (e.blind) parts.push("Watch out: " + e.blind);
-  if (e.avoid) parts.push("Avoid: " + e.avoid);
-  parts.push(PLAIN);
-  return parts.join("\n\n");
-}
+// library/build.mjs composes it with library/copy.mjs, the same code the website and its MCP server use, so the
+// page adds no rules of its own.
+const copyText = e => e.payload;
 const stepEntry = ref => BY[ref] || (ref.startsWith("/") ? BY[findCmd(ref)] : null);
 // A step on its own: a command is typed as its own message; a prompt carries all its rules.
-const stepText = e => isSkill(e) ? e.cmd : copyText(e);
+const stepText = e => isSkill(e) ? e.cmd : e.payload;
 const isSplit = r => r.split || r.steps.some(([ref]) => { const e = stepEntry(ref); return e && isSkill(e); });
-function recipeText(r) {
-  if (r.copy) return r.copy;
-  if (isSplit(r)) {
-    const first = stepEntry(r.steps[0][0]);
-    return first ? stepText(first) : r.steps[0][0];
-  }
-  const lines = [r.t + ". " + r.line, "Run these steps one at a time. After each one, tell me what you found or changed and wait for my yes before starting the next. Steps that only investigate must not change anything."];
-  r.steps.forEach(([ref, note], i) => {
-    const e = stepEntry(ref); const n = `Step ${i + 1}`;
-    if (!e) lines.push(`${n}: ${ref}, ${note}.`);
-    else lines.push(`${n} (${note}):\n` + stepText(e).replace("\n\n" + PLAIN, ""));
-  });
-  lines.push(PLAIN);
-  return lines.join("\n\n");
-}
 const copyLabel = e => isSkill(e) ? "Copy command" : e.sec === "recipe2" && isSplit(e) && !e.copy ? "Copy step 1" : e.sec.startsWith("recipe") ? "Copy recipe" : "Copy prompt";
 
 /* State and routes: #prompts, #prompts/<cat>, #skills/<group>, #recipes/<group>, #i/<id>, #search, #sources */

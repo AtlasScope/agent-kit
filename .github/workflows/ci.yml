@@ -50,7 +50,7 @@ jobs:
           [ "$runtime" = true ] || [ "$content" = true ] && unit=true
           site=false
           [ "$build" = true ] || [ "$unit" = true ] && site=true
-          library=$(has '^(library/(library\.json|audit\.json|build\.mjs|check\.mjs|template\.html|dist/)|kits/(design-kit|engineering-kit)/scripts/|kits/design-kit/plugins/design-kit/skills/(keen/(SKILL\.md$|jobs/)|design/references/(catalog|recipes|situations)\.md$)|kits/engineering-kit/plugins/engineering-kit/skills/(engineer/references/(start-here|investigations)\.md$|database/references/prompts\.md$))')
+          library=$(has '^(library/(library\.json|audit\.json|build\.mjs|check\.mjs|copy\.mjs|template\.html|dist/)|tests/library/(copy\.test|page)\.mjs$|kits/(design-kit|engineering-kit)/scripts/|kits/design-kit/plugins/design-kit/skills/(keen/(SKILL\.md$|jobs/)|design/references/(catalog|recipes|situations)\.md$)|kits/engineering-kit/plugins/engineering-kit/skills/(engineer/references/(start-here|investigations)\.md$|database/references/prompts\.md$))')
           routing=$(has '^(library/library\.json$|tests/routing/|kits/[^/]+/plugins/[^/]+/(\.claude-plugin/plugin\.json$|skills/[^/]+/(SKILL\.md$|agents/openai\.yaml$))|kits/design-kit/plugins/design-kit/skills/design/references/recipes\.md$)')
           [ "$skillshape" = true ] && routing=true
           checker=$(has '^(library/(check\.mjs|build\.mjs|template\.html)$|kits/(design-kit|engineering-kit)/scripts/|tests/library/)')
@@ -103,6 +103,10 @@ jobs:
       - name: Test the library verifier's failure and non-mutation behavior
         if: steps.changes.outputs.checker == 'true'
         run: node --test tests/library/check-read-only.test.mjs
+
+      - name: Test that the portable library copies what library/copy.mjs composes
+        if: steps.changes.outputs.library == 'true'
+        run: node --test tests/library/copy.test.mjs
 
       # The capture tests need a browser. Playwright goes in a folder outside the checkout, because the
       # script will not load a copy from inside the project it is looking at.

@@ -6534,6 +6534,7 @@
     "After reporting, propose the smallest fix for the top confirmed finding as a diff for my review. Do not apply it to production, run migrations, or delete anything."
    ]
   },
+  "iso": "Anything that changes state, such as a rebuild, replay or migration test, runs only on a separate database with safe test data, never on production.",
   "scope": {
    "repo": [
     "Whole repo",

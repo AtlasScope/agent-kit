@@ -4,7 +4,8 @@
 //                        a browser or the side browser in Codex or Cursor
 //   prompt-library.md    the same entries, by area, as a plain cheat sheet you can search in an editor
 //   inventory.csv        optional, untracked inventory of the current source (--inventory)
-// It also reads Keen's job list from kits/design-kit (see KEEN below).
+// It also reads Keen's job list from kits/design-kit (see KEEN below). Every item's copy text comes from
+// copy.mjs, the same code the website uses, and is written into the page's data as `payload`.
 //
 // Usage: node library/build.mjs [--overlay <private.json>] [--out <dir>] [--inventory]
 //        node library/build.mjs --all   rebuild all public exports and shipped router references
@@ -17,6 +18,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { execFileSync } from "node:child_process";
 import os from "node:os";
+import { makeCopy } from "./copy.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.dirname(here);
@@ -118,8 +120,18 @@ function buildLibrary(args) {
 
   const template = fs.readFileSync(path.join(here, "template.html"), "utf8");
   if (template.split("__LIBRARY_DATA__").length !== 2) throw new Error("template.html must contain __LIBRARY_DATA__ once");
+  // Each item carries the exact text its Copy gives, composed after any overlay patch, so the page adds no rules
+  // of its own. A recipe step copies its entry's payload, or a command as typed.
+  const patch = lib.v3?.patch || {};
+  const patched = (e) => (patch[e.id] ? { ...e, ...patch[e.id] } : e);
+  const page = { ...lib, entries: lib.entries.map(patched), keen: keen.map(patched) };
+  const copy = makeCopy(page, page.keen);
+  const withPayload = (e) => ({ ...e, payload: copy.text(e) });
+  page.entries = page.entries.map(withPayload);
+  page.keen = page.keen.map(withPayload);
+  if (lib.v3) page.v3 = { ...lib.v3, recipes: lib.v3.recipes.map(patched).map(withPayload) };
   // Escape "<" so the data can never close its <script> tag early.
-  const data = JSON.stringify({ ...lib, keen }).replace(/</g, "\\u003c");
+  const data = JSON.stringify(page).replace(/</g, "\\u003c");
   const html = `<!doctype html>\n<html lang="en">\n${template.replace("__LIBRARY_DATA__", () => data)}</html>\n`;
 
   // The cheat sheet follows the page: one section per area, then Other tools.
@@ -130,9 +142,8 @@ function buildLibrary(args) {
     const line = e.line || e.why || e.use || "";
     md.push(`**${e.sec === "keen" ? e.cmd : e.id + " · " + name}**${line ? ` ${line}` : ""}`, "");
     if (e.sec === "keen") return;
-    const text = e.sec === "ecmd" && e.cmd ? e.cmd : e.p;
-    if (e.steps) md.push(e.steps.map((s) => (Array.isArray(s) ? s.join(": ") : s)).map((s, i) => `${i + 1}. ${s}`).join("\n"), "");
-    else if (text) md.push("```text", text, "```", "");
+    // The same text the page's Copy gives.
+    md.push("```text", copy.text(patched(e)), "```", "");
   };
   const placed = new Set();
   for (const a of lib.areas || []) {
