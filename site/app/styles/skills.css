@@ -33,3 +33,8 @@
 @media (max-width: 60rem) { .adds { margin-bottom: 0; } }
 @media (max-width: 60rem) { .adds__list > li { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name n" "line line" "type type"; row-gap: 6px; padding-block: var(--space-md); } }
 @media (max-width: 60rem) { .adds__n { align-self: baseline; } }
+/* /kits: the page's one atmosphere, a faint static pool of green light under Install all. Behind the button only,
+   never under text. Light mode keeps it weaker through the token. */
+.kits-page .page-act { position: relative; isolation: isolate; }
+.kits-page .page-act::before { content: ""; position: absolute; z-index: -1; left: -40px; top: 50%; width: 280px; height: 120px; transform: translateY(-45%); pointer-events: none;
+  background: radial-gradient(50% 50% at 50% 50%, color-mix(in oklab, var(--c-brand-glow) 14%, transparent), transparent 70%); }

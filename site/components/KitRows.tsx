@@ -5,7 +5,7 @@ import { KITS, KIT_GUIDE } from "@/lib/site";
 import { kitAuthors, nameList } from "@/components/skills/browse/data";
 
 // How many skill names a kit shows before "and N more".
-const PREVIEW = 6;
+const PREVIEW = 3;
 
 // One sheet per kit on /kits: name, version and size; one sentence on what it does; who wrote its skills; the
 // commands that start it; and the first few skills it ships. The kit name's link is stretched over the sheet, so

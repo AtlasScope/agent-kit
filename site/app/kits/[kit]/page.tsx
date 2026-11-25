@@ -56,16 +56,11 @@ export default async function KitPage({ params }: { params: Promise<{ kit: strin
         <h1 translate="no">{k.title}</h1>
         <p className="lead sd-lead">{lead || fallback || `The ${k.name} plugin.`}</p>
         {more && <p className="sd-more">{more}</p>}
-        <dl className="sd-spec">
-          <div><dt>Skills</dt><dd>{n - borrowed} written for Agent Kit{borrowed > 0 && <>, {borrowed} borrowed with credit</>}</dd></div>
-          <div><dt>Installs in</dt><dd>Claude Code and Codex as a plugin</dd></div>
-          <div><dt>Name</dt><dd><code translate="no">{k.name}@agent-kit</code></dd></div>
-          <div><dt>Setup notes</dt><dd><a className="lic" href={readme}>The kit’s README</a></dd></div>
-        </dl>
       </header>
 
       {/* Install, the same way the homepage does it: one message to paste into the agent, chosen first. The terminal
           commands are the other two tabs. One Copy, in a bar that stays in reach, like the prompt pages. */}
+      <div className="kd-top">
       <div className="kd-install">
         <InstallPanel id="install" title="Install this kit" options={[
           { id: "agent", label: "Your agent", text: say, copyName: `Copy the message that installs ${k.name}`,
@@ -73,7 +68,19 @@ export default async function KitPage({ params }: { params: Promise<{ kit: strin
           { id: "claude", label: "Claude Code", text: claude, copyName: "Copy the Claude Code commands", note: <>Or run it yourself, in a terminal. Then type <code translate="no">{prefix}</code> and a skill’s name to run it{ex ? <>, such as <code translate="no">{exCmd}</code></> : null}.</> },
           { id: "codex", label: "Codex", text: codex, copyName: "Copy the Codex commands", note: <>Or run it yourself, in a terminal. Then type $ and a skill’s name to run it{ex ? <>, such as <code translate="no">${ex}</code></> : null}.</> },
         ]} />
-        <p className="note">In Claude Code, <code>claude plugin update {k.name}@agent-kit</code> updates the kit and <code>claude plugin uninstall {k.name}@agent-kit</code> removes it. Installing a kit doesn’t install the companion plugins its recipes call; those are listed in the kit’s README.</p>
+        <details className="kd-more">
+          <summary>Update or remove it</summary>
+          <p className="note">In Claude Code, <code>claude plugin update {k.name}@agent-kit</code> updates the kit and <code>claude plugin uninstall {k.name}@agent-kit</code> removes it. Installing a kit doesn’t install the companion plugins its recipes call; those are listed in the kit’s README.</p>
+        </details>
+      </div>
+      <aside className="kd-facts" aria-label="About this kit">
+          <dl className="sd-spec sd-spec--side">
+            <div><dt>Skills</dt><dd>{n - borrowed} written for Agent Kit{borrowed > 0 && <>, {borrowed} borrowed with credit</>}</dd></div>
+            <div><dt>Installs in</dt><dd>Claude Code and Codex as a plugin</dd></div>
+            <div><dt>Name</dt><dd><code translate="no">{k.name}@agent-kit</code></dd></div>
+            <div><dt>Setup notes</dt><dd><a className="lic" href={readme}>The kit’s README</a></dd></div>
+          </dl>
+      </aside>
       </div>
 
       <section className="section kd-contents" id="contents" aria-labelledby="kd-skills-h">

@@ -95,7 +95,19 @@
 .sd-credit .credit { max-width: none; }
 
 /* Kit page: install keeps to a readable width; the message is the first tab. */
-.kd-install { display: grid; gap: var(--space-3); max-width: 52rem; }
+.kd-top { display: grid; grid-template-columns: minmax(0, 46rem) minmax(0, 17.5rem); gap: var(--space-6) var(--space-12); align-items: start; }
+@media (max-width: 64rem) { .kd-top { grid-template-columns: minmax(0, 1fr); } }
+.kd-install { display: grid; gap: var(--space-3); min-width: 0; }
+.kd-more > summary { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; color: var(--c-fg-2); font-size: var(--type-sm); font-weight: var(--weight-medium); cursor: pointer; list-style: none; }
+.kd-more > summary::-webkit-details-marker { display: none; }
+.kd-more > summary::before { content: ""; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); transition: transform var(--dur-fast) var(--ease-out); }
+.kd-more[open] > summary::before { transform: rotate(45deg); }
+.kd-more > .note { margin: var(--space-2) 0 0; }
+@media (pointer: coarse) { .kd-more > summary { min-height: var(--tap); } }
+/* The kit's facts as a quiet column beside the install panel: one fact under another, hairlines between. */
+.sd-spec--side { grid-template-columns: minmax(0, 1fr); margin: 0; border-bottom: 0; }
+.sd-spec--side > div, .sd-spec--side > div:nth-child(even) { padding: var(--space-3) 0; border-left: 0; }
+.sd-spec--side > div + div { border-top: 1px solid var(--c-line); }
 .kd-install .ip-text { font-size: var(--type-code); }
 
 /* Kit contents: rows, not cards. Name, one sentence, how it runs and who wrote it, then the star. */

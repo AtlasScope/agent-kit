@@ -48,14 +48,16 @@ export default async function StartStep({ params }: { params: Promise<{ step: st
             </dl>
           )}
 
+          {/* The step's first action is its one lit action (and, when it is something to copy, the glass payload); the
+              rest, and Next, stay quiet. */}
           {groups.map((g) => g[0].kind === "copy" ? g.map((a) => a.kind === "copy" && (
-            <div className="block" key={a.label}>
-              <div className="block__head"><span>{cap(a.label.replace(/^Copy (the )?/, ""))}</span><CopyButton text={a.text} label={a.label} /></div>
+            <div className={a === s.actions[0] ? "block glass" : "block"} key={a.label}>
+              <div className="block__head"><span>{cap(a.label.replace(/^Copy (the )?/, ""))}</span><CopyButton className={a === s.actions[0] ? "btn btn--sm btn--brand lead-act" : undefined} text={a.text} label={a.label} /></div>
               <pre>{a.text}</pre>
             </div>
           )) : (
             <ul className="golinks" aria-label="Links for this step" key={g[0].label}>
-              {g.map((a) => a.kind === "link" && <li key={a.label}><a className="btn" href={a.href}>{a.label}{OUT}</a></li>)}
+              {g.map((a) => a.kind === "link" && <li key={a.label}><a className={a === s.actions[0] ? "btn btn--brand lead-act" : "btn"} href={a.href}>{a.label}{OUT}</a></li>)}
             </ul>
           ))}
 

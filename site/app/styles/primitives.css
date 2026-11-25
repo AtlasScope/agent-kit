@@ -36,6 +36,9 @@
 .btn--brand:active { transition-duration: 70ms; filter: brightness(.97); }
 /* Copied: the key steps back to glass so the green dot or tick beside its words is the state, as on /install. */
 .btn--brand[data-copied] { filter: none; background: var(--c-fill-2); color: var(--c-fg); box-shadow: inset 0 0 0 1px var(--c-line-2); }
+/* A journey page whose step has its own lit action keeps Next quiet, so there is never more than one. */
+main:has(.lead-act) .guide-next.btn--brand { --lift: 0; border: 1px solid var(--c-line-2); background: var(--c-surface); color: var(--c-fg); box-shadow: var(--shadow-1); }
+@media (hover: hover) and (pointer: fine) { main:has(.lead-act) .guide-next.btn--brand:hover { background: var(--c-raised); filter: none; } }
 /* Glass: the panel that holds what a page is for (a prompt, a command, a message), as on /install. A lit rim brighter
    above than below, a deep soft shadow and a faint green underglow. One or two per page. */
 .glass { border: 0; border-radius: var(--radius-xl); background: var(--glass-bg); box-shadow: var(--glass-rim), var(--glass-shadow); }
@@ -89,6 +92,8 @@
 .cmdline { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-width: 0; padding: 6px 6px 6px var(--space-4);
   border: 1px solid var(--c-line); border-radius: var(--radius-md); background: var(--c-surface); font: 400 var(--type-xs)/1.5 var(--font-mono); }
 .cmdline code { overflow-wrap: anywhere; min-width: 0; }
+/* A command line that is the page's payload: glass, with room around its lit Copy. */
+.cmdline.glass { padding: var(--space-2) var(--space-2) var(--space-2) var(--space-5); }
 /* Menus */
 .menu { position: relative; }
 .menu__pop { position: absolute; right: 0; top: calc(100% + 6px); z-index: 10; min-width: 240px; display: grid; gap: 2px; padding: 6px;

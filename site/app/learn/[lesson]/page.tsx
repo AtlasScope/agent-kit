@@ -41,8 +41,8 @@ export default async function LessonPage({ params }: { params: Promise<{ lesson:
           <section className="tryit" aria-labelledby="try-h">
             <h2 id="try-h">Try it</h2>
             {l.action.note && <p className="note">{l.action.note}</p>}
-            <div className="block">
-              <div className="block__head"><span>Paste into your agent</span><CopyButton text={l.action.text} label={l.action.label} /></div>
+            <div className="block glass">
+              <div className="block__head"><span>Paste into your agent</span><CopyButton className="btn btn--sm btn--brand lead-act" text={l.action.text} label={l.action.label} /></div>
               <pre>{l.action.text}</pre>
             </div>
             {l.contrast && (

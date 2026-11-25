@@ -43,7 +43,7 @@ export default function Start() {
             <Link className="way way--lead" href={`/start/${STEPS[0].slug}`}>
               <span className="way__t">I haven’t installed an agent</span>
               <span className="way__d">Start at step 1, choosing your agent.</span>
-              <span className="way__go" aria-hidden="true">Step 1{ARROW}</span>
+              <span className="way__go btn btn--sm btn--brand" aria-hidden="true">Step 1{ARROW}</span>
             </Link>
             <Link className="way" href="/start/create">
               <span className="way__t">I already use an agent</span>
@@ -61,12 +61,12 @@ export default function Start() {
         </section>
       </div>
 
-      <StartWelcome enabled={authEnabled()} />
-
       <section className="section" aria-labelledby="steps-h">
         <div className="sec-row"><h2 id="steps-h">The steps</h2><GuideResume items={STEPS} base="/start" store="start" /></div>
         <GuideList items={STEPS} base="/start" store="start" />
       </section>
+
+      <StartWelcome enabled={authEnabled()} />
 
       <section className="section" id="lessons" aria-labelledby="lessons-h">
         <div className="sec-row">
