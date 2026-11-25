@@ -47,7 +47,9 @@ const totals = { transitions: 0, animations: 0, keyframes: 0, literalDurations: 
 const reduced = { css: 0, tailwind: 0, js: 0 };
 const modern = { viewTransitions: 0, scrollDriven: 0, startingStyle: 0, linearEasing: 0 };
 
-const find = (rule, level, file, line, text, why) => findings.push({ rule, level, file: path.relative(root, file) || path.basename(file), line, text: text.trim().replace(/\s+/g, " ").slice(0, 120), why });
+// Report paths with forward slashes on every OS, so findings read the same on Windows as on Linux and macOS.
+const rel = (file) => path.relative(root, file).split(path.sep).join("/");
+const find = (rule, level, file, line, text, why) => findings.push({ rule, level, file: rel(file) || path.basename(file), line, text: text.trim().replace(/\s+/g, " ").slice(0, 120), why });
 const ms = (num, unit) => Math.round(parseFloat(num) * (unit === "s" ? 1000 : 1));
 // Splits on commas that sit outside parentheses, so cubic-bezier(…) stays whole.
 const splitTop = (s, sep = ",") => {
@@ -234,7 +236,7 @@ const report = {
   durations: sorted(durations, (a, b) => a[0] - b[0]).map(([v, n]) => ({ ms: v, count: n })),
   easings: sorted(easings).map(([e, n]) => ({ easing: e, count: n })),
   properties: sorted(properties).map(([p, n]) => ({ property: p, count: n })),
-  springs: springs.map((s) => ({ ...s, file: path.relative(root, s.file) })),
+  springs: springs.map((s) => ({ ...s, file: rel(s.file) })),
   reducedMotion: reduced,
   modern,
   system,
