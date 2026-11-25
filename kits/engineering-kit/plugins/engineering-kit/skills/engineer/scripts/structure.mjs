@@ -22,6 +22,7 @@ import { fileURLToPath } from "node:url";
 
 const P = path.posix;
 const CODE = /\.(m?[jt]sx?|c[jt]s)$/;
+const RUNNABLE = /\.(m?[jt]sx?|c[jt]s|sh|bash|zsh|py|rb|ps1)$/;
 const TEXT = /\.(md|mdx|json|jsonc|ya?ml|toml|sh|bash|txt|html?|css|svg|py|rb|go|rs|env\.example|gitignore|gitattributes)$|(^|\/)(Dockerfile|Makefile|\.github\/[^/]+\/[^/]+)$/;
 const KINDS = ["import", "reads", "generates", "runs", "mentions"];
 const FOLLOW = new Set(["import", "reads", "generates", "runs"]);
@@ -628,7 +629,9 @@ export function analyzeCode(repo, file, toks) {
         }
       }
       effects.push({ kind: "spawns", line, text: lineText(line), target: target?.path });
-      if (target) edges.push({ kind: "runs", from: target.path, to: file, line, basis: `${note}${target.basis === "unique file name" ? ", matched by unique file name" : ""}` });
+      // only a program file runs; a data file handed to a child process (git log -- file) is named, not run
+      if (target && RUNNABLE.test(target.path)) edges.push({ kind: "runs", from: target.path, to: file, line, basis: `${note}${target.basis === "unique file name" ? ", matched by unique file name" : ""}` });
+      else if (target) edges.push({ kind: "mentions", from: target.path, to: file, line, basis: `an argument to a child process, through ${via || toks[k].v}()` });
       continue;
     }
     // copy, rename and link take (source, destination): the source is read, the destination written
@@ -1043,11 +1046,20 @@ export function toText(r) {
   const lim = r.limit;
   const head = r.revision === "working-tree" ? `working tree (HEAD ${r.head ? r.head.slice(0, 7) : "none"})` : r.revision.slice(0, 7);
   out.push(`Structure of ${r.targets.join(", ")}${r.symbol ? ` · symbol ${r.symbol} (defined at ${r.defined.join(", ")})` : ""} · ${r.repository} at ${head}`);
-  const row = (x) => `  [${x.id}] ${x.kind.padEnd(10)} ${summaryOf(x).replace(/ \(([^()]*)\)$/, "")}  · ${loc(x)}${x.basis ? `  (${x.basis})` : ""}${x.uses?.length ? `  used on line ${x.uses.join(", ")}` : ""}`;
+  const plain = (x) => (x.kind === "generates" ? `${x.from} generates ${x.to}` : `${x.to} ${KIND_WORDS[x.kind]} ${x.from}`);
+  const row = (x) => `  [${x.id}] ${x.kind.padEnd(10)} ${plain(x)}  · ${loc(x)}${x.basis ? `  (${x.basis})` : ""}${x.uses?.length ? `  used on line ${x.uses.join(", ")}` : ""}`;
   const section = (title, list) => {
     out.push("", `${title} (${list.length})`);
     if (!list.length) { out.push("  none found"); return; }
-    const sorted = [...list].sort((a, b) => KINDS.indexOf(a.kind) - KINDS.indexOf(b.kind) || a.to.localeCompare(b.to) || a.from.localeCompare(b.from));
+    // one row per file pair for mentions: a test that names a path eight times is one relationship
+    const more = new Map(), shown = [];
+    for (const x of [...list].sort((a, b) => KINDS.indexOf(a.kind) - KINDS.indexOf(b.kind) || a.to.localeCompare(b.to) || a.from.localeCompare(b.from) || a.line - b.line)) {
+      const key = x.kind === "mentions" ? `${x.from}\0${x.to}` : null;
+      if (key && more.has(key)) { more.set(key, more.get(key) + 1); continue; }
+      if (key) more.set(key, 0);
+      shown.push({ x, key });
+    }
+    const sorted = shown.map(({ x, key }) => (key && more.get(key) ? { ...x, basis: `${x.basis}; ${more.get(key)} more line(s)` } : x));
     for (const x of sorted.slice(0, lim)) out.push(row(x));
     if (sorted.length > lim) out.push(`  ... ${sorted.length - lim} more (--limit or --json)`);
   };
