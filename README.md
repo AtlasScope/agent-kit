@@ -103,7 +103,7 @@ You can also connect your agent to the read-only MCP server at `https://www.atla
 - Upload it as a Claude artifact.
 - Read [`library/dist/prompt-library.md`](library/dist/prompt-library.md) as a plain Markdown cheat sheet.
 
-The data lives in [`library/library.json`](library/library.json), the layout in [`library/template.html`](library/template.html), and the text every Copy gives in [`library/copy.mjs`](library/copy.mjs). What a copied prompt may change comes only from the `composer` in `library.json`. After editing any of them, rebuild the generated files:
+The data lives in [`library/library.json`](library/library.json), the layout in [`library/template.html`](library/template.html), and the text every Copy gives, here and on the website, its Markdown twins and MCP server, in [`library/copy.mjs`](library/copy.mjs). What a copied prompt may change comes only from the `composer` in `library.json`. After editing any of them, rebuild the generated files:
 
 ```sh
 node library/build.mjs

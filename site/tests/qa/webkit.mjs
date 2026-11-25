@@ -12,7 +12,6 @@ import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { DEVICES, SCHEMES, routeSample, slugOf } from "./config.mjs";
 import { clipboardRecorder, pageFacts, runningAnimations, copyControls } from "./checks.mjs";
-import { composeCopy } from "../../lib/copy.ts";
 import { INSTALL_MESSAGE } from "../../lib/site.ts";
 
 const require = createRequire(import.meta.url);
@@ -104,7 +103,7 @@ async function pass(base, label, shots) {
             }
             copies[route.path] = got;
             const p = data.prompts.find((x) => route.path === `/prompts/${x.slug}`);
-            if (p && !got.some((g) => g.text === composeCopy(p))) add(route, where, "blocker", "payload", `no control produced ${p.id}'s exact payload`);
+            if (p && !got.some((g) => g.text === p.payload)) add(route, where, "blocker", "payload", `no control produced ${p.id}'s exact payload`);
             if (route.path === "/install" && !got.some((g) => g.text === INSTALL_MESSAGE)) add(route, where, "blocker", "payload", "no control copies INSTALL_MESSAGE exactly");
           }
           if (shots) {

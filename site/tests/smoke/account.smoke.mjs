@@ -8,7 +8,6 @@ import assert from "node:assert/strict";
 import { smokeTarget } from "./run.mjs";
 import { createRequire } from "node:module";
 import { chromium } from "playwright";
-import { composeCopy } from "../../lib/copy.ts";
 
 const require = createRequire(import.meta.url);
 const data = require("../../content/generated.json");
@@ -77,7 +76,7 @@ test("desktop: a prompt copies the same payload as its page, the install command
   const p = data.prompts.find((x) => x.id === "A01");
   const row = openPanel(page).locator(".prow", { hasText: p.t });
   await row.getByRole("button", { name: /Copy/ }).click();
-  assert.equal(await page.evaluate(() => navigator.clipboard.readText()), composeCopy(p), "prompt payload is byte-identical");
+  assert.equal(await page.evaluate(() => navigator.clipboard.readText()), p.payload, "prompt payload is byte-identical");
   await openPanel(page).locator(".cpanel__install button").click();
   assert.equal(await page.evaluate(() => navigator.clipboard.readText()), "npx skills add AtlasScope/agent-kit --skill diagnosing-bugs");
 

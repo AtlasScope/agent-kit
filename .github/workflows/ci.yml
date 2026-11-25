@@ -39,10 +39,10 @@ jobs:
           # GitHub caps the PR-files API at 3000; never silently skip checks on a huge change.
           [ "$(printf '%s\n' "$diff" | wc -l)" -ge 3000 ] && all=true
           skillshape=$(changed_shape '^kits/[^/]+/plugins/')
-          content=$(has '^(library/library\.json$|CREDITS\.md$|kits/[^/]+/(THIRD_PARTY\.md$|plugins/[^/]+/(\.claude-plugin/plugin\.json$|skills/[^/]+/(SKILL\.md|LICENSE)$)))')
+          content=$(has '^(library/(library\.json|copy\.mjs)$|CREDITS\.md$|kits/[^/]+/(THIRD_PARTY\.md$|plugins/[^/]+/(\.claude-plugin/plugin\.json$|skills/[^/]+/(SKILL\.md|LICENSE)$)))')
           [ "$skillshape" = true ] && content=true
           runtime=$(has '^site/(app/|components/|lib/|public/|db/|next\.config\.ts$|proxy\.ts$|package(-lock)?\.json$|tsconfig\.json$|scripts/(build-content|design-jobs|migrate)\.mjs$)')
-          unit=$(has '^site/tests/[^/]+\.mjs$')
+          unit=$(has '^(site/tests/[^/]+|tests/library/page)\.mjs$')
           browser=$(has '^site/tests/smoke/')
           [ "$runtime" = true ] && browser=true
           build=false

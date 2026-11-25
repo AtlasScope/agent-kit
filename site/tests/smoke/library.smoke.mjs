@@ -5,7 +5,6 @@ import assert from "node:assert/strict";
 import { smokeTarget } from "./run.mjs";
 import { createRequire } from "node:module";
 import { chromium } from "playwright";
-import { composeCopy } from "../../lib/copy.ts";
 
 const require = createRequire(import.meta.url);
 const data = require("../../content/generated.json");
@@ -77,7 +76,7 @@ for (const size of SIZES) {
     assert.equal(await rows.count(), a.prompts.length);
     const first = data.prompts.find((p) => p.slug === a.prompts[0]);
     await rows.first().getByRole("button", { name: /^Copy/ }).click();
-    assert.equal(await page.evaluate(() => navigator.clipboard.readText()), composeCopy(first));
+    assert.equal(await page.evaluate(() => navigator.clipboard.readText()), first.payload);
     // The rail (computer) and the selector (phone) both mark this page.
     const current = await page.locator(`.sibs a[aria-current="page"]`).evaluateAll((as) => as.map((x) => x.getAttribute("href")));
     assert.deepEqual(current, [`/prompts/${a.slug}`, `/prompts/${a.slug}`]);

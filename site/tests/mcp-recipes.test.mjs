@@ -4,7 +4,6 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { makeSearch } from "../lib/search.ts";
-import { composeCopy } from "../lib/copy.ts";
 import { isRecipe, recipesFor, recipeListText, recipeDetailMd } from "../lib/recipes.ts";
 
 const data = JSON.parse(fs.readFileSync(new URL("../content/generated.json", import.meta.url), "utf8"));
@@ -16,7 +15,7 @@ const deps = {
   siteUrl: URL_, kindLabel: (p) => (p.sec === "plan" ? "Recipe" : "Older recipe"), whatOf: (p) => p.line || p.why || p.use || "",
 };
 const detail = (p) => recipeDetailMd(p, {
-  promptMd: (x) => `# ${x.t}\n\nbody`, copyText: composeCopy, copyLabel: (x) => (x.split ? "Copy step 1" : "Copy recipe"),
+  promptMd: (x) => `# ${x.t}\n\nbody`, copyText: (x) => x.payload, copyLabel: (x) => (x.split ? "Copy step 1" : "Copy recipe"),
   getPrompt: (s) => data.prompts.find((x) => x.slug === s), getSkill: (n) => data.skills.find((s) => s.name === n),
   skillInstall: (n) => `npx skills add AtlasScope/agent-kit --skill ${n}`, siteUrl: URL_,
 });
@@ -55,7 +54,7 @@ test("a recipe's detail ends with exactly what the Copy button copies", () => {
   for (const p of data.prompts.filter(isRecipe)) {
     const t = detail(p);
     assert.ok(t.startsWith(`# ${p.t}\n\nbody`));
-    assert.ok(t.endsWith("```text\n" + composeCopy(p) + "\n```"), p.id);
+    assert.ok(t.endsWith("```text\n" + p.payload + "\n```"), p.id);
     assert.match(t, new RegExp(`Button: Copy ${p.split ? "step 1" : "recipe"}`));
   }
 });

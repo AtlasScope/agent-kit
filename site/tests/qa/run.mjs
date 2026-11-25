@@ -13,7 +13,6 @@ import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { DEVICES, SCHEMES, TOUCH_MIN, routeSample, slugOf } from "./config.mjs";
 import { clipboardRecorder, pageFacts, smallTargets, runningAnimations, focusInfo, copyControls } from "./checks.mjs";
-import { composeCopy } from "../../lib/copy.ts";
 import { AGENTS, INSTALL_MESSAGE } from "../../lib/site.ts";
 
 const require = createRequire(import.meta.url);
@@ -175,7 +174,7 @@ async function focusWalk(page, route, where, add) {
 }
 
 // Click every visible copy control and record what reached the clipboard. The report compares these
-// payloads byte for byte with the reference, and with the known payloads from lib/copy.ts and lib/site.ts.
+// payloads byte for byte with the reference, and with the known payloads from the content build (library/copy.mjs) and lib/site.ts.
 async function copyAll(page, route, where, add) {
   await page.evaluate(() => { window.__qaCopies = []; document.querySelectorAll("details:not([open])").forEach((d) => { d.open = true; }); });
   await page.waitForTimeout(150);
@@ -207,7 +206,7 @@ async function copyAll(page, route, where, add) {
     got.push({ control: c.name, text });
   } }
   const p = data.prompts.find((x) => route.path === `/prompts/${x.slug}`);
-  if (p && !got.some((g) => g.text === composeCopy(p))) add(route, where, "blocker", "payload", `no copy control produced the exact payload of ${p.id} from lib/copy.ts`);
+  if (p && !got.some((g) => g.text === p.payload)) add(route, where, "blocker", "payload", `no copy control produced the exact payload of ${p.id} from the content build (library/copy.mjs)`);
   const s = data.skills.find((x) => route.path === `/skills/${x.name}`);
   if (s && !got.some((g) => g.text === `npx skills add AtlasScope/agent-kit --skill ${s.name}`)) add(route, where, "blocker", "payload", `no control copies the exact skills.sh command for ${s.name}`);
   if (route.path === "/install") {

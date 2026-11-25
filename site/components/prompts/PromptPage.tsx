@@ -5,7 +5,7 @@ import { CopyButton } from "@/components/CopyButton";
 import { SaveMenu } from "@/components/SaveMenu";
 import { Payload } from "@/components/prompts/detail/Payload";
 import { authEnabled } from "@/lib/site";
-import { copyFormat } from "@/lib/copy";
+import { copyFormat } from "@/lib/copy-format";
 import { getArea, getPrompt, copyText, copyLabel, kindLabel, whatOf, whenOf, MODES, TOPO, type Prompt } from "@/lib/content";
 
 type Fact = [string, string | undefined];
@@ -26,7 +26,7 @@ function Facts({ title, items, children }: { title: string; items: [string, stri
 
 // A prompt's own page, in the order people decide: what it is, when to use it and when not, what it may change,
 // then the exact text and one Copy, then what it returns, its risks and where it came from.
-// Owned by the prompt-detail lane (W5). Payload text comes from lib/copy.ts through copyText and is never altered here.
+// Owned by the prompt-detail lane (W5). Payload text comes from library/copy.mjs (via the content build) through copyText and is never altered here.
 export function PromptPage({ p }: { p: Prompt }) {
   const a = getArea(p.area)!;
   const text = copyText(p);

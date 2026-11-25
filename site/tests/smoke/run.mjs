@@ -22,7 +22,12 @@ async function freePort() {
 async function startServer(fixtures) {
   const port = await freePort();
   const url = `http://${hostname}:${port}`;
-  const env = { ...process.env, ACCOUNT_FIXTURES: fixtures ? "1" : "0", VERCEL_ENV: "production" };
+  // Every smoke file calls from one address, and the delivery smoke asks the MCP server about every prompt, so a
+  // local server lifts the per-visitor MCP limit unless the caller sets one. It never reaches real services: a
+  // developer's shell may export the production database, Edge Config, Clerk or alert settings, and test traffic
+  // must not count against, alert on or change them.
+  const live = new Set(["DATABASE_URL", "DATABASE_URL_UNPOOLED", "EDGE_CONFIG", "CLERK_SECRET_KEY", "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY", "MCP_ALERT_WEBHOOK"]);
+  const env = { ...Object.fromEntries(Object.entries(process.env).filter(([k]) => !live.has(k))), ACCOUNT_FIXTURES: fixtures ? "1" : "0", VERCEL_ENV: "production", MCP_PER_MINUTE: process.env.MCP_PER_MINUTE || "100000" };
   const child = spawn(process.execPath, [next, "start", "--hostname", hostname, "--port", String(port)], {
     cwd: site, env, stdio: ["ignore", "pipe", "pipe"],
   });
