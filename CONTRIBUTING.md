@@ -4,19 +4,16 @@ Every addition must do a job better than what already exists. Improve or replace
 
 ## Prompts and recipes
 
-Edit `library/library.json` (including its category and recipe references). Keep existing IDs stable: URLs, stars, recipes and router references depend on them. Supply the text people copy, why it exists, expected evidence or output, actual scope and stop conditions. Do not invent usage or testing history. Existing `library/audit.json` records editorial evidence and overlap; add a note there only if it helps a real decision, not a score for every entry.
+Edit `library/library.json` (including its category and recipe references). Keep existing IDs stable: URLs, stars, recipes and router references depend on them. Supply the text people copy, why it exists, expected evidence or output, actual scope and stop conditions. Do not invent usage or testing history.
 
 Rebuild affected public exports and shipped references:
 
 ```sh
-node library/build.mjs
-node kits/design-kit/scripts/build_references.mjs
-node kits/engineering-kit/scripts/build_references.mjs
-node kits/engineering-kit/scripts/build_database_references.mjs
+node library/build.mjs --all
 node library/check.mjs
 ```
 
-The last command checks reproducibility without rewriting tracked files. Run only the generators that affect your change; Keen job/menu changes also feed the library.
+The first command stages and rebuilds all shipped outputs; the second checks reproducibility without rewriting tracked files. Keen job/menu changes also feed the library. Historical editorial observations are linked from [the editorial standard](library/EDITORIAL.md), not required metadata.
 
 ## Skills and plugins
 

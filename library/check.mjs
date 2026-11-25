@@ -5,6 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { generatedOutputs, generateOutput } from "./build.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const lib = JSON.parse(fs.readFileSync(path.join(here, "library.json"), "utf8"));
@@ -62,12 +63,10 @@ if (V3) {
 }
 for (const id of Object.keys(lib.tried || {})) if (!known(id)) fail(`tried names missing ${id}`);
 
-// The database section: PG00 to PG17 in order, each complete, plus workflows whose steps resolve.
+// Database prompts must be complete and safe to run; their number is not fixed.
 const db = E.filter((e) => e.sec === "db");
 const pg = db.filter((e) => !e.flow).map((e) => e.id);
-const want = Array.from({ length: 18 }, (_, i) => "PG" + String(i).padStart(2, "0"));
 if (pg[0] !== "PG00") fail("PG00 must come first in the database section");
-if ([...pg].sort().join() !== want.join()) fail(`Database prompts should be exactly PG00 to PG17, found ${pg.join(", ")}`);
 for (const e of db.filter((x) => !x.flow)) {
   for (const k of ["t", "p", "why", "ev", "skip", "avoid", "tools", "plat", "tags", "mode"]) if (!e[k]) fail(`${e.id} is missing ${k}`);
   if (e.mode !== "read") fail(`${e.id} should default to read-only`);
@@ -90,25 +89,6 @@ const DMODES = ["Changes code", "Report only", "Advice", "Asks before changing",
 for (const e of E) {
   if (e.mode ? !MODES.includes(e.mode) : !DMODES.includes(e.dmode)) fail(`${e.id} needs mode (${MODES.join("/")}) or dmode (${DMODES.join(" / ")})`);
 }
-// Existing editorial records are optional evidence, not a score gate for new entries.
-const audit = JSON.parse(fs.readFileSync(path.join(here, "audit.json"), "utf8"));
-const FLAGS = ["personal", "rewrite", "hide"];
-for (const [id, a] of Object.entries(audit.entries)) {
-  if (!BY.has(id)) fail(`library/audit.json names missing entry ${id}`);
-  if (a.s !== undefined && !/^[012]{7}$/.test(a.s)) fail(`${id} has an invalid historical audit score`);
-  for (const f of a.flags || []) if (!FLAGS.includes(f)) fail(`${id} has unknown audit flag ${f}`);
-  if (a.dupOf && !BY.has(a.dupOf)) fail(`${id} is marked a duplicate of missing ${a.dupOf}`);
-}
-const inCluster = new Map();
-for (const c of audit.clusters) {
-  for (const id of [c.primary, ...c.alts.map((x) => x.id)]) {
-    if (!BY.has(id)) fail(`Cluster "${c.job}" names missing ${id}`);
-    if (inCluster.has(id)) fail(`${id} is in two clusters: "${inCluster.get(id)}" and "${c.job}"`);
-    inCluster.set(id, c.job);
-  }
-  for (const x of c.alts) if (!x.when) fail(`Cluster "${c.job}" lists ${x.id} without saying when to choose it`);
-  if ((audit.entries[c.primary]?.flags || []).includes("hide")) fail(`Cluster "${c.job}" recommends ${c.primary}, which is hidden`);
-}
 // Design overlaps in library.json name commands; each must be a real entry.
 const first = (c) => String(c).split(/\s/)[0];
 const CMDS = new Set(E.map((e) => first(e.cmd || e.t)));
@@ -120,35 +100,23 @@ for (const e of E) {
   if (/this Mac|on my Mac|austinwhitley|claude\.ai\/artifact/i.test(text)) fail(`${e.id} carries personal setup: move it to the private overlay`);
 }
 
-// The built files match the source. Everything is generated into scratch folders and compared;
-// nothing here writes to a tracked path, so a stale file fails the check and stays stale.
+// The same registry drives rebuilds and verification. The default check never writes tracked files.
 const tmp = fs.mkdtempSync(path.join(fs.realpathSync(process.env.TMPDIR || process.env.TEMP || "/tmp"), "plcheck-"));
-const gen = (script, ...args) => {
-  try { execFileSync(process.execPath, [script, ...args], { stdio: "pipe" }); return true; }
-  catch (err) { fail(`${path.relative(path.join(here, ".."), script)} failed: ${String(err.stderr || err.message).trim().split("\n").slice(-1)[0]}`); return false; }
-};
-const compare = (dir, files, tracked, rebuild) => {
-  for (const f of files) {
-    const fresh = path.join(dir, f), have = path.join(tracked, f);
-    const rel = path.relative(path.join(here, ".."), have);
-    if (!fs.existsSync(have)) fail(`${rel} is missing: run ${rebuild}`);
-    else if (!fs.existsSync(fresh)) fail(`${rel} was not generated: run ${rebuild}`);
-    else if (!fs.readFileSync(fresh).equals(fs.readFileSync(have))) fail(`${rel} is out of date: run ${rebuild}`);
-  }
-};
-const kits = path.join(here, "../kits");
+const root = path.dirname(here);
 try {
-  const dist = path.join(tmp, "dist");
-  if (gen(path.join(here, "build.mjs"), "--out", dist)) compare(dist, ["prompt-library.html", "prompt-library.md", "inventory.csv"], path.join(here, "dist"), "node library/build.mjs");
-  // The /engineer router's references come from this library too.
-  const eng = path.join(tmp, "engineer");
-  if (gen(path.join(kits, "engineering-kit/scripts/build_references.mjs"), "--out", eng)) compare(eng, ["start-here.md", "investigations.md"], path.join(kits, "engineering-kit/plugins/engineering-kit/skills/engineer/references"), "node kits/engineering-kit/scripts/build_references.mjs");
-  // And the /design router's.
-  const des = path.join(tmp, "design");
-  if (gen(path.join(kits, "design-kit/scripts/build_references.mjs"), "--out", des)) compare(des, ["catalog.md", "recipes.md", "situations.md"], path.join(kits, "design-kit/plugins/design-kit/skills/design/references"), "node kits/design-kit/scripts/build_references.mjs");
-  // And the /database router's.
-  const dbr = path.join(tmp, "database");
-  if (gen(path.join(kits, "engineering-kit/scripts/build_database_references.mjs"), "--out", dbr)) compare(dbr, ["prompts.md"], path.join(kits, "engineering-kit/plugins/engineering-kit/skills/database/references"), "node kits/engineering-kit/scripts/build_database_references.mjs");
+  for (const output of generatedOutputs) {
+    let freshDir;
+    try { freshDir = generateOutput(output, tmp); }
+    catch (err) { fail(err.message); continue; }
+    for (const file of output.files) {
+      const fresh = path.join(freshDir, file);
+      const rel = path.join(output.dir, file);
+      const have = path.join(root, rel);
+      if (!fs.existsSync(have)) fail(`${rel} is missing: run node library/build.mjs --all`);
+      else if (!fs.existsSync(fresh)) fail(`${rel} was not generated: run node library/build.mjs --all`);
+      else if (!fs.readFileSync(fresh).equals(fs.readFileSync(have))) fail(`${rel} is out of date: run node library/build.mjs --all`);
+    }
+  }
 } finally {
   fs.rmSync(tmp, { recursive: true, force: true });
 }

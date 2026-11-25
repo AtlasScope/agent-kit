@@ -15,3 +15,6 @@ design/hero/inputs/
 __pycache__/
 *.pyc
 .impeccable/design.json
+
+# Optional library inspection export
+/library/dist/inventory.csv
