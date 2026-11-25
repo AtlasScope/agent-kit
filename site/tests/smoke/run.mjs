@@ -22,7 +22,9 @@ async function freePort() {
 async function startServer(fixtures) {
   const port = await freePort();
   const url = `http://${hostname}:${port}`;
-  const env = { ...process.env, ACCOUNT_FIXTURES: fixtures ? "1" : "0", VERCEL_ENV: "production" };
+  // Every smoke file calls from one address, and the delivery smoke asks the MCP server about every prompt, so a
+  // local server lifts the per-visitor MCP limit unless the caller sets one.
+  const env = { ...process.env, ACCOUNT_FIXTURES: fixtures ? "1" : "0", VERCEL_ENV: "production", MCP_PER_MINUTE: process.env.MCP_PER_MINUTE || "100000" };
   const child = spawn(process.execPath, [next, "start", "--hostname", hostname, "--port", String(port)], {
     cwd: site, env, stdio: ["ignore", "pipe", "pipe"],
   });

@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { marked } from "marked";
 import YAML from "yaml";
 import { DESIGN_JOBS } from "./design-jobs.mjs";
-import { composeCopy } from "../lib/copy.ts";
+import { makeCopy } from "../../library/copy.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "../..");
@@ -34,6 +34,9 @@ export const slugify = (s) =>
     .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80).replace(/-+$/, "");
 
 const lib = JSON.parse(read("library/library.json"));
+// What every Copy gives (pages, cards, palette, Markdown twins, llms-full.txt and the MCP server): the portable
+// library's own composer, so a prompt carries the same permissions wherever it is copied from.
+const copy = makeCopy(lib);
 
 // Sections, in the order the hub shows them. Wording matches the prompt library page.
 const V3 = lib.v3;
@@ -122,7 +125,7 @@ const prompts = entries.map((e) => {
   let slug = slugify(e.t);
   if (!slug || used.has(slug)) slug = slugify(`${e.t} ${e.id}`);
   used.add(slug);
-  const out = { ...e, slug };
+  const out = { ...e, slug, payload: copy.text(e) };
   if (WHEN[e.id] || e.when) out.when = WHEN[e.id] || e.when;
   return out;
 });
@@ -184,16 +187,11 @@ for (const p of prompts.filter((x) => x.sec === "plan")) {
     if (keenCmd(ref)) return { label: keenCmd(ref), note, slug: null, kind: "command" };
     return { label: ref, note, slug: null, kind: ref.startsWith("/") ? "command" : "step" };
   });
-  p.split = p.split || p.planSteps.some((s) => s.kind === "command");
+  p.split = copy.split(p);
   // Each step's own Copy: a command as typed, a prompt with all its rules.
-  p.planSteps.forEach((s, i) => { const e = byId[p.steps[i][0]]; s.copy = s.kind === "command" ? s.label : e && s.slug ? composeCopy(e) : null; });
-  // One chat: the recipe's own text, or each step's full prompt in order. Step by step: the first step.
-  p.p = p.copy || (p.split ? p.planSteps[0].copy || p.planSteps[0].label : [
-    `${p.t}. ${p.line}`,
-    "Run these steps one at a time. After each one, tell me what you found or changed and wait for my yes before starting the next. Steps that only investigate must not change anything.",
-    ...p.planSteps.map((s, i) => `Step ${i + 1} (${s.note}):\n` + (s.copy ? s.copy.replace(/\n*Start your report in plain English[^\n]*$/, "") : s.label + ".")),
-    "Start your report in plain English: what you found, what it means, and whether I need to do anything. Put files, lines and commands underneath.",
-  ].join("\n\n"));
+  p.planSteps.forEach((s, i) => { s.copy = copy.step(p.steps[i][0]); });
+  // One chat: the recipe's own text, or each step's full prompt in order (its payload). Step by step: the first step.
+  p.p = p.payload;
   delete p.steps; delete p.copy;
 }
 

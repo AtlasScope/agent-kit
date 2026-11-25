@@ -1,104 +1,47 @@
-// Copy composition: what the Copy button puts on the clipboard for each kind of entry.
-// Run with `npm test` (builds content first). Node strips the TypeScript types in lib/copy.ts.
+// A prompt carries the same text, and so the same permissions, wherever it is copied from. library/copy.mjs
+// composes each payload from library.json. The portable page (its own Copy, run here), its Markdown cheat sheet and
+// this site's content, which the pages, cards, palette, Markdown twins and MCP server copy from, must all give exactly
+// that text. tests/smoke/delivery.smoke.mjs checks what the running site's twins and MCP server return.
+// Run with `npm test` (builds content first).
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { composeCopy, copyFormat, ISO_READ_RULE, MODE_RULE, RECIPE_FALLBACK, PLAIN_REPORT, STOP_LEAD } from "../lib/copy.ts";
+import { makeCopy } from "../../library/copy.mjs";
+import { runPage } from "../../tests/library/page.mjs";
 
-const data = JSON.parse(fs.readFileSync(new URL("../content/generated.json", import.meta.url), "utf8"));
-const byId = new Map(data.prompts.map((p) => [p.id, p]));
-const get = (id) => { const p = byId.get(id); assert.ok(p, `missing entry ${id}`); return p; };
+const read = (rel) => fs.readFileSync(new URL(rel, import.meta.url), "utf8");
+const lib = JSON.parse(read("../../library/library.json"));
+const data = JSON.parse(read("../content/generated.json"));
+const page = runPage(new URL("../../library/dist/prompt-library.html", import.meta.url));
+const copy = makeCopy(lib, page.data.keen);
+const items = new Map([...lib.entries, ...lib.v3.recipes].map((e) => [e.id, e]));
+// The lines that say what a prompt may change.
+const PERMISSIONS = [...Object.values(lib.composer.mode).map(([, line]) => line), lib.composer.iso];
+const permissions = (t) => PERMISSIONS.filter((line) => t.includes(line));
 
-test("a command copies exactly what you type", () => {
-  const e = { sec: "ecmd", t: "Engineer", cmd: "/engineer", p: "/engineer the login is slow" };
-  assert.equal(copyFormat(e), "command");
-  assert.equal(composeCopy(e), "/engineer");
-  const ex = { sec: "dcmd", t: "Shape", cmd: "/impeccable shape", p: "/impeccable shape the billing page" };
-  assert.equal(composeCopy(ex), "/impeccable shape the billing page");
-});
-
-test("a thinking prompt stays short", () => {
-  const e = { sec: "think", t: "Wait", p: "What would have to be true for this to fail?", ev: "ignored", mode: "read" };
-  assert.equal(composeCopy(e), "What would have to be true for this to fail?");
-});
-
-test("a recipe says what to do when a step's plugin is missing, once", () => {
-  const e = { sec: "recipe", t: "Page", p: "Run these in order:\n1. /impeccable init\n2. /hallmark", steps: [["/impeccable init", ""], ["/hallmark", ""]] };
-  const out = composeCopy(e);
-  assert.ok(out.startsWith("Run these in order:\n1. /impeccable init\n2. /hallmark"));
-  assert.ok(out.endsWith(RECIPE_FALLBACK));
-  assert.equal(composeCopy({ ...e, p: out }), out);
-});
-
-test("an investigation carries mode, evidence, the trap, when to stop and a plain-English report", () => {
-  const e = { sec: "inv", t: "T", p: "Find the slow query.", mode: "repro", ev: "The query and its plan", blind: "Agents blame the ORM", skip: "Pages that load in under a second" };
-  assert.equal(composeCopy(e), `Find the slow query.\n\n${MODE_RULE.repro}\nGive me: The query and its plan.\nWatch for: Agents blame the ORM.\n${STOP_LEAD} Pages that load in under a second.\n${PLAIN_REPORT}`);
-});
-
-test("every listed investigation says when to stop and asks for a plain-English report", () => {
-  const inv = data.prompts.filter((p) => !p.replacedBy && copyFormat(p) === "investigation" && !p.flow && p.skip);
-  assert.ok(inv.length > 50);
-  for (const p of inv) { const out = composeCopy(p); assert.ok(out.includes(STOP_LEAD) && out.endsWith(PLAIN_REPORT), `${p.id} loses its stop rule or report line`); }
-});
-
-test("a recipe run step by step gives every prompt step its own full copy", () => {
-  const split = data.prompts.filter((p) => p.sec === "plan" && p.split);
-  assert.ok(split.length > 5);
-  const bySlug = new Map(data.prompts.map((p) => [p.slug, p]));
-  for (const r of split) for (const s of r.planSteps) if (s.kind === "prompt") {
-    const e = bySlug.get(s.slug);
-    assert.equal(s.copy, composeCopy(e), `${r.id} step ${s.label} copies something other than the prompt itself`);
-  }
-  for (const r of data.prompts.filter((p) => p.sec === "plan" && !p.split)) assert.ok(/read-only/i.test(composeCopy(r)), `${r.id} copies without its read-only rule`);
-});
-
-test("missing optional fields add nothing", () => {
-  assert.equal(composeCopy({ sec: "inv", t: "T", p: "Only a body." }), "Only a body.");
-  assert.equal(composeCopy({ sec: "inv", t: "Title only" }), "Title only");
-  assert.equal(composeCopy({ sec: "inv", t: "T", p: "  Body.  ", ev: "   " }), "Body.");
-});
-
-test("a copied database investigation keeps its evidence and stays read-only", () => {
-  const pg = get("PG01");
-  const out = composeCopy(pg);
-  assert.ok(out.startsWith(pg.p), "starts with the prompt itself");
-  assert.ok(out.includes(MODE_RULE.read), "says read-only");
-  assert.ok(out.includes(pg.ev.replace(/\.$/, "")), "includes the evidence to return");
-  assert.ok(out.includes(pg.avoid.replace(/\.$/, "")), "includes what to avoid");
-});
-
-test("workflows keep their own step rules without a second mode line", () => {
-  const flow = data.prompts.find((p) => p.flow);
-  assert.ok(flow, "the library has at least one workflow");
-  assert.ok(!composeCopy(flow).includes(MODE_RULE.read));
-});
-
-test("every entry copies non-empty text that starts with its body", () => {
+test("the site copies exactly what the library composes, for every prompt, recipe and recipe step", () => {
+  assert.equal(data.prompts.length, items.size, "every library entry and recipe has a page");
   for (const p of data.prompts) {
-    const out = composeCopy(p);
-    assert.ok(out.trim().length > 0, `${p.id} copies nothing`);
-    if (copyFormat(p) !== "command") assert.ok(out.startsWith((p.p || p.cmd || p.t).trim()), `${p.id} changes its own prompt text`);
+    assert.ok(p.payload?.trim(), `${p.id} copies nothing`);
+    assert.equal(p.payload, copy.text(items.get(p.id)), p.id);
+    for (const [i, s] of (p.planSteps || []).entries()) assert.equal(s.copy, copy.step(items.get(p.id).steps[i][0]), `${p.id} step ${i + 1}`);
   }
 });
 
-test("every read-only investigation says so in the copied text", () => {
-  const read = data.prompts.filter((p) => copyFormat(p) === "investigation" && p.mode === "read" && !p.flow && !p.iso);
-  assert.ok(read.length > 20);
-  for (const p of read) assert.ok(composeCopy(p).includes(MODE_RULE.read), `${p.id} loses its read-only rule`);
-});
-
-test("read-only entries that test on a copy may change the copy, not production", () => {
-  const iso = data.prompts.filter((p) => copyFormat(p) === "investigation" && p.mode === "read" && p.iso && !p.flow);
-  assert.ok(iso.some((p) => p.id === "PG15") && iso.some((p) => p.id === "PG17"));
-  for (const p of iso) {
-    const out = composeCopy(p);
-    assert.ok(out.includes(ISO_READ_RULE), `${p.id} lacks the separate-copy rule`);
-    assert.ok(!out.includes(MODE_RULE.read), `${p.id} still forbids changing the separate copy`);
+test("the portable page, its cheat sheet and the site give the same text and permissions", () => {
+  const surfaces = {
+    "portable page": new Map(page.run("E.map((e) => [e.id, copyText(e)])")),
+    "cheat sheet": new Map([...read("../../library/dist/prompt-library.md").matchAll(/^\*\*([A-Z]+\d+) · [^\n]*\n\n```text\n([\s\S]*?)\n```$/gm)].map((m) => [m[1], m[2]])),
+  };
+  let compared = 0;
+  for (const p of data.prompts) {
+    for (const [name, texts] of Object.entries(surfaces)) {
+      if (!texts.has(p.id)) continue;
+      const t = texts.get(p.id);
+      assert.deepEqual(permissions(t), permissions(p.payload), `${p.id}: the ${name} and the site say different things about what it may change`);
+      assert.equal(t, p.payload, `${p.id}: the ${name} copies different text from the site`);
+      compared++;
+    }
   }
-});
-
-test("read-only entries that ask for tests on a copy are marked as isolated", () => {
-  const asks = /\bon a copy\b|separate database|before-and-after|replay/i;
-  const missed = data.prompts.filter((p) => p.mode === "read" && !p.flow && !p.iso && asks.test(`${p.p || ""} ${p.ev || ""}`));
-  assert.deepEqual(missed.map((p) => p.id), []);
+  assert.ok(compared > 500, `only ${compared} comparisons`);
 });

@@ -6,7 +6,6 @@ import assert from "node:assert/strict";
 import { smokeTarget } from "./run.mjs";
 import { createRequire } from "node:module";
 import { chromium } from "playwright";
-import { composeCopy } from "../../lib/copy.ts";
 import { AGENTS, INSTALL_MESSAGE } from "../../lib/site.ts";
 import { STEPS, REQUEST } from "../../lib/start.ts";
 import { STARTS } from "../../lib/starts.ts";
@@ -115,7 +114,7 @@ for (const size of SIZES) {
     assert.equal(await box.getAttribute("aria-activedescendant"), await first.getAttribute("id"));
     await box.press(`${mod}+Enter`);
     await page.getByRole("status").filter({ hasText: "copied" }).waitFor();
-    assert.equal(await clipboard(page), composeCopy(p), "the palette copies the same text as the prompt page");
+    assert.equal(await clipboard(page), p.payload, "the palette copies the same text as the prompt page");
     // Escape clears the query first, then closes.
     await box.press("Escape");
     assert.equal(await box.inputValue(), "");
@@ -185,9 +184,9 @@ for (const size of SIZES) {
     const main = page.locator(".pd-payload button.pd-copy", { hasText: "Copy prompt" });
     assert.equal(await main.count(), 1);
     await main.click();
-    assert.equal(await clipboard(page), composeCopy(p));
+    assert.equal(await clipboard(page), p.payload);
     // The text on screen is the text that was copied.
-    assert.equal(await page.locator(".pd-text").textContent(), composeCopy(p));
+    assert.equal(await page.locator(".pd-text").textContent(), p.payload);
     assert.deepEqual(errors, []);
     await ctx.close();
   });
@@ -201,7 +200,7 @@ for (const size of SIZES) {
     const main = page.locator(".pd-payload button.pd-copy", { hasText: "Copy step 1" });
     assert.equal(await main.count(), 1);
     await main.click();
-    assert.equal(await clipboard(page), composeCopy(p));
+    assert.equal(await clipboard(page), p.payload);
     const i = p.planSteps.findIndex((st, k) => k > 0 && st.copy);
     await page.locator(`[data-step="${i}"] button.pd-stepcopy`).click();
     assert.equal(await clipboard(page), p.planSteps[i].copy);
@@ -224,7 +223,7 @@ for (const size of SIZES) {
     for (let i = 0; i < STARTS.length; i++) {
       const p = data.prompts.find((x) => x.id === STARTS[i].pick);
       await cards.nth(i).locator(".pcard__a").getByRole("button", { name: /^Copy/ }).click();
-      assert.equal(await clipboard(page), composeCopy(p), `${STARTS[i].slug} copies ${p.id}`);
+      assert.equal(await clipboard(page), p.payload, `${STARTS[i].slug} copies ${p.id}`);
     }
     assert.deepEqual(errors, []);
     await ctx.close();

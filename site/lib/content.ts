@@ -1,5 +1,4 @@
 import data from "@/content/generated.json";
-import { composeCopy } from "./copy";
 import { makeSearch } from "./search";
 
 export type Prompt = {
@@ -10,6 +9,8 @@ export type Prompt = {
   steps?: [string, string][]; flow?: [string, string, string][]; tags?: string;
   line?: string; when?: string; fresh?: boolean; replacedBy?: string; split?: boolean;
   planSteps?: { label: string; note: string; slug: string | null; kind: "command" | "prompt" | "step"; copy: string | null }[];
+  // What Copy gives, composed at content build time by library/copy.mjs (the portable library uses the same code).
+  payload: string;
   related: string[]; skills: string[];
 };
 export type Skill = {
@@ -61,7 +62,7 @@ export const authors = () => {
 };
 
 // The text a person copies from a prompt page; shown in full on the page so the two always match.
-export const copyText = (p: Prompt) => composeCopy(p);
+export const copyText = (p: Prompt) => p.payload;
 export const isCommand = (p: Prompt) => p.sec === "ecmd" || p.sec === "dcmd";
 export const kindLabel = (p: Prompt) =>
   ({ ecmd: "Command", dcmd: "Command", recipe: "Older recipe", plan: "Recipe", think: "Way of working" } as Record<string, string>)[p.sec] || "Investigation";
