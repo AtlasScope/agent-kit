@@ -45,8 +45,9 @@ for (const [group, [name, desc]] of Object.entries(PACK)) {
 for (const e of cmds) if (!PACK[e.group]) throw new Error(`${e.id} is in group "${e.group}", which the router does not know`);
 s += "\n## Thinking prompts\n\nShort prompts that change how an agent works on any task. Paste as written.\n";
 for (const t of think) s += `\n### ${t.id} ${t.t}\n\n${t.use.replace(/\s*\/pre-compact does the full version\.?/, "")}\n\n\`\`\`text\n${t.p}\n\`\`\`\n`;
-s += "\n## Wrapping an investigation prompt\n\nAn investigation prompt is sent as: the prompt, one mode line, an optional scope line, then the footer.\n\nModes:\n\n";
+s += "\n## Wrapping an investigation prompt\n\nAn investigation prompt is sent as: the prompt, one mode line, the separate-database line when the investigation is marked `iso`, an optional scope line, then the footer.\n\nModes:\n\n";
 for (const [k, [label, text]] of Object.entries(L.composer.mode)) s += `- \`${k}\` (${label}): ${text}\n`;
+s += `\nSeparate database (\`iso\`): ${L.composer.iso}\n`;
 s += "\nScopes:\n\n";
 for (const [k, [label, text]] of Object.entries(L.composer.scope)) s += `- \`${k}\` (${label}): ${text || "no line added."}\n`;
 s += `\nFooter:\n\n\`\`\`text\n${L.composer.footer}\n\`\`\`\n`;
@@ -61,7 +62,7 @@ for (const e of inv) {
   const kit = (e.kit || []).filter((k) => !ELSEWHERE.includes(k));
   c += `\n### ${e.id} ${e.t}\n\n\`\`\`text\n${e.p}\n\`\`\`\n\n`;
   c += `- Finds: ${e.why}\n- Evidence to ask for: ${e.ev}\n- Skip when: ${e.skip}\n${e.blind ? `- Watch for: ${e.blind}\n` : ""}`;
-  c += `- Mode: ${e.mode}, ${e.top === "split" ? "split" : "single pass"}, ${e.scope} scope. Needs: ${e.tools}\n`;
+  c += `- Mode: ${e.mode}${e.iso ? " on a separate database (iso)" : ""}, ${e.top === "split" ? "split" : "single pass"}, ${e.scope} scope. Needs: ${e.tools}\n`;
   if (kit.length) c += `- Skills: ${ids(kit)}\n`;
   if (e.rel?.length) c += `- Related: ${ids(e.rel)}\n`;
 }

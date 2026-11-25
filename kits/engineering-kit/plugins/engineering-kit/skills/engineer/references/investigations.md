@@ -676,7 +676,7 @@ Review the pending database migration or API schema change against the current l
 - Finds: Checks that each database change works with the old code that is still live while a release finishes.
 - Evidence to ask for: The migration diff (file:line), every query or consumer affected, how old and new app versions coexist during rollout, lock and rollback risks, and results from replaying the migration on a separate test copy if available.
 - Skip when: The pending change touches no database schema, functions, policies, or shared API contracts.
-- Mode: read, single pass, narrow scope. Needs: Repository, migrations folder, previous release tag.
+- Mode: read on a separate database (iso), single pass, narrow scope. Needs: Repository, migrations folder, previous release tag.
 - Skills: `/differential-review:diff-review`
 - Related: `I02`, `S06`, `PG17`
 
