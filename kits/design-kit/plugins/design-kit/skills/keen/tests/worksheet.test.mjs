@@ -194,3 +194,16 @@ test("a page with too many words is refused, and the refusal names each part to 
   assert.throws(() => addPage(dir, { title: "x", verdict: long }), /too many words[\s\S]*verdict is 17 words/);
   assert.equal(readBook(dir).length, 0);
 });
+
+test("a book is private to the person running it: folder, pages and the page key", { skip: process.platform === "win32" && "Windows uses access lists, not mode bits" }, async (t) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "keen-private-"));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  fs.chmodSync(dir, 0o755); // an existing cache folder made before this change
+  addPage(dir, page1);
+  const s = await up(t, dir);
+  const mode = (file) => fs.statSync(path.join(dir, file)).mode & 0o777;
+  assert.equal(fs.statSync(dir).mode & 0o777, 0o700, "the folder lets no one else in");
+  assert.equal(mode("page-1.json"), 0o600);
+  assert.equal(mode("server.json"), 0o600, "the page key is readable by its owner alone");
+  assert.ok(s.token);
+});

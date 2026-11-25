@@ -1088,6 +1088,18 @@ export function readBook(dir) {
 const readJson = (file, fallback) => { try { return JSON.parse(fs.readFileSync(file, "utf8")); } catch { return fallback; } };
 const slug = (text) => String(text).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "work";
 
+// A book holds the page key and whatever evidence the pages carry, so only the person running it may read it: the
+// folder is private (an existing one is made private again) and every file in it is written for its owner alone.
+// Windows keeps its own access lists; there these calls change nothing.
+export function privateDir(dir) {
+  fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
+  try { fs.chmodSync(dir, 0o700); } catch { /* not supported here */ }
+}
+function writePrivate(file, data) {
+  fs.writeFileSync(file, data, { mode: 0o600 });
+  try { fs.chmodSync(file, 0o600); } catch { /* not supported here */ }
+}
+
 /**
  * Where a piece of work's pages are kept. A short name maps to this computer's cache folder, keyed by the
  * project, so nothing lands in the project itself. A path to a folder is used as it is.
@@ -1179,9 +1191,9 @@ export function addPage(dir, page, { baseDir = process.cwd() } = {}) {
   const long = tooLong(page);
   if (long.length) throw new Error(`This page has too many words. Shorten these and add it again:\n- ${long.join("\n- ")}`);
   renderPage(stored); // fail now, with a clear message, on anything the page cannot show
-  fs.mkdirSync(dir, { recursive: true });
+  privateDir(dir);
   const book = readBook(dir);
-  for (const [name, html] of lives) fs.writeFileSync(path.join(dir, name), html);
+  for (const [name, html] of lives) writePrivate(path.join(dir, name), html);
   const last = book.at(-1);
   // The same workspace sent again is the same page, updated where it stands. A view whose preview changed is a new revision.
   const same = Boolean(stored.workspace && last?.workspace?.id === stored.workspace.id);
@@ -1192,7 +1204,7 @@ export function addPage(dir, page, { baseDir = process.cwd() } = {}) {
   }
   if (book.length && JSON.stringify(last) === JSON.stringify(stored)) return book.length; // the same page sent twice is one page
   const n = book.length + (same ? 0 : 1);
-  fs.writeFileSync(path.join(dir, `page-${n}.json`), JSON.stringify(stored));
+  writePrivate(path.join(dir, `page-${n}.json`), JSON.stringify(stored));
   return n;
 }
 
@@ -1230,7 +1242,7 @@ async function workspaceStatus() {
  * started in the meantime and is waiting its turn.
  */
 export async function serve(dir, { port, idleMs = IDLE_MS, sliceMs = SLICE_MS } = {}) {
-  fs.mkdirSync(dir, { recursive: true });
+  privateDir(dir);
   const sourceStatus = await workspaceStatus();
   const serverFile = path.join(dir, "server.json");
   const saved = readJson(serverFile, {});
@@ -1322,7 +1334,7 @@ export async function serve(dir, { port, idleMs = IDLE_MS, sliceMs = SLICE_MS } 
     server.on("error", (error) => { if (error.code === "EADDRINUSE" && !retried && !port) { retried = true; server.listen(0, "127.0.0.1"); } else reject(error); });
     server.on("listening", () => {
       const actual = server.address().port;
-      fs.writeFileSync(serverFile, JSON.stringify({ pid: process.pid, port: actual, token }));
+      writePrivate(serverFile, JSON.stringify({ pid: process.pid, port: actual, token }));
       touch();
       resolve({ url: `http://127.0.0.1:${actual}/?k=${token}`, port: actual, token, close });
     });
@@ -1345,7 +1357,7 @@ const post = (info, route, data = {}) => fetch(`${origin(info)}${route}`, { meth
 export async function open(dir) {
   let info = await running(dir);
   if (!info) {
-    fs.mkdirSync(dir, { recursive: true });
+    privateDir(dir);
     spawn(process.execPath, [fileURLToPath(import.meta.url), "serve", dir], { detached: true, stdio: "ignore" }).unref();
     for (let i = 0; i < 50 && !info; i += 1) { await new Promise((r) => setTimeout(r, 100)); info = await running(dir); }
     if (!info) throw new Error("The page's server did not start. If this tool runs commands in a sandbox, it may not be allowed to listen on this computer.");
