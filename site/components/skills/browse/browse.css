@@ -70,9 +70,11 @@
   .sb > .sb__bar, .sb > .sb__count { grid-column: 1 / -1; }
   .sb__rail { grid-column: 1; align-self: start; top: calc(var(--header-h) + var(--space-6)); max-height: calc(100svh - var(--header-h) - var(--space-12)); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; margin-top: var(--space-4); margin-inline-start: calc(var(--space-3) * -1); border-bottom: 0; background: none; }
   .sb__rail ul { display: grid; gap: 0; padding: 0; overflow: visible; }
-  .sb__rail a { display: flex; justify-content: space-between; gap: var(--space-3); min-height: 36px; white-space: normal; line-height: 1.3; padding-block: 8px; }
+  .sb__rail a { display: flex; justify-content: space-between; gap: var(--space-3); min-height: var(--control-h-sm); white-space: normal; line-height: 1.3; padding-block: var(--space-2); }
   .sb__body { grid-column: 2; }
-  .sb .sg { scroll-margin-top: calc(var(--header-h) + var(--space-6)); } }
+  .sb:not(:has(.sb__rail)) .sb__body { grid-column: 1 / -1; }
+  /* html's scroll-padding already clears the header; this lines a jumped-to heading up with the top of the list. */
+  .sb .sg { scroll-margin-top: var(--space-2); } }
 .sb__groups { display: grid; gap: var(--space-12); min-width: 0; padding-top: var(--space-4); }
 .sb__empty { display: grid; gap: 6px; padding: var(--space-10) 0; font-size: var(--type-body); }
 .sb__empty p { margin: 0; }

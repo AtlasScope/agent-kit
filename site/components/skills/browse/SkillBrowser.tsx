@@ -106,6 +106,17 @@ export function SkillBrowser({ skills, kits }: { skills: BrowseSkill[]; kits: Br
     return () => io.disconnect();
   }, [visible.map((g) => g.id).join()]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // On a computer the list scrolls on its own when it is taller than the window (many authors): keep the marked entry
+  // in view by scrolling the list only, never the page. On a phone the list scrolls sideways and this does nothing.
+  useEffect(() => {
+    const rail = document.querySelector<HTMLElement>(".sb__rail");
+    const a = rail?.querySelector<HTMLElement>("a[aria-current]");
+    if (!rail || !a || rail.scrollHeight <= rail.clientHeight) return;
+    const r = rail.getBoundingClientRect(), x = a.getBoundingClientRect();
+    if (x.top < r.top) rail.scrollTop -= r.top - x.top;
+    else if (x.bottom > r.bottom) rail.scrollTop += x.bottom - r.bottom;
+  }, [current]);
+
   const total = skills.length;
   const borrowed = skills.filter((s) => s.borrowed).length;
   const filtered = terms.length > 0 || who !== "all";
@@ -154,7 +165,7 @@ export function SkillBrowser({ skills, kits }: { skills: BrowseSkill[]; kits: Br
         {filtered && <button type="button" className="sb__clear" onClick={reset}>Clear</button>}
       </p>
 
-      <nav className="sb__rail" aria-label={by === "kit" ? "Kits" : "Authors"}>
+      {visible.length > 0 && <nav className="sb__rail" aria-label={by === "kit" ? "Kits" : "Authors"}>
         <ul>
           {visible.map((g) => (
             <li key={g.id}>
@@ -164,7 +175,7 @@ export function SkillBrowser({ skills, kits }: { skills: BrowseSkill[]; kits: Br
             </li>
           ))}
         </ul>
-      </nav>
+      </nav>}
 
       <div className="sb__body" id="sb-results">
         <div className="sb__groups">
