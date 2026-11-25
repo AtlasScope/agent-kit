@@ -103,7 +103,7 @@ You can also connect your agent to the read-only MCP server at `https://www.atla
 - Upload it as a Claude artifact.
 - Read [`library/dist/prompt-library.md`](library/dist/prompt-library.md) as a plain Markdown cheat sheet.
 
-The data lives in [`library/library.json`](library/library.json) and the layout in [`library/template.html`](library/template.html). After editing either, rebuild the generated files:
+The data lives in [`library/library.json`](library/library.json), the layout in [`library/template.html`](library/template.html), and the text every Copy gives in [`library/copy.mjs`](library/copy.mjs). What a copied prompt may change comes only from the `composer` in `library.json`. After editing any of them, rebuild the generated files:
 
 ```sh
 node library/build.mjs
@@ -119,7 +119,7 @@ node library/build.mjs
 
 - `kits/<name>/`: each kit's README, license, scripts, tests, and `THIRD_PARTY.md` (when it carries borrowed skills), with the installable plugin under `kits/<name>/plugins/<name>/`. `design-kit`, `engineering-kit`, and `experience-architecture` were separate repos until November 2026 and keep their git history here.
 - `.claude-plugin/marketplace.json` and `.agents/plugins/marketplace.json`: catalogs listing all five plugins.
-- `library/`: prompt library source (`library.json`, `template.html`), editorial standard, shared build and check scripts, and public generated `dist/` exports.
+- `library/`: prompt library source (`library.json`, `template.html`, `copy.mjs`), editorial standard, shared build and check scripts, and public generated `dist/` exports.
 - `site/`: the Next.js website and MCP server.
 - `scripts/`: repo-wide checks and the optional local installer.
 - `tests/`: router test cases and log-to-case converter (`tests/routing/`).

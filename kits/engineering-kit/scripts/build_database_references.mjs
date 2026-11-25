@@ -38,7 +38,7 @@ s += `\n## Tools\n\nInstall steps last checked ${lib.dbToolsVerified}. Check the
 for (const [, [name, url, what]] of Object.entries(lib.dbTools)) s += `- [${name}](${url}): ${what}\n`;
 s += "\n## Wrapping a prompt\n\nSend the prompt as written, then the mode line, then the evidence line:\n\n";
 for (const [k, [label, text]] of Object.entries(lib.composer.mode)) s += `- \`${k}\` (${label}): ${text}\n`;
-s += "\nFor prompts marked as testing on a separate database, add: Anything that changes state, such as a rebuild, replay or migration test, runs only on a separate database with safe test data, never on production.\n";
+s += `\nFor prompts marked as testing on a separate database, add: ${lib.composer.iso}\n`;
 
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, s);
