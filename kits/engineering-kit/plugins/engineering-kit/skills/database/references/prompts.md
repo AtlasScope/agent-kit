@@ -11,19 +11,19 @@ One broad look when the database feels hard to trust or costly. If you can alrea
 ### PG00 Make this database easier to trust and operate
 
 ```text
-I want this PostgreSQL database to become easier to maintain, faster where it matters, less expensive to operate, and more trustworthy.
+Study how this PostgreSQL database actually works today — schema, relationships, data sources, reads, writes, background jobs, migrations, and consumers — using the live database state, repository, and operational evidence instead of documentation alone.
 
-Study how the database actually works today, including its schema, important relationships, data sources, reads, writes, background jobs, migrations and consumers. Use the real database state, repository and operational evidence rather than relying on documentation alone.
+Identify the few root problems driving the most complexity, wasted work, data-quality risk, and operating cost. Focus on data correctness, reliable writes, duplicated logic, unused database objects, historical accuracy, and clarity for future maintenance.
 
-Find the few underlying problems responsible for the greatest amount of unnecessary complexity, repeated work, data-quality risk and operational expense.
+Rank findings by measured impact. Separate confirmed problems from theoretical worries, and recommend changes that simplify the database instead of adding new infrastructure or recurring review processes.
 
-I care especially about correctness of the underlying data, efficient and reliable writes, duplicated logic, unnecessary database objects, historical accuracy, and changes that make future development easier for coding agents.
+Treat this as a read-only investigation. Do not edit code, data, configuration, credentials or infrastructure. Report each finding with file:line or a command I can rerun, and a confidence.
 
-Rank the opportunities by actual impact. Distinguish demonstrated problems from theoretical concerns, and don't recommend a redesign just because an approach is unconventional.
+Bring back: A short ranked list of confirmed problems, each naming the tables, writers, and readers involved, the proof (query plans, counts, or source checks), and the smallest change that helps.
 
-Make recommendations that simplify the existing system rather than introduce more infrastructure or recurring processes. Reuse evidence already gathered, investigate only what's needed to support a decision, and group related findings around their shared cause.
+If this describes the project, say so and stop instead: You already know the exact Postgres issue and should run the narrower prompt for it, or this project does not use PostgreSQL.
 
-Use read-only investigation initially. Don't modify production data, schemas or infrastructure. Give me the strongest findings, what proves them, and the smallest changes that would produce meaningful improvements.
+Avoid: Turning a one-time audit into ongoing process or extra infrastructure.
 ```
 
 - When: The broad starting point when the database feels hard to trust or costly, and you can't yet name one problem.
@@ -56,7 +56,15 @@ Take a representative set of important figures from this database and independen
 ### PG02 Find data that is internally consistent but wrong
 
 ```text
-Look for data that passes the database's constraints and ordinary validation but is still analytically wrong. Test cross-table relationships, accounting identities, historical continuity, plausible ranges, source coverage, and independent calculations. Focus on contradictions that existing checks would miss, and distinguish genuine errors from legitimate differences in definitions or reporting periods.
+Look for data in this PostgreSQL database that passes schema constraints and validation yet is analytically wrong. Test cross-table totals, accounting identities, historical continuity, plausible ranges, and expected source coverage. Separate real errors from intentional differences in reporting periods, granularity, or definitions.
+
+Treat this as a read-only investigation. Do not edit code, data, configuration, credentials or infrastructure. Report each finding with file:line or a command I can rerun, and a confidence.
+
+Bring back: Failed cross-table reconciliations, broken identities, and unexpected gaps with example rows and how many records are affected.
+
+If this describes the project, say so and stop instead: The database stores only raw user-entered records with no derived figures, aggregations, or multi-table reconciliations.
+
+Avoid: Flagging intentional differences in reporting periods or definitions as bugs without checking them first.
 ```
 
 - When: Every check passes, but totals or outputs still look implausible.
@@ -71,7 +79,15 @@ Look for data that passes the database's constraints and ordinary validation but
 ### PG03 Find where records silently change identity
 
 ```text
-Trace how real-world entities are identified, matched and connected across imports, source documents and database tables. Find cases where distinct entities are merged, identical entities are duplicated, or historical relationships become disconnected. Identify the matching rule responsible and the affected population before proposing corrections.
+Trace how real-world entities are identified, matched, and linked across imports, source documents, and PostgreSQL tables. Find distinct entities merged by mistake, identical entities duplicated under separate IDs, and historical links that broke across updates. Identify the matching rule responsible and how many rows are affected before proposing fixes.
+
+Treat this as a read-only investigation. Do not edit code, data, configuration, credentials or infrastructure. Report each finding with file:line or a command I can rerun, and a confidence.
+
+Bring back: Confirmed duplicate groups and false merges with their source IDs, the matching rule (file:line), affected row counts, and a repeatable query that surfaces them.
+
+If this describes the project, say so and stop instead: Every data source shares one stable external ID and nothing is matched by name or fuzzy rules.
+
+Avoid: Merging records solely because their names look similar.
 ```
 
 - When: Sources use aliases, changing identifiers, share classes or inconsistent names for the same thing.
@@ -103,7 +119,15 @@ Who writes what, how often it changes nothing, and whether imports survive retri
 ### PG05 Map every place that writes to the database
 
 ```text
-Map the actual write paths for the important tables in this application. Identify every script, job, API, function, trigger and agent that can create, update or delete their records. Show who owns each field, which paths overlap, and where two writers can disagree or overwrite each other. Recommend the simplest ownership model supported by the existing system.
+Map every code path that creates, updates, or deletes rows in the core PostgreSQL tables: API endpoints, scripts, scheduled jobs, database functions, triggers, and automated agents. Show which writer owns each column, where writers overlap, and where two writers can overwrite or contradict each other. Recommend the simplest ownership model the current design supports.
+
+Treat this as a read-only investigation. Do not edit code, data, configuration, credentials or infrastructure. Report each finding with file:line or a command I can rerun, and a confidence.
+
+Bring back: A writer-to-table-and-column map (with triggers and downstream consumers), plus every overlapping or conflicting write path.
+
+If this describes the project, say so and stop instead: Each table is written by a single clear code path.
+
+Avoid: Treating multiple writers as a bug automatically; focus on paths that actually conflict or leave ownership unclear.
 ```
 
 - When: Several jobs, functions, APIs or agents change the same data, or nobody is sure who owns it.
@@ -117,7 +141,17 @@ Map the actual write paths for the important tables in this application. Identif
 ### PG06 Stop rewriting data that hasn't changed
 
 ```text
-Investigate how much database write activity actually changes meaningful information. Find repeated upserts, unchanged updates, unnecessary delete-and-reinsert operations, repeated index maintenance and cascading refreshes. Measure their cost where practical and determine which writes can be eliminated without changing correctness, history or recovery behavior.
+Measure how much PostgreSQL write activity actually changes meaningful data. Look for repeated upserts rewriting identical rows, unnecessary delete-and-reinsert batches, needless index churn, and cascading refreshes. Identify writes that can be skipped safely without losing audit history, intentional last-seen timestamps, or recovery behavior.
+
+Treat this as a read-only investigation. Do not edit code, data, configuration, credentials or infrastructure. Report each finding with file:line or a command I can rerun, and a confidence.
+
+Anything that changes state, such as a rebuild, replay or migration test, runs only on a separate database with safe test data, never on production.
+
+Bring back: Write volume stats, the share of writes that leave row values unchanged, dead-tuple or bloat figures where measurable, and before/after comparisons on a separate test copy if available.
+
+If this describes the project, say so and stop instead: Write volume is low, or every write updates actually changed values.
+
+Avoid: Suppressing deliberate last-seen timestamps, trigger side effects, or version counters that downstream logic relies on.
 ```
 
 - When: Upserts and updates run at high volume, imports are costly, or vacuum and write-ahead log churn look high.
@@ -132,7 +166,17 @@ Investigate how much database write activity actually changes meaningful informa
 ### PG07 Is our ingestion process more complicated than necessary?
 
 ```text
-Trace one complete ingestion cycle from the original source to the final database records. Identify repeated parsing, unnecessary intermediate states, duplicate validation, repeated reads, redundant transformations and writes that could be consolidated. Recommend the simplest workflow that preserves accuracy, traceability, failure recovery and the ability to process corrections.
+Trace one complete data-ingestion run from raw source files or APIs to final PostgreSQL tables. Identify redundant parsing, unnecessary staging tables, repeated validation, duplicate reads, and consolidatable writes. Propose the simplest pipeline that preserves accuracy, source traceability, failure recovery, and re-processing of corrections.
+
+Treat this as a read-only investigation. Do not edit code, data, configuration, credentials or infrastructure. Report each finding with file:line or a command I can rerun, and a confidence.
+
+Anything that changes state, such as a rebuild, replay or migration test, runs only on a separate database with safe test data, never on production.
+
+Bring back: One end-to-end trace from source to final rows, every duplicated step (file:line), the checkpoints recovery relies on, and a simpler pipeline proposal verified against the same outputs on a test copy where practical.
+
+If this describes the project, say so and stop instead: Data arrives in one straightforward step directly into its target table.
+
+Avoid: Stripping away provenance records or recovery checkpoints that let you trace or replay bad imports.
 ```
 
 - When: The import pipeline is long, slow to correct, or does the same work at several stages.
@@ -161,7 +205,15 @@ Examine the ingestion and correction workflows under retries, interrupted runs, 
 ### PG09 Find where write logic should live
 
 ```text
-Trace how records are validated, transformed and written across application code, database functions, triggers and background jobs. Find rules duplicated in different layers or placed where they are difficult to test and maintain. Recommend the simplest ownership boundary for each rule, without assuming that moving more logic into Postgres is automatically better.
+Trace where records are validated, transformed, and written across application code, PostgreSQL functions, triggers, constraints, and background workers. Find rules duplicated across layers or buried where they are hard to test and evolve. Recommend one clear ownership boundary for each rule, without biasing either toward or away from putting logic inside Postgres.
+
+Treat this as a read-only investigation. Do not edit code, data, configuration, credentials or infrastructure. Report each finding with file:line or a command I can rerun, and a confidence.
+
+Bring back: Each rule with every layer that enforces it (file:line), duplicated or conflicting checks, testability tradeoffs, and the simplest ownership boundary.
+
+If this describes the project, say so and stop instead: All write rules already live cleanly in one layer with no database triggers or stored procedures.
+
+Avoid: Defaulting blindly to stored procedures or insisting everything move out of Postgres.
 ```
 
 - When: Business rules are split across SQL, triggers, edge functions, server routes and workers.
@@ -179,7 +231,15 @@ Fewer objects, one home for each fact, and a model a new engineer or agent can r
 ### PG10 Which database objects no longer earn their keep?
 
 ```text
-Examine the tables, views, functions, triggers, indexes and materialized views in this database. Identify redundant representations, obsolete objects, overlapping responsibilities, unnecessary dependency chains and abstractions that no longer provide meaningful value. Verify actual consumers before recommending removal. Rank opportunities by complexity eliminated, operational savings and migration risk.
+Inventory the tables, views, materialized views, functions, triggers, and indexes in this PostgreSQL database. Flag obsolete, redundant, or overlapping objects and unnecessary dependency chains. Verify actual readers and dynamic callers before suggesting removal, and rank candidates by complexity eliminated and migration risk.
+
+Treat this as a read-only investigation. Do not edit code, data, configuration, credentials or infrastructure. Report each finding with file:line or a command I can rerun, and a confidence.
+
+Bring back: A dependency map of database objects, usage stats where available, ranked removal candidates, and the migration risk for each.
+
+If this describes the project, say so and stop instead: A small schema where every table, view, and index has a known active reader.
+
+Avoid: Marking objects unused without checking dynamic SQL, reporting tools, or external database consumers.
 ```
 
 - When: The list of views, functions and triggers has grown hard to reason about.
@@ -208,7 +268,15 @@ Find concepts and values maintained in multiple tables, materialized views, cach
 ### PG12 Can the schema be easier to understand without losing depth?
 
 ```text
-Review the database's logical organization from the perspective of a new senior engineer. Identify confusing names, mixed responsibilities, inconsistent conventions, unclear relationships and schemas that obscure the business domain. Recommend structural improvements that make the model easier to understand and maintain without sacrificing useful historical detail or creating unnecessary migrations.
+Review this PostgreSQL schema's structure and naming as if onboarding a senior engineer unfamiliar with the repo. Identify misleading table or column names, tables mixing unrelated responsibilities, inconsistent naming conventions, and hidden relationships. Recommend only the least disruptive improvements (such as views, comments, or targeted boundary cleanups) that reduce confusion without losing historical detail or triggering risky migrations.
+
+Treat this as a read-only investigation. Do not edit code, data, configuration, credentials or infrastructure. Report each finding with file:line or a command I can rerun, and a confidence.
+
+Bring back: Specific schema confusions tied to real bugs or agent mistakes, a clear entity map, and low-risk naming or boundary fixes.
+
+If this describes the project, say so and stop instead: The schema is small and neither you nor your agents have misread it recently.
+
+Avoid: Proposing cosmetic renames or wide migrations that break live queries for minor tidy-ups.
 ```
 
 - When: New developers or agents keep misunderstanding names, concepts or relationships.
@@ -227,7 +295,15 @@ Where storage, time and write cost actually go, and what grows expensive first. 
 ### PG13 Find the true sources of database waste
 
 ```text
-Measure which tables, indexes, queries and maintenance activities consume the most storage, execution time and write resources. Distinguish useful capacity from avoidable waste, including unused indexes, row churn, bloat, poor plans and excessive scans. Recommend changes based on observed workload and realistic savings, not generic optimization rules.
+Measure which PostgreSQL tables, indexes, queries, and background maintenance tasks consume the most storage, CPU, and write I/O. Separate necessary capacity from avoidable waste — unused indexes, table bloat, row churn, bad query plans, and unnecessary full scans. Base every recommendation on observed workload stats.
+
+Treat this as a read-only investigation. Do not edit code, data, configuration, credentials or infrastructure. Report each finding with file:line or a command I can rerun, and a confidence.
+
+Bring back: Top table and index sizes, highest-cost queries, index usage counts, dead-row/bloat metrics, EXPLAIN output for top offenders, and expected savings per change.
+
+If this describes the project, say so and stop instead: Postgres storage, CPU, and billing are small and steady.
+
+Avoid: Judging index usefulness by grepping code alone, or optimizing read speed while ignoring write overhead.
 ```
 
 - When: The bill is high, CPU or disk usage is high, storage keeps growing, or you suspect bloat.
@@ -261,7 +337,17 @@ Changes and restores proved on a separate database before anyone relies on them.
 ### PG15 Can we rebuild this database from its sources?
 
 ```text
-Determine whether this database can be reconstructed from the repository, migrations, original source material and retained operational records. Identify anything that exists only in production, any transformations that cannot be reproduced, and data that would be permanently lost. Where possible, test the reconstruction on an isolated database and compare the resulting records and relationships.
+Determine whether this PostgreSQL database can be rebuilt from the repository, migration files, original source materials, and retained records. Flag anything that exists only in production, manual fixes that cannot be replayed, and data that would be lost forever. Where feasible, test rebuilding onto an isolated test database and compare sampled rows and relationships against production.
+
+Treat this as a read-only investigation. Do not edit code, data, configuration, credentials or infrastructure. Report each finding with file:line or a command I can rerun, and a confidence.
+
+Anything that changes state, such as a rebuild, replay or migration test, runs only on a separate database with safe test data, never on production.
+
+Bring back: The exact inputs and migration sequence required to rebuild, any irreplaceable production-only state, and a sampled comparison from an isolated rebuild if run.
+
+If this describes the project, say so and stop instead: The database is either a disposable cache or holds primary user-authored records backed up via snapshots instead of rebuilt from external sources.
+
+Avoid: Testing restores against production, or treating the existence of backup files as proof they restore cleanly.
 ```
 
 - When: You worry about disaster recovery, production-only state, or whether the data could be rebuilt.
@@ -372,8 +458,8 @@ These live in the /engineer catalog. Use them when the routing table names them.
 - `I02` Why production might not match main: Lists every way 'merged' can fail to mean 'live'.
 - `I03` Check time that catches nothing: Finds paid automated-check minutes spent on checks that never catch anything.
 - `I06` Packages nobody uses, or that work by luck: Finds packages nobody uses and packages that work only by accident.
-- `M05` Let the expert decide: undefined
-- `M07` Spec without the interview: undefined
+- `M05` Let the expert decide: Tells the agent to make routine technical decisions on its own and escalate only product, cost, or risk calls to you.
+- `M07` Spec without the interview: Turns your request into a short, checkable plan with clear boundaries, answering technical questions from the codebase before asking you anything.
 - `P03` Queries that grow badly: Finds the database queries that will be the first to slow down as tables grow.
 - `P04` Work repeated for nothing: Finds work redone on every request or screen redraw when nothing it depends on changed.
 - `P05` What breaks at ten times the size: Names the first thing to break if the project takes off, before it does.

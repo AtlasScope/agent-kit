@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Crumbs } from "@/components/Crumbs";
 import { CopyButton } from "@/components/CopyButton";
-import { GuideNext, GuideRail } from "@/components/GuideProgress";
+import { GuideRail, StepMeter } from "@/components/GuideProgress";
+import { Checkpoint, StepNav, Troubles } from "@/components/guide/Parts";
 import { LESSONS, lessonIndex } from "@/lib/lessons";
 
 export const dynamicParams = false;
@@ -24,51 +24,43 @@ export default async function LessonPage({ params }: { params: Promise<{ lesson:
   return (
     <main className="page">
       <div className="guide">
-      <div className="guide__main">
-      <div className="page-head">
-        <Crumbs items={[["Lessons", "/learn"], [`Lesson ${i + 1} of ${LESSONS.length}`, `/learn/${l.slug}`]]} />
-        <h1>{l.title}</h1>
-        {l.idea.map((p) => <p className="lead start-body" key={p.slice(0, 24)}>{p}</p>)}
-      </div>
+        <article className="guide__main">
+          <header className="page-head guide__head">
+            <Crumbs items={[["Lessons", "/learn"], [`Lesson ${i + 1} of ${LESSONS.length}`, `/learn/${l.slug}`]]} />
+            <StepMeter items={LESSONS} base="/learn" store="learn" current={l.slug} noun="Lesson" />
+            <h1>{l.title}</h1>
+            {l.idea.map((p) => <p className="lead start-body" key={p.slice(0, 24)}>{p}</p>)}
+          </header>
 
-      {l.terms && (
-        <dl className="facts">
-          {l.terms.flatMap(([t, d]) => [<dt key={t + "t"}>{t}</dt>, <dd key={t + "d"}>{d}</dd>])}
-        </dl>
-      )}
+          {l.terms && (
+            <dl className="terms" aria-label="Words in this lesson">
+              {l.terms.map(([t, d]) => <div key={t}><dt>{t}</dt><dd>{d}</dd></div>)}
+            </dl>
+          )}
 
-      <section className="section">
-        <h2>Try it</h2>
-        {l.action.note && <p className="note">{l.action.note}</p>}
-        <div className="block">
-          <div className="block__head"><span>Paste into your agent</span><CopyButton text={l.action.text} label={l.action.label} /></div>
-          <pre>{l.action.text}</pre>
-        </div>
-        {l.contrast && (
-          <>
-            <p className="note">{l.contrast.label}, for comparison: <code>{l.contrast.text}</code> {l.contrast.note}</p>
-          </>
-        )}
-      </section>
+          <section className="tryit" aria-labelledby="try-h">
+            <h2 id="try-h">Try it</h2>
+            {l.action.note && <p className="note">{l.action.note}</p>}
+            <div className="block">
+              <div className="block__head"><span>Paste into your agent</span><CopyButton text={l.action.text} label={l.action.label} /></div>
+              <pre>{l.action.text}</pre>
+            </div>
+            {l.contrast && (
+              <p className="contrast"><span className="contrast__k">{l.contrast.label}, for comparison:</span> <code>{l.contrast.text}</code> {l.contrast.note}</p>
+            )}
+          </section>
 
-      <section className="expect" aria-labelledby="expect-h">
-        <h2 id="expect-h"><svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>You should see</h2>
-        <p>{l.expect}</p>
-      </section>
+          <Checkpoint>{l.expect}</Checkpoint>
+          <Troubles items={[l.wrong]} />
 
-      <section className="section">
-        <h2>If something’s off</h2>
-        <dl className="facts"><dt>{l.wrong[0]}</dt><dd>{l.wrong[1]}</dd></dl>
-      </section>
-
-      <nav className="start-nav" aria-label="Lessons">
-        {prev ? <Link className="btn" href={`/learn/${prev.slug}`}>Back: {prev.title}</Link> : <Link className="btn" href="/learn">All lessons</Link>}
-        <GuideNext store="learn" current={l.slug} href={next ? `/learn/${next.slug}` : "/fix"}>{next ? `Next: ${next.title}` : "Fix a real problem"}</GuideNext>
-      </nav>
-      </div>
-      <aside className="guide__aside">
-        <GuideRail items={LESSONS} base="/learn" store="learn" current={l.slug} label="Lessons" />
-      </aside>
+          <StepNav label="Lessons" store="learn" current={l.slug}
+            back={prev ? [`Back: ${prev.title}`, `/learn/${prev.slug}`] : ["All lessons", "/learn"]}
+            next={next ? [`Next: ${next.title}`, `/learn/${next.slug}`] : ["Fix a real problem", "/fix"]} />
+        </article>
+        <aside className="guide__aside">
+          <p className="guide__aside-h">Lessons</p>
+          <GuideRail items={LESSONS} base="/learn" store="learn" current={l.slug} label="All lessons" />
+        </aside>
       </div>
     </main>
   );

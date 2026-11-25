@@ -3,6 +3,62 @@
 Decisions about what the library says, newest first. Each line names the entries it touched and why.
 The full inventory is `library/dist/inventory.csv`, rebuilt by `node library/build.mjs`.
 
+## 2026-11-24 (Prompts, Skills and Recipes, and an outside rewrite)
+
+- The page opens on three kinds: Prompts (in 15 categories), Skills (Agent Kit's own, by plugin) and
+  Recipes (in three groups). `v3` in `library.json` holds the categories, the "Use it when" lines,
+  the skill groups and the recipes; `check.mjs` checks every reference in it.
+- 20 new entries (X01 to X20): sixteen investigations the library did not cover (promises the product
+  makes, first support tickets, abuse by ordinary users, the money path, unit cost, vendor risk, dated
+  failures, outage alarms, defaults nobody chose, personal data, licences, single-owner knowledge,
+  repeated agent mistakes, a first bad day and others) and four ways of working.
+- A different model reviewed the page and rewrote its text. Its wording replaced the descriptions and
+  most copied prompts; a script kept every investigation's read-only rule, evidence, stop condition and
+  plain-English report. It also proposed eleven prompts (AD01 to AD11: a plan gate, a scope fence, a
+  pre-merge walkthrough, an unfinished-work check, sign-in, emails, public links, backups and others)
+  and two recipes. All new entries score 1 for evidence: none has been run on a real project.
+- Hidden behind what replaces them (`notShown`): seven Postgres prompts that repeated general ones,
+  T01 and T02 (merged into T06), four speed prompts merged into P01, P02 and P07, M11 (into X17),
+  MO01 (into /motion setup), D05 (into R03) and two machine-housekeeping prompts (I01, I07). Their data
+  stays for the routers and the site. The Postgres workflows and the motion-system recipe became page
+  recipes with numbered steps.
+- Recipes that use commands or several big investigations now run one step per message, each with its
+  own Copy. Copy used to paste commands inside one prose block and dropped each investigation's stop
+  rule and "Watch out" line. "A bug you can't explain", "It got slow" and "Before you ship a change"
+  had steps that contradicted each other; they no longer do.
+- Search and the problem shortcuts no longer offer borrowed skills or the older recipes; Enter opens
+  the best match instead of copying it.
+- The new investigations and the thinking prompts that only had `line` now also carry `why`, and the
+  new investigations a `scope` and `tools`, so the /engineer and /database references no longer print
+  "undefined".
+- G02 now asks for a migration replay on a separate copy, so it is marked `iso`. The /engineer and
+  /database references that ship these prompts changed, so engineering-kit is 1.7.0.
+
+## 2026-11-23 (areas, Keen and a complete Copy)
+
+- The page is organised the way the kit is: a front door ("What's wrong?", 13 plain problems, three
+  things to try each) and ten areas that match the kit's commands. `areas` and `front` in
+  `library.json` hold the structure; `check.mjs` checks every reference and that no entry sits in two
+  areas.
+- Keen's 21 jobs are on the page, read at build time from Keen's own SKILL.md and job files, so the
+  page and Keen's menu cannot disagree. Each one can also be copied as full instructions for an agent
+  without Agent Kit.
+- Commands written by other people that Agent Kit has a job for, and the recipes built from them,
+  moved to an Other tools page. `closest` names the Agent Kit job that does the same work for each.
+  Borrowed engineering, security and writing tools stay in their areas until their replacements exist.
+- Copy now hands over everything: for an investigation or database prompt, the prompt plus what it may
+  change, what to bring back, when to stop, and a report that starts in plain English. Before, the
+  copied text of all 56 investigations left these out although every card said "Changes nothing".
+- Removed: the Which one? page, stars and recent copies, and the prompt builder. Their data stays in
+  `library.json` for the site and the routers.
+- "Tried on a real project" marks an entry only where a run is recorded: `tried` in `library.json`
+  (Keen critique and audit, run on three screens of the Agent Kit website) or a private `runs` list.
+- Thinking prompts M02 to M06 and M12 were rewritten to ask for evidence and a concrete result
+  (M12 was five words). The /engineer reference that ships them changed, so engineering-kit is 1.6.2.
+- Plain one-line descriptions (`line`) for the database prompts and workflows, the thinking prompts and
+  seven engineering commands whose descriptions leaned on jargon. The routers still read `why`.
+- UI029 and UI031 are the same commands as EC31 and EC32, so the page shows them once (`notShown`).
+
 ## 2026-11-21 (palette builder)
 
 - One design command, UI108 `/palette-builder`, written here. The color skills advise and write exact

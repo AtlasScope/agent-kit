@@ -3,17 +3,20 @@
 //   command        exactly what you type, nothing added
 //   thinking       the short prompt as written
 //   recipe         the steps, plus what to do when a step's plugin isn't installed
-//   investigation  the prompt, plus the mode, the evidence to return and the known trap
+//   plan           a page recipe: its text was composed at build time, copied as it is
+//   investigation  the prompt, plus the mode, the evidence to return, the known trap, when to stop,
+//                  and a report that starts in plain English
 export type CopyFields = {
   sec: string; t: string; p?: string; cmd?: string; mode?: string; iso?: boolean;
-  ev?: string; avoid?: string; blind?: string; steps?: [string, string][]; flow?: unknown;
+  ev?: string; avoid?: string; blind?: string; skip?: string; steps?: [string, string][]; flow?: unknown;
 };
 
-export type CopyFormat = "command" | "thinking" | "recipe" | "investigation";
+export type CopyFormat = "command" | "thinking" | "recipe" | "plan" | "investigation";
 
 export function copyFormat(e: CopyFields): CopyFormat {
   if (e.sec === "ecmd" || e.sec === "dcmd") return "command";
   if (e.sec === "think") return "thinking";
+  if (e.sec === "plan") return "plan";
   if (e.steps?.length) return "recipe";
   return "investigation";
 }
@@ -28,6 +31,8 @@ const ISO_RULE = "Work on a separate copy or branch, never on the live system.";
 // Read-only entries that ask for a rebuild or replay: production stays untouched, the separate copy may change.
 export const ISO_READ_RULE =
   "Don't change code, data or settings on the live system. Run any rebuild, replay or test on a separate copy you're allowed to change, and report what you find.";
+export const PLAIN_REPORT = "Start your report in plain English: what you found, what it means, and whether I need to do anything. Put files, lines and commands underneath.";
+export const STOP_LEAD = "If this describes the project, say so and stop instead:";
 export const RECIPE_FALLBACK = "If a command in these steps isn't installed, tell me which one and stop before that step.";
 
 const clean = (s?: string) => (s || "").trim();
@@ -37,7 +42,7 @@ export function composeCopy(e: CopyFields): string {
   const f = copyFormat(e);
   if (f === "command") return clean(e.sec === "ecmd" ? e.cmd || e.p : e.p || e.cmd) || e.t;
   const body = clean(e.p || e.cmd) || e.t;
-  if (f === "thinking") return body;
+  if (f === "thinking" || f === "plan") return body;
   if (f === "recipe") return body.includes(RECIPE_FALLBACK) ? body : `${body}\n\n${RECIPE_FALLBACK}`;
   const extra: string[] = [];
   const rule = e.mode && MODE_RULE[e.mode];
@@ -46,5 +51,7 @@ export function composeCopy(e: CopyFields): string {
   if (clean(e.ev)) extra.push(`Give me: ${sentence(clean(e.ev))}`);
   const trap = clean(e.avoid) || clean(e.blind);
   if (trap) extra.push(`${e.avoid ? "Avoid" : "Watch for"}: ${sentence(trap)}`);
+  if (clean(e.skip) && !e.flow) extra.push(`${STOP_LEAD} ${sentence(clean(e.skip))}`);
+  if (extra.length && !e.flow) extra.push(PLAIN_REPORT);
   return extra.length ? `${body}\n\n${extra.join("\n")}` : body;
 }

@@ -1,5 +1,7 @@
 # Writing our own skills: what it would take
 
+> **Closed 2026-11-23.** The owner set this plan aside. [02-direction.md](02-direction.md) is the direction now. This file is kept only for its inventory of what is borrowed; its recommendations, proposed commands, order of work and open decisions no longer apply.
+
 Written 2026-11-10. This explores replacing the 49 borrowed skills, and the outside plugins the routers call (Impeccable first among them), with skills written for Agent Kit. It recommends an approach and an order. `motion-kit`, added in the same change, is the first one built this way and serves as the worked example.
 
 Nothing here removes or demotes a borrowed skill. Those decisions are listed at the end.

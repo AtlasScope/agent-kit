@@ -1,0 +1,39 @@
+/* Fix a problem (app/fix/**): the symptom picker and the ordered route on each symptom page.
+   Ownership: Start/Learn/Fix lane. Tokens only. The route itself is the shared PromptRows (library.css). */
+
+/* Filter */
+.fixfind { position: relative; display: grid; gap: var(--space-2); max-width: 36rem; }
+.fixfind > .i { position: absolute; left: var(--space-3); top: 12px; color: var(--c-fg-3); pointer-events: none; }
+.fixfind .input { width: 100%; min-height: 40px; padding-left: calc(var(--space-3) + 24px); font-size: var(--type-body); }
+.fixfind__n { margin: 0; color: var(--c-fg-3); font-size: var(--type-xs); }
+@media (pointer: coarse) { .fixfind .input { min-height: 44px; } .fixfind > .i { top: 14px; } }
+
+/* Symptoms: two columns of rows */
+.symptoms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-10) var(--space-16); align-items: start; }
+.symptoms__group { display: grid; gap: var(--space-3); }
+.symptoms [hidden] { display: none; }
+.symptoms__group h2 { display: flex; align-items: baseline; gap: var(--space-2); margin: 0; font: var(--weight-semibold) clamp(1.125rem, 0.4vw + 1rem, 1.25rem)/1.2 var(--font-body); letter-spacing: -0.02em; }
+.symptoms__group h2 span { color: var(--c-fg-3); font: 400 0.8125rem/1 var(--font-mono); }
+.symptoms ul { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--c-line); }
+.symptoms li { border-bottom: 1px solid var(--c-line); }
+.symptoms li a { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px var(--space-4); padding: var(--space-3) 0; color: var(--c-fg); text-decoration: none; }
+.symptom__t { font-weight: var(--weight-semibold); line-height: 1.35; letter-spacing: -0.005em; }
+.symptom__d { grid-column: 1; color: var(--c-fg-3); font-size: var(--type-xs); line-height: 1.4; }
+.symptom__n { grid-column: 2; grid-row: 1 / span 2; align-self: center; min-width: 2ch; text-align: right; color: var(--c-fg-3); font: 500 0.8125rem/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+@media (hover: hover) and (pointer: fine) { .symptoms li a:hover .symptom__t { text-decoration: underline; text-decoration-color: var(--c-edge); text-underline-offset: 0.2em; } .symptoms li a:hover .symptom__n { color: var(--c-fg); } }
+@media (pointer: coarse) { .symptoms li a { min-height: 56px; } }
+@media (max-width: 60rem) { .symptoms { grid-template-columns: minmax(0, 1fr); } }
+
+/* Symptom page: the route beside related help */
+.fix-page__body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 20rem); gap: var(--space-16); align-items: start; }
+.fix-page__aside { display: grid; gap: var(--space-10); }
+.fix-page__aside .section > h2 { font-size: 1.0625rem; }
+/* The shared prompt rows need about 56rem; below 80rem the related help moves under the route. */
+@media (max-width: 80rem) { .fix-page__body { grid-template-columns: minmax(0, 1fr); } }
+
+
+.others ul { display: grid; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--c-line); }
+.others li { border-bottom: 1px solid var(--c-line); }
+.others a { display: block; padding: var(--space-2) 0; color: var(--c-fg-2); font-size: var(--type-xs); line-height: 1.4; text-decoration: none; }
+@media (hover: hover) and (pointer: fine) { .others a:hover { color: var(--c-fg); text-decoration: underline; text-decoration-color: var(--c-edge); text-underline-offset: 0.2em; } }
+@media (pointer: coarse) { .others a { display: flex; align-items: center; min-height: 44px; } }

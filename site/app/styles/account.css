@@ -1,0 +1,115 @@
+/* Sign in, Collections and shared collection pages.
+   Owner: W10 accounts and utility pages (DESIGN-CONTRACT.md). */
+
+/* Sign in: why an account helps on the left, the form on the right; stacked on phones. */
+.signin { grid-template-columns: minmax(0, 1fr) auto; align-items: start; column-gap: var(--space-16); }
+.signin__why { display: grid; gap: var(--space-4); max-width: 34rem; padding-top: var(--space-4); }
+.signin__why h1 { font-size: clamp(2.125rem, 2.8vw + 1rem, 3.25rem); line-height: 1.05; letter-spacing: -0.035em; }
+.signin__list { display: grid; margin: var(--space-2) 0 0; padding: 0; list-style: none; border-top: 1px solid var(--c-line); counter-reset: why; }
+.signin__list li { display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: var(--space-3); padding-block: var(--space-3); border-bottom: 1px solid var(--c-line); color: var(--c-fg-2); line-height: 1.5; counter-increment: why; }
+.signin__list li::before { content: counter(why, decimal-leading-zero); color: var(--c-fg-3); font: 400 0.8125rem/1.85 var(--font-mono); }
+.signin__list strong { color: var(--c-fg); font-weight: 600; }
+.signin__form { justify-self: end; min-width: 0; }
+.signin__wait { display: grid; place-items: center; width: min(25rem, 100%); min-height: 22rem; border: 1px solid var(--c-line); border-radius: var(--radius-md); background: var(--c-surface); }
+/* The page's h1 already says what this is, so Clerk's own title on the first step goes. Later steps ("Check your email") keep theirs. */
+.signin__form .cl-card.cl-signIn-start .cl-header { display: none; }
+@media (max-width: 60rem) {
+  .signin { grid-template-columns: minmax(0, 1fr); row-gap: var(--space-10); }
+  .signin__form { justify-self: stretch; }
+  .signin__form > * { margin-inline: auto; }
+}
+
+/* Small panels that open in place (Pop): New collection, Rename, Delete, Remove. */
+.col__pop { position: relative; }
+.col__pop > summary { list-style: none; cursor: pointer; }
+.col__pop > summary::-webkit-details-marker { display: none; }
+.col__pop[open] > summary { background: var(--c-raised); border-color: var(--c-fg-2); }
+.col__popbody { position: absolute; right: 0; top: calc(100% + 6px); z-index: 5; display: grid; gap: var(--space-2); width: min(20rem, calc(100vw - 2 * var(--gutter))); padding: var(--space-3); border: 1px solid var(--c-edge); border-radius: var(--radius-md); background: var(--c-surface); box-shadow: var(--shadow-3); }
+.col__popbody p { font-size: var(--type-sm); line-height: 1.45; color: var(--c-fg-2); }
+.col__popform { display: grid; gap: var(--space-2); }
+.col__popform .btn { justify-self: start; }
+.col__poplabel { color: var(--c-fg-3); font-size: var(--type-xs); }
+.col__inline { display: contents; }
+.col__rm { display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 8px; background: none; color: var(--c-fg-3); cursor: pointer; }
+.col__pop > summary.col__rm { display: grid; }
+@media (hover: hover) and (pointer: fine) { .col__rm:hover { background: var(--c-fill); color: var(--c-fg); } }
+@media (pointer: coarse) { .col__rm { width: 44px; height: 44px; } }
+
+/* The Collections workspace: a rail of collections on the left, the open one on the right. The open one is
+   chosen by data-ws-sel on <html> (set before paint, see components/account/boot.ts); per-collection rules that
+   show it are inlined next to the markup. */
+.ws { display: grid; grid-template-columns: 17rem minmax(0, 1fr); align-items: start; border-top: 1px solid var(--c-line); }
+.ws__rail { position: sticky; top: var(--header-h); display: grid; gap: var(--space-3); align-content: start; padding: var(--space-4) var(--space-4) var(--space-6) 0; }
+.ws__railhead { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); min-height: 34px; }
+.ws__count { color: var(--c-fg-3); font-size: var(--type-xs); }
+.ws__railhead .col__popbody { left: 0; right: auto; }
+.ws__list { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.ws__item { --on: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name n" "state n"; column-gap: var(--space-3); align-items: center; min-height: 52px; padding: 7px var(--space-3); border-radius: 10px; color: var(--c-fg-2); text-decoration: none; transition: background-color var(--dur-fast) var(--ease-out); }
+.ws__name { grid-area: name; display: flex; align-items: center; gap: 6px; min-width: 0; font-weight: 550; font-size: 0.9375rem; line-height: 1.3; }
+.ws__name > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ws__name .i { width: 14px; height: 14px; }
+.ws__state { grid-area: state; color: var(--c-fg-3); font-size: var(--type-micro); line-height: 1.4; }
+.ws__n { grid-area: n; color: var(--c-fg-3); font: 400 0.8125rem/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+/* The open collection: a raised row, ink text. --on is set to 1 by the inlined per-collection rule. */
+:root[data-ws-sel] .ws__item { background: color-mix(in oklab, var(--c-fill-2) calc(var(--on) * 100%), transparent); color: color-mix(in oklab, var(--c-fg) calc(var(--on) * 100%), var(--c-fg-2)); }
+:root:not([data-ws-sel]) .ws__list li:first-child .ws__item { background: var(--c-fill-2); color: var(--c-fg); }
+@media (hover: hover) and (pointer: fine) { .ws__item:hover { background: var(--c-fill); color: var(--c-fg); } }
+.ws__new .i { width: 14px; height: 14px; }
+.ws__main { min-width: 0; min-height: 24rem; padding: var(--space-4) 0 0 var(--space-10); border-left: 1px solid var(--c-line); }
+.ws__panel { display: none; gap: var(--space-6); min-width: 0; }
+:root:not([data-ws-sel]) .ws__panel:first-child { display: grid; }
+.ws__back { display: none; }
+
+/* One open collection. */
+.cpanel__head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-3) var(--space-4); padding-top: var(--space-2); }
+.cpanel__title { display: grid; gap: 6px; min-width: 0; }
+.cpanel__title h2 { margin: 0; font: 600 clamp(1.5rem, 0.8vw + 1.1rem, 1.875rem)/1.15 var(--font-body); letter-spacing: -0.03em; overflow-wrap: anywhere; }
+.cpanel__title h2:focus { outline: none; box-shadow: none; }
+.cpanel__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px var(--space-3); color: var(--c-fg-3); font-size: var(--type-sm); }
+.cpanel__state { display: inline-flex; align-items: center; gap: 7px; }
+.cpanel__meta .cpanel__state::before { content: ""; width: 1px; height: 12px; margin-right: 5px; background: var(--c-edge); }
+.cpanel__state.is-shared { color: var(--c-fg-2); }
+.cpanel__acts { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.cpanel__share, .cpanel__install { display: grid; gap: var(--space-2); max-width: 52rem; }
+.cpanel__label { color: var(--c-fg-3); font-size: var(--type-xs); }
+.cpanel__sharebtns { display: inline-flex; gap: 6px; flex: none; }
+.cpanel__sharebtns .copy { text-decoration: none; }
+.cpanel__empty { display: grid; gap: var(--space-4); justify-items: start; padding: var(--space-10) var(--space-6); border: 1px dashed var(--c-edge); border-radius: var(--radius-md); color: var(--c-fg-2); line-height: 1.5; }
+.cpanel__empty strong { color: var(--c-fg); font-weight: 600; }
+.cpanel__emptylinks { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+
+/* Items, grouped by kind. The rows are the library's (.prow, .srow in library.css), with Remove in their action slot. */
+.cgroup { display: grid; gap: var(--space-2); min-width: 0; }
+.cgroup h2, .cgroup h3 { display: flex; align-items: baseline; gap: var(--space-2); margin: 0; font: 600 var(--type-sm)/1.4 var(--font-body); color: var(--c-fg); }
+.cgroup__n { color: var(--c-fg-3); font: 400 var(--type-xs)/1 var(--font-mono); }
+/* A row's action controls stack above the row link, so an open Remove panel lifts its whole row above the next one. */
+.cgroup :is(.prows, .srows) > li:has(.col__pop[open]) { position: relative; z-index: 6; }
+
+/* Tablets and phones: the rail is the first screen; a collection opens in its place with a way back. */
+@media (max-width: 60rem) {
+  .ws { grid-template-columns: minmax(0, 1fr); border-top: 0; }
+  .ws__rail { position: static; padding: 0; border-right: 0; min-height: 0; }
+  .ws__list { gap: 0; border-top: 1px solid var(--c-line); }
+  .ws__list li { border-bottom: 1px solid var(--c-line); }
+  .ws__item, :root[data-ws-sel] .ws__item { min-height: 60px; padding-inline: 0; border-radius: 0; background: none; color: var(--c-fg); }
+  .ws__item::after { content: ""; grid-row: 1 / 3; width: 7px; height: 7px; margin-left: 2px; border-right: 1.5px solid var(--c-fg-3); border-bottom: 1.5px solid var(--c-fg-3); transform: rotate(-45deg); }
+  .ws__item { grid-template-columns: minmax(0, 1fr) auto auto; grid-template-areas: "name n arrow" "state n arrow"; }
+  .ws__main { min-height: 0; padding: 0; border-left: 0; }
+  :root[data-ws-view="detail"] .ws__rail { display: none; }
+  :root[data-ws-view="list"] .ws__panel, :root:not([data-ws-view]) .ws__panel { display: none !important; }
+  .ws__back { display: inline-flex; align-items: center; gap: 4px; justify-self: start; min-height: 44px; margin: calc(-1 * var(--space-3)) 0 calc(-1 * var(--space-3)) -6px; padding-right: var(--space-3); color: var(--c-fg-2); font-size: var(--type-sm); text-decoration: none; }
+  .cpanel__head { padding-top: 0; }
+  /* With a collection open, the page's lead gives way so the collection starts near the top. */
+  :root[data-ws-view="detail"] .page:has(.ws) .page-head .lead { display: none; }
+}
+@media (max-width: 40rem) {
+  .cpanel__acts { width: 100%; }
+  .cpanel__share .cmdline { flex-wrap: wrap; }
+  .cpanel__empty { padding: var(--space-6) var(--space-4); }
+}
+
+/* A shared collection's own page. */
+.shared__kicker { margin-bottom: -4px; }
+.shared__own { margin-top: var(--space-2); }
+.shared__install { display: grid; gap: var(--space-3); max-width: 60rem; padding-block: var(--space-6); border-block: 1px solid var(--c-line); }
+.shared__groups { display: grid; gap: var(--space-10); max-width: 60rem; }

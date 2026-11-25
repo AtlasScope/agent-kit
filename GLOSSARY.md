@@ -20,6 +20,34 @@ _Avoid_: Package, pack, bundle
 A skill copied from another author's repository, kept under its original license and credited to them.
 _Avoid_: Third-party skill (in user-facing copy), imported skill
 
+**Original skill**:
+A skill written for Agent Kit from the job and from primary sources, with none of another author's wording.
+_Avoid_: Own skill, in-house skill, fork
+
+**Outside plugin**:
+A plugin Agent Kit does not ship that one of its routers sends work to.
+_Avoid_: External tool, dependency, add-on
+
+**Area**:
+One kind of work, such as design or refactoring, reached through a single command word.
+_Avoid_: Category, domain, section, router (when meaning the kind of work)
+
+**Job**:
+One named thing a person wants done within an area, which they can ask for directly.
+_Avoid_: Sub-command, mode, action, task
+
+**Menu**:
+What an area shows when the person has not named a job: one suggestion, what it will do, the alternatives, and a question.
+_Avoid_: Picker, wizard, list of commands
+
+**Keen**:
+The design area.
+_Avoid_: Design (as the command word), design router
+
+**Level**:
+How much the kit does without being typed: typed only, starts when asked, or checks after edits.
+_Avoid_: Mode, autonomy setting, automation tier
+
 **Library**:
 The public website where every prompt and skill can be read and copied without an account.
 _Avoid_: App, dashboard, catalog (for the site)

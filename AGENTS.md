@@ -38,7 +38,7 @@ Removal refuses a lane with uncommitted changes, or with commits that aren't on 
 - **Plugin READMEs:** every `kits/<kit>/plugins/<kit>/README.md` must stay at 40+ words outside code blocks (`scripts/check-catalog.mjs` enforces it).
 - **Version bumps are required:** Any change to a kit's shipped files means raising its version in both plugin manifests (`kits/<kit>/plugins/<kit>/.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`), `.claude-plugin/marketplace.json`, and any library badges in `library/library.json`, then running `node library/build.mjs`.
 - **Rebuilding generated files:**
-  - Prompt library: `node library/build.mjs`
+  - Prompt library: `node library/build.mjs`. Also after changing Keen's `SKILL.md` job tables or any `keen/jobs/*.md`: the library page reads Keen's jobs from them, and `node library/check.mjs` fails until it is rebuilt.
   - `/design` router refs: `node kits/design-kit/scripts/build_references.mjs` (design command jobs live in `site/scripts/design-jobs.mjs`)
   - `/engineer` router refs: `node kits/engineering-kit/scripts/build_references.mjs`
   - `/database` router refs: `node kits/engineering-kit/scripts/build_database_references.mjs`

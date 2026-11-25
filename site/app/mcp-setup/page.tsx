@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Crumbs } from "@/components/Crumbs";
+import { DocPage } from "@/components/DocPage";
 import { CopyButton } from "@/components/CopyButton";
 import { SITE } from "@/lib/site";
 
@@ -25,39 +25,37 @@ const TOOLS: [string, string][] = [
   ["fix", "The problems the library has starting points for, and the prompts for each."],
 ];
 
+const slug = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const ticks = (how: string) => how.split("`").map((t, i) => (i % 2 ? <code key={i} translate="no">{t}</code> : t));
+
 export default function McpSetup() {
   return (
-    <main className="page">
-      <div className="page-head">
-        <Crumbs items={[["MCP server", "/mcp-setup"]]} />
-        <h1>Use Agent Kit from your agent</h1>
-        <p className="lead">Add one URL and your agent can search the library and pull any prompt or skill into the conversation, without cloning the repo or installing a plugin.</p>
-      </div>
-
-      <div className="cmdline"><code>{url}</code><CopyButton text={url} /></div>
-
-      {CLIENTS.map(([label, how, cfg]) => (
-        <section className="section" key={label}>
-          <h2>{label}</h2>
-          <p className="note">{how.split("`").map((t, i) => (i % 2 ? <code key={i} translate="no">{t}</code> : t))}</p>
-          <div className="block">
-            <div className="block__head"><span>{label}</span><CopyButton text={cfg} /></div>
-            <pre>{cfg}</pre>
-          </div>
-        </section>
-      ))}
-
-      <section className="section">
-        <h2>Tools</h2>
-        <dl className="facts">
-          {TOOLS.flatMap(([name, d]) => [<dt key={name + "t"}><code translate="no">{name}</code></dt>, <dd key={name + "d"}>{d}</dd>])}
-        </dl>
-      </section>
-
-      <section className="section">
-        <h2>Limits</h2>
-        <p className="note">The server is read-only and returns text. It never runs code on your machine. Each visitor gets a per-minute rate limit, and the server has a daily cap shared by everyone; past either, calls get a short error until the limit resets (the daily cap resets at 00:00 UTC). Every prompt and skill is also on this website and on GitHub.</p>
-      </section>
-    </main>
+    <DocPage
+      path="/mcp-setup"
+      crumb="MCP server"
+      title="Use Agent Kit from your agent"
+      lead="Add one URL and your agent can search the library and pull any prompt or skill into the conversation, without cloning the repo or installing a plugin."
+      intro={<div className="mcp-url"><div className="cmdline"><code tabIndex={0} translate="no">{url}</code><CopyButton text={url} /></div></div>}
+      sections={[
+        ...CLIENTS.map(([label, how, cfg]) => ({
+          id: slug(label), title: label,
+          body: <>
+            <p>{ticks(how)}</p>
+            <div className="block">
+              <div className="block__head"><span>{label}</span><CopyButton text={cfg} /></div>
+              <pre>{cfg}</pre>
+            </div>
+          </>,
+        })),
+        {
+          id: "tools", title: "Tools",
+          body: <dl className="facts">{TOOLS.flatMap(([name, d]) => [<dt key={name + "t"}><code translate="no">{name}</code></dt>, <dd key={name + "d"}>{d}</dd>])}</dl>,
+        },
+        {
+          id: "limits", title: "Limits",
+          body: <p>The server is read-only and returns text. It never runs code on your machine. Each visitor gets a per-minute rate limit, and the server has a daily cap shared by everyone; past either, calls get a short error until the limit resets (the daily cap resets at 00:00 UTC). Every prompt and skill is also on this website and on GitHub.</p>,
+        },
+      ]}
+    />
   );
 }

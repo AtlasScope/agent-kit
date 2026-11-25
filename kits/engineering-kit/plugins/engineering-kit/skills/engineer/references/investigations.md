@@ -11,13 +11,13 @@ Spots where the way the code is built invites bugs: status spread across many pl
 ### A01 Status hidden in a pile of flags
 
 ```text
-Find every implicit state machine in this application. Identify where states, transitions, and invalid combinations are scattered across flags, conditionals, and components.
+Find implicit state machines where a feature's lifecycle is scattered across separate boolean flags, conditionals, and UI checks instead of one explicit status. Identify reachable invalid combinations and unclear transitions.
 ```
 
 - Finds: Finds features whose real status is spread across a pile of yes/no flags, so combinations that should be impossible can happen.
-- Evidence to ask for: A list of states and transitions per feature, each with file:line, plus one reachable invalid combination shown concretely.
-- Skip when: Small features with one status field that has a fixed list of values and is checked in one place.
-- Watch for: Agents tend to list every boolean as a state. Ask which combinations are reachable and which are only theoretical.
+- Evidence to ask for: For each affected feature, its flags and transitions (file:line), plus at least one concrete reachable invalid combination showing how a user or system event produces it.
+- Skip when: Features already use a single explicit status enum checked in one place.
+- Watch for: Do not flag every boolean field as a state machine. Report only flag combinations that are actually reachable and cause bugs.
 - Mode: read, split, wide scope. Needs: Repository access only.
 - Skills: `/improve-codebase-architecture`, `/grill-me`
 - Related: `A06`, `G06`, `R03`
@@ -25,13 +25,13 @@ Find every implicit state machine in this application. Identify where states, tr
 ### A02 Meaning drift across the stack
 
 ```text
-Trace the same business concept across the entire stack. Find places where its meaning, representation, or validation changes between the UI, API, database, and background jobs.
+Trace one core business concept end to end across the UI, API, database schema, and background jobs. If I did not name a specific concept, pick the single most central entity in this product and state which one you chose. Find every place its meaning, fields, nullability, or validation rules shift between layers.
 ```
 
 - Finds: Shows where one word (a task, a fund, a run) means slightly different things in different parts of the app.
-- Evidence to ask for: One table per concept: layer, type or column, validation rule, file:line. Mismatches marked.
-- Skip when: Ideas that only live in one part of the app.
-- Watch for: This is an unbounded trace. Name one concept up front or it will wander.
+- Evidence to ask for: One table for that concept listing each layer, its name/type/column, its validation rules, and file:line, with every mismatch clearly flagged.
+- Skip when: A simple concept that exists in only one layer of the app.
+- Watch for: Tracing five concepts at once produces a vague essay. Keep the trace tightly focused on one concept.
 - Mode: read, split, wide scope. Needs: Repository access and read-only access to the database layout.
 - Skills: `/grill-with-docs`, `/spec-to-code-compliance`
 - Related: `D01`, `D03`, `G03`
@@ -39,13 +39,13 @@ Trace the same business concept across the entire stack. Find places where its m
 ### A03 Layers that don't earn their keep
 
 ```text
-Identify abstractions that no longer earn their complexity. Find wrappers, factories, inheritance, and generic utilities that make the application harder to understand than a simpler implementation would.
+Find code abstractions that add indirection without real benefit: single-use wrappers, generic factories, deep inheritance, and pass-through utilities that make changes harder to follow than plain direct code. Separate dead weight from thin adapters that legitimately isolate an unstable third-party SDK or create a test boundary.
 ```
 
 - Finds: Finds extra layers of code you could delete so the code, and the agents reading it, get simpler.
-- Evidence to ask for: For each candidate: callers count, what deleting it would move where (the deletion test), and what tests would change.
-- Skip when: Right after a cleanup of the code, or when the layer walls off an outside company's toolkit.
-- Watch for: Agents call thin adapters redundant when they exist to isolate an unstable SDK or give tests a seam.
+- Evidence to ask for: Each removal candidate (file:line), how many callers it has, what deleting it would inline or simplify, and which tests would update.
+- Skip when: A small, direct codebase or one that just went through a cleanup pass.
+- Watch for: Do not flag thin boundary wrappers around external payment, email, or AI SDKs as useless — those protect against vendor changes.
 - Mode: read, single pass, wide scope. Needs: Repository access only.
 - Skills: `/improve-codebase-architecture`, `/simplify`
 - Related: `A05`, `M04`, `PG10`
@@ -53,12 +53,12 @@ Identify abstractions that no longer earn their complexity. Find wrappers, facto
 ### A04 Two systems that disagree
 
 ```text
-Find places where two systems can disagree about the same truth. Trace their ownership, synchronization, cache invalidation, and recovery behavior.
+Find places where the same fact is stored in more than one place — across database tables, derived columns, caches, browser storage, or external services like billing or search. For each pair, trace which copy is authoritative, how they stay in sync, what sequence of failures makes them diverge, and which copies actually earn their keep for speed or history.
 ```
 
 - Finds: Finds data kept in two places (a saved copy and a table, the browser and the server) that can quietly disagree.
-- Evidence to ask for: Pairs of stores with the field, who writes each, how they sync, and a sequence of events that makes them diverge.
-- Skip when: Read-only copies that are rebuilt from scratch on every load.
+- Evidence to ask for: Each duplicated fact with its authoritative source and copies (file:line), how updates propagate, a concrete failure sequence that causes drift, and whether the extra copy should stay or be removed.
+- Skip when: Every fact lives in one place, or caches are rebuilt cleanly on every read.
 - Mode: read, split, wide scope. Needs: Repository and read-only database access.
 - Skills: `/audit-context-building`
 - Related: `R05`, `G06`, `D02`, `PG05`, `PG11`
@@ -66,12 +66,12 @@ Find places where two systems can disagree about the same truth. Trace their own
 ### A05 Old design choices that now cost you
 
 ```text
-Look for architectural decisions that were reasonable when this project was smaller but are now liabilities. Distinguish actual problems from stylistic preferences.
+Examine the codebase and git history for early architectural choices that were reasonable when the project started and now create measurable friction: recurring bugs, repeated workarounds, or slow feature work. Separate real operational liabilities from out-of-fashion tech preferences.
 ```
 
 - Finds: Separates old design choices that now cost real time or bugs from ones that are only out of fashion.
-- Evidence to ask for: Each decision with the original reason, the current cost (incidents, workarounds, slow paths) and evidence for that cost.
-- Skip when: Projects younger than a few months.
+- Evidence to ask for: Each architectural liability with its original rationale, concrete evidence of today's cost (repeated bug fixes, workarounds, slow paths, or commits), and the smallest practical path forward.
+- Skip when: A brand-new codebase under a couple of months old with little change history.
 - Mode: read, single pass, wide scope. Needs: Repository and its git history.
 - Skills: `/improve-codebase-architecture`
 - Related: `A03`, `P05`
@@ -79,12 +79,12 @@ Look for architectural decisions that were reasonable when this project was smal
 ### A06 Code that relies on lucky timing
 
 ```text
-Identify asynchronous operations whose correctness depends on events happening in a particular order without an explicit guarantee. Trace the scheduling, retries, cancellation, and conflicting writes; reproduce the highest-risk cases and propose the smallest enforceable contract.
+Find asynchronous operations whose correctness relies on events arriving in a lucky order without an explicit lock, sequence check, or state guard. Trace scheduling, retries, cancellation, and concurrent writes; reproduce the highest-risk case and propose the smallest enforceable contract.
 ```
 
 - Finds: Finds code that only works because things usually happen in the right order.
-- Evidence to ask for: The assumed order, what can reorder it (retry, webhook, slow network), and a reproduction for the worst case.
-- Skip when: Scripts that do one step at a time with nothing running side by side.
+- Evidence to ask for: Each assumed ordering, what real-world event can break it (retry, slow network, double click, webhook burst), and a reproducible case for the highest-risk bug.
+- Skip when: Strictly sequential scripts with no concurrent requests, timers, webhooks, or background tasks.
 - Mode: repro, split, wide scope. Needs: Repository; a way to run the code locally to reproduce the problem.
 - Skills: `/diagnosing-bugs`
 - Related: `R05`, `A01`, `G04`
@@ -102,16 +102,36 @@ Map external side effects and resource lifecycles across this application: conne
 - Skills: `/audit-context-building`
 - Related: `P07`, `R06`
 
+## Explore
+
+
+
+### AD07 Sign-up, sign-in, and locked-out users
+
+```text
+Trace the full account lifecycle in this application: sign-up, email verification, password sign-in, magic links, OAuth/social login, password reset, email change, session refresh and expiry, sign-out, role or team revocation, and account deletion. Look for ways a real person gets stuck or locked out (expired links with no resend button, case-sensitive email mismatches, OAuth colliding with an existing password account, redirect loops after sign-in, sessions dropping on refresh) and ways revoked users keep access (cached tokens, active sessions that survive password change or removal). Check both code and auth provider configuration where visible in the repo.
+```
+
+- Finds: Traces every way someone creates an account, signs in, resets a password, switches devices, or deletes an account, and finds where people can get locked out or keep access they shouldn't have.
+- Evidence to ask for: A walkthrough of each account flow with file:line, every lockout or leftover-access failure found, and any auth provider settings that live outside the repo and need my check in a named dashboard.
+- Skip when: A public tool or static site with no accounts or sign-in.
+- Watch for: Agents test only the happy sign-in path. Trace duplicate emails across sign-in methods, expired tokens, and what happens to open browser tabs after a user is removed or changes their password.
+- Mode: read, single pass, wide scope. Needs: Repository access.
+
+## Architecture and hidden complexity
+
+Spots where the way the code is built invites bugs: status spread across many places, words that change meaning between layers, and layers that cost more than they help.
+
 ### A08 Screens that fight how people work
 
 ```text
-Map this application's pages, navigation and URLs against the jobs its users actually do. Find pages that should merge, become a tab or panel, or go away; navigation systems that compete for the same destinations; and jobs users have to assemble by hand across screens. Say whether the structure itself causes the problems, and if it does, name the end state it should reach.
+Map this product's pages, routes, and navigation against the real jobs users come to do. Look for pages that should merge, shrink into a tab or panel, or go away; competing menus pointing to the same destinations; and workflows users must piece together across multiple screens. State clearly whether the underlying page structure causes two or more of these issues; if not, keep the structure and recommend local fixes.
 ```
 
 - Finds: Finds when confusing screens are a symptom of how the product is organised rather than a list of separate bugs.
-- Evidence to ask for: A verdict per page (keep, merge, demote, retire) with the evidence for each, the two to five causes behind the symptoms, and today's site map next to the proposed one.
-- Skip when: Products with a handful of pages, or right after a navigation redesign nobody has used yet.
-- Watch for: Agents propose a redesign for every complaint. Ask whether one structural cause explains two or more findings; if none does, the structure is sound and the fixes are local.
+- Evidence to ask for: A verdict per page (keep, merge, demote, or retire) with evidence, the two to five root causes behind user confusion, and today's site map beside the proposed one.
+- Skip when: A tiny app with fewer than five screens, or a navigation redesign that just shipped with no user feedback yet.
+- Watch for: Do not propose a full redesign for isolated screen bugs. Recommend structural changes only when one cause explains multiple problems.
 - Mode: read, split, wide scope. Needs: Repository; the app running locally with test accounts for the browser checks.
 - Skills: `/experience-architecture:diagnose`, `/experience-architecture:rethink`
 - Related: `A05`, `R07`, `A02`
@@ -123,13 +143,13 @@ Where time and money go as the data grows. Every claim here needs a measurement 
 ### P01 Slowest journeys, end to end
 
 ```text
-Trace the five most expensive user journeys from browser interaction to database response. Find unnecessary round trips, waterfalls, serialization, and repeated computations, and measure their contribution to latency.
+Trace and measure the five slowest or heaviest user journeys from browser interaction to database response. Look for unnecessary network round trips, sequential waterfalls, slow queries, repeated work, heavy synchronous handlers blocking other requests, and quadratic loops over growing collections. Measure each step's share of total latency before ranking fixes.
 ```
 
 - Finds: Shows where the seconds go on the paths people actually use.
-- Evidence to ask for: A timed trace per journey (browser network panel, server timing, query time) with each step's share of the total.
-- Skip when: When nobody has reported slowness and costs are flat.
-- Watch for: Static reading guesses at latency. Require a measured trace before any ranking.
+- Evidence to ask for: A measured timing breakdown per journey (browser network timing, server timing, query plan, or event-loop delay) showing each step's share of total time, ranked by impact.
+- Skip when: Every main flow already feels fast and server/database bills are flat.
+- Watch for: Reading code statically guesses at latency and flags tiny loops that never matter. Require actual measurements at realistic data sizes before ranking anything.
 - Mode: read, split, wide scope. Needs: Browser developer tools or Playwright recordings, server logs or timing data, and the database's query plan (EXPLAIN).
 - Skills: `/diagnosing-bugs`
 - Related: `P02`, `P03`, `M08`
@@ -137,13 +157,13 @@ Trace the five most expensive user journeys from browser interaction to database
 ### P02 Steps that wait for no reason
 
 ```text
-Find all hot paths where independent asynchronous operations run sequentially. Establish which can safely run concurrently without violating ordering, rate limits, or transaction boundaries.
+Audit asynchronous hot paths for two opposite problems: (1) independent operations waiting sequentially when they could safely run in parallel without breaking ordering, rate limits, or database transaction boundaries, and (2) parallel fan-outs or queues running with no concurrency cap that could exhaust connection pools, memory, or external API limits at realistic scale.
 ```
 
 - Finds: Finds steps that wait for each other to finish when they could run at the same time.
-- Evidence to ask for: Each chain with the operations, why they are independent, and a before/after timing on a realistic input.
-- Skip when: Paths that run once a day or already finish in a few milliseconds.
-- Watch for: Agents wrap awaits in Promise.all without noticing they share one database transaction or hit a rate-limited API. Check transactions, rate limits and pool sizes before changing anything.
+- Evidence to ask for: For each sequential chain, the current measured duration, why the steps are independent, and any shared transaction or rate limit to respect; for each unbounded fan-out, its maximum width on realistic data next to the downstream limit and a recommended cap.
+- Skip when: Fast paths finishing in a few milliseconds, or fixed tiny lists with no external or database pressure.
+- Watch for: Wrapping awaits in Promise.all breaks when calls share a single database transaction or hit a rate-limited API. Check transaction scopes, pool sizes, and vendor rate limits before recommending parallelism.
 - Mode: read, single pass, narrow scope. Needs: Repository; a timing script to measure the result afterward.
 - Skills: `/diagnosing-bugs`
 - Related: `P09`, `A06`, `M08`
@@ -151,37 +171,37 @@ Find all hot paths where independent asynchronous operations run sequentially. E
 ### P03 Queries that grow badly
 
 ```text
-Find database queries whose cost grows disproportionately with records, tenants, or relationships. Examine execution plans, indexes, joins, pagination, and application-side filtering.
+Find database queries whose execution cost grows disproportionately as rows, users, tenants, or relationships increase. Inspect query plans, missing or unused indexes, N+1 joins, unbounded pagination, and filtering done in application memory instead of the database.
 ```
 
 - Finds: Finds the database queries that will be the first to slow down as tables grow.
-- Evidence to ask for: EXPLAIN ANALYZE output for each suspect query at realistic row counts, plus the index or rewrite and its new plan.
-- Skip when: Tables that will stay small (settings, lookup lists).
+- Evidence to ask for: Each suspect query (file:line), its EXPLAIN ANALYZE output (or query plan) at realistic row counts, the exact scaling bottleneck, and the proposed index or query rewrite. If a safe non-production copy exists, note whether the rewrite can be benchmarked there in a follow-up step.
+- Skip when: Projects with only tiny, fixed-size tables (such as settings or short lookup lists).
 - Mode: read, single pass, narrow scope. Needs: Read-only database access with EXPLAIN (the database's query plan). A Neon or Supabase branch copy for anything heavier.
 - Related: `P01`, `P05`, `P06`, `PG13`
 
 ### P04 Work repeated for nothing
 
 ```text
-Identify expensive work that is repeated despite unchanged inputs. Investigate caching, memoization, batch operations, and incremental computation before recommending changes.
+Find expensive computations, queries, API calls, or UI renders that run repeatedly even though their inputs have not changed. Measure how often each runs and what it costs before considering caching, memoization, batching, or incremental updates.
 ```
 
 - Finds: Finds work redone on every request or screen redraw when nothing it depends on changed.
-- Evidence to ask for: The operation, how often it runs, how often its inputs change, and its measured cost.
-- Skip when: Work that is already cheap, where saving results would add a risk of stale data for little gain.
-- Watch for: A cache is a second source of truth. Any cache proposal must say who invalidates it and when.
+- Evidence to ask for: Each repeated operation (file:line), how often it runs, how often its inputs actually change, its measured cost, and — if you recommend caching — exactly how and when that cache gets invalidated.
+- Skip when: Operations that are already cheap, where caching would add stale-data bugs for negligible gain.
+- Watch for: Every cache creates a second source of truth. Reject any caching proposal that cannot explain invalidation cleanly.
 - Mode: read, single pass, wide scope. Needs: A profiler or request logs to count repeats.
 - Related: `A04`, `P01`, `PG06`
 
 ### P05 What breaks at ten times the size
 
 ```text
-Investigate what happens when this application's data volume and concurrent users increase tenfold. Identify the first likely bottlenecks using evidence from its current design.
+Model what happens when this product's stored data and concurrent active users grow tenfold. Use real table counts, request rates, query plans, and hosting/database plan limits to identify the first bottlenecks that break or spike cost.
 ```
 
 - Finds: Names the first thing to break if the project takes off, before it does.
-- Evidence to ask for: Current sizes and rates, the projected tenfold numbers, and the limit each bottleneck hits (pool size, plan limit, query cost).
-- Skip when: Products with no growth in sight; revisit quarterly.
+- Evidence to ask for: Current baseline sizes and rates (marking anything estimated), projected 10x numbers, the exact ceiling each bottleneck hits (connection pool, query time, storage quota, rate limit, or plan tier), and the threshold at which you should actually fix it.
+- Skip when: A personal tool or fixed-audience app with flat usage and no growth expected.
 - Mode: read, single pass, wide scope. Needs: Database stats, hosting plan limits, current traffic numbers.
 - Related: `P03`, `P09`
 
@@ -201,12 +221,12 @@ Identify potentially quadratic or worse operations in frequently used code paths
 ### P07 Memory that keeps growing
 
 ```text
-Investigate sustained memory growth and allocation pressure. Look for unbounded caches, retained closures, unremoved listeners, large error objects, detached DOM references and accidentally retained request data. Use heap profiles or repeatable growth tests to validate candidates.
+Investigate sustained memory growth and leaked resources across the browser and server: unbounded caches, unremoved event listeners, timers and intervals never cleared, unclosed database or network connections, leaked streams or subscriptions, detached DOM nodes, and retained closures or request payloads. Validate top suspects with repeatable growth checks or heap snapshots where available.
 ```
 
 - Finds: Finds why a page or process gets slower or crashes the longer it runs.
-- Evidence to ask for: Two heap snapshots over a repeated action, with the growing object type and what retains it.
-- Skip when: When memory use stays flat over a long session.
+- Evidence to ask for: Each leak or unclosed resource with where it is created (file:line), who should clean it up, the path where cleanup is skipped, and heap-snapshot or growth evidence for the top suspects.
+- Skip when: Short-lived scripts or stateless functions with flat memory usage over time.
 - Mode: read, single pass, narrow scope. Needs: Chrome DevTools memory snapshots or Node --inspect.
 - Skills: `/diagnosing-bugs`
 - Related: `A07`
@@ -242,12 +262,12 @@ What happens when something runs twice, fails, times out or happens in the wrong
 ### R01 Safe to run twice?
 
 ```text
-Find operations that cannot safely be retried. Examine duplicate events, partial failures, idempotency, transaction boundaries, and recovery from interrupted execution.
+Find write operations, webhooks, imports, and user actions that cannot safely run twice or resume after an interruption. Examine duplicate requests, webhook retries, out-of-order arrivals, idempotency keys, unique constraints, and transaction boundaries. Do not assume an ON CONFLICT clause alone guarantees safe reruns; check side effects like emails, charges, and counters too.
 ```
 
 - Finds: Finds actions that do damage when they run twice: double sends, double charges, duplicate rows.
-- Evidence to ask for: Each operation with its trigger, what a second run does, and whether a key or constraint prevents it.
-- Skip when: Actions that only read data.
+- Evidence to ask for: Each unsafe operation (file:line), what triggers a retry or duplicate, what happens on a second run, and whether a key, constraint, or lock currently prevents damage.
+- Skip when: Read-only apps that never write records, send messages, or charge cards.
 - Mode: read, split, wide scope. Needs: Repository and read-only access to the database layout.
 - Skills: `/diagnosing-bugs`
 - Related: `R05`, `R06`, `D04`, `PG08`
@@ -255,12 +275,12 @@ Find operations that cannot safely be retried. Examine duplicate events, partial
 ### R02 Fallbacks that look like real data
 
 ```text
-Trace every place the application silently substitutes a default, null, stale value, or empty result when something fails. Determine whether users could mistake the fallback for valid information.
+Trace every place the application quietly substitutes a default, zero, null, stale value, or empty list when a request, query, or calculation fails. Determine whether a user could mistake that fallback for valid, up-to-date information.
 ```
 
 - Finds: Finds screens that show a confident zero or an empty list when the real answer is 'we could not load this'.
-- Evidence to ask for: Each fallback with its trigger, what the user sees, and whether anything tells them it is a fallback.
-- Skip when: Fallbacks that are already labelled on screen.
+- Evidence to ask for: Each silent fallback with its trigger, what appears on screen, and whether anything alerts the user that loading failed.
+- Skip when: Every error path already displays a clear error or unavailable state on screen.
 - Mode: read, single pass, wide scope. Needs: Repository; the app running to see what users see.
 - Skills: `/insecure-defaults:audit`
 - Related: `D01`, `T05`, `S06`
@@ -268,12 +288,12 @@ Trace every place the application silently substitutes a default, null, stale va
 ### R03 Rules the data never enforces
 
 ```text
-Identify business invariants the system assumes but never enforces. Find the appropriate enforcement point and develop tests that attempt to violate them.
+Identify critical business invariants this product assumes (such as non-negative balances, unique ownership, valid status combinations, or plan limits) that are enforced only in UI code or never enforced at all. Recommend the right enforcement layer (database constraint, schema validation, or server check) and write a test demonstrating how the top rule can be broken today.
 ```
 
 - Finds: Finds the rules everyone assumes (one owner per task, no negative balance) that nothing actually checks.
-- Evidence to ask for: Each invariant, where it is assumed, where it could be enforced (constraint, schema, server check) and a test that breaks it today.
-- Skip when: Rules the database itself already enforces.
+- Evidence to ask for: Each unenforced rule, where the app assumes it (file:line), where it should be enforced, and a failing test proving it can be violated today.
+- Skip when: Core rules are already enforced by database constraints and server-side checks.
 - Mode: repro, single pass, wide scope. Needs: Repository; a test database or branch copy.
 - Skills: `/property-based-testing`, `/tdd`
 - Related: `A01`, `T02`
@@ -281,12 +301,12 @@ Identify business invariants the system assumes but never enforces. Find the app
 ### R04 Dates, times and time zones
 
 ```text
-Analyze the system's handling of time: time zones, daylight saving, expiration, scheduled jobs, clock differences, and historical as-of queries.
+Audit how this application handles dates and time: time zones, daylight saving transitions, day boundaries, expirations, scheduled jobs, client-versus-server clock skew, and historical date queries.
 ```
 
 - Finds: Finds the date bugs that show up twice a year, at midnight, or in another time zone.
-- Evidence to ask for: Each time-sensitive path with the zone it assumes, and a test at a DST boundary and at midnight in your users' main time zone and in UTC.
-- Skip when: Features that never show or compare dates.
+- Evidence to ask for: Each time-sensitive path with the time zone it assumes, plus a failing test at a daylight saving change and around midnight in both UTC and your users' primary time zone.
+- Skip when: Features that never store, compare, schedule, or display dates or times.
 - Mode: repro, single pass, wide scope. Needs: Repository; tests with the clock fixed to a set time.
 - Skills: `/property-based-testing`
 - Related: `D03`
@@ -294,13 +314,13 @@ Analyze the system's handling of time: time zones, daylight saving, expiration, 
 ### R05 Updates that overwrite each other
 
 ```text
-Find race conditions and out-of-order updates across background jobs, UI mutations, caches, webhooks, and database writes. Prove suspected problems with reproducible cases.
+Find race conditions and lost-update paths across concurrent UI edits, API calls, caches, webhooks, and background jobs. Prove real risks with a concrete reproduction instead of listing theoretical possibilities.
 ```
 
 - Finds: Finds updates that overwrite newer data because two things wrote at once.
-- Evidence to ask for: A reproduction for each race (a script or test that loses an update) rather than a theory.
-- Skip when: Data that only one thing ever writes.
-- Watch for: Agents list theoretical races freely. Count only the ones with a reproduction.
+- Evidence to ask for: Each confirmed race (file:line) with a runnable test or script that reproduces the lost update.
+- Skip when: Single-user records written by only one synchronous code path.
+- Watch for: Agents list theoretical race conditions freely. Count only races backed by a concrete reproduction or an exact reachable sequence.
 - Mode: repro, split, wide scope. Needs: Repository; a local or branch-copy database to reproduce the problem.
 - Skills: `/diagnosing-bugs`
 - Related: `A06`, `A04`, `R01`, `PG05`
@@ -308,12 +328,12 @@ Find race conditions and out-of-order updates across background jobs, UI mutatio
 ### R06 Half-finished failures
 
 ```text
-Trace error, timeout and cancellation paths for transactions, locks, file handles, temporary files, worker jobs and network connections. Identify paths that leave resources held or state half-committed, and demonstrate them with controlled failure injection where practical.
+Trace error, timeout, and cancellation paths for database transactions, locks, file handles, temporary files, background jobs, and external network calls. Find paths that leave resources held open or data half-committed when something fails midway, and demonstrate the highest-risk case with controlled failure injection where practical.
 ```
 
 - Finds: Finds what is left behind when something fails halfway.
-- Evidence to ask for: Each failure path with the resource left held, shown by injecting the failure.
-- Skip when: Code that holds nothing open beyond a single request.
+- Evidence to ask for: Each failure path, what gets left half-committed or held open, and a reproduction for the highest-risk case.
+- Skip when: Simple stateless endpoints or scripts that perform a single atomic read or write with no multi-step state.
 - Mode: repro, single pass, wide scope. Needs: Repository; a way to force errors in tests.
 - Skills: `/diagnosing-bugs`
 - Related: `A07`, `R01`, `I04`
@@ -321,13 +341,13 @@ Trace error, timeout and cancellation paths for transactions, locks, file handle
 ### R07 Lost place: Back, refresh and shared links
 
 ```text
-Check whether this application keeps the user's place. In a real browser, open lists, filters, tabs, panels and records, then press Back and Forward, refresh, open links in a new tab, and open shared links in a fresh browser both signed out and as another account. Find where users lose a filter, scroll position, draft or open panel, or land somewhere other than what was shared, and trace each case to where that state lives.
+Check whether this application preserves the user's place. In a local or staging browser (never production with real accounts), open lists, filters, tabs, modals, and detail records, then test Back, Forward, page refresh, opening links in a new tab, and opening copied URLs in a fresh session both signed out and as another user. Trace every lost filter, scroll jump, wiped draft, broken Back action, or wrong landing screen to the code that owns that state.
 ```
 
 - Finds: Finds the everyday friction where Back closes the wrong thing, a filter resets, or a pasted link opens the wrong view.
-- Evidence to ask for: Each case as a recorded journey (start, action, expected, observed) with the file and line that owns the state, and the journey runner's verdict: PASS, FAIL or EXPLORATORY.
-- Skip when: Static sites with no filters, panels or signed-in pages.
-- Watch for: Blocking data-changing requests does not make a browser run read-only, because some apps change data on an ordinary page load. Never point it at production with real accounts.
+- Evidence to ask for: Each tested journey (start, action, expected result, observed result) with the file:line owning the state and a clear PASS or FAIL verdict.
+- Skip when: A simple static site with no filters, panels, drafts, or signed-in views.
+- Watch for: Even ordinary page loads can trigger background writes in some apps. Run browser checks only against local development or safe staging test accounts.
 - Mode: read, single pass, narrow scope. Needs: The app running locally or on staging with test accounts; Playwright, which the plugin looks for and asks before installing.
 - Skills: `/experience-architecture:diagnose`, `/experience-architecture:verify`
 - Related: `T01`, `A08`, `G06`
@@ -365,12 +385,12 @@ Find tests that would continue passing if the underlying feature stopped working
 ### T03 Outside input reaching sensitive actions
 
 ```text
-Trace every external input from entry point to sensitive operation. Investigate authorization gaps, injection risks, unsafe parsing, and tenant isolation failures.
+Trace every untrusted external input — forms, URL parameters, file uploads, headers, webhooks, and AI model outputs — from entry point to sensitive operations (database writes, auth changes, billing, file access, admin actions, outbound requests). Check for missing authorization or ownership checks, tenant isolation gaps, injection vectors, and unsafe parsing.
 ```
 
 - Finds: Follows input from outsiders to the places it can do harm.
-- Evidence to ask for: Each path: entry point, checks along the way, sensitive operation, and the missing check if any, with file:line.
-- Skip when: Never skip for anything that holds other people's data or money.
+- Evidence to ask for: Each risky path listing its entry point, checks along the way, the sensitive operation reached, and the exact missing safeguard (file:line).
+- Skip when: A completely static site with zero backend endpoints, forms, uploads, webhooks, or stored user data.
 - Mode: read, split, wide scope. Needs: Repository access.
 - Skills: `/security-review`, `/audit-context-building`, `/differential-review:diff-review`
 - Related: `T05`, `S06`, `G03`
@@ -378,12 +398,12 @@ Trace every external input from entry point to sensitive operation. Investigate 
 ### T04 Risk from outside packages
 
 ```text
-Review dependency and CI supply-chain exposure: install scripts, untrusted pull requests, privileged tokens, outdated packages, and unsafe automation permissions.
+Audit dependency and CI supply-chain exposure: known security advisories matching installed versions, package install scripts, GitHub Actions or CI workflows triggered by untrusted pull requests, overly broad workflow permissions, and which jobs can read deployment secrets.
 ```
 
 - Finds: Checks what a harmful outside package or pull request could reach.
-- Evidence to ask for: Advisories matched to installed versions, install scripts present, workflow permissions and which secrets each job can read.
-- Skip when: Rarely; run after adding packages or automated build jobs.
+- Evidence to ask for: Active advisories matched to installed versions, packages with lifecycle install scripts, workflow permission gaps (file:line), and a map of which CI jobs can access which secrets.
+- Skip when: A zero-dependency repository with no automated CI or deployment workflows.
 - Mode: read, single pass, narrow scope. Needs: The lockfile (exact package list), automated build workflow files, npm audit or the auditor skill.
 - Skills: `/supply-chain-risk-auditor`, `/agentic-actions-auditor`, `/ci-optimizer:ci-check`
 - Related: `I06`, `I03`
@@ -391,12 +411,12 @@ Review dependency and CI supply-chain exposure: install scripts, untrusted pull 
 ### T05 Security checks that fail open
 
 ```text
-Search for security-sensitive behavior that fails open when configuration is missing, an authorization service fails, or a request is malformed.
+Audit every authentication, authorization, rate-limit, and webhook-signature check for fail-open behavior: cases where a missing environment variable, null user object, thrown exception, network timeout, or malformed request results in access being granted instead of denied.
 ```
 
 - Finds: Finds security checks that let people in when something goes wrong.
-- Evidence to ask for: Each check with what happens on missing config, thrown error and malformed input, shown with a request or test.
-- Skip when: Never skip for sign-in, keys or owner checks.
+- Evidence to ask for: Each security gate (file:line) and what happens on missing config, thrown error, and malformed input, backed by a code trace or safe test request.
+- Skip when: A public static app with no authentication, permissions, private endpoints, or webhooks.
 - Mode: read, single pass, narrow scope. Needs: Repository; the app running locally in demo mode.
 - Skills: `/insecure-defaults:audit`, `/sharp-edges`
 - Related: `S06`, `T03`, `R02`
@@ -404,12 +424,13 @@ Search for security-sensitive behavior that fails open when configuration is mis
 ### T06 What the tests really prove
 
 ```text
-Choose critical features and ask what the existing tests truly prove. Identify mocks that bypass important integration behavior, assertions that cannot fail meaningfully, and tests that reproduce the implementation's assumptions. Produce the smallest independent check that catches a real regression.
+Audit the test suite covering this product's critical user journeys. Look for three failure modes: (1) heavy unit-test coverage that mocks away real auth, database, or browser behavior so broken integrations still pass, (2) assertions that test implementation details or cannot fail meaningfully when user behavior breaks, and (3) critical flows with no end-to-end check at all. For the single highest-risk gap, write one independent test that would catch a real user-facing regression.
 ```
 
 - Finds: Asks what each test really proves, then adds one check that would catch a real break.
-- Evidence to ask for: For each feature, the claim the tests make, what they actually exercise, and a new check that fails when the feature is broken.
-- Skip when: Features with an existing start-to-finish check that has caught a real bug.
+- Evidence to ask for: For each critical journey, what existing tests actually exercise versus what they mock or skip (file:line), any toothless tests found and why they pass on broken code, and the one added check for the top gap.
+- Skip when: Every critical user flow is already covered by end-to-end checks that run against real storage and have caught real regressions.
+- Watch for: Do not modify application code to "test the tests." Prove toothless assertions by tracing the mocked boundary or writing an independent test against the real requirement.
 - Mode: repro, single pass, narrow scope. Needs: Repository and test runner.
 - Skills: `/tdd`, `/property-based-testing`
 - Related: `T02`, `T01`, `M06`
@@ -417,13 +438,13 @@ Choose critical features and ask what the existing tests truly prove. Identify m
 ### S06 Settings that differ in production
 
 ```text
-Audit settings that differ between local development, CI, preview and production. Find ambiguous fallbacks, fail-open access controls and configuration whose behavior silently changes when an environment variable is missing. Verify against the actual deployment configuration, not only README examples.
+Audit configuration and environment variables across local development, CI, preview, and production. Find ambiguous fallbacks, test-mode switches that could stay on, fail-open permissions, and behavior that silently changes when a variable is unset. Check actual code and deployment config files instead of trusting README examples. Never print or expose secret values.
 ```
 
 - Finds: Finds settings that behave differently in production than anyone expects.
-- Evidence to ask for: A table of each setting per environment, the default when missing, and the behavior that changes.
-- Skip when: Projects with one environment.
-- Watch for: Never print secret values. The audit needs variable names and code paths, not contents.
+- Evidence to ask for: A table of environment-sensitive settings (variable names only, never values), where each is read (file:line), its fallback when missing, and what breaks or shifts across environments.
+- Skip when: A local-only tool with a single environment and no deployment settings.
+- Watch for: Never print secret values in output or logs. Report only variable names, code paths, and whether a setting exists.
 - Mode: read, single pass, narrow scope. Needs: Vercel settings list (names only, never values), automated build config, the code that reads each setting.
 - Skills: `/insecure-defaults:audit`
 - Related: `T05`, `I05`, `G02`
@@ -448,24 +469,24 @@ Inventory the development environment's browser runtimes, caches, SDKs, package 
 ### I02 Why production might not match main
 
 ```text
-Trace a change from commit to production, including builds, migrations, deployment triggers, cache refreshes, and background services. Identify every reason production might not reflect merged code.
+Trace a code change from merge to live users: build steps, database migrations, deployment triggers, CDN or app caches, background workers, and mobile/client updates. Identify every point where a deploy step can silently skip, fail, or serve stale code without alerting anyone.
 ```
 
 - Finds: Lists every way 'merged' can fail to mean 'live'.
-- Evidence to ask for: The real pipeline as steps with their config files, and for each, how it can skip or fail without anyone noticing.
-- Skip when: Right after the same trace, unless the release process changed.
+- Evidence to ask for: The actual release pipeline step by step with its config files (file:line), and for each step how it can fail or stay stale silently.
+- Skip when: You already mapped this pipeline recently and nothing in hosting, builds, or migrations changed since.
 - Mode: read, single pass, narrow scope. Needs: Automated build and Vercel config, deployment history (read-only).
 - Related: `G02`, `I05`, `PG15`
 
 ### I03 Check time that catches nothing
 
 ```text
-Analyze CI and deployment costs against actual failures detected. Find repeated work, redundant checks, and expensive jobs that contribute little incremental confidence.
+Analyze CI and deployment workflows against the real failures they catch. Look for duplicated build/install steps, missing caches, redundant checks, and expensive jobs that add little confidence over faster checks.
 ```
 
 - Finds: Finds paid automated-check minutes spent on checks that never catch anything.
-- Evidence to ask for: Per job: run count, minutes, failures that were real bugs, and what else would have caught them.
-- Skip when: When the bills for automated checks are small and runs are fast.
+- Evidence to ask for: Each CI job (file:line) with its typical duration, run frequency, whether recent runs caught real bugs (where run history is accessible), and the highest-impact speedup or cut.
+- Skip when: CI runs finish in a minute or two and cost nothing.
 - Mode: read, single pass, narrow scope. Needs: GitHub Actions run history via gh.
 - Skills: `/ci-optimizer:ci-timings`, `/ci-optimizer:ci-check`
 - Related: `T04`
@@ -473,37 +494,37 @@ Analyze CI and deployment costs against actual failures detected. Find repeated 
 ### I04 Background jobs that hang or stop halfway
 
 ```text
-Find background jobs that can block other work or leave partially updated data. Examine queues, locks, timeouts, retries, deployment behavior, and observability.
+Audit every scheduled job, cron task, and background worker for hangs, overlapping runs, partial updates, missing timeouts, unsafe retries, and deploy interruptions.
 ```
 
 - Finds: Finds scheduled jobs and background workers that can hang, overlap or stop halfway.
-- Evidence to ask for: Each job with its trigger, timeout, what happens if two run at once, and what happens if it dies midway.
-- Skip when: Projects with no background jobs.
+- Evidence to ask for: Each job (file:line) with its schedule or trigger, timeout, lock/overlap protection, what happens if it crashes midway, and how a failure is reported.
+- Skip when: Projects with no scheduled tasks, queues, or background workers.
 - Mode: read, single pass, narrow scope. Needs: Repository, the scheduled jobs in vercel.json, logs.
 - Related: `R06`, `R01`, `G02`
 
 ### I05 Dashboard and repo out of sync
 
 ```text
-Compare declared infrastructure configuration with the running environment and identify drift that affects reliability, security, or developer productivity.
+Compare infrastructure, hosting, cron, and environment settings declared in this repository against live configuration where read-only CLI or API access exists. Where dashboard state cannot be inspected from here, list the exact settings and dashboards I need to compare by hand. Flag drift that creates security, billing, or deploy risk.
 ```
 
 - Finds: Finds where the hosting dashboard and the repo disagree.
-- Evidence to ask for: Each setting declared in the repo next to its live value, with the source of each.
-- Skip when: Setups that are fully managed from the repo.
+- Evidence to ask for: Each declared setting (file:line) next to its live value (or "check in [named dashboard]"), highlighting every mismatch that affects uptime, security, or deploys.
+- Skip when: Every hosting and database setting is managed purely from code with no manual dashboard overrides.
 - Mode: read, single pass, narrow scope. Needs: Vercel and database dashboards or MCP tools, read-only.
 - Related: `S06`, `I02`
 
 ### I06 Packages nobody uses, or that work by luck
 
 ```text
-Audit dependencies for packages declared but unused, imports satisfied only through transitive dependencies, and heavyweight libraries used for trivial behavior. Check build-time and runtime use, dynamic imports, tooling and security advisories before recommending removal or replacement.
+Audit declared dependencies for unused packages, undeclared imports satisfied only through transitive dependencies, and heavy libraries imported for trivial functionality. Check runtime code, config files (Next, Vite, PostCSS, Tailwind, ESLint), CLI scripts, and dynamic imports before calling any package unused.
 ```
 
 - Finds: Finds packages nobody uses and packages that work only by accident.
-- Evidence to ask for: Each package with every import site (including config files and scripts) and the bundle or install cost.
-- Skip when: Right after a package cleanup.
-- Watch for: Static scans flag packages as unused when they load from PostCSS, Vite or Next config, CLI scripts or file-based routing.
+- Evidence to ask for: Each flagged package with every reference found (including configs and scripts), its install or bundle cost, and whether removal or replacement is safe.
+- Skip when: A tiny repo with only a handful of dependencies, or one that just finished a dependency cleanup.
+- Watch for: Simple import scanners falsely flag packages loaded by build configs, PostCSS/Tailwind plugins, or CLI scripts. Verify those paths before recommending removal.
 - Mode: read, single pass, narrow scope. Needs: Repository; a package checker such as knip or depcheck if already present.
 - Skills: `/supply-chain-risk-auditor`
 - Related: `T04`
@@ -521,6 +542,34 @@ Inventory actual versions and dependencies of Playwright, Puppeteer, system Chro
 - Mode: read, single pass, narrow scope. Needs: A terminal on your computer; vendor release pages.
 - Related: `I01`
 
+## Explore
+
+
+
+### AD05 Did the agent actually finish this?
+
+```text
+Audit the current branch (or the feature I name) for incomplete or faked implementation. Look for hardcoded or mock data left in real paths, stubbed or empty handlers, buttons or links wired to nothing, TODO/FIXME placeholders, swallowed errors (empty catch blocks), skipped or loosened tests, missing loading/empty/error states, and requirements from my request that were silently dropped. Check every changed file and trace each user action from the UI to storage and back.
+```
+
+- Finds: Checks a completed feature or branch for classic coding-agent shortcuts: placeholder data, dead buttons, stubbed functions, skipped error states, and weakened tests.
+- Evidence to ask for: A list of every shortcut, stub, dead control, weakened test, or dropped requirement with file:line and what a user would see if it shipped today, or a clear confirmation of every path you verified end to end.
+- Skip when: A pure documentation change with no UI, logic, or test edits.
+- Watch for: Agents skim for TODO comments and miss handlers that quietly return fake success or render static sample items. Trace the actual data flow for every new screen and action.
+- Mode: read, single pass, narrow scope. Needs: Repository and its git history.
+
+### AD06 How this whole product works
+
+```text
+Read the repository and build a plain-English map of how this product actually works today, written for the owner who directs changes and does not read code. Cover: (1) the main user roles and what each can see or do, (2) the key screens and how users move between them, (3) the core data records stored and how they relate, (4) every background job or scheduled task, (5) every external service or API the app depends on, and (6) where the highest-risk logic lives (payments, auth, writes, AI calls). Base every statement on the code and config files present today, ignoring outdated README descriptions.
+```
+
+- Finds: Draws a plain-English map of your app — its screens, user roles, stored data, scheduled jobs, and outside services — so you can see how the pieces connect without reading code.
+- Evidence to ask for: A one-page plain-English system map covering those six areas, with key entry-point file paths listed underneath so I can point future sessions to the right folder.
+- Skip when: A single-file script or a repo that already has an up-to-date plain-English architecture map verified against today's code.
+- Watch for: Agents copy stale descriptions from README.md. Verify every screen, service, and table directly from source and config files, and flag any place the docs disagree with the code.
+- Mode: read, single pass, wide scope. Needs: Repository access.
+
 ## Data integrity and analytics
 
 Telling missing from zero, knowing where each number came from, and records whose meaning changes over time.
@@ -528,12 +577,12 @@ Telling missing from zero, knowing where each number came from, and records whos
 ### D01 Missing vs zero vs stale
 
 ```text
-Identify where the application confuses missing, zero, unavailable, estimated, stale, and not applicable. Trace the consequences through storage, calculations, and presentation.
+Find where this application blurs the difference between missing, zero, unavailable, estimated, stale, and not applicable. Trace how each state is stored, how totals or averages handle it, and what appears on screen.
 ```
 
 - Finds: Finds where 'we don't know' turns into 0 and then into a wrong total.
-- Evidence to ask for: Each field with how each absence state is stored, how calculations treat it, and how it displays.
-- Skip when: Data with no optional values.
+- Evidence to ask for: Each affected field (file:line), how absence is stored, how calculations treat it, what users see, and any chart or total it distorts.
+- Skip when: Simple records with no optional numeric fields or aggregations.
 - Mode: read, split, wide scope. Needs: Repository and read-only database access.
 - Skills: `/spec-to-code-compliance`
 - Related: `R02`, `D02`, `G05`
@@ -541,12 +590,12 @@ Identify where the application confuses missing, zero, unavailable, estimated, s
 ### D02 Where did this number come from?
 
 ```text
-Trace every derived metric to its raw evidence, transformation logic, assumptions, and historical version. Find calculations that cannot be independently reproduced.
+Trace each important derived number shown to users back to its raw source records, transformation logic, filters, and assumptions. Recompute a representative sample independently from raw inputs without relying on the existing calculation code to check itself. Flag discrepancies in definitions, units, dates, or source selection, and distinguish one-off errors from shared calculation bugs.
 ```
 
 - Finds: Checks that every number on screen can be traced back to a source document.
-- Evidence to ask for: For each metric: raw inputs, formula with file:line, and an independent recomputation for one real record.
-- Skip when: Numbers shown exactly as stored, with no math applied.
+- Evidence to ask for: For each key metric: its raw inputs, formula location (file:line), an independent recomputation on at least one real or sample record, and any disagreement ranked by impact.
+- Skip when: Every displayed number is stored and shown verbatim with no calculation or aggregation.
 - Mode: read, split, wide scope. Needs: Repository, read-only database, and the source documents the numbers come from.
 - Skills: `/spec-to-code-compliance`, `/dimensional-analysis`
 - Related: `D01`, `D03`, `G05`, `PG01`
@@ -554,24 +603,24 @@ Trace every derived metric to its raw evidence, transformation logic, assumption
 ### D03 Old records, new meanings
 
 ```text
-Find historical records whose meanings change when current classifications or schemas are applied retroactively. Identify where time-aware interpretation is necessary.
+Find historical records whose meaning shifts when today's rules, categories, tax rates, plan limits, or schemas are applied retroactively. Check whether the system can still reproduce what a past record or report showed on an earlier date, distinguishing later source corrections from later rule changes. Recommend the smallest reliable fix without over-engineering full bitemporal storage unless truly required.
 ```
 
 - Finds: Finds old records that read differently once today's rules are applied to them.
-- Evidence to ask for: Each classification with when it changed, which records predate it, and how the app reads them now.
-- Skip when: Data with no history or no categories.
+- Evidence to ask for: Each rule or classification that affects past records (file:line), which historical data predates it, concrete examples of how old records read today, and the smallest way to preserve historical accuracy.
+- Skip when: An app with no historical reporting or evolving categories/pricing rules.
 - Mode: read, single pass, wide scope. Needs: Read-only database access, history of database changes.
 - Related: `R04`, `D02`, `PG04`
 
 ### D04 Imports that fail quietly
 
 ```text
-Audit data ingestion for records that could be duplicated, overwritten, silently omitted, or assigned to the wrong entity without triggering an error.
+Audit every data import, CSV upload, and external sync for records that can be silently skipped, duplicated, overwritten, or linked to the wrong entity without raising an error. Check matching keys, conflict handling, partial failures, and summary logging.
 ```
 
 - Finds: Finds rows that go missing or land on the wrong record during import, with no error.
-- Evidence to ask for: Each ingestion step with its matching key, conflict rule and what it logs, plus counts in versus counts stored.
-- Skip when: Data that is only typed in by hand.
+- Evidence to ask for: Each import step (file:line) with its matching key, conflict rule, what gets logged on skip or mismatch, and whether counts-in are reconciled against counts-stored.
+- Skip when: Apps where all data is entered one record at a time through forms, with no batch imports or syncs.
 - Mode: read, single pass, narrow scope. Needs: Repository, import logs, read-only database.
 - Related: `R01`, `D05`
 
@@ -591,12 +640,12 @@ Identify where data relationships have greater analytical value than isolated fi
 ### D06 Code health, with proof
 
 ```text
-Perform a focused code-health audit calibrated to this repository's own conventions and operational risks. Require a specific file/line, reproducible command, trace or commit for every finding; grade confidence and impact; reject generic style complaints. Return a short ranked list of repairable issues rather than hundreds of speculative observations.
+Run a focused code-health audit calibrated to this repository's real conventions and operational risks. Every finding must cite a specific file:line, runnable command, trace, or commit; reject generic style preferences. Return a short ranked list of under fifteen repairable problems, each graded by confidence and user/maintenance impact.
 ```
 
 - Finds: A general health check of the code that refuses findings without evidence.
-- Evidence to ask for: A ranked list of under fifteen issues, each with file:line or a command, confidence and impact.
-- Skip when: When a narrower investigation above already fits the symptom.
+- Evidence to ask for: Under fifteen ranked issues, each with file:line or a reproducible command, confidence, impact, and the smallest sensible fix.
+- Skip when: You already have a specific symptom that fits a narrower investigation.
 - Mode: read, single pass, wide scope. Needs: Repository access.
 - Skills: `/code-review`
 - Related: `M02`, `T06`
@@ -608,12 +657,12 @@ Newer kinds of trouble: out-of-date agent instructions, old and new versions run
 ### G01 Out-of-date agent instructions
 
 ```text
-Compare every agent instruction and documentation file in this repository (CLAUDE.md, AGENTS.md, .cursorrules, SKILL.md, README.md, architecture docs) against the actual directory structure, package scripts, and code patterns. Identify stale rules that reference deleted paths, replaced libraries, or deprecated patterns that mislead coding agents.
+Compare every agent instruction and project doc file (`AGENTS.md`, `CLAUDE.md`, `.cursorrules`, `SKILL.md`, `README.md`, and architecture notes) against the real directory layout, package scripts, and current code patterns. Flag stale rules referencing deleted files, replaced libraries, broken commands, or retired conventions.
 ```
 
 - Finds: Finds instructions that send agents to files and patterns that no longer exist.
-- Evidence to ask for: Each stale line with the file it lives in and the current fact it contradicts.
-- Skip when: Right after an instruction-file cleanup.
+- Evidence to ask for: Each stale instruction with its file:line and the current repository fact it contradicts, plus the exact replacement or deletion proposed.
+- Skip when: You have no agent instruction files yet, or you just audited and updated them.
 - Mode: read, single pass, narrow scope. Needs: Repository access.
 - Skills: `/retro`
 - Related: `M10`
@@ -621,25 +670,57 @@ Compare every agent instruction and documentation file in this repository (CLAUD
 ### G02 Database changes during a deploy
 
 ```text
-Trace what happens during the deployment window when a new database migration or API schema change goes live while previous client bundles, active background workers, or queue consumers are still running. Identify column renames, non-nullable additions, or contract changes that break backwards compatibility before the old code finishes draining.
+Review the pending database migration or API schema change against the current live schema, previous release's queries, active background workers, and deployment sequence. Check whether it preserves existing data, causes table locks, breaks older client bundles or workers still draining during deploy (such as column renames, drops, or non-nullable additions), and whether a real rollback or recovery path exists. Never assume reverting app code alone rolls back a schema change.
 ```
 
 - Finds: Checks that each database change works with the old code that is still live while a release finishes.
-- Evidence to ask for: Each recent migration checked against the previous release's queries, with any break shown.
-- Skip when: Changes that touch neither the database layout nor how parts of the app talk to each other.
+- Evidence to ask for: The migration diff (file:line), every query or consumer affected, how old and new app versions coexist during rollout, lock and rollback risks, and results from replaying the migration on a separate test copy if available.
+- Skip when: The pending change touches no database schema, functions, policies, or shared API contracts.
 - Mode: read, single pass, narrow scope. Needs: Repository, migrations folder, previous release tag.
 - Skills: `/differential-review:diff-review`
 - Related: `I02`, `S06`, `PG17`
 
+## Explore
+
+
+
+### AD04 Walk me through what changed before I merge
+
+```text
+Inspect the current branch diff against the default branch (or the pull request I name) and explain it for a product owner who does not read code. Group the changes by what a user or operator will experience, call out any file touched outside the stated goal, flag risky areas (data writes, permissions, billing, migrations, config changes, deleted checks), and write a five-minute manual click-test checklist I can run myself to verify the change works and did not break nearby flows.
+```
+
+- Finds: Explains an entire branch or pull request in plain English, flags edits outside your original request, and gives you a short manual test checklist you can click through yourself.
+- Evidence to ask for: A plain-English summary of user-visible and behind-the-scenes changes, a list of any out-of-scope edits with file paths, the top risks with file:line, and a numbered checklist of exact screens and actions for me to test.
+- Skip when: A single-line wording fix or a branch with no changes against the default branch.
+- Watch for: Agents summarize commit messages instead of reading the actual diff. Read the real diff line by line and flag anything the commits forgot to mention.
+- Mode: read, single pass, narrow scope. Needs: Repository and its git history.
+
+### AD09 Links, previews, and what Google sees
+
+```text
+Audit this web application's public-facing metadata, share previews, error pages, and crawl settings. Check: page titles and meta descriptions across public routes (flag missing, duplicate, or placeholder defaults like "Create Next App"); Open Graph and Twitter/X preview tags and whether their image URLs resolve with absolute production URLs; favicon and app icons; custom 404 and 500 error pages; broken internal links or redirects; canonical URLs, sitemap, and robots.txt (flag accidental noindex tags or blocked public pages, as well as private or admin routes accidentally exposed to crawlers).
+```
+
+- Finds: Checks page titles, social share previews, favicons, 404/error pages, broken internal links, and search-engine settings before you share your site publicly.
+- Evidence to ask for: A table of public routes with title, description, share image status, and indexability, plus every missing icon, broken link, default error page, or robots/noindex problem with file:line.
+- Skip when: A private internal tool or native-only app with no public web pages.
+- Watch for: Relative share-image paths and staging noindex headers often pass local testing and break in production. Check how the base URL and environment flags resolve in production config.
+- Mode: read, single pass, wide scope. Needs: Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them.
+
+## Agent harness and modern stack
+
+Newer kinds of trouble: out-of-date agent instructions, old and new versions running at once after a deploy, data leaking into pages, outside services going down, rounding errors, and screens that show a change before it is saved.
+
 ### G03 Hidden data anyone can read
 
 ```text
-Inspect API responses, Server Component and SSR serialization payloads, and RPC returns crossing from server to browser. Find places where full database rows or internal objects (internal flags, other tenants' keys, audit metadata, large unused JSON columns) are serialized over the network and merely hidden in the UI.
+Inspect API responses, Server Component props, SSR serialization payloads, and RPC returns sent from server to browser. Find places where full database rows or internal objects (internal flags, private emails, other tenants' IDs, tokens, audit metadata, or large unused blobs) are shipped to the client and merely left unrendered in the UI.
 ```
 
 - Finds: Finds data sent to the browser that the screen hides but anyone can read.
-- Evidence to ask for: Each payload with the fields sent, the fields used, and any field that should never leave the server.
-- Skip when: Static pages with no user data.
+- Evidence to ask for: Each over-exposed payload (file:line) showing the fields sent over the wire, the fields the screen actually uses, and every field that should stay on the server.
+- Skip when: Static public pages with no server payloads or private user data.
 - Mode: read, single pass, narrow scope. Needs: Browser network panel or curl against a local server.
 - Skills: `/security-review`
 - Related: `T03`, `A02`
@@ -647,12 +728,12 @@ Inspect API responses, Server Component and SSR serialization payloads, and RPC 
 ### G04 When an outside service goes down
 
 ```text
-Assume each external API, LLM provider, or webhook source this application depends on either hangs for 30 seconds, returns 429 or 503 for an hour, or delivers a burst of out-of-order webhooks on recovery. Trace which transactions or connection pools are held open during external calls, and whether core journeys degrade gracefully or lock up.
+Assume each external API, AI provider, or webhook source this product depends on hangs for 30 seconds, returns 429 or 503 for an hour, or delivers a burst of out-of-order webhooks when it recovers. Trace whether database transactions or connection pools stay held open during those calls, and whether core user flows degrade cleanly or lock up.
 ```
 
 - Finds: Asks what happens to the app when an outside API, an AI provider or a service that sends it updates goes down.
-- Evidence to ask for: Each dependency with its timeout, retry policy, what is held open while waiting, and the user-visible result.
-- Skip when: Features with no outside calls.
+- Evidence to ask for: Each external dependency with its timeout, retry behavior, resources held open while waiting, and what the user sees during an outage.
+- Skip when: A self-contained app that makes no outbound API calls and receives no webhooks.
 - Mode: read, single pass, wide scope. Needs: Repository; a local run with outside services made to fail on purpose.
 - Skills: `/diagnosing-bugs`
 - Related: `P09`, `A06`, `R02`
@@ -660,12 +741,12 @@ Assume each external API, LLM provider, or webhook source this application depen
 ### G05 Rounding and unit mix-ups
 
 ```text
-Trace calculations involving currency, percentages, basis points, share counts, weights, or rates across storage, transformation, and UI display. Identify where binary floating-point math is used instead of exact decimal or integer types, where premature rounding compounds across aggregations, or where scale conventions (0.05 versus 5.0 for 5%, cents versus dollars) are ambiguous across boundaries.
+Trace every calculation involving money, percentages, basis points, quantities, weights, or rates across storage, API payloads, math helpers, and UI formatting. Flag binary floating-point arithmetic used where exact integer or decimal math is required, premature rounding that compounds across sums, and unclear unit conventions (such as cents versus dollars, or 0.05 versus 5.0 for 5%).
 ```
 
 - Finds: Finds money and percentage values that change scale or lose precision along the way.
-- Evidence to ask for: Each value's unit at every hop, with any hop where the unit or rounding changes.
-- Skip when: Apps with no money, rates or counts.
+- Evidence to ask for: Each tracked value with its unit and numeric type at every layer (file:line), highlighting every hop where units shift or rounding loses accuracy.
+- Skip when: Products that handle no money, rates, percentages, or converted units.
 - Mode: read, single pass, wide scope. Needs: Repository and read-only access to the database layout.
 - Skills: `/dimensional-analysis`
 - Related: `D02`, `D01`
@@ -673,12 +754,12 @@ Trace calculations involving currency, percentages, basis points, share counts, 
 ### G06 Screens showing a change that was refused
 
 ```text
-Trace every flow where the client updates UI state or local cache optimistically before server confirmation. Demonstrate what happens to user state, queued actions, and screen accuracy when the server rejects the mutation, times out, or returns canonical values that differ from the client's assumption.
+Trace every flow where the interface updates local state or cache optimistically before the server confirms the write. Show what happens to screen accuracy, queued actions, and error notices when the server rejects the request, times out, or returns different canonical values.
 ```
 
 - Finds: Finds screens that show a change right away and keep showing it after the server refused it.
-- Evidence to ask for: Each optimistic flow with a forced rejection and a screenshot or test of what the screen then shows.
-- Skip when: Flows that wait for the server before updating the screen.
+- Evidence to ask for: Each optimistic UI flow, what happens when the server rejects or drops the request, and a failing test or screenshot showing any unrolled-back state.
+- Skip when: Every write waits for server confirmation before updating the screen.
 - Mode: repro, single pass, narrow scope. Needs: In-app browser or Playwright set to block or alter requests.
 - Skills: `/diagnosing-bugs`
 - Related: `A04`, `A01`
@@ -704,13 +785,13 @@ List every animation and transition in this codebase with its duration, easing a
 ### MO02 Animations that cost frames
 
 ```text
-Find animations and transitions that make the browser run layout or heavy paint on every frame: width, height, top, left, margin, padding, large shadows and blurs, and anything driven from a scroll or pointer handler through component state. For the worst three, measure the interaction in a browser with CPU throttling and report how many layouts and long frames happen during it. Propose the cheaper equivalent for each (transform, opacity, or a single measured move) and say what would look different.
+Find animations and transitions that trigger expensive layout or paint work per frame (animating width, height, top, left, margin, padding, heavy shadows or blurs, or driving styles from scroll/pointer events through React or component state). For the worst three candidates, record the interaction in a browser with CPU throttling enabled and report layout counts and dropped frames. Propose a cheaper alternative (such as transform or opacity) and note any visual tradeoff.
 ```
 
 - Finds: Finds the animations that stutter on slower phones and laptops, and what each one costs.
-- Evidence to ask for: Each candidate with file:line and the property involved; for the worst three, a throttled recording with the layout count and the frames over budget, taken before any change.
-- Skip when: When motion is limited to color and opacity changes on small elements.
-- Watch for: Static reading flags every height transition. A small accordion is fine; ask for the measurement before any rewrite.
+- Evidence to ask for: Each expensive animation (file:line and animated property), plus throttled browser measurements (layout count and long frames) for the top three offenders before any code change.
+- Skip when: Motion is limited to simple color, transform, or opacity transitions on small elements.
+- Watch for: Code search flags every height transition, including tiny accordions that cost almost nothing. Measure before recommending a rewrite.
 - Mode: read, split, wide scope. Needs: Repository; the app running locally and a browser with performance tooling (DevTools or Playwright).
 - Skills: `/motion`
 - Related: `MO01`, `MO04`, `P01`
@@ -718,13 +799,13 @@ Find animations and transitions that make the browser run layout or heavy paint 
 ### MO03 Motion with no off switch
 
 ```text
-Check how this app behaves for people who have asked their system for reduced motion. List every animation that moves, scales, rotates or loops, and say whether it has a reduced-motion version. Find content that only becomes visible through an animation, motion that starts on its own and runs longer than five seconds with no pause control, and gestures with no button or keyboard alternative. For each gap, say what the reduced version should be: usually a short fade or an instant change that keeps the meaning.
+Audit how this product behaves when the user's operating system requests reduced motion (`prefers-reduced-motion: reduce`). List every animation that translates, scales, rotates, or loops and check whether it has a reduced-motion fallback. Flag content that stays invisible if an entrance animation is skipped, auto-playing motion lasting over five seconds without a pause control, and drag/swipe gestures lacking a button or keyboard alternative. For each gap, specify the sensible reduced-motion replacement (usually a brief opacity fade or instant change).
 ```
 
 - Finds: Finds motion that can make people dizzy or lock them out, and content that disappears when animation is turned off.
-- Evidence to ask for: A list of moving animations with file:line and whether each has a reduced version; a browser run with reduced motion emulated showing what still moves; the WCAG criterion behind each gap (2.2.2, 2.3.1, 2.3.3, 2.5.1 or 2.5.7).
-- Skip when: Internal prototypes nobody else will use.
-- Watch for: Agents add one global rule that zeroes every duration and call it done. That is a floor. Ask what each large movement becomes instead.
+- Evidence to ask for: Every moving animation (file:line) and its reduced-motion handling, results from a browser check with reduced motion emulated showing anything that still moves or disappears, and the WCAG rule behind each gap (2.2.2, 2.3.1, 2.3.3, 2.5.1, or 2.5.7).
+- Skip when: A personal prototype nobody else will use, or an app with zero movement animations.
+- Watch for: Dropping one global CSS rule that sets all durations to 0ms can hide animated content or break state callbacks. Check what each real transition becomes.
 - Mode: read, single pass, wide scope. Needs: Repository; a browser that can emulate prefers-reduced-motion.
 - Skills: `/motion`
 - Related: `MO02`, `MO05`
@@ -732,12 +813,12 @@ Check how this app behaves for people who have asked their system for reduced mo
 ### MO04 Animations that restart, block or never finish
 
 ```text
-Find animations that break when the user does not wait for them. Look for keyframe animations on things that can be triggered twice in a row, exits that never play because the element is removed first, input ignored until an animation ends, focus that moves only after an animation, and end states that differ from the element's resting style. Reproduce the three most reachable cases by triggering the interaction again mid-animation, and propose the smallest fix for each.
+Find animations and transitions that break when users act quickly instead of waiting for them to finish. Check for keyframe animations that restart abruptly on rapid triggers, exit animations skipped because elements unmount immediately, clicks or keyboard input blocked until a transition ends, focus shifting only after an animation completes, and end states that snap back to a different resting style. Reproduce up to three of the most reachable cases by re-triggering mid-animation, and propose the smallest fix for each.
 ```
 
 - Finds: Finds motion that works in a demo and breaks under fast, real use.
-- Evidence to ask for: Each case with file:line, the sequence of inputs that triggers it, and what the user sees: a restart, a jump, an ignored click or a missing exit.
-- Skip when: Apps whose only motion is hover and focus color.
+- Evidence to ask for: Each broken case (file:line), the exact rapid-input sequence that triggers it, what the user sees (restart, jump, ignored click, or missing exit), and a reproduction for the worst one.
+- Skip when: Apps whose only transitions are simple hover and focus color shifts.
 - Mode: repro, split, wide scope. Needs: Repository; the app running locally with a browser to trigger interactions quickly.
 - Skills: `/motion`
 - Related: `MO02`, `MO06`
@@ -745,13 +826,13 @@ Find animations that break when the user does not wait for them. Look for keyfra
 ### MO05 Motion with no job
 
 ```text
-Go through every animation in this product and say what it tells the user: that their input registered, where something came from or went, where they now are, that work is in progress, or that one thing changed. List the ones that tell the user nothing, and the ones seen so often that they slow people down (tooltips, menus, anything triggered from the keyboard). For each, recommend removing it, shortening it or keeping it, with one sentence of reasoning. Do not propose new animations.
+Inventory every animation and transition in this product and state what concrete job it does for the user: confirming input, showing where an element came from or went, orienting navigation, indicating loading, or highlighting a state change. Flag every animation that conveys nothing or runs so frequently that it slows people down (menus, tooltips, keyboard-driven actions). Recommend remove, shorten, or keep for each with one sentence of reasoning. Do not propose adding new animations.
 ```
 
 - Finds: Produces a list of animations to delete or shorten, which is usually the cheapest way to make an app feel faster.
-- Evidence to ask for: One row per animation: where it is (file:line), how often a person meets it in a day, the job it does or "none", and remove, shorten or keep.
-- Skip when: Apps with almost no motion. Look for missing feedback instead (MO06).
-- Watch for: Agents defend every animation as polish. Ask what the user learns from it; if the answer is nothing, it goes.
+- Evidence to ask for: A table with one row per animation: location (file:line), how often a user triggers it daily, the job it performs (or "none"), and remove, shorten, or keep.
+- Skip when: An app with almost no motion — check "State changes with no feedback" instead.
+- Watch for: Do not defend decorative delays as "polish." If an animation teaches the user nothing and slows them down, mark it for removal or shortening.
 - Mode: read, single pass, wide scope. Needs: Repository; the running app helps.
 - Skills: `/motion`
 - Related: `MO01`, `MO06`
@@ -759,13 +840,245 @@ Go through every animation in this product and say what it tells the user: that 
 ### MO06 State changes with no feedback
 
 ```text
-Walk the main flows of this app and list every moment where the interface changes with no visible answer or explanation: a press with no pressed state, an item that vanishes on delete, a panel that appears with no sign of where it came from, a page change with no sense of direction, a wait of more than a second with no indicator. For each, say what the user is left guessing, and specify the smallest motion that would answer it: what changes, for how long, and what happens with reduced motion. Leave out anything the user triggers many times a minute.
+Walk the product's main user flows and list up to ten moments where the interface changes with no visible feedback: a button press with no response, a deleted row vanishing abruptly, a panel appearing with no spatial cue, a multi-second wait with no loading indicator, or a save/error that happens silently. Exclude rapid, high-frequency actions users trigger dozens of times per minute. Rank the gaps by how much confusion each causes, and write a one-line motion spec (what changes, duration, and reduced-motion behavior) for each.
 ```
 
 - Finds: Finds the few places where a small animation would remove real confusion.
-- Evidence to ask for: Each moment with its flow, the component (file:line), what the user is left guessing, and a one-line spec for the motion.
-- Skip when: Right after a motion pass, or when the complaint is that the app already moves too much (MO05).
-- Watch for: Agents add an animation to every state change. Ask for ten at most, ranked by how confusing the moment is without one.
+- Evidence to ask for: Up to ten ranked moments with their user flow, component (file:line), what leaves the user guessing, and a one-line feedback spec.
+- Skip when: You just finished a motion pass, or the complaint is that the app already moves too much (check "Motion with no job" instead).
+- Watch for: Do not suggest animating every state change. Limit the list to ten moments at most where missing feedback creates real user doubt.
 - Mode: read, single pass, narrow scope. Needs: Repository and the running app.
 - Skills: `/motion`
 - Related: `MO05`, `MO04`
+
+## Explore
+
+
+
+### X01 Promises the product doesn't keep
+
+```text
+First read every user-facing promise in this repository: marketing and pricing copy, onboarding screens, button labels, confirmation and error messages, email templates, help text, and terms/privacy pages. A promise is anything a user could rely on (such as "cancel anytime", "we'll email you when ready", "saved automatically", "permanently deleted", "refunded within 5 days", or "private to your team"). Then trace the code and config responsible for keeping each promise on both normal paths and failure paths (failed payment, bounced email, crashed job, mobile browser). Classify each as Kept, Kept on happy path only, Not kept, or Unverifiable from repo (needs manual/dashboard check). Rank broken promises by trust or legal harm.
+```
+
+- Finds: Reads every claim your product makes in web pages, pricing tables, buttons, emails, and legal text, then checks whether the code actually keeps each promise.
+- Evidence to ask for: A table of promises listing where each is stated (file:line), where code enforces it (file:line or "nowhere"), its verdict, and for the top three broken ones a concrete scenario showing how a user notices.
+- Skip when: An internal prototype with no public pages, user-facing emails, or billing.
+- Watch for: Read the actual user-facing copy, email templates, and error strings before inspecting backend code — skipping copy misses the broken promises.
+- Mode: read, single pass, wide scope. Needs: Repository access.
+
+### X02 Your first support tickets
+
+```text
+Walk this product's main user journeys in the code (sign-up, core workflow, billing, account settings, cancellation) and predict up to fifteen real support tickets users will send. Look only for issues grounded in existing code: dead-end error messages that give no next step, states with no escape hatch, buttons that silently do nothing, emails that contradict the screen, hidden limits, and intended behavior that looks broken. Write each ticket in a frustrated user's plain voice, cite the exact code behind it, and propose the smallest fix (often clearer wording, an empty state, or a confirmation). Stop once the real code-backed issues run out instead of padding to fifteen. Rank by how many users will hit each one.
+```
+
+- Finds: Reads your main user flows and predicts the confusing screens, vague error messages, and dead ends most likely to generate support emails.
+- Evidence to ask for: Up to fifteen ranked tickets in user language, each tied to a specific screen, message, or state (file:line), expected frequency, and the smallest fix that prevents it.
+- Skip when: A personal tool used only by you.
+- Watch for: Never invent generic complaints like "the app feels slow." Every ticket must cite an actual message, missing state, or code path in this repository.
+- Mode: read, single pass, wide scope. Needs: Repository access.
+
+### X03 How a clever user games you
+
+```text
+Think like a clever, opportunistic customer with a normal account and no hacking tools. Audit the code for ways they can get paid features for free or run up your bills: repeating free trials with fresh emails, reusing or stacking discount/referral codes, bypassing usage limits enforced only in browser code, timing upgrades/downgrades to dodge charges, keeping access after refunds or chargebacks, sharing accounts or abusing free invites, and triggering unbounded per-use costs (AI calls, SMS, emails, file storage, exports). For each loophole, give the exact user steps, whether the server enforces the rule today, a rough monthly cost if 100 users did it, and whether fixing it is a small code change or a pricing/product policy call.
+```
+
+- Finds: Finds loopholes an ordinary signed-in customer could exploit without hacking — infinite trials, stacked coupons, browser-only limits, or running up your AI/SMS bill.
+- Evidence to ask for: Each abuse path with reproduction steps, current enforcement (file:line or "missing"), rough cost at 100 abusive users, and whether it needs code or a product decision.
+- Skip when: A completely free app with no usage caps and no metered per-action costs.
+- Watch for: Stay focused on business-logic and billing loopholes ordinary users can trigger — classic security vulnerabilities like SQL injection belong in the Security checks.
+- Mode: read, single pass, wide scope. Needs: Repository access.
+
+### X04 Features you could delete
+
+```text
+Identify features, screens, settings, feature flags, integrations, legacy plan tiers, export formats, or unfinished experiments that could be deleted with minimal user impact. Use whatever real evidence is accessible — routes with no navigation links, analytics events, database row counts, logs, flag config, and git history. For each candidate, assess its upkeep cost (code, tests, dependencies, support burden), the evidence it is unused, who could still reach it (including direct URLs, email links, bookmarks, or cron jobs), and what removal takes. Recommend the top three cuts with the best maintenance-saved-to-risk ratio.
+```
+
+- Finds: Finds unlinked pages, untouched settings, stale feature flags, and dead integrations that cost maintenance while helping almost nobody.
+- Evidence to ask for: A ranked list of deletion candidates with usage evidence (query, count, or analytics check — marking anything that requires your live analytics dashboard), upkeep cost, potential impact, and the top three to remove first.
+- Skip when: A brand-new product under a few months old with no real user history yet.
+- Watch for: Code with zero internal callers can still be hit via bookmarked URLs, email links, webhooks, or scheduled jobs. Check every entry point before calling a feature dead.
+- Mode: read, single pass, wide scope. Needs: Repository access.
+
+### X05 Follow one dollar
+
+```text
+Trace a single dollar from the moment a customer pays through every system that records or reacts to it: checkout, payment provider, webhooks, database records, feature access grants, receipts/emails, and revenue reporting. Then trace the unhappy paths: declined card, payment retry, duplicate webhook, out-of-order webhook (arriving before the user or checkout row exists), partial refund, full refund, chargeback, mid-cycle plan change, cancellation, and non-default currency. At each step, identify the source of truth, what happens on failure or retry, and where your records or user access can fall out of sync with the payment provider.
+```
+
+- Finds: Traces a single customer payment from checkout through webhooks, database rows, access grants, receipts, refunds, and chargebacks to spot where money or access goes wrong.
+- Evidence to ask for: A step-by-step trace of the happy path and each unhappy path with handler locations (file:line), source of truth per step, and every gap where money can be double-counted, lost, or mismatched against granted access.
+- Skip when: A product that takes no payments, or links out to a hosted payment page and stores zero payment state.
+- Watch for: Do not stop after tracing successful checkouts. Duplicate and out-of-order webhooks plus refunds and chargebacks are where real billing bugs hide.
+- Mode: read, single pass, wide scope. Needs: Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them.
+
+### X06 What one more customer costs
+
+```text
+Calculate the marginal monthly cost of adding one typical active customer. List every paid service this product uses (hosting, functions, database, file storage, bandwidth, AI models, email, SMS, search, error tracking, third-party APIs) and trace from code what user actions trigger charges. Estimate monthly usage per active customer using logs or database stats where available, stating assumptions clearly where not. Compare total per-user cost against each pricing tier, and highlight features whose cost scales faster than revenue (such as unthrottled AI calls, full-size image uploads, or unlimited free-tier exports). Fetch current published vendor prices if you have web access and cite the URL; if you cannot verify live pricing, mark every price clearly as an estimate for me to confirm on the vendor's pricing page.
+```
+
+- Finds: Calculates what each additional active user costs you across hosting, AI models, email, storage, and APIs, and flags features whose cost outruns your subscription price.
+- Evidence to ask for: A cost-per-user breakdown by service and feature with triggering code (file:line), stated assumptions, verified vs. estimated prices, margin per plan, and the two or three features that hurt most at 10x users.
+- Skip when: A flat-fee static product with zero metered services and no paid plans.
+- Watch for: Never present memorized pricing as confirmed fact. Cite a live pricing source or mark the number as an unverified estimate.
+- Mode: read, single pass, wide scope. Needs: Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them.
+
+### X07 If a vendor doubles its price or disappears
+
+```text
+Map this product's dependence on every external vendor, platform, or API (hosting, database, auth, payments, email, AI providers, app stores, analytics, and third-party SDKs). For each, measure how deeply it is embedded: how many files import or call it directly, whether one internal wrapper isolates it, whether your data can be cleanly exported, and which core features stop without it. Stress-test three scenarios for each vendor: price doubles, terms ban your use case, or it shuts down with 30 days' notice. Rank vendors by potential damage and suggest one cheap hedge for the top two without proposing a migration today.
+```
+
+- Finds: Shows how tightly your app is wired to each outside vendor, how hard it would be to leave on 30 days' notice, and one cheap safeguard for the top two risks.
+- Evidence to ask for: A vendor table listing file touch count, single wrapper (yes/no), data exportability, features lost on outage, estimated switch effort, and one low-cost hedge for each of the top two risks.
+- Skip when: A small project using only one or two standard services already isolated behind clean wrappers.
+- Watch for: Do not recommend migrating off vendors immediately. Give a clear risk picture and small, practical hedges.
+- Mode: read, single pass, wide scope. Needs: Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them.
+
+### AD08 Emails and messages people actually receive
+
+```text
+Find every email, SMS, push notification, or in-app message this application sends. For each one, read the actual template and trigger code and check: what triggers it, whether retries or webhooks can send it twice, whether links inside it could point to localhost or a broken URL in production, what sender name and reply-to address it uses, whether marketing or digest messages include a working unsubscribe link, whether placeholder or embarrassing wording remains, and what happens when the email or SMS provider rejects or bounces it.
+```
+
+- Finds: Audits every email, text, or notification your app sends for broken links, placeholder wording, wrong sender details, double sends, and silent delivery failures.
+- Evidence to ask for: A list of every outgoing message with its trigger (file:line), template path, link and wording issues, retry/duplicate risk, and a short checklist of DNS or provider dashboard checks (such as SPF, DKIM, DMARC, or verified sender domain) that cannot be verified from the repo.
+- Skip when: An app that sends no emails, texts, or notifications.
+- Watch for: Agents check that a send function exists and skip reading the actual subject line, body text, and link URL builder. Inspect the rendered text and URL construction for every template.
+- Mode: read, single pass, wide scope. Needs: Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them.
+
+### AD11 Build it, buy it, or skip it?
+
+```text
+Before we build the feature I am describing, evaluate three paths for a solo builder who wants low ongoing maintenance: (1) build it inside this codebase, (2) use an established service or library that already fits our stack, or (3) ship a much simpler or manual version first until usage proves it needs software. Inspect the repository first so your comparison reflects our actual stack, existing dependencies, and hosting limits. For each option, compare upfront work, ongoing maintenance and edge cases I will own forever (security, compliance, retries, deliverability, edge cases), vendor lock-in, and rough cost. Recommend one option and state what would change your mind.
+```
+
+- Finds: Before you ask an agent to build a big feature from scratch, checks whether an existing tool, a simpler manual step, or skipping it makes more sense for a solo builder.
+- Evidence to ask for: A plain-English comparison of the three options grounded in this repo's stack (citing package.json or equivalent config), the hidden maintenance traps of building it ourselves, and one clear recommendation.
+- Skip when: A tiny feature unique to this product's core value where no off-the-shelf tool applies.
+- Watch for: Coding agents default to "we can build this easily" because writing the first version is fast while owning edge cases for two years is invisible. Price the two-year maintenance burden up front.
+- Mode: read, single pass, wide scope. Needs: Repository access.
+
+### X08 The app's own AI calls
+
+```text
+Audit every place this application calls an AI model at runtime. For each call check: (1) model ID and whether it is deprecated or nearing retirement, (2) what untrusted input enters the prompt (user text, scraped pages, uploaded files, emails) and its prompt-injection exposure, (3) what the model's output can trigger (display text, tool calls, database writes, emails, charges), (4) timeouts, retries, and fallback behavior when the provider is slow or down, (5) schema/length/allowlist validation on outputs before use, (6) cost per call and calls triggered per user action, (7) whether personal user data is sent to the model provider, and (8) whether any eval or test detects answer quality dropping. Rank findings by severity: unauthorized actions first, cost blowups second, silent quality degradation third.
+```
+
+- Finds: Audits every runtime AI model call inside your app for prompt-injection traps, runaway costs, retired models, missing output checks, and silent slowdowns.
+- Evidence to ask for: Every runtime model call (file:line) with model ID, untrusted inputs, downstream actions triggered by output, timeout/fallback, output validation, estimated calls per action, and ranked risks.
+- Skip when: An application that makes zero AI API calls at runtime.
+- Watch for: Do not stop at reading the prompt string. Trace where the model's response actually flows and what actions it can execute.
+- Mode: read, single pass, wide scope. Needs: Repository access.
+
+### X09 Things that break on a date
+
+```text
+Find everything in this project that will break on a future calendar date without any code change. Check: TLS certificates and signing keys, expiring API tokens and OAuth secrets, app store certificates and OAuth verification renewals, domain renewals, free-tier or startup credits expiring, retiring vendor APIs/SDKs/AI model IDs referenced in code, hardcoded years or date cutoffs, scheduled jobs with end dates, and growing counters or storage quotas nearing limits. Put everything on one timeline, soonest first, stating how you found each date and whether any automated alert warns ahead of time. Separate dates verified from code/config from dates you cannot see that I must check in a named dashboard.
+```
+
+- Finds: Builds a timeline of everything set to expire or fail automatically — certificates, API keys, app store renewals, startup credits, retiring model versions, and hardcoded dates.
+- Evidence to ask for: One chronological risk timeline listing each item, verified date (or "check in [named dashboard]"), evidence (file:line or command), what breaks when it hits, and whether any advance warning exists.
+- Skip when: A brand-new local prototype with no deployed domain, external API keys, or scheduled jobs.
+- Watch for: Never guess expiry dates you cannot inspect. Mark every dashboard-only renewal clearly for manual verification.
+- Mode: read, single pass, wide scope. Needs: Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them.
+
+### X10 How you'd find out it's broken
+
+```text
+List the five to ten critical jobs this product must keep working (sign-in, checkout, outgoing emails, core data reads/writes, nightly jobs, imports). For each one, answer directly: if it stopped working at 2am, how would I find out and how long would it take? Inspect only what actually exists in code and config — error trackers, alerting rules, uptime checks, health endpoints, failed-payment hooks, and swallowed exceptions — and flag external alerting dashboards you cannot inspect from the repo. Classify each flow as: alerts within minutes, noticed within a day, or only discovered when a user complains. For each blind spot, propose the single smallest signal that catches it (one alert, one heartbeat check, or one daily count check).
+```
+
+- Finds: Checks your core user flows one by one to show which outages would alert you within minutes and which you'd only learn about from an angry user.
+- Evidence to ask for: A table of critical flows showing current detection (file:line, dashboard to verify, or "none"), expected delay before you notice, and one lightweight alert for each gap.
+- Skip when: A pre-launch prototype with no external users yet.
+- Watch for: Writing to a log file nobody alerts on does not count as monitoring. Check who actually gets notified and how.
+- Mode: read, single pass, wide scope. Needs: Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them.
+
+### X11 Defaults nobody chose
+
+```text
+Audit settings left at their framework, library, or hosting defaults that materially affect users, security, or cost: session duration and idle logout, password and reset-token expiry, upload size caps, request timeouts, cache headers, rate limits, retry counts, default time zone/locale/currency, pagination sizes, email sender and reply-to, image storage settings, log retention, backup schedules, data region, and hard vs. soft deletes. Report only defaults that could plausibly hurt this product. Verify each default value against the installed version's source code in `node_modules` (or equivalent lockfile/package source) or official docs; mark anything you could not verify locally as unconfirmed.
+```
+
+- Finds: Exposes invisible framework and hosting defaults your app runs on — session lifetimes, upload limits, timeouts, cache lengths, rate limits, and email headers — and flags the risky ones.
+- Evidence to ask for: A focused list of risky defaults showing the setting, current value and where you confirmed it (file:line, installed package source, or doc reference), plain-English user impact, and a suggested explicit value.
+- Skip when: Every major runtime, auth, upload, timeout, and retention setting is already explicitly configured in one documented config file.
+- Watch for: Framework defaults change between major versions. Verify against the exact version installed instead of quoting from memory.
+- Mode: read, single pass, wide scope. Needs: Repository access.
+
+### X12 Where people's personal data ends up
+
+```text
+Trace all personal user data from collection (forms, sign-up, billing, uploads, analytics, IP/device metadata, support tools) to every destination it reaches: database tables, file buckets, server logs, error trackers, session recordings, analytics, email/CRM tools, AI API calls, exports, and backups. For each destination, note retention, access scope, and whether data leaves to a third party (flagging external tool settings that need manual dashboard checks). Then trace a real account-deletion request: list every place user data would need to be removed from and whether code handles it today. Highlight sensitive data logged in plain text, unused fields still being collected, and any mismatch with your privacy page.
+```
+
+- Finds: Tracks every piece of personal information you collect across databases, logs, error trackers, analytics, emails, and AI calls, and checks what it takes to delete a user completely.
+- Evidence to ask for: A map from each collected personal field to every storage/external destination (file:line), a deletion checklist separating automated cleanup from manual steps, and any mismatch with the privacy page.
+- Skip when: A local or anonymous tool with zero accounts, forms, analytics, or personal data.
+- Watch for: Check server logs, error trackers, and analytics calls first — personal data leaks there far more often than in primary database tables.
+- Mode: read, single pass, wide scope. Needs: Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them.
+
+### X13 Things you may not be allowed to ship
+
+```text
+Audit everything shipped in this project for licensing or usage restrictions: package licenses in lockfiles (especially copyleft licenses like GPL/AGPL in closed-source products, or non-commercial/source-available licenses in paid apps), code snippets copied without attribution, web/app font files and their license terms, images/icons/illustrations/audio in asset folders, third-party logos or brand assets, AI-generated media whose source tool has commercial terms, and scraped or external datasets. For each flagged item, state the license or provenance found, whether this usage fits, and the next step (attribute, replace, purchase a license, or verify). Flag uncertain items for human or legal review without giving legal advice.
+```
+
+- Finds: Checks fonts, icons, images, third-party packages, and copied snippets for licenses that restrict commercial use or require attribution.
+- Evidence to ask for: Every asset or package with a potential license issue (file path and where the license was found), whether current use fits, and the concrete action needed, separating clear fixes from items needing human confirmation.
+- Skip when: A private personal script nobody else will see, download, or pay for.
+- Watch for: Do not stop after scanning `package.json`. Fonts, icon packs, downloaded images, and pasted code snippets in asset/source folders are where real license problems usually hide.
+- Mode: read, single pass, wide scope. Needs: Repository access.
+
+### X14 If you disappeared tomorrow
+
+```text
+Imagine I became unreachable tomorrow and a capable developer had to keep this product running using only this repository. Identify everything missing from the repo: external accounts and billing ownership (hosting, domain, database, payments, email, app stores), dashboard-only secrets and settings, manual recurring work (deploys, renewals, exports, support replies, data fixes), external cron jobs, undocumented code quirks, and anything tied to my personal machine. For each gap, note what breaks and how soon, plus the smallest fix (a repo doc, script, shared password vault entry, or backup owner). Format the actionable output as a clean one-page emergency runbook naming where each secret lives (names only, never values).
+```
+
+- Finds: Finds every account, dashboard setting, manual habit, and secret that lives only in your head or on your computer, and drafts a one-page emergency runbook.
+- Evidence to ask for: Single points of failure ranked by how quickly each breaks, a draft one-page runbook covering accounts, deploys, manual tasks, and secret locations (names only, never secret values), and a short list of account-ownership questions only I can fill in.
+- Skip when: A disposable weekend experiment with no external accounts, users, or ongoing operations.
+- Watch for: Never read, print, or copy secret values into the runbook. Record only variable names and which dashboard or password manager holds them.
+- Mode: read, single pass, wide scope. Needs: Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them.
+
+### X15 What agents keep getting wrong here
+
+```text
+Analyze this repository's git history to uncover mistakes coding agents keep repeating. Look for reverts, rapid follow-up fix commits, files that repeatedly change together yet live far apart, and edits to generated files or broken conventions. Group recurring mistakes by root cause (undocumented rule, generated file, required rebuild step, misleading name, synced pair of files, broken local test). For each recurring cause, cite two or three commit hashes as proof and draft one or two crisp lines for `AGENTS.md`/`CLAUDE.md` — or an automated check — that would have prevented it. Skip anything already clearly documented.
+```
+
+- Finds: Mines your git history for reverts and fix-on-fix commits to spot mistakes coding agents keep repeating, and drafts exact lines for `AGENTS.md` or `CLAUDE.md` to prevent them.
+- Evidence to ask for: Recurring causes ranked by frequency, supporting commit hashes, and exact proposed additions or edits for your instruction file (marked New or Replaces).
+- Skip when: A new repository with fewer than roughly fifty commits of history.
+- Watch for: Reject vague platitudes like "write clean tests." Every proposed rule must trace directly to real commits in this repository.
+- Mode: read, single pass, wide scope. Needs: Repository and its git history.
+
+### X16 The first bad day
+
+```text
+From the actual code, config, deploy setup, data model, and third-party dependencies in this repository, identify the three likeliest ways this product suffers its first serious incident: data loss or corruption, prolonged outage, security/privacy leak, or a surprise usage bill. Take the #1 likeliest scenario and write a grounded pre-mortem incident report: exact trigger, hour-by-hour timeline, how you find out, what compounds the damage, what gets lost, recovery time, and impact. Every single step in the timeline must cite a real file, setting, or missing safeguard in this repo (or explicitly flag a dashboard setting to check). End with three preventive fixes ordered by effort, naming the single one worth doing this week.
+```
+
+- Finds: Writes a grounded, hour-by-hour preview of the most likely serious outage, data loss, security leak, or surprise bill waiting in your current setup — and the one fix worth doing this week.
+- Evidence to ask for: Three ranked incident risks with triggers, one evidence-backed incident timeline citing real files/settings at every step, and three preventive fixes with effort estimates.
+- Skip when: A throwaway prototype with no users, no stored data worth keeping, and no metered billing.
+- Watch for: Do not write dramatic fiction. Every link in the incident chain must be possible under this repository's actual code and configuration.
+- Mode: read, single pass, wide scope. Needs: Repository access.
+
+### AD10 Can you get your data back if something goes wrong?
+
+```text
+Audit how this product protects against accidental data loss across every store it uses (SQLite, Postgres, Supabase, Firebase, Convex, cloud file storage, or external SaaS data). From the repository, infrastructure config, and scripts, trace: what destructive operations exist in code or admin tools (hard deletes, cascades, overwrites, migration drops), whether soft-delete or undo exists for user-triggered deletions, what backup or point-in-time recovery settings are declared in config, and what data lives in places with no backup configured. Clearly separate what you verified in the repository from backup settings that live only in a hosting dashboard and require my check.
+```
+
+- Finds: Checks whether your database, uploaded files, and user content are actually backed up and restorable — whatever database or host you use.
+- Evidence to ask for: Every data store and file bucket found (file:line), the destructive paths that can wipe data permanently, what backup/restore mechanism is visible in config, and a short checklist of dashboard settings I must confirm and one safe restore drill to run.
+- Skip when: A stateless tool or static site that stores no user data or uploaded files.
+- Watch for: Agents assume a managed database host includes tested backups by default. Free tiers often have no point-in-time recovery or short retention, and file buckets (avatars, uploads) are frequently unbacked-up even when the database is. Flag every assumption that needs dashboard verification.
+- Mode: read, single pass, wide scope. Needs: Repository access. Some answers need your hosting, billing or vendor dashboards; the report names them.

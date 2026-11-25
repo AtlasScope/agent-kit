@@ -1,26 +1,32 @@
 /* The homepage (components/LaunchHero.tsx): one screen and nothing below it. The message over a live view from orbit.
    [data-live] arms the scene; [data-intro] stages the opening once per visit; [data-hold] keeps it dark until the
    scene can draw; [data-leave] is the hand-off to /install. With reduced motion, or before the script runs, the
-   message simply shows over the photograph. */
+   message simply shows over the still. */
 .launch { --ease-launch: cubic-bezier(0.16, 1, 0.3, 1); --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); --stage-h: calc(100svh - var(--header-h, 65px));
   --lh-t2: rgba(255,255,255,.78);
-  position: relative; isolation: isolate; margin-inline: calc(50% - 50vw); overflow-x: clip; background: #030409; color: #fff; }
+  position: relative; isolation: isolate; margin-inline: calc(50% - 50vw); overflow-x: clip; background: #020302; color: #fff; }
 
-/* Scene: the photo is the first paint and the fallback; the WebGL canvas fades in over it once it draws. It sits
-   behind the whole hero, so on a screen too short for the message the planet still runs under every line of it. */
+/* Scene: a still of the scene at rest is the first paint and the fallback; the live canvas fades in over it once it
+   draws. Both are framed the same way (object-position here, the frames in components/orbit/params.ts), so one sits
+   exactly on the other. It lies behind the whole hero, so on a screen too short for the message the planet still
+   runs under every line of it. The scene is composed dark on the side the words are on, so the shade over it is
+   light: enough to hold the words' contrast where the aurora or the limb passes behind them. */
 .launch__scene { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
-.launch__earth { position: absolute; inset: 0; background: #030409 72% 100% / cover no-repeat; }
+.launch__earth { position: absolute; inset: 0; background: #020302 72% 100% / cover no-repeat; }
 .launch__earth img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 72% 100%; }
+/* Phones, and screens taller than 5:4, get the tall frame (TALL_SCREEN and the frames' anchors are in
+   components/orbit/params.ts). */
+@media (max-width: 759.98px), (max-aspect-ratio: 4/5) { .launch__earth { background-position: 100% 100%; } .launch__earth img { object-position: 100% 100%; } }
 .launch__gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity .9s var(--ease-launch); }
 .launch.is-live .launch__gl { opacity: 1; }
 .launch.is-live .launch__earth { visibility: hidden; transition: visibility 0s 1s; }
-.launch__shade { position: absolute; inset: 0; background: linear-gradient(100deg, rgba(3,4,9,.92) 0%, rgba(3,4,9,.62) 34%, rgba(3,4,9,0) 62%), linear-gradient(to bottom, rgba(3,4,9,.7), rgba(3,4,9,0) 22%), linear-gradient(to top, rgba(3,4,9,.7), rgba(3,4,9,0) 64px); }
+.launch__shade { position: absolute; inset: 0; background: linear-gradient(100deg, rgba(2,3,2,.52) 0%, rgba(2,3,2,.3) 34%, rgba(2,3,2,0) 60%), linear-gradient(to bottom, rgba(2,3,2,.6), rgba(2,3,2,0) 20%), linear-gradient(to top, rgba(2,3,2,.6), rgba(2,3,2,0) 64px); }
 
 /* The screen: the message, centred, and a line of small links at the foot (the homepage has no footer). */
 .launch__first { min-height: var(--stage-h); display: grid; grid-template-rows: minmax(0, 1fr) auto; }
 .launch__msg { align-self: center; display: grid; justify-items: start; gap: 26px; padding-block: 3svh 6svh; }
 .launch__legal { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 0; padding: 0 0 14px; list-style: none; font-size: 12.5px; }
-.launch__legal a { display: inline-flex; align-items: center; min-height: 32px; color: rgba(255,255,255,.72); text-decoration: none; text-shadow: 0 1px 10px rgba(3,4,9,.9); }
+.launch__legal a { display: inline-flex; align-items: center; min-height: 32px; color: rgba(255,255,255,.72); text-decoration: none; text-shadow: 0 1px 10px rgba(2,3,2,.9); }
 @media (hover: hover) and (pointer: fine) { .launch__legal a:hover { color: #fff; text-decoration: underline; text-underline-offset: .25em; } }
 /* Touch: each link is a 44px target; the padding comes out of the gap, so the words keep their spacing. */
 @media (pointer: coarse) { .launch__legal { gap: 0 6px; margin-inline: -6px; } .launch__legal a { min-height: 44px; padding-inline: 6px; } }
@@ -34,15 +40,18 @@
 .launch__eg > span[aria-hidden] { color: rgba(255,255,255,.5); }
 .launch__to { display: inline-flex; align-items: center; gap: 8px; }
 .launch__eg .launch__pick { color: #fff; text-decoration: underline; text-decoration-color: rgba(255,255,255,.35); text-underline-offset: .25em; }
-/* What Install does, under it: on a computer it copies the command; on a phone it only opens the page. */
-.launch__note { margin: -14px 0 0; font-size: 0.8125rem; line-height: 1.45; color: rgba(255,255,255,.7); text-shadow: 0 1px 10px rgba(3,4,9,.9); }
-.launch__note-phone { display: none; }
-@media (hover: none) and (pointer: coarse) { .launch__note-desk { display: none; } .launch__note-phone { display: inline; } }
+/* What Install does, under it: it copies one message to paste into any agent, on every device. */
+.launch__note { margin: -14px 0 0; font-size: 0.8125rem; line-height: 1.45; color: rgba(255,255,255,.7); text-shadow: 0 1px 10px rgba(2,3,2,.9); }
+/* The three agents named in the sentence each carry their mark, in the text colour and at the text's size. */
+.launch__agent { white-space: nowrap; color: #fff; }
+.launch__agent .i { width: .95em; height: .95em; margin-right: .3em; vertical-align: -.12em; }
+/* More real requests (HERO.more). Hidden except on a tall phone, where the screen has room for them above the horizon. */
+.launch__more { display: none; }
 .launch__cta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; margin-top: 6px; }
 .launch__go { position: relative; overflow: hidden; border-radius: 999px; font-weight: 600; isolation: isolate; }
 .launch__go::after { content: ""; position: absolute; inset: -1px; z-index: -1; pointer-events: none;
   background: linear-gradient(105deg, transparent 35%, rgba(245,165,36,.35) 50%, transparent 65%); transform: translateX(-120%); animation: launch-sweep 6s var(--ease-in-out) 4s infinite; }
-.launch__new { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: rgba(255,255,255,.86); font-size: var(--text-sm); text-decoration: none; text-shadow: 0 1px 14px rgba(3,4,9,.9); }
+.launch__new { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: rgba(255,255,255,.86); font-size: var(--text-sm); text-decoration: none; text-shadow: 0 1px 14px rgba(2,3,2,.9); }
 .launch__new .i, .launch__go .i { width: 15px; height: 15px; transition: transform .35s var(--ease-launch); }
 @media (hover: hover) and (pointer: fine) { .launch__new:hover { color: #fff; } .launch__new:hover .i, .launch__go:hover .i { transform: translateX(4px); } }
 
@@ -53,13 +62,15 @@
 .launch[data-hold] .launch__earth img { opacity: 0; }
 .launch[data-intro] .launch__gl { transition: none; }
 .launch[data-intro].is-live .launch__earth { visibility: hidden; transition: none; }
+.launch[data-intro][data-late] .launch__gl { transition: opacity .9s var(--ease-launch); }
+.launch[data-intro][data-late].is-live .launch__earth { transition: visibility 0s 1s; }
 /* The words arrive with the planet's rise, not after it: readable about a second after the scene is ready. */
 .launch[data-intro]:not([data-hold]) .launch__shade { animation: launch-fade 1s ease .1s backwards; }
 .launch[data-intro]:not([data-hold]) .launch__w > span { animation: launch-word 1s var(--ease-launch) calc(.3s + var(--i) * 60ms) backwards; }
 .launch[data-intro]:not([data-hold]) .launch__lede { animation: launch-up .9s var(--ease-launch) .75s backwards; }
 .launch[data-intro]:not([data-hold]) .launch__eg { animation: launch-up .9s var(--ease-launch) .85s backwards; }
 .launch[data-intro]:not([data-hold]) .launch__cta { animation: launch-up .9s var(--ease-launch) .95s backwards; }
-.launch[data-intro]:not([data-hold]) :is(.launch__note, .launch__legal) { animation: launch-fade .8s ease 1.15s backwards; }
+.launch[data-intro]:not([data-hold]) :is(.launch__note, .launch__more, .launch__legal) { animation: launch-fade .8s ease 1.15s backwards; }
 @keyframes launch-fade { from { opacity: 0; } }
 @keyframes launch-word { from { transform: translateY(108%) rotate(2deg); } }
 @keyframes launch-up { from { opacity: 0; transform: translateY(14px); } }
@@ -72,11 +83,21 @@
 .launch[data-leave] .launch__scene { opacity: 0; transition: opacity .5s ease .06s; }
 
 @media (max-width: 760px) {
-  .launch__earth img { object-position: 60% 100%; }
-  /* Phones: the message sits at the top, inside the shade, with the horizon below it. */
-  .launch__shade { background: linear-gradient(to bottom, rgba(3,4,9,.9) 0%, rgba(3,4,9,.6) 55%, rgba(3,4,9,.3) 76%, rgba(3,4,9,0) 90%), linear-gradient(to top, rgba(3,4,9,.7), rgba(3,4,9,0) 64px); }
+  /* Phones: the message sits at the top, inside the shade, with the horizon below it. Where the screen is tall
+     enough, one more real request follows the note (two on the tallest), so a visitor sees the other routers
+     before installing. They stay short of the horizon, and go first when the screen gets shorter. */
+  .launch__shade { background: linear-gradient(to bottom, rgba(2,3,2,.6) 0%, rgba(2,3,2,.4) 50%, rgba(2,3,2,.15) 72%, rgba(2,3,2,0) 88%), linear-gradient(to top, rgba(2,3,2,.6), rgba(2,3,2,0) 64px); }
   .launch__msg { align-self: start; padding-block: 5svh 24px; }
 }
+@media (max-width: 760px) and (min-height: 700px) {
+  .launch__more { display: grid; gap: 10px; margin: 4px 0 0; padding: 0; list-style: none; font: 400 0.8125rem/1.5 var(--font-mono); color: rgba(255,255,255,.84); text-shadow: 0 1px 10px rgba(2,3,2,.9); }
+  .launch__more li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+  .launch__more li + li { display: none; }
+  .launch__more code { font: inherit; }
+  .launch__more li > span[aria-hidden] { color: rgba(255,255,255,.5); }
+  .launch__more .launch__pick { color: #fff; }
+}
+@media (max-width: 760px) and (min-height: 780px) { .launch__more li + li { display: flex; } }
 /* Phones: the headline follows the width as well, so "Give your coding" stays on one line on a 390px iPhone
    instead of leaving "coding" alone on its own line. */
 @media (max-width: 30rem) { .launch h1 { font-size: clamp(1.875rem, 10.4vw, 2.75rem); } }
@@ -116,3 +137,20 @@
   .launch__new { font-size: 1rem; }
   .launch__legal { font-size: 0.875rem; }
 }
+
+/* The experimental horizon scenes (/horizon/...): on a phone the planet fills the lower third. The words end above
+   it, so the shade is only what the words need and a thin band behind the links at the foot. */
+@media (max-width: 760px) {
+  .launch--art .launch__shade { background: linear-gradient(to bottom, rgba(2,3,2,.6) 0%, rgba(2,3,2,.4) 44%, rgba(2,3,2,.1) 56%, rgba(2,3,2,0) 62%), linear-gradient(to top, rgba(2,3,2,.55), rgba(2,3,2,0) 72px); }
+  /* The planet is left clear: the extra requests give way to one link to the library. */
+  .launch--art .launch__more { display: none; }
+  .launch--art .launch__examples { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin-top: -6px; color: rgba(255,255,255,.86); font-size: var(--text-sm); text-decoration: none; text-shadow: 0 1px 14px rgba(2,3,2,.9); }
+  .launch--art .launch__examples .i { width: 15px; height: 15px; }
+}
+.launch__examples { display: none; }
+/* Their stills are cut wide (2.4:1) and tall (4:5) and fitted by height from the centre, exactly as the live canvas
+   frames the scene, so one lies on the other. The live scene fades in over the still. */
+.launch--art .launch__earth { background: #000; }
+.launch--art .launch__earth img { object-position: 50% 50%; }
+.launch--art.is-live .launch__earth { transition: visibility 0s 1.6s; }
+.launch--art .launch__gl { transition: opacity 1.4s ease; }

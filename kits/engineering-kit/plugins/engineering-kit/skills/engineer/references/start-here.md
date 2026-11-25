@@ -69,6 +69,7 @@ The experience-architecture plugin in AtlasScope/agent-kit (separate install, se
 | `/experience-architecture:diagnose` | Start here for any complaint about navigation, the Back button, filters, shared links or too many pages. Finds the causes, says whether the page structure is the problem, and checks its own file references before reporting. | `A08`, `R07`, `A01` |
 | `/experience-architecture:rethink` | For questions like whether a page should exist, where a feature belongs, or whether to add a tab. Gives a recommendation, and for a real structural problem two or three options with a clickable prototype and a move-over plan that keeps old links working. | `A08`, `A05` |
 | `/experience-architecture:verify` | Proves behaviour in a browser and saves the user journeys as a repeat check that ends PASS, FAIL or EXPLORATORY. Typed values and secrets stay out of the logs. | `R07`, `T01`, `G06` |
+| `/experience-architecture:walkthrough` | Uses the running app the way a newcomer would, then says what the product is for, what to keep and the most valuable change to make. Changes no code. |  |
 
 ### Built in
 
@@ -76,6 +77,7 @@ Claude Code commands and the ci-optimizer plugin.
 
 | Command | What it does | Covers |
 |---|---|---|
+| `/ceo` | Explains the status of the work, a system or a problem in plain English for someone who doesn't read code. Explains without deciding. |  |
 | `/code-review` | Checks a set of changes or a PR for bugs, at an effort level you pick. Run it at high or above before marking a PR ready. | `D06` |
 | `/security-review` | Security review of the not-yet-merged changes on the current branch. | `T03`, `G03` |
 | `/simplify` | Looks over changed code for things to reuse or simplify, and makes the fixes. | `A03` |
@@ -91,7 +93,7 @@ Short prompts that change how an agent works on any task. Paste as written.
 Use it before you hand an agent a task you only half know how to describe.
 
 ```text
-I want the professional-grade version of this task, not a larger version. Look at what I'm trying to accomplish and tell me what a genuinely excellent practitioner would notice, investigate, or verify that I've overlooked. Start with the original evidence instead of just relying on existing summaries. Identify the methods that would materially improve the result and the independent evidence that would establish whether it's correct. Then improve the assignment accordingly. Keep the objective and scope intact. Don't add process or complexity just to make the work sound more sophisticated.
+Give me the thorough, senior-level version of this task without expanding its scope. Look at what I'm trying to accomplish and identify what an experienced practitioner would check, question, or verify that I overlooked. Inspect the original code and data instead of relying on summaries. Name the specific checks or evidence that will prove the result is right, then refine the task plan accordingly. Keep the objective and scope tight, and skip extra process that adds complexity without improving the result.
 ```
 
 ### M02 Prove it wrong
@@ -99,7 +101,7 @@ I want the professional-grade version of this task, not a larger version. Look a
 Use it when an agent's plan sounds right and you can't see why it might be wrong.
 
 ```text
-Assume the proposed solution is wrong. Find the strongest evidence against it before recommending we proceed.
+Before we proceed, try to prove the proposed plan wrong. List the key assumptions it relies on, search the code, data, logs, and documentation for evidence against each one, and run the fastest check or test that could break it. Report which assumptions held, which failed, and which you could not check. If any failed, explain what changes and propose the smallest adjustment. Recommend going ahead only if nothing you found contradicts the plan.
 ```
 
 ### M03 Root cause first
@@ -107,7 +109,7 @@ Assume the proposed solution is wrong. Find the strongest evidence against it be
 Use it the second time the same kind of bug shows up.
 
 ```text
-Don't fix the visible symptom yet. Work backward through the system until you can explain why it occurred and what other behavior shares that cause.
+Do not patch the visible symptom yet. Reproduce the problem first, then trace backward through code and data until you can explain in one or two plain sentences why it happens, citing the exact files, lines, or records involved. Search the codebase for every other place that shares the same cause. Report the cause, the proof, and every affected location. Then propose one fix that removes the underlying cause everywhere it applies, plus a check that fails if it returns. Wait for my yes before editing.
 ```
 
 ### M04 Simpler first
@@ -115,7 +117,7 @@ Don't fix the visible symptom yet. Work backward through the system until you ca
 Use it when the proposed fix adds a new setting, table or service.
 
 ```text
-Solve this by making the existing system simpler. First determine whether we can remove a layer, rule, dependency, or special case rather than add something.
+Before adding any new code, layer, setting, table, or dependency, look for something you can remove instead. Check whether deleting a redundant wrapper, special case, duplicate path, or unused rule solves the problem or makes it simpler. Only if removal cannot solve it, propose the smallest addition that works and justify each new piece. Judge options by how little there will be to understand and maintain next month, avoiding unnecessary moving parts.
 ```
 
 ### M05 Let the expert decide
@@ -123,7 +125,7 @@ Solve this by making the existing system simpler. First determine whether we can
 Use it when an agent keeps asking you technical questions you can't judge.
 
 ```text
-Treat the technical decisions as yours to make. Apply established engineering standards, investigate uncertainties, and escalate only genuine product or risk decisions.
+Make the technical decisions yourself the way a senior engineer on this project would: follow the repository's existing patterns first, then established standards and official documentation, and inspect the codebase when unsure instead of asking me. Bring me only choices about product behavior, user impact, ongoing cost, or risks I must accept — each with your recommendation and how hard it is to change later. At the end, list the technical choices you made in one line each so I have a record.
 ```
 
 ### M06 Check it independently
@@ -131,7 +133,7 @@ Treat the technical decisions as yours to make. Apply established engineering st
 Use it before you accept 'tests pass' as proof that something works.
 
 ```text
-Design a way to prove your solution works that doesn't depend on the assumptions, code, or tests you just created.
+Prove this works without relying only on the code or unit tests you just wrote. Pick an independent check that will actually fail if the fix is broken: walk through the running app like a real user, call the real endpoint, inspect the real stored data, compare against an outside source, or write a check from the original requirement without reading your implementation. Run that check, show the actual output, and state plainly what it still does not cover.
 ```
 
 ### M07 Spec without the interview
@@ -139,7 +141,7 @@ Design a way to prove your solution works that doesn't depend on the assumptions
 The default way to start a real task. The opposite of /grill-me.
 
 ```text
-Turn my request into a compact working specification: desired outcome, actual scope, meaningful exclusions, observable acceptance criteria, and stopping point. Resolve technical ambiguity from the repository and authoritative references yourself; ask me only for product preferences, permissions, or genuine tradeoffs you cannot determine independently. Then execute if the task is authorized and ready.
+Turn my request into a short working specification: desired outcome, what is in scope, what is explicitly out of scope, observable acceptance criteria, and where to stop. Resolve technical questions yourself by reading the repository and primary documentation. Ask me only about product behavior, permissions, or tradeoffs you cannot decide from the codebase. Show me the short spec first and wait for my yes before editing files unless I already told you to proceed immediately.
 ```
 
 ### M08 Reproduce, measure, prove
@@ -147,7 +149,7 @@ Turn my request into a compact working specification: desired outcome, actual sc
 Use it in the second session, after a read-only investigation found a real problem.
 
 ```text
-Before repairing a suspected defect or performance problem, establish a reproducible failing case or measurable baseline. Find the root cause, implement the narrowest defensible fix, rerun an independent check, and report the before/after evidence. If you can't measure or reproduce it, say what evidence is missing instead of claiming a win.
+Before editing anything to fix this bug or slowdown, create a reproducible failing case or a measured baseline. Trace the root cause, apply the narrowest fix that removes it, rerun an independent check, and report the exact before-and-after evidence. If you cannot reproduce or measure the problem, stop and tell me what evidence is missing instead of claiming it is fixed.
 ```
 
 ### M09 Compare three options
@@ -155,7 +157,7 @@ Before repairing a suspected defect or performance problem, establish a reproduc
 Use it for decisions that will be expensive to undo.
 
 ```text
-Do not implement the first viable approach you find. Present three genuinely distinct ways to solve this problem: (1) the smallest, most conservative patch to the existing code, (2) the cleanest long-term structural design, and (3) a subtractive approach that removes an existing constraint, layer, or edge case. Compare their blast radius, testability, and failure modes, recommend one, and wait for my decision.
+Do not implement the first workable idea you think of. Lay out three meaningfully different ways to solve this: (1) the smallest conservative patch to the existing code, (2) the cleanest long-term design, and (3) a subtractive option that removes an existing layer, constraint, or special case. For each option, compare what else it could break, how easy it is to test, and how it fails. Recommend one in plain English and wait for my decision before editing anything.
 ```
 
 ### M10 Handoff note before you stop
@@ -163,7 +165,7 @@ Do not implement the first viable approach you find. Present three genuinely dis
 Use it before the agent compacts (shrinks its memory of the chat) or a long session ends.
 
 ```text
-Prepare a compact, self-contained technical checkpoint so a fresh agent session can resume this work cold. Document only: (1) verified facts and current system state, (2) approaches already tested and why they were ruled out, (3) exact files and uncommitted changes in flight, and (4) the single next falsifiable step. Summarize system ground truth, not our conversation history.
+Write a compact, self-contained technical handoff so a fresh agent session can resume this work cold. Include only: (1) verified facts and current system state, (2) approaches already tried and why they were ruled out, (3) exact files modified and any uncommitted changes in flight, and (4) the single next verifiable step. Record ground truth from the repository and commands run, skipping conversational recap.
 ```
 
 ### M11 Thorough and bold
@@ -179,7 +181,63 @@ Go past the first answer. For each claim you make, check the original evidence (
 Use it as a cleanup pass on each pull request, or on a schedule for overdue maintenance. It pushes the agent to merge duplicated code, put core logic in one place and cut lines. Shared by Chris (@_khrus) on X on 7 Nov 2026; the idea is John Ousterhout's, from A Philosophy of Software Design, and Matt Pocock pointed him to it. /improve-codebase-architecture is the longer version: a scan, a report and an interview.
 
 ```text
-Deepen modules and simplify interfaces.
+Run a cleanup pass on the code touched by this branch or recent change. Look for logic duplicated in multiple places, functions whose callers need to know internal details, and thin pass-through wrappers that add indirection without value. Merge duplicates, put the core logic behind one clear entry point, and keep each interface simpler than the work inside it. Keep external behavior identical: run the existing tests before and after, and skip anything you cannot verify is safe. Summarize what you merged, moved, or deleted in plain English first, with file paths underneath.
+```
+
+### X17 Mark your guesses
+
+Use it when you can't tell whether an agent actually looked or only sounds sure, especially before acting on what it says.
+
+```text
+Separate what you verified from what you assumed. In your answer, tag every factual claim as Checked (you ran it, read the file, or measured it — state how), Inferred (it follows from something you checked — state what), or Guessed (unverified). Before replying, verify any Guessed claim that your recommendation depends on. List any remaining guesses clearly along with what would change if they turned out wrong. Never state a guess in the same confident tone as a checked fact.
+```
+
+### AD03 Stop and untangle
+
+The agent has spent several turns patching a bug, each fix broke something else, and you have lost track of what changed.
+
+```text
+Stop editing files. Step back and untangle where we are right now. Check git status and git diff against the last known working commit, then tell me in plain English: (1) what the original goal was, (2) every fix we already tried and what happened, (3) which uncommitted changes are half-finished patches that should be reverted, and (4) the single cleanest path forward from a clean base. Wait for my approval before reverting or editing anything.
+```
+
+### X18 Plan the failure
+
+Use it before a change that would be painful to undo: a migration, a payment change, a launch or a large rewrite.
+
+```text
+Before you start, imagine this change is already shipped and has gone badly wrong. List up to five of the likeliest causes specific to this project, such as a false assumption, an untested edge case, a nearby feature broken by the edit, an unexpected bill, or a user doing something unintended. Stop as soon as the real risks run out instead of padding the list. For each risk, state how we would spot it early and what your plan does to prevent it. Show me that plan before changing files. When the work finishes, report which risks you eliminated and which remain possible.
+```
+
+### X19 Teach me what you just did
+
+Use it on any change you'll have to live with, especially when you don't read the code yourself.
+
+```text
+When you finish, explain what you changed so I could describe it to someone else and spot trouble later. Assume I understand the product and do not read code. In under 250 words of plain English, cover: what the problem was, what you changed and why you picked this over the main alternative, what a user will notice, what could still go wrong and how I would spot it, and one concrete thing I can open, click, or check myself to confirm it works. End with two short questions to verify I understood the parts that matter most.
+```
+
+### X20 Who notices this change
+
+Use it before renaming, moving or removing anything people or other systems rely on: a page, a field, a price, an email or an API.
+
+```text
+Before making this change, list everyone and everything that will feel its impact beyond the files you edit: users on each plan, people mid-task during deploy, saved links and bookmarks, links inside emails already sent, search engines, analytics and reports, external apps or scripts calling this, cached responses, older client or app versions still running, in-flight background jobs, and admins or support. For each item that applies to this project, explain what they will experience and whether it needs a redirect, a migration, a notice, or temporary backwards compatibility. Show me the list before editing anything, include the agreed code transitions when you build the change, and separate what you handled from what needs manual action from me.
+```
+
+### AD01 Stay inside the lines
+
+Past changes touched files you didn't expect, or you are editing a delicate area right before shipping.
+
+```text
+Stay strictly inside the task I asked for. Do not refactor neighbouring code, rename unrelated variables, reformat untouched files, delete comments, or upgrade dependencies unless the task cannot work without it. If you spot a separate bug or cleanup opportunity while working, leave it untouched and list it at the end under "Spotted outside scope" with the file and line so I can decide whether to do it next. Before finishing, check the diff and revert any accidental edit outside scope.
+```
+
+### AD02 Show the plan and wait
+
+You want to approve the approach before the agent touches code, especially on a big or unfamiliar change.
+
+```text
+Do not edit any files yet. Inspect the codebase and tell me your plan in plain English for someone who knows the product and does not read code. Cover what will change for a user, which areas of the product are touched, any tradeoffs or product choices I need to make, and what could break. Keep it under 200 words, end with any questions that need my call, and wait for my yes before making edits.
 ```
 
 ## Wrapping an investigation prompt

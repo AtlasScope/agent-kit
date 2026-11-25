@@ -21,3 +21,20 @@ test("the design router's situations table sends a row to that skill first", () 
   const rows = read("kits/design-kit/plugins/design-kit/skills/design/references/situations.md").split("\n");
   assert.ok(rows.some((l) => l.split("|")[2]?.trim().replaceAll("`", "") === `/${HERO.example.pick}`), `a row's first pick is /${HERO.example.pick}`);
 });
+
+test("each extra homepage request is a routing case with the same first pick", () => {
+  const cases = JSON.parse(read("tests/routing/cases.json")).cases;
+  assert.ok(HERO.more.length > 0);
+  for (const m of HERO.more) {
+    const c = cases.find((x) => x.id === m.case);
+    assert.ok(c, `tests/routing/cases.json has ${m.case}`);
+    assert.equal(c.router, m.router);
+    assert.equal(c.request, `${m.router} ${m.request}`);
+    assert.equal(c.expect[0], m.pick);
+  }
+});
+
+test("an extra request that goes to a library prompt is shown by that prompt's title", () => {
+  const titles = new Map(JSON.parse(read("library/library.json")).entries.map((e) => [e.id, e.t]));
+  for (const m of HERO.more) if (!m.pick.startsWith("/")) assert.equal(m.label, titles.get(m.pick), `${m.case} shows the title of ${m.pick}`);
+});

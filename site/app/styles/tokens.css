@@ -1,0 +1,195 @@
+/* AtlasScope design tokens. The one source for colour, type, space, shape, depth and motion on the site.
+   Owned by the design-system lane (see DESIGN-CONTRACT.md). Page families read these; they never redefine them.
+
+   Palette: Orbital Neutral. Cool, nearly colourless greys; white and near-black do the work. Colour carries meaning:
+   - signal (green): something is true or done right now (copied, tested, finished, current). Never a fill or a wash.
+   - focus (blue): the keyboard focus ring, nothing else.
+   - warm (amber): what you chose or kept (a star, a pressed toggle).
+   - danger (red): destructive actions and errors only.
+   - section hues (--s-*): small wayfinding marks beside a title.
+   Atmospheric colour belongs to the homepage artwork and never reaches interface roles. */
+:root {
+  color-scheme: light;
+
+  /* Surfaces */
+  --c-canvas: oklch(98.6% .0015 260);       /* page */
+  --c-surface: oklch(100% 0 0);             /* cards, code, menus */
+  --c-raised: oklch(96.4% .0025 260);       /* fills inside a surface: block heads, selected rows, hover */
+  --c-sunken: oklch(95.2% .003 260);        /* wells: input on canvas, code inside prose */
+  --c-overlay: oklch(98.6% .0015 260 / .78); /* translucent header and sheets (with backdrop blur) */
+
+  /* Text */
+  --c-fg: oklch(18.5% .006 265);            /* headings, primary text */
+  --c-fg-2: oklch(38% .008 265);            /* body copy on surfaces */
+  --c-fg-3: oklch(51% .008 265);            /* secondary, metadata (4.9:1 on white) */
+  --c-fg-4: oklch(64% .006 265);            /* placeholders, disabled (decorative only) */
+
+  /* Lines */
+  --c-line: oklch(91.8% .003 265);          /* hairlines between things */
+  --c-line-2: oklch(85% .004 265);          /* stronger hairline: hover edges, separators in dense lists */
+  --c-edge: oklch(64% .006 265);            /* control boundaries that must reach 3:1 */
+
+  /* Roles */
+  --c-primary: oklch(18.5% .006 265);       /* main action fill: ink on light */
+  --c-on-primary: oklch(99% 0 0);
+  --c-primary-hover: oklch(32% .008 265);
+  --c-fill: oklch(18.5% .006 265 / .055);   /* neutral pressed / current / selected tint */
+  --c-fill-2: oklch(18.5% .006 265 / .09);
+  --c-signal: oklch(55% .13 155);           /* green, as text or a 1-2px mark */
+  --c-signal-bright: #39FF88;               /* the LED itself */
+  --c-focus: oklch(55% .19 258);
+  --c-warm: #B45309; --c-warm-soft: #FDF1E3;
+  --c-danger: #B42318; --c-on-danger: #FFFFFF;
+
+  /* Section hues */
+  --s-inv: #00704A; --s-db: #5C6B00; --s-think: #5A2FC2; --s-ecmd: #006C80; --s-dcmd: #1849C4; --s-recipe: #BF1F5E;
+
+  /* Depth: hairline first, shadow second. */
+  --shadow-1: 0 1px 2px oklch(20% .01 265 / .05);
+  --shadow-2: 0 1px 2px oklch(20% .01 265 / .05), 0 4px 12px -4px oklch(20% .01 265 / .08);
+  --shadow-3: 0 2px 4px oklch(20% .01 265 / .05), 0 12px 32px -8px oklch(20% .01 265 / .16);  /* popovers, menus */
+  --shadow-inset: inset 0 1px 0 oklch(100% 0 0 / .7);
+
+  /* Type */
+  --font-body: var(--font-geist), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-montserrat), var(--font-body);
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  /* size / line-height / tracking triplets */
+  --type-display: clamp(2.75rem, 4vw + 1.25rem, 4.75rem); --lh-display: 1; --tr-display: -0.04em;
+  --type-h1: clamp(2.125rem, 2.4vw + 1.1rem, 3.375rem); --lh-h1: 1.04; --tr-h1: -0.035em;
+  --type-h2: clamp(1.25rem, .6vw + 1rem, 1.5rem); --lh-h2: 1.2; --tr-h2: -0.022em;
+  --type-h3: 1.125rem; --lh-h3: 1.3; --tr-h3: -0.015em;
+  --type-lead: clamp(1.0625rem, .3vw + 1rem, 1.25rem); --lh-lead: 1.5;
+  --type-body: 1rem; --lh-body: 1.6;
+  --type-sm: .9375rem; --lh-sm: 1.5;
+  --type-xs: .8125rem; --lh-xs: 1.45;
+  --type-micro: .75rem; --lh-micro: 1.35;
+  --type-code: .875rem; --lh-code: 1.65;
+  --weight-regular: 400; --weight-medium: 500; --weight-semibold: 600; --weight-bold: 650;
+
+  /* Space: a 4px grid. */
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px; --space-6: 24px;
+  --space-8: 32px; --space-10: 40px; --space-12: 48px; --space-16: 64px; --space-20: 80px; --space-24: 96px;
+
+  /* Shape */
+  --radius-xs: 4px; --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-xl: 20px; --radius-pill: 999px;
+
+  /* Layout */
+  --container: 1280px; --gutter: 32px; --measure: 72ch; --read: 52ch; --header-h: 65px;
+  --control-h: 40px; --control-h-sm: 32px; --control-h-lg: 48px; --tap: 44px;
+
+  /* Motion. Interaction answers a press; nothing on interior pages moves by itself. */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --dur-instant: 80ms;   /* press feedback */
+  --dur-fast: 140ms;     /* hover colour, borders */
+  --dur-base: 200ms;     /* copy state, icon swaps */
+  --dur-slow: 260ms;     /* menus, search, disclosures */
+  --dur-page: 320ms;     /* contextual content transitions */
+  --travel: 1;           /* multiply translate distances by this; 0 under reduced motion */
+}
+/* Dark: near-black canvas, cool greys with almost no chroma, hairlines of white. */
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  color-scheme: dark;
+  --c-canvas: oklch(12.5% .004 260); --c-surface: oklch(16.5% .005 260); --c-raised: oklch(20.5% .006 260); --c-sunken: oklch(10.5% .004 260);
+  --c-overlay: oklch(12.5% .004 260 / .72);
+  --c-fg: oklch(96.5% .003 260); --c-fg-2: oklch(84% .006 260); --c-fg-3: oklch(72% .01 260); --c-fg-4: oklch(56% .008 260);
+  --c-line: oklch(100% 0 0 / .08); --c-line-2: oklch(100% 0 0 / .14); --c-edge: oklch(46% .006 260);
+  --c-primary: oklch(96.5% .003 260); --c-on-primary: oklch(14% .005 260); --c-primary-hover: oklch(86% .004 260);
+  --c-fill: oklch(100% 0 0 / .06); --c-fill-2: oklch(100% 0 0 / .1);
+  --c-signal: oklch(80% .17 155); --c-focus: oklch(72% .15 252);
+  --c-warm: #F5A524; --c-warm-soft: #2A2113; --c-danger: #FF8A75; --c-on-danger: #0B0C12;
+  --s-inv: #4BF0A8; --s-db: #C9E05A; --s-think: #BFA8FF; --s-ecmd: #3FE0F5; --s-dcmd: #8CB6FF; --s-recipe: #FF7FB2;
+  --shadow-1: 0 1px 2px oklch(0% 0 0 / .5);
+  --shadow-2: 0 1px 2px oklch(0% 0 0 / .5), 0 6px 16px -6px oklch(0% 0 0 / .6);
+  --shadow-3: 0 2px 4px oklch(0% 0 0 / .5), 0 16px 40px -8px oklch(0% 0 0 / .75);
+  --shadow-inset: inset 0 1px 0 oklch(100% 0 0 / .05);
+} }
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --c-canvas: oklch(12.5% .004 260); --c-surface: oklch(16.5% .005 260); --c-raised: oklch(20.5% .006 260); --c-sunken: oklch(10.5% .004 260);
+  --c-overlay: oklch(12.5% .004 260 / .72);
+  --c-fg: oklch(96.5% .003 260); --c-fg-2: oklch(84% .006 260); --c-fg-3: oklch(72% .01 260); --c-fg-4: oklch(56% .008 260);
+  --c-line: oklch(100% 0 0 / .08); --c-line-2: oklch(100% 0 0 / .14); --c-edge: oklch(46% .006 260);
+  --c-primary: oklch(96.5% .003 260); --c-on-primary: oklch(14% .005 260); --c-primary-hover: oklch(86% .004 260);
+  --c-fill: oklch(100% 0 0 / .06); --c-fill-2: oklch(100% 0 0 / .1);
+  --c-signal: oklch(80% .17 155); --c-focus: oklch(72% .15 252);
+  --c-warm: #F5A524; --c-warm-soft: #2A2113; --c-danger: #FF8A75; --c-on-danger: #0B0C12;
+  --s-inv: #4BF0A8; --s-db: #C9E05A; --s-think: #BFA8FF; --s-ecmd: #3FE0F5; --s-dcmd: #8CB6FF; --s-recipe: #FF7FB2;
+  --shadow-1: 0 1px 2px oklch(0% 0 0 / .5);
+  --shadow-2: 0 1px 2px oklch(0% 0 0 / .5), 0 6px 16px -6px oklch(0% 0 0 / .6);
+  --shadow-3: 0 2px 4px oklch(0% 0 0 / .5), 0 16px 40px -8px oklch(0% 0 0 / .75);
+  --shadow-inset: inset 0 1px 0 oklch(100% 0 0 / .05);
+}
+/* The stage: the homepage and /install are dark in both themes, over the view from orbit (components/stage). It is the
+   dark set above on a black canvas, plus the brand green: the main action is a lit green object, the header carries a
+   small green light, and /install has a green pool of light under its message. Brand green (--c-brand*) is light and
+   material; the confirmed state (--c-signal, the LED, a tick and words) stays separate and appears only once
+   something has actually happened. Focus is the system blue. Decided by the homepage track, 24 Nov 2026 (revised the
+   same day: minimalism means fewer words and elements, not less identity). */
+:root:has(.home, .quiet) {
+  color-scheme: dark;
+  --c-canvas: #000; --c-surface: oklch(15.5% .005 260); --c-raised: oklch(20% .006 260); --c-sunken: oklch(8% .004 260);
+  --c-overlay: oklch(4% .003 260 / .55);
+  --c-fg: oklch(97% .003 260); --c-fg-2: oklch(84% .006 260); --c-fg-3: oklch(72% .01 260); --c-fg-4: oklch(56% .008 260);
+  --c-line: oklch(100% 0 0 / .09); --c-line-2: oklch(100% 0 0 / .16); --c-edge: oklch(48% .006 260);
+  /* Brand green, from the original palette (dark accent oklch(72% .17 155)). Light-to-deep for a lit surface, an edge
+     a step darker, the light it casts, and the ink that sits on it. */
+  --c-brand: oklch(76% .175 154); --c-brand-hi: oklch(87% .16 151); --c-brand-lo: oklch(64% .165 157);
+  --c-brand-edge: oklch(48% .12 158); --c-brand-glow: oklch(80% .19 151); --c-on-brand: oklch(17% .045 160);
+  --c-primary: var(--c-brand); --c-on-primary: var(--c-on-brand); --c-primary-hover: var(--c-brand-hi);
+  --c-fill: oklch(100% 0 0 / .06); --c-fill-2: oklch(100% 0 0 / .1);
+  --c-signal: oklch(84% .2 152); --c-focus: oklch(72% .15 252);
+  --c-warm: #F5A524; --c-warm-soft: #2A2113; --c-danger: #FF8A75; --c-on-danger: #0B0C12;
+  --s-inv: #4BF0A8; --s-db: #C9E05A; --s-think: #BFA8FF; --s-ecmd: #3FE0F5; --s-dcmd: #8CB6FF; --s-recipe: #FF7FB2;
+  --shadow-1: 0 1px 2px oklch(0% 0 0 / .5);
+  --shadow-2: 0 1px 2px oklch(0% 0 0 / .5), 0 6px 16px -6px oklch(0% 0 0 / .6);
+  --shadow-3: 0 2px 4px oklch(0% 0 0 / .5), 0 16px 40px -8px oklch(0% 0 0 / .75);
+  --shadow-inset: inset 0 1px 0 oklch(100% 0 0 / .05);
+}
+/* Wide colour: Display P3 screens get the same hues with more saturation. sRGB keeps the values above. */
+@media (color-gamut: p3) {
+  :root {
+    --c-warm: oklch(55.5% .167 49); --c-danger: oklch(50% .223 29.5);
+    --s-inv: oklch(48.2% .143 161.2); --s-db: oklch(49.8% .134 118.9); --s-think: oklch(45.7% .262 288.4);
+    --s-ecmd: oklch(49% .113 216.4); --s-dcmd: oklch(45.9% .295 263.7); --s-recipe: oklch(53% .236 4.4);
+    --c-signal-bright: oklch(88.1% .245 151.2);
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --c-danger: oklch(75.7% .183 31.4); --c-warm: oklch(78.2% .189 72.3);
+    --s-inv: oklch(85.3% .256 160.1); --s-db: oklch(86.4% .227 118.1); --s-think: oklch(78.4% .134 295.6);
+    --s-ecmd: oklch(83.5% .169 208.1); --s-dcmd: oklch(77.5% .124 261.1); --s-recipe: oklch(75.6% .208 356.6); } }
+  :root:has(.home, .quiet) { --c-brand: oklch(77% .22 151); --c-brand-hi: oklch(88% .2 149); --c-brand-lo: oklch(65% .2 154); --c-brand-glow: oklch(82% .24 149); }
+  :root[data-theme="dark"], :root:has(.home, .quiet) { --c-warm: oklch(78.2% .189 72.3);
+    --s-inv: oklch(85.3% .256 160.1); --s-db: oklch(86.4% .227 118.1); --s-think: oklch(78.4% .134 295.6);
+    --s-ecmd: oklch(83.5% .169 208.1); --s-dcmd: oklch(77.5% .124 261.1); --s-recipe: oklch(75.6% .208 356.6); }
+}
+/* Responsive layout tokens */
+@media (max-width: 78rem) { :root { --header-h: 57px; } }
+@media (max-width: 60rem) { :root { --gutter: 24px; } }
+@media (max-width: 40rem) { :root { --gutter: 16px; } }
+@media (max-width: 22rem) { :root { --gutter: 12px; } }
+@media (min-width: 100rem) and (min-height: 900px) { :root { --container: 1320px; } }
+@media (min-width: 1800px) { :root { --container: 1560px; } }
+@media (min-width: 2600px) { :root { --container: 1800px; } }
+@media (pointer: coarse) { :root { --control-h: 44px; --control-h-sm: 40px; } }
+@media (prefers-reduced-motion: reduce) { :root { --travel: 0; } }
+/* Legacy names. Existing page CSS reads these; they now resolve to the tokens above, so every page takes the new
+   palette without a rewrite. New code uses the --c-* / --type-* / --space-N names. Do not add to this list. */
+:root, :root:has(.home, .quiet) {
+  --color-paper: var(--c-canvas); --color-paper-2: var(--c-surface); --color-paper-3: var(--c-raised);
+  --color-ink: var(--c-fg); --color-ink-2: var(--c-fg-2); --color-muted: var(--c-fg-3);
+  --color-rule: var(--c-line); --color-rule-2: var(--c-line-2); /* decorative; controls use --c-edge */
+  --color-accent: var(--c-primary); --color-accent-ink: var(--c-on-primary); --color-focus: var(--c-focus);
+  --color-link: var(--c-fg); --color-accent-text: var(--c-fg); --color-cmd: var(--c-fg);
+  --color-warm: var(--c-warm); --color-warm-soft: var(--c-warm-soft); --color-danger: var(--c-danger); --color-on-danger: var(--c-on-danger);
+  --lift: var(--shadow-2); --lift-hi: var(--shadow-3);
+  --led: var(--c-signal-bright); --led-glow: color-mix(in oklab, var(--led) 55%, transparent);
+  --led-shine: 0 0 0 1px color-mix(in oklab, var(--led) 55%, transparent), 0 0 6px var(--led), 0 0 14px var(--led-glow);
+  --accent-hover: var(--c-primary-hover);
+  --accent-wash: var(--c-fill); --accent-edge: var(--c-line-2); --accent-halo: 0 0 0 0 transparent;
+  --text-sm: .875rem; --text-md: 1rem; --text-lead: var(--type-lead);
+  --space-xs: var(--space-2); --space-sm: var(--space-3); --space-md: var(--space-4); --space-lg: var(--space-6); --space-xl: var(--space-10); --space-2xl: var(--space-16);
+  --radius: 12px;
+  --dur-micro: var(--dur-instant); --dur-short: var(--dur-base); --dur-long: 600ms;
+}

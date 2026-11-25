@@ -4,7 +4,7 @@ Agent Kit by AtlasScope is a free, open set of skills and prompts for AI coding 
 
 It's for people who use Claude Code, Codex, Cursor, or another coding agent and want it to follow a clear method for design, motion, engineering, database, and product structure work. If you've never used a coding agent before, the site also has an eight-step [first-app guide](https://www.atlasscope.dev/start).
 
-Most of the skills come from other authors: 49 of the 64 come from Emil Kowalski, Matt Pocock, Wondel.ai, and seven other authors. Agent Kit routes between them and adds 15 skills of its own. See [CREDITS.md](CREDITS.md).
+Most of the skills come from other authors: 49 of the 66 come from Emil Kowalski, Matt Pocock, Wondel.ai, and seven other authors. Agent Kit routes between them and adds 17 skills of its own. See [CREDITS.md](CREDITS.md).
 
 ## Get one result
 
@@ -18,11 +18,11 @@ Some `/design` recipes hand steps to external plugins Agent Kit doesn't ship, li
 
 ## What's inside
 
-Agent Kit has 5 kits (65 skills total) and 255 library entries.
+Agent Kit has 5 kits (66 skills total) and 255 library entries.
 
 | Kit | Skills | What it does |
 |---|---|---|
-| [design-kit](kits/design-kit) | 39 | `/design` routes to the right design skill or recipe: layout, typography, color, motion, UX writing, usability, landing copy, native iOS, and more. Includes `/design-setup`, `/palette-builder` and `fix-writing`. |
+| [design-kit](kits/design-kit) | 40 | `/design` routes to the right design skill or recipe: layout, typography, color, motion, UX writing, usability, landing copy, native iOS, and more. Includes `/design-setup`, `/palette-builder`, `fix-writing` and an early `/keen`, Agent Kit's own design command. |
 | [motion-kit](kits/motion-kit) | 1 | `/motion` sets up a motion system, storyboards a sequence, builds an animation, and reviews or fixes existing motion using code scans and browser frame captures. |
 | [engineering-kit](kits/engineering-kit) | 17 | `/engineer` routes to bug diagnosis, test-first work, architecture scans, plan interviews, retros, and research. `/database` picks and runs a read-only PostgreSQL investigation. Includes `/engineering-setup`. |
 | [experience-architecture](kits/experience-architecture) | 4 | `diagnose`, `rethink`, `verify`, and `walkthrough` (preview) inspect and test how a web app's pages, navigation, URLs, and Back button hang together. |
@@ -97,7 +97,7 @@ You can also connect your agent to the read-only MCP server at `https://www.atla
 
 ## Prompt library
 
-[`library/dist/prompt-library.html`](library/dist/prompt-library.html) is a single self-contained HTML page with all 254 prompts, commands, and recipes, a symptom finder, a prompt composer, and browser-local stars. You can:
+[`library/dist/prompt-library.html`](library/dist/prompt-library.html) is a single self-contained HTML page. It opens on "What's wrong?", a short list of plain problems that each point to up to three things to try, and sorts everything else into the kit's areas (Design with Keen, Motion, Bugs and speed, Data and so on). Copying a prompt gives the agent everything it needs, including what it may change and what to bring back. Commands written by other people sit on an Other tools page that names the Agent Kit job doing the same work. You can:
 
 - Open it in a browser or in the side browser in Codex or Cursor.
 - Upload it as a Claude artifact.

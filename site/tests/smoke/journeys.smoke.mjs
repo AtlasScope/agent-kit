@@ -7,7 +7,7 @@ import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import { chromium } from "playwright";
 import { composeCopy } from "../../lib/copy.ts";
-import { AGENTS } from "../../lib/site.ts";
+import { AGENTS, INSTALL_MESSAGE } from "../../lib/site.ts";
 import { STEPS, REQUEST } from "../../lib/start.ts";
 import { STARTS } from "../../lib/starts.ts";
 import { LESSONS } from "../../lib/lessons.ts";
@@ -63,18 +63,17 @@ for (const size of SIZES) {
   test(`${size.name}: home page copies the install steps and leads to the library`, async () => {
     const { page, ctx, errors } = await open(size, "/");
     await noSideScroll(page, "/");
-    // The homepage is one screen. Install copies the Claude Code command on the click and opens /install, which says so.
+    // The homepage is one screen. Install copies one message for any agent on the click and opens /install, which
+    // says so. It is the same on a phone and a computer.
     assert.ok(await page.evaluate(() => document.documentElement.scrollHeight - innerHeight) <= 1, "the homepage does not scroll");
     await page.locator(".launch__go", { hasText: "Install Agent Kit" }).click();
     await page.waitForURL(/\/install$/);
-    if (size.name === "phone") {
-      // A phone has no terminal: Install opens the page without copying, and the page says to use a computer.
-      await page.locator(".inst__phone").waitFor();
-      assert.equal(await page.locator(".inst__note").count(), 0, "no copied notice on a phone");
-    } else {
-      await page.locator(".inst__note", { hasText: "Install command copied" }).waitFor();
-      assert.equal(await clipboard(page), AGENTS.find((a) => a.id === "claude").steps.join("\n"), "Install copies the Claude Code steps");
-    }
+    await page.locator(".inst__note", { hasText: "Message copied" }).waitFor();
+    assert.equal(await clipboard(page), INSTALL_MESSAGE, "Install copies the message to paste into an agent");
+    await page.getByRole("button", { name: /Copy the message/ }).click();
+    assert.equal(await clipboard(page), INSTALL_MESSAGE, "the install page copies the same message");
+    // The by-hand commands sit in a closed disclosure under the message.
+    await page.locator(".inst__manual > summary").click();
     for (const agent of ["claude", "any"].map((id) => AGENTS.find((a) => a.id === id))) {
       await page.getByRole("tab", { name: agent.label }).click();
       const copy = page.getByRole("tabpanel").getByRole("button", { name: /^Copy/ });
@@ -96,12 +95,93 @@ for (const size of SIZES) {
       await page.getByRole("banner").getByRole("link", { name: "Skills" }).click();
     }
     await page.waitForURL(/\/skills$/);
-    // On phones the field opens from the header's Search button; it is hidden until then.
-    if (size.name === "phone") await page.getByRole("banner").getByRole("button", { name: "Search", exact: true }).click();
-    await page.getByRole("combobox", { name: "Search prompts and skills" }).fill("slow page");
-    // A real result, not the "Nothing matches" row (also an option).
-    await page.locator('#search-results [role="option"] a').first().waitFor();
+    // Search opens from the header: the field-shaped button on a computer, the Search button on a phone.
+    const banner = page.getByRole("banner");
+    await (size.name === "phone" ? banner.getByRole("button", { name: "Search", exact: true }) : banner.getByRole("button", { name: /^Search prompts/ })).click();
+    await page.getByRole("combobox", { name: "Search the library" }).fill("slow page");
+    await page.locator('#search-results a[role="option"]').first().waitFor();
     await noSideScroll(page, "/skills");
+    assert.deepEqual(errors, []);
+    await ctx.close();
+  });
+
+  test(`${size.name}: the search palette opens, copies, opens a result and remembers it`, async () => {
+    const p = data.prompts.find((x) => x.id === "PG02" && !x.replacedBy);
+    const { page, ctx, errors } = await open(size, "/skills");
+    const mod = process.platform === "darwin" ? "Meta" : "Control";
+    // The shortcut hint reads "⌘K" or "Ctrl K" once the page has hydrated and the shortcut listener is attached.
+    await page.getByRole("banner").locator(".kbd", { hasText: "K" }).waitFor({ state: "attached" });
+    await page.keyboard.press(`${mod}+k`);
+    const box = page.getByRole("combobox", { name: "Search the library" });
+    await box.waitFor();
+    assert.ok(await box.evaluate((el) => el === document.activeElement), "the field has focus");
+    // With nothing typed it offers the main pages.
+    await page.locator('#search-results a[role="option"][href="/install"]').waitFor();
+    await box.fill("PG02");
+    const first = page.locator('#search-results a[role="option"]').first();
+    await first.waitFor();
+    assert.equal(await first.getAttribute("href"), `/prompts/${p.slug}`, "an exact id comes first");
+    assert.equal(await first.getAttribute("aria-selected"), "true");
+    assert.equal(await box.getAttribute("aria-activedescendant"), await first.getAttribute("id"));
+    await box.press(`${mod}+Enter`);
+    await page.getByRole("status").filter({ hasText: "copied" }).waitFor();
+    assert.equal(await clipboard(page), composeCopy(p), "the palette copies the same text as the prompt page");
+    // Escape clears the query first, then closes.
+    await box.press("Escape");
+    assert.equal(await box.inputValue(), "");
+    await box.press("Escape");
+    await box.waitFor({ state: "hidden" });
+    // "/" opens it too; arrows move and Enter opens the result.
+    await page.keyboard.press("/");
+    await box.waitFor({ timeout: 5000 }).catch(async () => {
+      const state = await page.evaluate(() => ({ open: document.querySelector("dialog.cmdk")?.open, active: document.activeElement?.outerHTML.slice(0, 160) }));
+      assert.fail(`"/" did not reopen the palette: ${JSON.stringify(state)}; page errors: ${JSON.stringify(errors)}`);
+    });
+    await box.fill("tdd");
+    await page.locator('#search-results a[role="option"][href="/skills/tdd"]').waitFor();
+    await box.press("Enter");
+    await page.waitForURL(/\/skills\/tdd$/);
+    await box.waitFor({ state: "hidden" });
+    await page.keyboard.press(`${mod}+k`);
+    const recent = page.getByRole("group", { name: "Recent" });
+    await recent.locator('a[href="/skills/tdd"]').waitFor();
+    await recent.locator(`a[href="/prompts/${p.slug}"]`).waitFor();
+    await noSideScroll(page, "/skills/tdd");
+    assert.deepEqual(errors, []);
+    await ctx.close();
+  });
+
+  test(`${size.name}: search downloads nothing until someone starts to search`, async () => {
+    const ctx = await browser.newContext({ ...size });
+    const page = await ctx.newPage();
+    const fetched = [];
+    page.on("request", (r) => { if (/\/search-(index(\.v2)?\.json|copy\/)/.test(r.url())) fetched.push(new URL(r.url()).pathname); });
+    await page.goto(base + "/start", { waitUntil: "networkidle" });
+    // Time for any idle or deferred fetch to start.
+    await page.waitForTimeout(3000);
+    assert.deepEqual(fetched, [], "the index loads before any sign of search");
+    const banner = page.getByRole("banner");
+    const index = page.waitForResponse((r) => r.url().endsWith("/search-index.v2.json"));
+    await (size.name === "phone" ? banner.getByRole("button", { name: "Search", exact: true }).tap() : banner.getByRole("button", { name: /^Search/ }).hover());
+    assert.equal((await index).status(), 200);
+    const entries = await (await index).json();
+    assert.ok(entries.some((e) => e.copy) && entries.every((e) => !e.copy || e.copy.text === undefined), "the index carries Copy labels without the texts");
+    await ctx.close();
+  });
+
+  test(`${size.name}: a Copy text that is gone says the result changed`, async () => {
+    const { page, ctx, errors } = await open(size, "/skills");
+    const mod = process.platform === "darwin" ? "Meta" : "Control";
+    await page.getByRole("banner").locator(".kbd", { hasText: "K" }).waitFor({ state: "attached" });
+    await page.keyboard.press(`${mod}+k`);
+    const box = page.getByRole("combobox", { name: "Search the library" });
+    await page.route("**/search-copy/skill/tdd*", (r) => r.fulfill({ status: 404, body: "" }));
+    await box.fill("tdd");
+    const opt = page.locator('#search-results a[role="option"][href="/skills/tdd"]').first();
+    await opt.waitFor();
+    await opt.hover();
+    await box.press(`${mod}+Enter`);
+    await page.getByRole("status").filter({ hasText: "changed in an update" }).waitFor();
     assert.deepEqual(errors, []);
     await ctx.close();
   });
@@ -111,9 +191,37 @@ for (const size of SIZES) {
     const path = `/prompts/${p.slug}`;
     const { page, ctx, errors } = await open(size, path);
     await noSideScroll(page, path);
-    // The page's main button (related prompts further down have their own).
-    await page.locator("button.btn--solid", { hasText: "Copy prompt" }).first().click();
+    // The page's one main Copy, in the payload panel's bar (related prompts further down have their own).
+    const main = page.locator(".pd-payload button.pd-copy", { hasText: "Copy prompt" });
+    assert.equal(await main.count(), 1);
+    await main.click();
     assert.equal(await clipboard(page), composeCopy(p));
+    // The text on screen is the text that was copied.
+    assert.equal(await page.locator(".pd-text").textContent(), composeCopy(p));
+    assert.deepEqual(errors, []);
+    await ctx.close();
+  });
+
+  test(`${size.name}: a step-by-step recipe copies step 1 and each step on its own`, async () => {
+    const p = data.prompts.find((x) => x.split && x.planSteps?.filter((st) => st.copy).length >= 2);
+    assert.ok(p, "needs a step-by-step recipe with two or more copyable steps");
+    const path = `/prompts/${p.slug}`;
+    const { page, ctx, errors } = await open(size, path);
+    await noSideScroll(page, path);
+    const main = page.locator(".pd-payload button.pd-copy", { hasText: "Copy step 1" });
+    assert.equal(await main.count(), 1);
+    await main.click();
+    assert.equal(await clipboard(page), composeCopy(p));
+    const i = p.planSteps.findIndex((st, k) => k > 0 && st.copy);
+    await page.locator(`[data-step="${i}"] button.pd-stepcopy`).click();
+    assert.equal(await clipboard(page), p.planSteps[i].copy);
+    // With the clipboard blocked, that step's exact text shows beside the step, selected for Cmd/Ctrl+C.
+    await page.evaluate(() => { navigator.clipboard.writeText = () => Promise.reject(new Error("blocked")); });
+    await page.locator(`[data-step="${i}"] button.pd-stepcopy`).click();
+    const shown = page.locator(`[data-step-slot="${i}"] .pd-text`);
+    await shown.waitFor();
+    assert.equal(await shown.textContent(), p.planSteps[i].copy);
+    assert.equal(await page.evaluate(() => String(getSelection())), p.planSteps[i].copy);
     assert.deepEqual(errors, []);
     await ctx.close();
   });
@@ -137,10 +245,11 @@ for (const size of SIZES) {
     const path = `/skills/${s.name}`;
     const { page, ctx, errors } = await open(size, path);
     await noSideScroll(page, path);
-    const copies = page.locator(".cmdline").getByRole("button");
-    await copies.nth(0).click();
+    const copy = page.locator("#install .ip-copy");
+    await copy.click();
     assert.equal(await clipboard(page), `npx skills add AtlasScope/agent-kit --skill ${s.name}`);
-    await copies.nth(1).click();
+    await page.locator("#install").getByRole("tab").nth(1).click();
+    await copy.click();
     assert.equal(await clipboard(page), `claude plugin marketplace add AtlasScope/agent-kit\nclaude plugin install ${s.kit}@agent-kit`);
     assert.deepEqual(errors, []);
     await ctx.close();
