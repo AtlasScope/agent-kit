@@ -1131,9 +1131,10 @@ export function credentialsIn(value, where = "evidence", key = "", out = []) {
 // A page's evidence must be a valid bundle with nothing secret in it, and every claim a step rests on must be in it.
 function checkEvidence(dir, page) {
   if (page.evidence !== undefined) {
-    try { validateBundle(page.evidence); } catch (error) { throw new Error(`The page's evidence is not a valid ${SCHEMA} bundle: ${error.message}. references/evidence.md shows the shape.`); }
+    // Look for secrets first: a validation error quotes the value it rejects, and that value could be one.
     const found = credentialsIn(page.evidence, "evidence", readJson(path.join(dir, "server.json"), {}).token);
     if (found.length) throw new Error(`The evidence looks like it holds a credential, so the page was not added. Take each one out of the evidence (a placeholder such as *** is fine) and add the page again:\n- ${found.join("\n- ")}`);
+    try { validateBundle(page.evidence); } catch (error) { throw new Error(`The page's evidence is not a valid ${SCHEMA} bundle: ${error.message}. references/evidence.md shows the shape.`); }
   }
   const known = new Set((page.evidence?.claims || []).map((c) => c.id));
   (page.steps || []).forEach((step, i) => [step, ...(Array.isArray(step?.options) ? step.options : [])].forEach((o, j) => {
