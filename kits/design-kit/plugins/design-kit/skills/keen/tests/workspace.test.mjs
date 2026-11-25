@@ -49,7 +49,8 @@ test("the page shows every view, a revision box and an apply button, and escapes
 
 test("the page's own script parses, with and without a workspace", () => {
   for (const pages of [[sheet()], [{ title: "Plain", steps: [{ label: "Go", command: "/keen polish x" }] }]]) {
-    const js = /<script>([\s\S]*)<\/script>/.exec(render(pages))[1];
+    const html = render(pages);
+    const js = html.slice(html.indexOf("<script>") + 8, html.lastIndexOf("</script>"));
     assert.doesNotThrow(() => new Function(js), "the script the browser runs must be valid JavaScript");
   }
 });
