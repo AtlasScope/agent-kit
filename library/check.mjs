@@ -89,6 +89,9 @@ const DMODES = ["Changes code", "Report only", "Advice", "Asks before changing",
 for (const e of E) {
   if (e.mode ? !MODES.includes(e.mode) : !DMODES.includes(e.dmode)) fail(`${e.id} needs mode (${MODES.join("/")}) or dmode (${DMODES.join(" / ")})`);
 }
+// Every surface adds the mode, evidence, stop and avoid lines from the fields; a prompt must not carry its own copy.
+const RULES = [...Object.values(lib.composer.mode).map(([, text]) => text), "Bring back: ", "say so and stop instead:", "\n\nAvoid: "];
+for (const e of E) if ((e.mode || e.flow) && RULES.some((r) => r && e.p?.includes(r))) fail(`${e.id} repeats a mode, evidence, stop or avoid line inside p: keep it in the entry's fields`);
 // Design overlaps in library.json name commands; each must be a real entry.
 const first = (c) => String(c).split(/\s/)[0];
 const CMDS = new Set(E.map((e) => first(e.cmd || e.t)));
