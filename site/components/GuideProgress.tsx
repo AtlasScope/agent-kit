@@ -15,25 +15,41 @@ function read(store: string): string[] {
 }
 
 function useDone(store: string) {
-  const [done, setDone] = useState<string[]>([]);
-  useEffect(() => { setDone(read(store)); }, [store]);
-  return done;
+  return useProgress(store).done;
+}
+
+// The same, plus whether this browser's record has been read yet (it can't be during the server render).
+function useProgress(store: string) {
+  const [state, setState] = useState<{ done: string[]; loaded: boolean }>({ done: [], loaded: false });
+  useEffect(() => { setState({ done: read(store), loaded: true }); }, [store]);
+  return state;
 }
 
 const Check = () => <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>;
 
 // "3 of 8 done" and a Continue link, shown beside a hub section's heading once the reader has started.
-// `lead` makes it the page's one lit action: it also shows before the reader has started, as a Start link to the
-// first item, and it is the satin pill. Only on a page with no other lit action.
-export function GuideResume({ items, base, store, lead }: { items: Item[]; base: string; store: string; lead?: boolean }) {
-  const done = useDone(store);
+// With `lead` it is the page's one lit action and always shows: Start (the first item) for a new reader, Continue
+// with the count once they have begun, and the count with `after` (where to go next) once everything is done. Until
+// this browser's record is read it keeps its place but stays hidden, so it never shows Start to someone who has begun.
+// Use `lead` only on a page with no other lit action.
+export function GuideResume({ items, base, store, lead, after }: { items: Item[]; base: string; store: string; lead?: boolean; after?: [string, string] }) {
+  const { done, loaded } = useProgress(store);
   const next = items.find((s) => !done.includes(s.slug));
   const n = items.filter((s) => done.includes(s.slug)).length;
-  if (!next || (!n && !lead)) return null;
+  if (!lead) {
+    if (!n || !next) return null;
+    return (
+      <p className="guide-resume">
+        <span><i className="led is-on" aria-hidden="true" />{n} of {items.length} done</span>
+        <Link className="btn btn--sm" href={`${base}/${next.slug}`}>Continue: {next.title}</Link>
+      </p>
+    );
+  }
+  const go: [string, string] | undefined = next ? [`${n ? "Continue" : "Start"}: ${next.title}`, `${base}/${next.slug}`] : after;
   return (
-    <p className="guide-resume">
+    <p className="guide-resume" data-pending={loaded ? undefined : ""}>
       {n > 0 && <span><i className="led is-on" aria-hidden="true" />{n} of {items.length} done</span>}
-      <Link className={lead ? "btn btn--brand" : "btn btn--sm"} href={`${base}/${next.slug}`}>{n ? "Continue" : "Start"}: {next.title}</Link>
+      {go && <Link className="btn btn--brand" href={go[1]} tabIndex={loaded ? undefined : -1}>{go[0]}</Link>}
     </p>
   );
 }
