@@ -1,6 +1,6 @@
 import "server-only";
 import { createHash } from "node:crypto";
-import { listed, skills, kits, fixes, areas, copyText, copyLabel, kindLabel, whatOf, skillInstall } from "./content";
+import { listed, skills, kits, fixes, areas, copyText, copyLabel, kindLabel, skillInstall } from "./content";
 import { promptDoc, skillDoc } from "./search";
 import { INSTALL_MESSAGE, kitInstallMessage, authEnabled } from "./site";
 import { STEPS } from "./start";
@@ -63,7 +63,7 @@ function entries(): Entry[] {
     fields: [[lc(a.slug), 60], [lc(a.title), 40], [lc(""), 25], [lc(a.blurb), 10]],
   });
   for (const p of listed) out.push({
-    ...promptDoc(p), summary: whatOf(p), href: `/prompts/${p.slug}`, sec: p.sec,
+    ...promptDoc(p), href: `/prompts/${p.slug}`, sec: p.sec,
     meta: [kindLabel(p), p.cmd && p.cmd !== p.t ? p.cmd : p.id].filter(Boolean).join(" · "),
     copy: { label: copyLabel(p), text: copyText(p), done: `${copyLabel(p).replace(/^Copy /, "")[0].toUpperCase()}${copyLabel(p).replace(/^Copy /, "").slice(1)} copied` },
   });

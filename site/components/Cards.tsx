@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { getPrompt, getPromptById, getSkill, copyText, copyLabel, whatOf, whenOf, type Prompt, type Skill } from "@/lib/content";
 import { CHANGES, type Start } from "@/lib/starts";
+import { skillLead } from "@/lib/search";
 import { KITS } from "@/lib/site";
 import { CopyButton } from "./CopyButton";
 import { Star } from "./Star";
@@ -68,16 +69,15 @@ export function PromptCards({ slugs, rank }: { slugs: string[]; rank?: boolean }
   return <PromptRows slugs={slugs} ordered={rank} />;
 }
 
-// The first whole sentence of a skill's description, so a card never stops mid-thought.
-export const firstSentence = (d: string) => {
-  const parts = d.split(/(?<=[.!?])\s+(?=[A-Z/"(])/);
-  // A very short opener ("Stop.", "Test-driven development.") reads better with the sentence after it.
-  const s = parts[0].length < 30 && parts[1] ? `${parts[0]} ${parts[1]}` : parts[0];
+// A skill's line on a card: its person-facing lead (skillLead skips trigger rules), cut at a dash or semicolon so a
+// row stays short without stopping mid-thought.
+export const skillLine = (sk: { description: string; kit: string }) => {
+  const s = skillLead(sk);
   const cut = s.search(/\s[—–-]\s|;\s/);
   return cut > 20 ? s.slice(0, cut).replace(/[,:]$/, "") + "." : s;
 };
 
-// One skill row: name and Star, kit and author, then the first sentence of what it does. `action` adds one control
+// One skill row: name and Star, kit and author, then one line on what it does. `action` adds one control
 // after Star (for example Remove, in collections). Put rows in SkillCards, or in a <ul className="srows"> of <li>s.
 export function SkillRow({ s, kit = true, action, as: H = "h3" }: { s: Skill; kit?: boolean; action?: ReactNode; as?: RowHeading }) {
   return (
@@ -90,7 +90,7 @@ export function SkillRow({ s, kit = true, action, as: H = "h3" }: { s: Skill; ki
         </div>
       </div>
       <p className="srow__m">{kit && <span>{s.kit}</span>}<span>{s.credit ? `By ${s.credit.author}` : "By Agent Kit"}</span></p>
-      <p className="srow__d">{firstSentence(s.description)}</p>
+      <p className="srow__d">{skillLine(s)}</p>
     </article>
   );
 }

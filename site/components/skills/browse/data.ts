@@ -1,5 +1,5 @@
 import { skills, getKit } from "@/lib/content";
-import { firstSentence } from "@/components/Cards";
+import { skillLine } from "@/components/Cards";
 import { AGENTS, KITS, KIT_GUIDE } from "@/lib/site";
 import { commandFor } from "@/lib/skill-command";
 
@@ -13,7 +13,7 @@ export const AGENT_KIT = "Agent Kit";
 export const browseSkills: BrowseSkill[] = skills.map((s) => ({
   name: s.name,
   kit: s.kit,
-  line: firstSentence(s.description),
+  line: skillLine(s),
   // What the filter matches against: name, full description, author and kit, lower-cased once here.
   text: [s.name, s.description, s.credit?.author ?? AGENT_KIT, s.kit].join(" ").toLowerCase(),
   author: s.credit?.author ?? AGENT_KIT,

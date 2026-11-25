@@ -7,7 +7,8 @@ import { SaveMenu } from "@/components/SaveMenu";
 import { SkillInstall } from "@/components/skills/detail/SkillInstall";
 import { commandFor } from "@/lib/skill-command";
 import { Toc } from "@/components/skills/detail/Toc";
-import { demote, withAnchors, describe, scrollersFocusable } from "@/components/skills/detail/prose";
+import { demote, withAnchors, scrollersFocusable } from "@/components/skills/detail/prose";
+import { describe, skillLead } from "@/lib/search";
 import { SITE, authEnabled } from "@/lib/site";
 import { skills, getSkill, getKit } from "@/lib/content";
 import "@/components/skills/detail/skill-kit.css";
@@ -23,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ name: str
   if (!s) return {};
   return {
     title: { absolute: `${s.name}: agent skill for Claude Code, Codex and Cursor` },
-    description: clip(s.description),
+    description: clip([skillLead(s), describe(s.description).more].filter(Boolean).join(" ")),
     alternates: { canonical: `/skills/${name}`, types: { "text/markdown": `/skills/${name}.md` } },
   };
 }
@@ -37,7 +38,7 @@ export default async function SkillPage({ params }: { params: Promise<{ name: st
   if (!s) notFound();
   const k = getKit(s.kit)!;
   const c = s.credit;
-  const { lead, more, agent, fallback } = describe(s.description);
+  const { more, agent } = describe(s.description);
   // Installed alone a skill runs as /name; with a namespaced kit it runs as /kit:name, so the Runs fact names both.
   const cmd = commandFor(s.kit, s.name);
   const { html, toc } = withAnchors(scrollersFocusable(demote(s.bodyHtml)));
@@ -50,7 +51,7 @@ export default async function SkillPage({ params }: { params: Promise<{ name: st
         <Crumbs items={[["Skills", "/skills"], [s.name, `/skills/${s.name}`]]} />
         <p className="sd-eyebrow"><span>Skill</span><span aria-hidden="true">·</span><Link className="lic" href={`/kits/${k.name}`}>{k.title}</Link></p>
         <h1 translate="no">{s.name}</h1>
-        <p className="lead sd-lead">{lead || fallback || `One of the ${k.name} skills.`}</p>
+        <p className="lead sd-lead">{skillLead(s)}</p>
         {more && <p className="sd-more">{more}</p>}
         {agent && (
           <details className="sd-agent">

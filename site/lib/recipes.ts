@@ -29,10 +29,10 @@ export function recipeListText<P extends R>(
   }).join("\n");
 }
 
-export function recipeDetailMd<P extends R>(p: P, d: {
+export function recipeDetailMd<P extends R, S extends { name: string }>(p: P, d: {
   promptMd: (p: P) => string; copyText: (p: P) => string; copyLabel: (p: P) => string;
-  getPrompt: (slug: string) => (P & { t: string }) | undefined; getSkill: (name: string) => { name: string; description: string } | undefined;
-  skillInstall: (name: string) => string; siteUrl: string;
+  getPrompt: (slug: string) => (P & { t: string }) | undefined; getSkill: (name: string) => S | undefined;
+  skillLead: (s: S) => string; skillInstall: (name: string) => string; siteUrl: string;
 }): string {
   const fence = (t: string) => "```text\n" + t + "\n```";
   const out = [d.promptMd(p), ""];
@@ -48,7 +48,7 @@ export function recipeDetailMd<P extends R>(p: P, d: {
   const skills = p.skills.flatMap((n) => { const s = d.getSkill(n); return s ? [s] : []; });
   if (skills.length) {
     out.push("## Skills to install", "");
-    for (const s of skills) out.push(`- ${s.name}: ${s.description.split(/(?<=\.)\s/)[0]}`, `  \`${d.skillInstall(s.name)}\``);
+    for (const s of skills) out.push(`- ${s.name}: ${d.skillLead(s)}`, `  \`${d.skillInstall(s.name)}\``);
     out.push("");
   }
   out.push("## What the Copy button copies", "", `Button: ${d.copyLabel(p)}`, "", fence(d.copyText(p)));

@@ -1,4 +1,5 @@
-import { getPromptById, getSkill } from "./content";
+import { getPromptById, getSkill, whatOf } from "./content";
+import { skillLead } from "./search";
 import type { Item } from "./collections";
 
 // One key per library entry. Prompt ids match without regard to case (getPromptById does), so a stored "a01" and
@@ -15,10 +16,10 @@ export function resolve(items: Item[]): ResolvedItem[] {
     let r: ResolvedItem | undefined;
     if (i.kind === "prompt") {
       const p = getPromptById(i.ref);
-      if (p) r = { kind: "prompt", ref: p.id, title: p.t, href: `/prompts/${p.slug}`, summary: p.why || p.use || "" };
+      if (p) r = { kind: "prompt", ref: p.id, title: p.t, href: `/prompts/${p.slug}`, summary: whatOf(p) };
     } else {
       const s = getSkill(i.ref);
-      if (s) r = { kind: "skill", ref: s.name, title: s.name, href: `/skills/${s.name}`, summary: s.description };
+      if (s) r = { kind: "skill", ref: s.name, title: s.name, href: `/skills/${s.name}`, summary: skillLead(s) };
     }
     // Only an entry that is in the library claims its key, so a stale spelling never hides a valid one.
     if (!r || seen.has(itemKey(r))) return [];

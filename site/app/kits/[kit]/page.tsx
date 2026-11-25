@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Crumbs } from "@/components/Crumbs";
 import { InstallPanel } from "@/components/skills/detail/InstallPanel";
 import { KitContents } from "@/components/skills/detail/KitContents";
-import { describe } from "@/components/skills/detail/prose";
+import { describe } from "@/lib/search";
 import { commandFor } from "@/lib/skill-command";
 import { SITE, kitInstallMessage } from "@/lib/site";
 import { kits, getKit, getSkill } from "@/lib/content";
