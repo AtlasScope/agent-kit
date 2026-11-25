@@ -1,6 +1,6 @@
 // Browser QA pass of one site, in Playwright Chromium with Apple device emulation.
 //   node tests/qa/run.mjs --target http://localhost:4001 --label integration [--ref http://localhost:4000] [--quick]
-// Writes <out>/<label>/browser.json and screenshots under <out>/<label>/shots/. With --ref, the same
+// Writes <out>/<label>/browser.json; --shots enables screenshots. With --ref, the same
 // pass runs on the reference too and each finding is marked "new" or "pre-existing".
 //
 // What this is: Chromium with iPhone, iPad and MacBook viewports, pixel ratios, user agents and touch.
@@ -20,7 +20,7 @@ const require = createRequire(import.meta.url);
 const { values: args } = parseArgs({ options: {
   target: { type: "string" }, ref: { type: "string" }, baseline: { type: "string" }, label: { type: "string", default: "target" },
   out: { type: "string", default: fileURLToPath(new URL("../../../.artifacts/qa", import.meta.url)) },
-  quick: { type: "boolean", default: false }, routes: { type: "string" }, paths: { type: "string" }, owner: { type: "string", default: "?" }, shots: { type: "boolean", default: true },
+  quick: { type: "boolean", default: false }, routes: { type: "string" }, paths: { type: "string" }, owner: { type: "string", default: "?" }, shots: { type: "boolean", default: false },
 } });
 if (!args.target) { console.error("need --target"); process.exit(2); }
 
@@ -31,7 +31,7 @@ catch { console.warn("axe-core is not installed; run `npm i --no-save axe-core@4
 
 let ROUTES = routeSample(data);
 if (args.routes) { const want = args.routes.split(","); ROUTES = ROUTES.filter((r) => want.some((w) => r.path === w || r.family === w)); }
-// --paths tests arbitrary pages (say, a lane's fixture pages) instead of the standard sample.
+// --paths tests arbitrary pages instead of the standard sample.
 if (args.paths) ROUTES = args.paths.split(",").map((path) => ({ path, family: "custom", owner: args.owner }));
 const devices = args.quick ? DEVICES.filter((d) => d.id === "macbook" || d.id === "iphone") : DEVICES;
 
@@ -150,7 +150,7 @@ async function pass(base, label, shots) {
     await zoom200(base, route, add).catch((e) => add(route, "zoom200/light", "minor", "harness", String(e.message).split("\n")[0]));
     console.error(`[${label}] ${route.path} done`);
   }
-  await journeys(base, add);
+  if (!args.routes && !args.paths) await journeys(base, add);
   return { findings, facts, copies };
 }
 

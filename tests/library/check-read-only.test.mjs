@@ -1,4 +1,4 @@
-// library/check.mjs must fail on a stale generated reference and leave every tracked file alone.
+// The verifier must detect stale/missing output and generator failure without repairing the checkout.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -8,71 +8,82 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const REFS = {
-  engineer: "kits/engineering-kit/plugins/engineering-kit/skills/engineer/references/start-here.md",
-  design: "kits/design-kit/plugins/design-kit/skills/design/references/catalog.md",
-  database: "kits/engineering-kit/plugins/engineering-kit/skills/database/references/prompts.md",
-};
+const design = "kits/design-kit/plugins/design-kit/skills";
+const engineering = "kits/engineering-kit/plugins/engineering-kit/skills";
+const refs = [
+  `${engineering}/engineer/references/start-here.md`,
+  `${design}/design/references/catalog.md`,
+  `${engineering}/database/references/prompts.md`,
+];
+const run = (dir, script) => spawnSync(process.execPath, [path.join(dir, script)], { encoding: "utf8" });
+const snapshot = (dir) => Object.fromEntries([...refs, "library/dist/prompt-library.md"].map((f) => {
+  const file = path.join(dir, f);
+  return [f, fs.existsSync(file) ? fs.readFileSync(file) : null];
+}));
 
-// A temp copy of just what the check reads, so the real tree is never touched.
-function copyRepo() {
+test("library verifier is read-only on stale outputs, missing files and generator failure", () => {
   const dir = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), "check-ro-"));
-  for (const d of ["library", "kits", "scripts"]) {
-    fs.cpSync(path.join(repo, d), path.join(dir, d), { recursive: true, filter: (s) => !s.includes("node_modules") });
-  }
-  return dir;
-}
-const run = (dir, script, ...args) => spawnSync(process.execPath, [path.join(dir, script), ...args], { encoding: "utf8" });
-const snapshot = (dir) => Object.fromEntries(Object.values(REFS).concat("library/dist/prompt-library.md").map((f) => [f, fs.readFileSync(path.join(dir, f))]));
-
-for (const [name, rel, rebuild] of [
-  ["engineer", REFS.engineer, "kits/engineering-kit/scripts/build_references.mjs"],
-  ["design", REFS.design, "kits/design-kit/scripts/build_references.mjs"],
-  ["database", REFS.database, "kits/engineering-kit/scripts/build_database_references.mjs"],
-]) {
-  test(`stale ${name} reference fails the check, stays stale, and a build repairs it`, () => {
-    const dir = copyRepo();
-    try {
-      assert.equal(run(dir, "library/check.mjs").status, 0, "fresh copy passes");
-      const file = path.join(dir, rel);
-      fs.appendFileSync(file, "STALE\n");
-      const stale = snapshot(dir);
-      for (let i = 0; i < 2; i++) {
-        const r = run(dir, "library/check.mjs");
-        assert.notEqual(r.status, 0, `run ${i + 1} fails`);
-        assert.match(r.stderr, new RegExp(path.basename(rel).replace(".", "\\.")));
-        assert.match(r.stderr, /run node /);
-        assert.deepEqual(snapshot(dir), stale, "tracked files unchanged");
-      }
-      assert.equal(run(dir, rebuild).status, 0);
-      assert.equal(run(dir, "library/check.mjs").status, 0, "passes after an explicit build");
-    } finally {
-      fs.rmSync(dir, { recursive: true, force: true });
+  try {
+    // Copy the generator inputs and generated outputs, not the entire plugin/fixture collection.
+    for (const p of ["library", "kits/design-kit/scripts", "kits/engineering-kit/scripts",
+      `${design}/keen/SKILL.md`, `${design}/keen/jobs`, `${design}/design/references`,
+      `${engineering}/engineer/references`, `${engineering}/database/references`]) {
+      const target = path.join(dir, p);
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.cpSync(path.join(repo, p), target, { recursive: true });
     }
-  });
-}
 
-test("a missing reference fails without being created", () => {
-  const dir = copyRepo();
-  try {
-    fs.rmSync(path.join(dir, REFS.database));
-    const r = run(dir, "library/check.mjs");
-    assert.notEqual(r.status, 0);
-    assert.match(r.stderr, /prompts\.md is missing/);
-    assert.equal(fs.existsSync(path.join(dir, REFS.database)), false);
-  } finally {
-    fs.rmSync(dir, { recursive: true, force: true });
-  }
-});
+    const good = run(dir, "library/check.mjs");
+    assert.equal(good.status, 0, good.stderr);
 
-test("a generator error is a failure and leaves tracked files alone", () => {
-  const dir = copyRepo();
-  try {
+    // An unscored note is valid; the inventory must render a blank score, not crash or invent one.
+    const auditPath = path.join(dir, "library/audit.json");
+    const audit = JSON.parse(fs.readFileSync(auditPath, "utf8"));
+    const id = Object.keys(audit.entries)[0];
+    const previous = audit.entries[id];
+    audit.entries[id] = { note: "A useful observation without a numeric score" };
+    fs.writeFileSync(auditPath, JSON.stringify(audit));
+    const build = run(dir, "library/build.mjs");
+    assert.equal(build.status, 0, build.stderr);
+    const row = fs.readFileSync(path.join(dir, "library/dist/inventory.csv"), "utf8").split("\n").find((line) => line.startsWith(id + ","));
+    assert.ok(row?.includes("A useful observation without a numeric score"));
+    assert.doesNotMatch(row, /0\/14 \(\)/);
+    const unscored = run(dir, "library/check.mjs");
+    assert.equal(unscored.status, 0, unscored.stderr);
+    audit.entries[id] = previous;
+    fs.copyFileSync(path.join(repo, "library/audit.json"), auditPath);
+    fs.copyFileSync(path.join(repo, "library/dist/inventory.csv"), path.join(dir, "library/dist/inventory.csv"));
+
+    for (const p of refs) fs.appendFileSync(path.join(dir, p), "STALE\n");
+    const stale = snapshot(dir);
+    const failed = run(dir, "library/check.mjs");
+    assert.notEqual(failed.status, 0);
+    for (const p of refs) assert.ok(failed.stderr.includes(path.basename(p)), failed.stderr);
+    assert.match(failed.stderr, /run node /);
+    assert.deepEqual(snapshot(dir), stale);
+
+    // Explicit rebuilds are the only repair path.
+    for (const script of ["kits/design-kit/scripts/build_references.mjs", "kits/engineering-kit/scripts/build_references.mjs",
+      "kits/engineering-kit/scripts/build_database_references.mjs"]) {
+      const result = run(dir, script);
+      assert.equal(result.status, 0, result.stderr);
+    }
+    const rebuilt = run(dir, "library/check.mjs");
+    assert.equal(rebuilt.status, 0, rebuilt.stderr);
+
+    fs.rmSync(path.join(dir, refs[2]));
+    const missing = snapshot(dir);
+    const missingResult = run(dir, "library/check.mjs");
+    assert.notEqual(missingResult.status, 0);
+    assert.match(missingResult.stderr, /prompts\.md is missing/);
+    assert.deepEqual(snapshot(dir), missing);
+
+    fs.copyFileSync(path.join(repo, refs[2]), path.join(dir, refs[2]));
     fs.writeFileSync(path.join(dir, "kits/design-kit/scripts/build_references.mjs"), "throw new Error('boom');\n");
     const before = snapshot(dir);
-    const r = run(dir, "library/check.mjs");
-    assert.notEqual(r.status, 0);
-    assert.match(r.stderr, /build_references\.mjs failed/);
+    const error = run(dir, "library/check.mjs");
+    assert.notEqual(error.status, 0);
+    assert.match(error.stderr, /build_references\.mjs failed/);
     assert.deepEqual(snapshot(dir), before);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });

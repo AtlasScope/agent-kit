@@ -4,9 +4,14 @@ node_modules/
 .vercel
 .env*
 design/hero/inputs/
-# Session worktrees (scripts/lanes.mjs) and older app-made ones
+# Local worktrees
 .worktrees/
 .claude/worktrees/
 # Per-machine Claude Code files
 .claude/settings.local.json
 .claude/launch.json
+
+# Generated caches
+__pycache__/
+*.pyc
+.impeccable/design.json

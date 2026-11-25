@@ -4,7 +4,7 @@
 # - codeql: static analysis of the JavaScript/TypeScript code. Alerts land in
 #   Security > Code scanning and on the PR.
 #
-# The schedule is how main gets scanned after an auto-merge: that merge is made
+# The daily schedule is how main gets scanned after an auto-merge: that merge is made
 # with GITHUB_TOKEN, whose pushes don't start workflows. GitHub disables
 # scheduled workflows after 60 days without repository activity. If osv and
 # codeql stop reporting on PRs, re-enable this workflow in the Actions tab.
@@ -15,7 +15,7 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: "53 */3 * * *"
+    - cron: "53 4 * * *"
 
 permissions:
   contents: read

@@ -19,7 +19,7 @@ const require = createRequire(import.meta.url);
 const { values: args } = parseArgs({ options: {
   target: { type: "string" }, ref: { type: "string" }, baseline: { type: "string" }, label: { type: "string", default: "target" },
   out: { type: "string", default: fileURLToPath(new URL("../../../.artifacts/qa", import.meta.url)) },
-  routes: { type: "string" }, quick: { type: "boolean", default: false },
+  routes: { type: "string" }, quick: { type: "boolean", default: false }, shots: { type: "boolean", default: false },
 } });
 if (!args.target) { console.error("need --target"); process.exit(2); }
 
@@ -41,7 +41,7 @@ const recorder = `(${clipboardRecorder.toString()})(false);\n${axeSource || ""}`
 const results = {};
 if (args.ref) results.ref = await pass(args.ref.replace(/\/$/, ""), "ref", false);
 else if (args.baseline) results.ref = JSON.parse(readFileSync(`${args.out}/${args.baseline}/webkit.json`, "utf8"));
-results.target = await pass(args.target.replace(/\/$/, ""), args.label, true);
+results.target = await pass(args.target.replace(/\/$/, ""), args.label, args.shots);
 
 const seen = new Set((results.ref?.findings || []).map((f) => f.key));
 const findings = results.target.findings.map((f) => ({ ...f, status: results.ref && seen.has(f.key) ? "pre-existing" : "new" }));
