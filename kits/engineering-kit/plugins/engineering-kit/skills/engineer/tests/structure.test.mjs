@@ -185,3 +185,26 @@ test("observation ids stay unique when the report keeps only the first 400 relat
   assert.equal(new Set(ids).size, ids.length);
   assert.ok(assemble([{ file: path.join(dir, "s.json"), text: JSON.stringify(r), base: dir }], { title: "many" }));
 });
+
+test("--symbol finds CommonJS consumers by the name require() is bound to, and CommonJS exports as definitions", (t) => {
+  const dir = fixture({
+    "a.cjs": "function compose(x) { return x; }\nmodule.exports = { compose, make: compose };\n",
+    "ns.cjs": 'const lib = require("./a.cjs");\nlib.compose(1);\nlib.make(2);\n',
+    "named.cjs": 'const { compose } = require("./a.cjs");\ncompose(1);\n',
+    "renamed.cjs": 'const {\n  make: build,\n} = require("./a.cjs");\nbuild(1);\n',
+    "member.cjs": 'const c = require("./a.cjs").compose;\nc();\nrequire("./a.cjs").make(3);\n',
+    "dynamic.mjs": 'const { compose } = await import("./a.cjs");\ncompose();\n',
+    "other.cjs": 'const lib = require("./a.cjs");\nlib.other();\n',
+    "wrap.cjs": "exports.wrap = function (x) { return x; };\nmodule.exports.trim = (s) => s.trim();\n",
+    "uses-wrap.cjs": 'const { wrap, trim } = require("./wrap.cjs");\nwrap(trim(" a "));\n',
+    "whole.cjs": "module.exports = function pad(s) { return s; };\n",
+    "uses-whole.cjs": 'const pad = require("./whole.cjs");\npad("x");\n',
+  });
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const g = buildGraph(dir);
+  const uses = (file, symbol) => query(g, [file], { symbol }).consumers.map((e) => [e.to, e.uses]);
+  assert.deepEqual(uses("a.cjs", "compose"), [["dynamic.mjs", [2]], ["member.cjs", [2]], ["member.cjs", [3]], ["named.cjs", [2]], ["ns.cjs", [2, 3]], ["renamed.cjs", [4]]]);
+  assert.deepEqual(uses("wrap.cjs", "wrap"), [["uses-wrap.cjs", [2]]]);
+  assert.deepEqual(uses("wrap.cjs", "trim"), [["uses-wrap.cjs", [2]]]);
+  assert.deepEqual(uses("whole.cjs", "pad"), [["uses-whole.cjs", [2]]]);
+});

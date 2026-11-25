@@ -354,6 +354,38 @@ function args(toks, open) {
   return out;
 }
 
+/**
+ * What a literal require() or import() call at k (closing parenthesis at close) is bound to, as import names:
+ * const lib = require("..") brings in the whole module ("*"), const { a, b: c } = require("..") the names a and b
+ * (b as c), const x = require("..").a the name a. Unbound, require("..").a brings in a where it stands (local null).
+ */
+function bindingOf(toks, k, close) {
+  const member = toks[close + 1]?.v === "." && toks[close + 2]?.t === "id" ? toks[close + 2].v : null;
+  let e = k - 1;
+  if (toks[e]?.v === "await") e--;
+  const unbound = member ? { line: toks[k].line, names: [{ imported: member, local: null }] } : null;
+  if (toks[e]?.t !== "p" || toks[e].v !== "=") return unbound;
+  const declared = (i) => (["const", "let", "var", "import"].includes(toks[i]?.v) ? toks[i] : toks[i + 1]);
+  const p = toks[e - 1];
+  if (p?.t === "id" && toks[e - 2]?.v !== "." && toks[e - 2]?.v !== "?.") return { line: declared(e - 2).line, names: [{ imported: member ?? "*", local: p.v }] };
+  if (p?.t !== "p" || p.v !== "}" || member) return unbound;
+  let open = -1;
+  for (let m = e - 1, d = 0; m >= 0; m--) {
+    if (toks[m].t !== "p") continue;
+    if (toks[m].v === "}") d++;
+    else if (toks[m].v === "{" && --d === 0) { open = m; break; }
+  }
+  if (open < 0) return null;
+  const names = [];
+  for (let m = open + 1; m < e - 1; m++) {
+    if (toks[m].t === "p" && ["(", "[", "{"].includes(toks[m].v)) { m = matching(toks, m); continue; }
+    if (toks[m].t !== "id" || (toks[m - 1].v !== "{" && toks[m - 1].v !== ",")) continue;
+    if (toks[m + 1]?.v === ":") { if (toks[m + 2]?.t === "id") names.push({ imported: toks[m].v, local: toks[m + 2].v }); }
+    else names.push({ imported: toks[m].v, local: toks[m].v });
+  }
+  return { line: declared(open - 1).line, names };
+}
+
 /** Imports, re-exports and literal import()/require, with the names they bring in. */
 export function importsOf(toks) {
   const out = [];
@@ -363,7 +395,8 @@ export function importsOf(toks) {
     const t = toks[k];
     if (t.t !== "id" || isP(k - 1, ".") || isP(k - 1, "?.")) continue;
     if ((t.v === "require" || t.v === "import") && isP(k + 1, "(") && toks[k + 2]?.t === "str" && isP(k + 3, ")")) {
-      out.push({ spec: toks[k + 2].v, line: t.line, how: t.v === "require" ? "require" : "dynamic import", names: null, at: k + 2 });
+      const b = bindingOf(toks, k, k + 3);
+      out.push({ spec: toks[k + 2].v, line: b?.line ?? t.line, how: t.v === "require" ? "require" : "dynamic import", names: b?.names ?? null, at: k + 2 });
       continue;
     }
     if (t.v === "import" && !isP(k + 1, "(") && !isP(k + 1, ".")) {
@@ -410,8 +443,14 @@ export function importsOf(toks) {
 export function definitionsOf(toks) {
   const out = [];
   const DECL = new Set(["function", "class", "const", "let", "var", "type", "interface", "enum"]);
+  const ends = (i) => !toks[i + 1] || toks[i + 1].v === ";" || toks[i + 1].line > toks[i].line;
   for (let k = 0; k < toks.length - 1; k++) {
     const t = toks[k];
+    // CommonJS: exports.NAME = <value>, module.exports.NAME = <value>; exports.make = compose only names another definition
+    if (t.t === "id" && t.v === "exports" && (toks[k - 1]?.v !== "." || (toks[k - 2]?.v === "module" && toks[k - 3]?.v !== ".")) && toks[k + 1]?.v === "." && toks[k + 2]?.t === "id" && toks[k + 3]?.v === "=" && toks[k + 4]?.v !== "=" && !(toks[k + 4]?.t === "id" && ends(k + 4))) {
+      out.push({ name: toks[k + 2].v, line: t.line, exported: true, at: k + 2, decl: "exports" });
+      continue;
+    }
     if (t.t !== "id" || !DECL.has(t.v) || toks[k - 1]?.v === ".") continue;
     let j = k + 1;
     if (t.v === "function" && toks[j]?.v === "*") j++;
@@ -425,8 +464,11 @@ export function definitionsOf(toks) {
 
 /**
  * The names other modules import a file's definition by: its own name for `export function name`, "default" for
- * `export default function name` or `export default name`, and X for `export { name as X }`.
+ * `export default function name` or `export default name`, and X for `export { name as X }`. In CommonJS, X for
+ * exports.X = name and module.exports = { X: name }, and WHOLE (with "default") for module.exports = name, when
+ * require() returns the definition itself.
  */
+export const WHOLE = "module.exports";
 export function exportNamesOf(toks, defs, name) {
   const out = new Set();
   for (const d of defs.filter((x) => x.name === name)) {
@@ -446,6 +488,32 @@ export function exportNamesOf(toks, defs, name) {
     for (let m = k + 2; m < end; m++) {
       if (toks[m].t !== "id" || toks[m].v !== name || toks[m - 1]?.v === "as") continue;
       out.add(toks[m + 1]?.v === "as" && toks[m + 2] ? toks[m + 2].v : name);
+    }
+  }
+  const ends = (i) => !toks[i + 1] || toks[i + 1].v === ";" || toks[i + 1].line > toks[i].line;
+  for (let k = 0; k < toks.length; k++) {
+    if (toks[k].t !== "id" || toks[k - 1]?.v === "." || toks[k - 1]?.v === "?.") continue;
+    const j = toks[k].v === "exports" ? k + 1 : toks[k].v === "module" && toks[k + 1]?.v === "." && toks[k + 2]?.v === "exports" ? k + 3 : -1;
+    if (j < 0) continue;
+    // exports.X = ... (the definition itself) or exports.X = name
+    if (toks[j]?.v === "." && toks[j + 1]?.t === "id" && toks[j + 2]?.v === "=") {
+      if (toks[j + 1].v === name || (toks[j + 3]?.v === name && ends(j + 3))) out.add(toks[j + 1].v);
+      continue;
+    }
+    if (toks[k].v !== "module" || toks[j]?.v !== "=") continue;
+    let v = j + 1;
+    if (toks[v]?.v === "async") v++;
+    // module.exports = name, or = function name () {...} / class name {...}
+    if ((toks[v]?.v === name && ends(v)) || (["function", "class"].includes(toks[v]?.v) && (toks[v + 1]?.v === name || (toks[v + 1]?.v === "*" && toks[v + 2]?.v === name)))) { out.add(WHOLE); out.add("default"); continue; }
+    // module.exports = { name, X: name }
+    if (toks[v]?.t !== "p" || toks[v].v !== "{") continue;
+    const end = matching(toks, v);
+    for (let m = v + 1; m < end; m++) {
+      if (toks[m].t === "p" && ["(", "[", "{"].includes(toks[m].v)) { m = matching(toks, m); continue; }
+      if (toks[m].t !== "id" || (toks[m - 1].v !== "{" && toks[m - 1].v !== ",")) continue;
+      const next = toks[m + 1]?.v;
+      if (toks[m].v === name && (next === "," || m + 1 === end)) out.add(name);
+      else if (next === ":" && toks[m + 2]?.v === name && (toks[m + 3]?.v === "," || m + 3 === end)) out.add(toks[m].v);
     }
   }
   return out;
@@ -486,28 +554,14 @@ export function analyzeCode(repo, file, toks) {
   // direct: the local name of each fs or child_process function imported by name, with the name it was imported as
   const ns = { fs: new Set(), cp: new Set(), http: new Set(), path: new Set(["path"]) }, direct = { fs: new Map(), cp: new Map() };
   const named = (key, imported, local) => {
+    if (local === null) return;
     if (key === "fs" || key === "cp") direct[key].set(local, imported);
     if (key === "fs" && imported === "promises") ns.fs.add(local);
   };
+  // import fs from "fs", import { readFileSync as read } from "fs", const fs = require("fs"), const { a: b } = require("fs")
   for (const im of imports) for (const [key, re] of Object.entries(MODULES)) if (re.test(im.spec)) for (const nm of im.names || []) {
     if (nm.imported === "default" || nm.imported === "*") ns[key].add(nm.local);
     else named(key, nm.imported, nm.local);
-  }
-  // const fs = require("fs") / const { readFileSync, writeFileSync: save } = require("fs")
-  for (let k = 0; k < toks.length; k++) {
-    if (toks[k].v !== "require" || toks[k + 1]?.v !== "(" || toks[k + 2]?.t !== "str") continue;
-    const key = Object.keys(MODULES).find((m) => MODULES[m].test(toks[k + 2].v));
-    if (!key || toks[k - 1]?.v !== "=") continue;
-    if (toks[k - 2]?.t === "id") ns[key].add(toks[k - 2].v);
-    else if (toks[k - 2]?.v === "}") {
-      let open = k - 3;
-      while (open >= 0 && toks[open].v !== "{") open--;
-      for (let m = open + 1; m < k - 2; m++) {
-        if (toks[m].t !== "id") continue;
-        if (toks[m + 1]?.v === ":" && toks[m + 2]?.t === "id") { named(key, toks[m].v, toks[m + 2].v); m += 2; }
-        else named(key, toks[m].v, toks[m].v);
-      }
-    }
   }
   if (!ns.fs.size && !direct.fs.size) ns.fs.add("fs");
 
@@ -975,17 +1029,19 @@ export function query(g, rawTargets, { symbol = null, depth = 3 } = {}) {
     for (const e of consumers.filter((x) => x.kind === "import")) {
       const names = e.names || [];
       const hit = names.find((nm) => exported.has(nm.imported)) ?? names.find((nm) => nm.imported === "*");
-      if (!hit && e.basis !== "require") continue;
+      if (!hit) continue;
       // the names a re-export passes the symbol on as; export * passes on everything but the default export
       const forwarded = e.basis !== "re-export" ? null : hit.imported !== "*" ? names.filter((nm) => exported.has(nm.imported)).map((nm) => nm.local) : hit.local !== "*" ? [hit.local] : [...exported].filter((x) => x !== "default");
       if (forwarded && !forwarded.length) continue;
       const toks = g.code.get(e.to)?.toks || [];
-      const local = hit?.imported === "*" ? hit.local : hit?.local ?? symbol;
-      const lines = [];
-      for (let k = 0; k < toks.length; k++) {
-        if (toks[k].t !== "id" || (toks[k].line >= e.line && toks[k].line <= (e.endLine ?? e.line))) continue;
-        if (hit?.imported === "*" || e.basis === "require") { if (toks[k].v === local && toks[k + 1]?.v === "." && exported.has(toks[k + 2]?.v)) lines.push(toks[k].line); }
-        else if (toks[k].v === local && toks[k - 1]?.v !== ".") lines.push(toks[k].line);
+      // module.exports = compose: what require() returns is the symbol itself, used by the name it is bound to
+      const whole = hit.imported === "*" && e.basis === "require" && exported.has(WHOLE);
+      const member = hit.imported === "*" && !whole;
+      // require("./a").compose() binds nothing: it is used where it stands
+      const lines = hit.local === null ? [e.line] : [];
+      for (let k = 0; k < toks.length && hit.local !== null; k++) {
+        if (toks[k].t !== "id" || toks[k].v !== hit.local || (toks[k].line >= e.line && toks[k].line <= (e.endLine ?? e.line))) continue;
+        if (member ? (toks[k + 1]?.v === "." || toks[k + 1]?.v === "?.") && exported.has(toks[k + 2]?.v) : toks[k - 1]?.v !== ".") lines.push(toks[k].line);
       }
       if (!lines.length && e.basis !== "re-export") continue;
       uses.push({ ...e, uses: [...new Set(lines)].slice(0, 8) });
