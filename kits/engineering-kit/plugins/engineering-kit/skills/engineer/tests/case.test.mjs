@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
-import { runCase, report, validate } from "../scripts/case.mjs";
+import { runCase, report, toText, validate } from "../scripts/case.mjs";
 
 const run = (dir, ...args) => execFileSync("git", ["-c", "user.name=t", "-c", "user.email=t@example.invalid", "-c", "commit.gpgsign=false", ...args], { cwd: dir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
 
@@ -36,12 +36,12 @@ const spec = {
   ],
 };
 
-test("baseline and candidate run the same steps in their own copies; the checkout is untouched", (t) => {
+test("baseline and candidate run the same steps in their own copies; the checkout is untouched", async (t) => {
   const dir = fixture();
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   const before = run(dir, "status", "--porcelain");
   const bytes = fs.readFileSync(path.join(dir, "out.txt"), "utf8");
-  const out = runCase(dir, spec);
+  const out = await runCase(dir, spec);
   const r = (id, v) => out.steps.find((s) => s.id === id).results[v];
   // the baseline rewrites out.txt even when it is right: identical bytes, still a write
   assert.equal(r("fresh", "baseline").exit, 0);
@@ -78,11 +78,11 @@ test("a case file must stay inside the repository and say what it expects in kno
   assert.ok(validate(spec));
 });
 
-test("each variant can expect its own result, so a mutation run can expect the candidate to fail", (t) => {
+test("each variant can expect its own result, so a mutation run can expect the candidate to fail", async (t) => {
   const dir = fixture();
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   // the repairing baseline passes on the repeat; the comparing candidate keeps failing, as it should
-  const out = runCase(dir, { ...spec, steps: [spec.steps[1], { id: "repeat", run: [process.execPath, "check.mjs"], expect: { baseline: { exit: 0 }, candidate: { exit: 1, writes: 0 } } }] });
+  const out = await runCase(dir, { ...spec, steps: [spec.steps[1], { id: "repeat", run: [process.execPath, "check.mjs"], expect: { baseline: { exit: 0 }, candidate: { exit: 1, writes: 0 } } }] });
   const repeat = out.steps.find((s) => s.id === "repeat").results;
   assert.deepEqual([repeat.baseline.pass, repeat.baseline.expect], [true, { exit: true }]);
   assert.deepEqual([repeat.candidate.pass, repeat.candidate.expect], [true, { exit: true, writes: true }]);
@@ -91,7 +91,7 @@ test("each variant can expect its own result, so a mutation run can expect the c
   assert.deepEqual([stale.baseline.expect.unchanged, stale.candidate.expect.unchanged], [false, true]);
 });
 
-test("a copied folder is a real folder inside each clone, unlike a link; started programs show the arguments they were given", (t) => {
+test("a copied folder is a real folder inside each clone, unlike a link; started programs show the arguments they were given", async (t) => {
   const dir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "engineer-case-copy-")));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   // the step runs in app/, reads ../deps the way a bundler reads node_modules, and starts a program with flags
@@ -105,8 +105,8 @@ test("a copied folder is a real folder inside each clone, unlike a link; started
   fs.mkdirSync(path.join(dir, "deps"));
   fs.writeFileSync(path.join(dir, "deps/lib.txt"), "from deps");
   const step = { id: "probe", cwd: "app", run: [process.execPath, "probe.mjs"] };
-  const copied = runCase(dir, { title: "copy", baseline: "HEAD", copy: ["deps"], steps: [{ ...step, expect: { exit: 0, output: "from deps" } }] }).steps[0].results.baseline;
-  const linked = runCase(dir, { title: "link", baseline: "HEAD", link: ["deps"], steps: [{ ...step, expect: { exit: 3, output: "leads out" } }] }).steps[0].results.baseline;
+  const copied = (await runCase(dir, { title: "copy", baseline: "HEAD", copy: ["deps"], steps: [{ ...step, expect: { exit: 0, output: "from deps" } }] })).steps[0].results.baseline;
+  const linked = (await runCase(dir, { title: "link", baseline: "HEAD", link: ["deps"], steps: [{ ...step, expect: { exit: 3, output: "leads out" } }] })).steps[0].results.baseline;
   assert.equal(copied.pass, true, copied.stderr);
   assert.equal(linked.pass, true, linked.stderr);
   assert.deepEqual(copied.children, [`${path.basename(process.execPath)} -e 0`]);
@@ -148,4 +148,46 @@ test("an untracked link stays a link in the working-tree copy, even one that lea
   const probe = 'const fs = require("fs"); console.log(["alias.txt", "dangling.txt"].map((f) => f + " " + fs.lstatSync(f).isSymbolicLink() + " " + fs.readlinkSync(f)).join(", "))';
   const r = (await runCase(dir, { title: "links", baseline: "working-tree", steps: [{ id: "s", run: [node, "-e", probe], expect: { output: "alias.txt true src.txt, dangling.txt true missing.txt" } }] })).steps[0].results.baseline;
   assert.equal(r.pass, true, r.stdout);
+});
+
+test("a deleted file is reported as deleted, and expected output is found anywhere in long output", async (t) => {
+  const dir = commit(repo(t, { "src.txt": "hello", "keep.txt": "keep" }));
+  const out = await runCase(dir, { title: "delete", baseline: "HEAD", steps: [
+    { id: "delete", run: [node, "-e", 'require("fs").unlinkSync("src.txt")'] },
+    { id: "long", run: [node, "-e", 'console.log("A".repeat(3000) + "NEEDLE" + "B".repeat(3000))'], expect: { output: "NEEDLE" } },
+  ] });
+  const [del, long] = out.steps.map((s) => s.results.baseline);
+  assert.deepEqual([del.modified, del.deleted], [[], ["src.txt"]]);
+  assert.equal(long.pass, true);
+  assert.ok(!long.stdout.includes("NEEDLE"), "the report keeps only the start and the end");
+});
+
+test("whatever a step leaves running is stopped before the files are compared, at a timeout or after a normal exit", { skip: process.platform === "win32" && "Windows stops only a timed-out program's tree" }, async (t) => {
+  const markers = scratch(t);
+  const dir = commit(repo(t, { "src.txt": "hello" }));
+  // a worker that writes a marker outside the copy and then a project file, unless it is stopped first
+  const worker = (name) => JSON.stringify(`setTimeout(() => { require("fs").writeFileSync(${JSON.stringify(path.join(markers, name))}, "x"); require("fs").appendFileSync("src.txt", "late"); }, 800)`);
+  const start = (name, detached) => `require("child_process").spawn(process.execPath, ["-e", ${worker(name)}], { detached: ${detached}, stdio: "ignore" }).unref();`;
+  const out = await runCase(dir, { title: "leftovers", baseline: "HEAD", timeout: 0.5, steps: [
+    { id: "hang", run: [node, "-e", `${start("detached-at-timeout", true)} ${start("child-at-timeout", false)} setInterval(() => {}, 1000)`] },
+    { id: "exit", run: [node, "-e", start("detached-after-exit", true)] },
+    { id: "quiet", run: [node, "-e", "setTimeout(() => {}, 400)"], expect: { unchanged: true } },
+  ] });
+  const [hang, exit, quiet] = out.steps.map((s) => s.results.baseline);
+  assert.equal(hang.error, "timed out after 0.5s");
+  assert.equal(exit.leftRunning, 1);
+  assert.equal(quiet.pass, true, `src.txt changed during a later step: ${quiet.modified}`);
+  await new Promise((r) => setTimeout(r, 900));
+  assert.deepEqual(fs.readdirSync(markers), []);
+});
+
+test("thousands of scratch writes neither hide a project-file write nor let an incomplete trace pass writes: 0", async (t) => {
+  const dir = commit(repo(t, { "out.txt": "same", ".gitignore": "*.tmp\n" }));
+  const same = 'const fs = require("fs"); for (let i = 0; i < 6000; i++) fs.writeFileSync("scratch.tmp", String(i)); fs.writeFileSync("out.txt", "same")';
+  const many = 'const fs = require("fs"); for (let i = 0; i < 6000; i++) fs.writeFileSync("s" + i + ".tmp", ""); fs.writeFileSync("out.txt", "same")';
+  const out = await runCase(dir, { title: "trace", baseline: "HEAD", steps: [{ id: "same", run: [node, "-e", same], expect: { writes: 0, unchanged: true } }, { id: "many", run: [node, "-e", many], expect: { writes: 0 } }] });
+  const [repeat, distinct] = out.steps.map((s) => s.results.baseline);
+  assert.deepEqual([repeat.writes.tracked, repeat.writes.sameBytes, repeat.writes.complete, repeat.expect], [1, 1, true, { writes: false, unchanged: true }]);
+  assert.deepEqual([distinct.writes.complete, distinct.expect.writes], [false, false]);
+  assert.match(toText(report(dir, { title: "trace" }, out)), /write trace overflowed/);
 });
