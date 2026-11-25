@@ -78,7 +78,9 @@ for (const size of SIZES) {
     const first = data.prompts.find((p) => p.slug === a.prompts[0]);
     await rows.first().getByRole("button", { name: /^Copy/ }).click();
     assert.equal(await page.evaluate(() => navigator.clipboard.readText()), composeCopy(first));
-    assert.equal(await page.locator(`.sibs a[aria-current="page"]`).getAttribute("href"), `/prompts/${a.slug}`);
+    // The rail (computer) and the selector (phone) both mark this page.
+    const current = await page.locator(`.sibs a[aria-current="page"]`).evaluateAll((as) => as.map((x) => x.getAttribute("href")));
+    assert.deepEqual(current, [`/prompts/${a.slug}`, `/prompts/${a.slug}`]);
     assert.deepEqual(errors, []);
     await ctx.close();
   });
@@ -99,7 +101,9 @@ for (const size of SIZES) {
     await page.reload({ waitUntil: "networkidle" });
     assert.equal(await page.locator("#area-list .prows > li:not([hidden])").count(), n);
     // Following the plain link to this same page clears the filter, in the address and in the list.
-    await page.locator('.sibs a[aria-current="page"]').click();
+    const pick = page.locator(".sibs__pick > summary");
+    if (await pick.isVisible()) await pick.click();
+    await page.locator('.sibs a[aria-current="page"]:visible').click();
     await page.waitForFunction(() => !location.search);
     assert.equal(await page.locator("#area-list .prows > li:not([hidden])").count(), mixed.prompts.length);
     await page.goto(`${base}/prompts/${mixed.slug}?does=${encodeURIComponent(label)}`, { waitUntil: "networkidle" });

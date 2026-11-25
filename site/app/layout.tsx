@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Montserrat } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
@@ -10,7 +10,6 @@ import { SIGNED_IN_HINT } from "@/lib/auth-hint";
 import "./globals.css";
 
 const sans = Geist({ subsets: ["latin"], variable: "--font-geist", display: "swap" });
-const display = Montserrat({ subsets: ["latin"], weight: "600", variable: "--font-montserrat", display: "swap" });
 const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono", display: "swap" });
 
 export const metadata: Metadata = {
@@ -26,7 +25,7 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, view
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${sans.variable} ${mono.variable} ${display.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${sans.variable} ${mono.variable}`}>
       {authEnabled() && <head><script dangerouslySetInnerHTML={{ __html: SIGNED_IN_HINT }} /></head>}
       <body>
         <a className="skip" href="#main">Skip to content</a>

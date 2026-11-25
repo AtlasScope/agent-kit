@@ -85,7 +85,7 @@ export function InstallPanel({ id, title, options }: { id: string; title: string
           </div>
         )}
         <span ref={wrap} className="ip-copywrap">
-          <CopyButton key={o.id} className="btn ip-copy" text={o.text} name={o.copyName} icon />
+          <CopyButton key={o.id} className="btn btn--brand ip-copy" text={o.text} name={o.copyName} icon />
           <kbd className="ip-key" aria-hidden="true" title="With focus here, press C to copy">C</kbd>
         </span>
       </div>

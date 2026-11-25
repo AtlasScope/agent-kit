@@ -103,7 +103,7 @@ export function FloatingCopy({ anchor, end, target, text, title, detail, name, l
         <span className="fcopy__title">{title}</span>
         {detail && <span className="fcopy__detail">{detail}</span>}
       </span>
-      <CopyButton className="btn btn--sm btn--primary fcopy__copy" text={text} label={label} name={name} icon />
+      <CopyButton className="btn btn--sm btn--brand fcopy__copy" text={text} label={label} name={name} icon />
     </div>
   );
 }

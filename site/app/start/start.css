@@ -1,6 +1,6 @@
 /* The first-app guide's hub (app/start/page.tsx), on the library surface: the promise and the two ways in on the
    left, what you need on the right, then the steps and lessons from guides.css. Colours and sizes from tokens; the
-   way cards' arrow chip is the one solid control, the primary colours. */
+   first way's arrow chip is the page's one lit action (.btn--brand). */
 .start-hub__top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 20rem); gap: var(--space-10) var(--space-16); align-items: start; }
 .start-hub__head { max-width: 46rem; }
 .tested { display: flex; align-items: baseline; gap: var(--space-2); margin: 0; max-width: var(--read); color: var(--c-fg-3); font-size: var(--type-xs); line-height: 1.5; }
@@ -12,7 +12,7 @@
 .way__d { color: var(--c-fg-3); font-size: var(--type-xs); line-height: 1.5; }
 .way__go { justify-self: start; display: inline-flex; align-items: center; gap: 6px; min-height: 32px; margin-top: var(--space-2); padding: 0 var(--space-3); border: 1px solid var(--c-edge); border-radius: var(--radius-sm); font: 600 0.8125rem/1 var(--font-body); }
 .way--lead { border-color: var(--c-fg); }
-.way--lead .way__go { border-color: transparent; background: var(--c-primary); color: var(--c-on-primary); }
+.way__go.btn--brand { border: 0; border-radius: var(--radius-pill); padding: 0 var(--space-3); }
 .way__go .i { width: 14px; height: 14px; transition: transform var(--dur-fast) var(--ease-out); }
 @media (hover: hover) and (pointer: fine) {
   .way:hover { border-color: var(--c-fg); }

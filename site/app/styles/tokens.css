@@ -6,8 +6,10 @@
    - focus (blue): the keyboard focus ring, nothing else.
    - warm (amber): what you chose or kept (a star, a pressed toggle).
    - danger (red): destructive actions and errors only.
-   - section hues (--s-*): small wayfinding marks beside a title.
-   Atmospheric colour belongs to the homepage artwork and never reaches interface roles. */
+   - section hues (--s-*): retired from interior pages (hierarchy comes from type); kept for the design-system page.
+   - brand (--c-brand*): the homepage's green as light and material. One lit main action per page (.btn--brand) and
+     the header's small light; never text colour, a wash or decoration. Truthful state stays --c-signal.
+   Dark is the homepage's black with cool greys; the interior shares it, so the whole site reads as one. */
 :root {
   color-scheme: light;
 
@@ -41,6 +43,14 @@
   --c-warm: #B45309; --c-warm-soft: #FDF1E3;
   --c-danger: #B42318; --c-on-danger: #FFFFFF;
 
+  /* Brand green: a lit surface from light to deep, an edge a step darker, the light it casts, the ink on it. The same
+     object in both themes. Glass: the panel that holds what you copy. */
+  --c-brand: oklch(76% .175 154); --c-brand-hi: oklch(87% .16 151); --c-brand-lo: oklch(64% .165 157);
+  --c-brand-edge: oklch(48% .12 158); --c-brand-glow: oklch(80% .19 151); --c-on-brand: oklch(17% .045 160);
+  --glass-bg: linear-gradient(180deg, oklch(100% 0 0), oklch(98.4% .002 260));
+  --glass-rim: inset 0 1px 0 oklch(100% 0 0), inset 0 0 0 1px oklch(18.5% .006 265 / .09);
+  --glass-shadow: 0 1px 2px oklch(20% .01 265 / .06), 0 18px 40px -22px oklch(20% .01 265 / .28), 0 24px 60px -40px color-mix(in oklab, var(--c-brand-glow) 40%, transparent);
+
   /* Section hues */
   --s-inv: #00704A; --s-db: #5C6B00; --s-think: #5A2FC2; --s-ecmd: #006C80; --s-dcmd: #1849C4; --s-recipe: #BF1F5E;
 
@@ -52,12 +62,12 @@
 
   /* Type */
   --font-body: var(--font-geist), ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: var(--font-montserrat), var(--font-body);
+  --font-display: var(--font-body); /* headlines: Geist 600, set tight, as on the homepage */
   --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
   /* size / line-height / tracking triplets */
-  --type-display: clamp(2.75rem, 4vw + 1.25rem, 4.75rem); --lh-display: 1; --tr-display: -0.04em;
-  --type-h1: clamp(2.125rem, 2.4vw + 1.1rem, 3.375rem); --lh-h1: 1.04; --tr-h1: -0.035em;
-  --type-h2: clamp(1.25rem, .6vw + 1rem, 1.5rem); --lh-h2: 1.2; --tr-h2: -0.022em;
+  --type-display: clamp(2.75rem, 4vw + 1.25rem, 4.75rem); --lh-display: 1; --tr-display: -0.042em;
+  --type-h1: clamp(2rem, 1.6vw + 1.4rem, 3rem); --lh-h1: 1.06; --tr-h1: -0.04em;
+  --type-h2: clamp(1.3125rem, .3vw + 1.2rem, 1.5rem); --lh-h2: 1.2; --tr-h2: -0.022em;
   --type-h3: 1.125rem; --lh-h3: 1.3; --tr-h3: -0.015em;
   --type-lead: clamp(1.0625rem, .3vw + 1rem, 1.25rem); --lh-lead: 1.5;
   --type-body: 1rem; --lh-body: 1.6;
@@ -89,38 +99,44 @@
   --dur-page: 320ms;     /* contextual content transitions */
   --travel: 1;           /* multiply translate distances by this; 0 under reduced motion */
 }
-/* Dark: near-black canvas, cool greys with almost no chroma, hairlines of white. */
+/* Dark: the stage's black canvas, cool greys with almost no chroma, hairlines of white. */
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   color-scheme: dark;
-  --c-canvas: oklch(12.5% .004 260); --c-surface: oklch(16.5% .005 260); --c-raised: oklch(20.5% .006 260); --c-sunken: oklch(10.5% .004 260);
-  --c-overlay: oklch(12.5% .004 260 / .72);
+  --c-canvas: #000; --c-surface: oklch(15.5% .005 260); --c-raised: oklch(20% .006 260); --c-sunken: oklch(8% .004 260);
+  --c-overlay: oklch(4% .003 260 / .62);
   --c-fg: oklch(96.5% .003 260); --c-fg-2: oklch(84% .006 260); --c-fg-3: oklch(72% .01 260); --c-fg-4: oklch(56% .008 260);
-  --c-line: oklch(100% 0 0 / .08); --c-line-2: oklch(100% 0 0 / .14); --c-edge: oklch(46% .006 260);
+  --c-line: oklch(100% 0 0 / .09); --c-line-2: oklch(100% 0 0 / .16); --c-edge: oklch(48% .006 260);
   --c-primary: oklch(96.5% .003 260); --c-on-primary: oklch(14% .005 260); --c-primary-hover: oklch(86% .004 260);
   --c-fill: oklch(100% 0 0 / .06); --c-fill-2: oklch(100% 0 0 / .1);
-  --c-signal: oklch(80% .17 155); --c-focus: oklch(72% .15 252);
+  --c-signal: oklch(84% .2 152); --c-focus: oklch(72% .15 252);
   --c-warm: #F5A524; --c-warm-soft: #2A2113; --c-danger: #FF8A75; --c-on-danger: #0B0C12;
   --s-inv: #4BF0A8; --s-db: #C9E05A; --s-think: #BFA8FF; --s-ecmd: #3FE0F5; --s-dcmd: #8CB6FF; --s-recipe: #FF7FB2;
   --shadow-1: 0 1px 2px oklch(0% 0 0 / .5);
   --shadow-2: 0 1px 2px oklch(0% 0 0 / .5), 0 6px 16px -6px oklch(0% 0 0 / .6);
   --shadow-3: 0 2px 4px oklch(0% 0 0 / .5), 0 16px 40px -8px oklch(0% 0 0 / .75);
   --shadow-inset: inset 0 1px 0 oklch(100% 0 0 / .05);
+  --glass-bg: linear-gradient(180deg, oklch(22% .008 250 / .78), oklch(13% .006 250 / .82) 60%, oklch(11% .008 200 / .86));
+  --glass-rim: inset 0 1px 0 oklch(100% 0 0 / .1), inset 0 0 0 1px oklch(100% 0 0 / .06);
+  --glass-shadow: 0 1px 2px oklch(0% 0 0 / .5), 0 24px 48px -18px oklch(0% 0 0 / .9), 0 30px 80px -34px color-mix(in oklab, var(--c-brand-glow) 22%, transparent);
 } }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --c-canvas: oklch(12.5% .004 260); --c-surface: oklch(16.5% .005 260); --c-raised: oklch(20.5% .006 260); --c-sunken: oklch(10.5% .004 260);
-  --c-overlay: oklch(12.5% .004 260 / .72);
+  --c-canvas: #000; --c-surface: oklch(15.5% .005 260); --c-raised: oklch(20% .006 260); --c-sunken: oklch(8% .004 260);
+  --c-overlay: oklch(4% .003 260 / .62);
   --c-fg: oklch(96.5% .003 260); --c-fg-2: oklch(84% .006 260); --c-fg-3: oklch(72% .01 260); --c-fg-4: oklch(56% .008 260);
-  --c-line: oklch(100% 0 0 / .08); --c-line-2: oklch(100% 0 0 / .14); --c-edge: oklch(46% .006 260);
+  --c-line: oklch(100% 0 0 / .09); --c-line-2: oklch(100% 0 0 / .16); --c-edge: oklch(48% .006 260);
   --c-primary: oklch(96.5% .003 260); --c-on-primary: oklch(14% .005 260); --c-primary-hover: oklch(86% .004 260);
   --c-fill: oklch(100% 0 0 / .06); --c-fill-2: oklch(100% 0 0 / .1);
-  --c-signal: oklch(80% .17 155); --c-focus: oklch(72% .15 252);
+  --c-signal: oklch(84% .2 152); --c-focus: oklch(72% .15 252);
   --c-warm: #F5A524; --c-warm-soft: #2A2113; --c-danger: #FF8A75; --c-on-danger: #0B0C12;
   --s-inv: #4BF0A8; --s-db: #C9E05A; --s-think: #BFA8FF; --s-ecmd: #3FE0F5; --s-dcmd: #8CB6FF; --s-recipe: #FF7FB2;
   --shadow-1: 0 1px 2px oklch(0% 0 0 / .5);
   --shadow-2: 0 1px 2px oklch(0% 0 0 / .5), 0 6px 16px -6px oklch(0% 0 0 / .6);
   --shadow-3: 0 2px 4px oklch(0% 0 0 / .5), 0 16px 40px -8px oklch(0% 0 0 / .75);
   --shadow-inset: inset 0 1px 0 oklch(100% 0 0 / .05);
+  --glass-bg: linear-gradient(180deg, oklch(22% .008 250 / .78), oklch(13% .006 250 / .82) 60%, oklch(11% .008 200 / .86));
+  --glass-rim: inset 0 1px 0 oklch(100% 0 0 / .1), inset 0 0 0 1px oklch(100% 0 0 / .06);
+  --glass-shadow: 0 1px 2px oklch(0% 0 0 / .5), 0 24px 48px -18px oklch(0% 0 0 / .9), 0 30px 80px -34px color-mix(in oklab, var(--c-brand-glow) 22%, transparent);
 }
 /* The stage: the homepage and /install are dark in both themes, over the view from orbit (components/stage). It is the
    dark set above on a black canvas, plus the brand green: the main action is a lit green object, the header carries a
@@ -134,10 +150,6 @@
   --c-overlay: oklch(4% .003 260 / .55);
   --c-fg: oklch(97% .003 260); --c-fg-2: oklch(84% .006 260); --c-fg-3: oklch(72% .01 260); --c-fg-4: oklch(56% .008 260);
   --c-line: oklch(100% 0 0 / .09); --c-line-2: oklch(100% 0 0 / .16); --c-edge: oklch(48% .006 260);
-  /* Brand green, from the original palette (dark accent oklch(72% .17 155)). Light-to-deep for a lit surface, an edge
-     a step darker, the light it casts, and the ink that sits on it. */
-  --c-brand: oklch(76% .175 154); --c-brand-hi: oklch(87% .16 151); --c-brand-lo: oklch(64% .165 157);
-  --c-brand-edge: oklch(48% .12 158); --c-brand-glow: oklch(80% .19 151); --c-on-brand: oklch(17% .045 160);
   --c-primary: var(--c-brand); --c-on-primary: var(--c-on-brand); --c-primary-hover: var(--c-brand-hi);
   --c-fill: oklch(100% 0 0 / .06); --c-fill-2: oklch(100% 0 0 / .1);
   --c-signal: oklch(84% .2 152); --c-focus: oklch(72% .15 252);
@@ -159,7 +171,7 @@
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --c-danger: oklch(75.7% .183 31.4); --c-warm: oklch(78.2% .189 72.3);
     --s-inv: oklch(85.3% .256 160.1); --s-db: oklch(86.4% .227 118.1); --s-think: oklch(78.4% .134 295.6);
     --s-ecmd: oklch(83.5% .169 208.1); --s-dcmd: oklch(77.5% .124 261.1); --s-recipe: oklch(75.6% .208 356.6); } }
-  :root:has(.home, .quiet) { --c-brand: oklch(77% .22 151); --c-brand-hi: oklch(88% .2 149); --c-brand-lo: oklch(65% .2 154); --c-brand-glow: oklch(82% .24 149); }
+  :root { --c-brand: oklch(77% .22 151); --c-brand-hi: oklch(88% .2 149); --c-brand-lo: oklch(65% .2 154); --c-brand-glow: oklch(82% .24 149); }
   :root[data-theme="dark"], :root:has(.home, .quiet) { --c-warm: oklch(78.2% .189 72.3);
     --s-inv: oklch(85.3% .256 160.1); --s-db: oklch(86.4% .227 118.1); --s-think: oklch(78.4% .134 295.6);
     --s-ecmd: oklch(83.5% .169 208.1); --s-dcmd: oklch(77.5% .124 261.1); --s-recipe: oklch(75.6% .208 356.6); }

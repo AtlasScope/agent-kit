@@ -4,7 +4,7 @@ import { Crumbs } from "@/components/Crumbs";
 import { StartCard } from "@/components/Cards";
 import { SectionRail } from "@/components/prompts/browse/SectionRail";
 import { STARTS } from "@/lib/starts";
-import { areas, sections, counts, getPrompt } from "@/lib/content";
+import { areas, sections, counts } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Prompts for AI coding agents",
@@ -33,7 +33,7 @@ export default function Prompts() {
       <section className="section lib__starts" id="starting-points" aria-labelledby="h-starts">
         <div className="sec-head">
           <h2 id="h-starts">Best starting points</h2>
-          <p>Pick the job you have. Each card names one place to start and when to choose something else. Anything that changes code should run on a branch or a copy, never straight on production.</p>
+          <p>Pick the job you have. Each names one place to start.</p>
         </div>
         <div className="starts">
           {STARTS.map((s) => <StartCard key={s.slug} s={s} />)}
@@ -48,21 +48,17 @@ export default function Prompts() {
         {index.map(({ s, as, n }) => (
           <div key={s.id} id={s.id} className="browse" data-sec={s.id}>
             <div className="browse__head">
-              <h3 className="browse__h"><i className="dot" />{s.title} <span className="browse__n">{n}<span className="sr"> prompts</span></span></h3>
+              <h3 className="browse__h">{s.title} <span className="browse__n">{n}<span className="sr"> prompts</span></span></h3>
               <p className="browse__d">{s.blurb}</p>
             </div>
             <nav className="areas" aria-label={s.title}>
-              {as.map((a) => {
-                const peek = a.prompts.slice(0, 3).map((slug) => getPrompt(slug)?.t).filter(Boolean).join(" · ");
-                return (
-                  <Link key={a.slug} className="area" href={`/prompts/${a.slug}`}>
-                    <span className="area__t">{a.title}</span>
-                    <span className="area__n">{a.prompts.length}<span className="sr"> prompts</span></span>
-                    {peek && <span className="area__p" aria-hidden="true">{peek}</span>}
-                    <svg className="area__go" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3.5 10.5 8 6 12.5" /></svg>
-                  </Link>
-                );
-              })}
+              {as.map((a) => (
+                <Link key={a.slug} className="area" href={`/prompts/${a.slug}`}>
+                  <span className="area__t">{a.title}</span>
+                  <span className="area__n">{a.prompts.length}<span className="sr"> prompts</span></span>
+                  <svg className="area__go" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3.5 10.5 8 6 12.5" /></svg>
+                </Link>
+              ))}
             </nav>
           </div>
         ))}

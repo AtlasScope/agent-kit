@@ -5,6 +5,7 @@ import { CopyButton } from "@/components/CopyButton";
 import { SaveMenu } from "@/components/SaveMenu";
 import { Payload } from "@/components/prompts/detail/Payload";
 import { authEnabled } from "@/lib/site";
+import { copyFormat } from "@/lib/copy";
 import { getArea, getPrompt, copyText, copyLabel, kindLabel, whatOf, whenOf, MODES, TOPO, type Prompt } from "@/lib/content";
 
 type Fact = [string, string | undefined];
@@ -36,6 +37,7 @@ export function PromptPage({ p }: { p: Prompt }) {
   const when = whenOf(p);
   const what = whatOf(p);
   const lines = text.split("\n").length;
+  const prose = ["investigation", "thinking", "plan"].includes(copyFormat(p));
   const md = <a className="btn btn--sm btn--ghost pd-md" href={`/prompts/${p.slug}.md`}>Markdown</a>;
   const save = authEnabled() ? <SaveMenu kind="prompt" refId={p.id} title={p.t} /> : null;
   const meta = <><span>{lines === 1 ? "1 line" : `${lines} lines`}</span><code translate="no">{p.id}</code></>;
@@ -50,7 +52,7 @@ export function PromptPage({ p }: { p: Prompt }) {
       <header className="page-head pd-head">
         <Crumbs items={[["Prompts", "/prompts"], [a.title, `/prompts/${a.slug}`], [p.t, `/prompts/${p.slug}`]]} />
         <p className="kicker pd-kicker" data-sec={p.sec}>
-          <i className="dot" /><span>{kindLabel(p)}</span>
+          <span>{kindLabel(p)}</span>
           <span aria-hidden="true">·</span><span>{p.sec === "plan" ? a.title : p.group}</span>
           {p.badge && <><span aria-hidden="true">·</span><span>{p.badge}</span></>}
           {p.fresh && <><span aria-hidden="true">·</span><span>New, not yet run on a real project</span></>}
@@ -58,15 +60,17 @@ export function PromptPage({ p }: { p: Prompt }) {
         <h1>{p.t}</h1>
         {what && <p className="lead">{what}</p>}
         {to && <p className="pd-replaced">The library now covers this with <Link className="lic" href={`/prompts/${to.slug}`}>{to.t}</Link>. This page stays so old links keep working.</p>}
-        {(when || skip) && (
-          <dl className="pd-fit">
-            {when && <div><dt>Use it when</dt><dd>{when}</dd></div>}
-            {skip && <div><dt>Skip it when</dt><dd>{skip}</dd></div>}
-          </dl>
-        )}
       </header>
 
+      {/* On a computer, the fit and the facts sit in a rail beside the payload; on a phone the fit comes before it and
+          the facts after it (detail-prompt.css). */}
       <div className="pd-grid">
+          {(when || skip) && (
+            <dl className="pd-fit">
+              {when && <div><dt>Use it when</dt><dd>{when}</dd></div>}
+              {skip && <div><dt>Skip it when</dt><dd>{skip}</dd></div>}
+            </dl>
+          )}
         <div className="pd-main">
           {p.split && p.planSteps ? (
             <Payload label="Steps" meta={<><span>{p.planSteps.length} steps, one per message</span><code translate="no">{p.id}</code></>} text={text} copyLabel={copyLabel(p)} actions={<>{save}{md}</>} title={p.t} steps={p.planSteps.map((st) => st.copy)}>
@@ -86,7 +90,7 @@ export function PromptPage({ p }: { p: Prompt }) {
               </ol>
             </Payload>
           ) : (
-            <Payload label={blockLabel} meta={meta} text={text} copyLabel={copyLabel(p)} actions={<>{save}{md}</>} title={p.t} />
+            <Payload label={blockLabel} meta={meta} text={text} prose={prose} copyLabel={copyLabel(p)} actions={<>{save}{md}</>} title={p.t} />
           )}
 
           {p.steps && (

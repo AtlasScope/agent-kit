@@ -109,7 +109,7 @@ export function StepMeter({ items, base, store, current, noun }: { items: Item[]
 // The Next button: marks this item done in the browser, then follows the link.
 export function GuideNext({ href, store, current, children }: { href: string; store: string; current: string; children: React.ReactNode }) {
   return (
-    <Link className="btn btn--lg btn--primary guide-next" href={href} onClick={() => {
+    <Link className="btn btn--lg btn--brand guide-next" href={href} onClick={() => {
       try { const d = read(store); if (!d.includes(current)) localStorage.setItem(KEY(store), JSON.stringify([...d, current])); } catch {}
     }}>{children}<svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></Link>
   );

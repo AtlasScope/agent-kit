@@ -113,7 +113,7 @@ function CollectionPanel({ c, items, actions, sharedHref }: { c: CollectionData;
       {install && (
         <div className="cpanel__install">
           <p className="cpanel__label">Install {skills.length === 1 ? "its skill" : `its ${skills.length} skills`} in any agent</p>
-          <div className="cmdline"><code translate="no">{install}</code><CopyButton text={install} name={`Copy the install command for ${c.name}`} /></div>
+          <div className="cmdline glass"><code translate="no">{install}</code><CopyButton className="btn btn--sm btn--brand" text={install} name={`Copy the install command for ${c.name}`} /></div>
         </div>
       )}
 
@@ -195,7 +195,7 @@ export function SharedCollection({ c, own = false, manageHref = "/account", self
             <h2 id="install-h">Install its skills</h2>
             <p>One command, in any agent that reads skills.</p>
           </div>
-          <div className="cmdline"><code translate="no">{install}</code><CopyButton text={install} name={`Copy the install command for ${c.name}`} /></div>
+          <div className="cmdline glass"><code translate="no">{install}</code><CopyButton className="btn btn--sm btn--brand" text={install} name={`Copy the install command for ${c.name}`} /></div>
         </section>
       )}
       {items.length > 0 && (

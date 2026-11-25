@@ -64,7 +64,7 @@ export function NavMenu() {
             <li><a href={SITE.repo}>GitHub</a></li>
             <li><Link href="/about">About</Link></li>
           </ul>
-          <div className="sheet__act"><Link className="btn btn--lg btn--primary" href="/install">Install Agent Kit</Link></div>
+          <div className="sheet__act"><Link className="btn btn--lg btn--brand" href="/install">Install Agent Kit</Link></div>
         </nav>
       </dialog>
       {/* Without JavaScript the menu cannot open, so the section links show as a second row instead. */}

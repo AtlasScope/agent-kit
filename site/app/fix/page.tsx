@@ -1,8 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Crumbs } from "@/components/Crumbs";
-import { FixFilter } from "@/components/guide/FixFilter";
 import { JourneyPath } from "@/components/guide/JourneyPath";
+import { FixFilter } from "@/components/guide/FixFilter";
 import { fixes, getPrompt } from "@/lib/content";
 import "./fix.css";
 
@@ -14,8 +14,8 @@ export const metadata: Metadata = {
 
 const SCOPES = [["code", "In your app"], ["database", "In your PostgreSQL database"]] as const;
 
-// Symptom first: two columns of what you might be seeing, each row naming the prompt the route starts with and how
-// many prompts it holds. A filter narrows the rows as you type.
+// Symptom first: two columns of what you might be seeing, each row with how many prompts it holds. The symptom's
+// page picks the prompt to start with. A filter narrows the rows as you type (it also matches the prompts' titles).
 export default function Fix() {
   return (
     <main className="page fix-hub">
@@ -36,12 +36,10 @@ export default function Fix() {
               <h2 id={`fix-${scope}`}>{label} <span data-fix-count>{list.length}</span></h2>
               <ul>
                 {list.map((f) => {
-                  const first = getPrompt(f.prompts[0]);
                   return (
                     <li key={f.slug} data-fix={`${f.title} ${f.prompts.map((s) => getPrompt(s)?.t || "").join(" ")}`.toLowerCase()}>
                       <Link href={`/fix/${f.slug}`}>
                         <span className="symptom__t">{f.title}</span>
-                        {first && <span className="symptom__d">Starts with {first.t}</span>}
                         <span className="symptom__n">{f.prompts.length}<span className="sr"> prompts</span></span>
                       </Link>
                     </li>

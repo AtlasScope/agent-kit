@@ -27,17 +27,10 @@
 .stage[data-mode="install"] .stage__veil::before { opacity: 0; }
 .stage[data-mode="install"] .stage__veil::after { opacity: 1; }
 
-/* The header rides on the picture: no fill until the install page scrolls under it. Its green: a steady light after
-   the product name and a short lit stretch of its bottom edge, as the original header had. */
+/* The header rides on the picture: no fill until the install page scrolls under it. Its green light and lit lower edge
+   are the site-wide header's (shell.css). */
 :root:has(.stage) .top { background: transparent; border-bottom-color: transparent; }
 :root:has(.stage[data-mode="install"]) .top { background: var(--c-overlay); }
-:root:has(.stage) .top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; pointer-events: none;
-  background: linear-gradient(90deg, transparent 4%, color-mix(in oklab, var(--c-brand-glow) 80%, transparent) 14%, color-mix(in oklab, var(--c-brand-glow) 22%, transparent) 26%, transparent 38%);
-  box-shadow: 0 0 12px color-mix(in oklab, var(--c-brand-glow) 35%, transparent); }
-:root:has(.stage) .wordmark__name { display: inline-flex; align-items: center; gap: 9px; }
-:root:has(.stage) .wordmark__name::after { content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #fff 0 12%, var(--c-brand-glow) 46%, var(--c-brand-lo));
-  box-shadow: 0 0 0 1px color-mix(in oklab, var(--c-brand-glow) 45%, transparent), 0 0 6px var(--c-brand-glow), 0 0 14px color-mix(in oklab, var(--c-brand-glow) 45%, transparent); }
 .stage .quiet { background: transparent; }
 
 /* ---- The homepage's words: one centred column over the black sky, the planet's limb under it. ---- */
@@ -45,10 +38,9 @@
   padding-inline: max(var(--gutter), env(safe-area-inset-left)) max(var(--gutter), env(safe-area-inset-right)); color: var(--c-fg); text-align: center; }
 /* The column sits in the upper part of the screen, so the planet's lit face below it stays clear. */
 .hero__msg { align-self: start; display: grid; justify-items: center; width: 100%; max-width: 46rem; padding-block: clamp(32px, 9.5svh, 130px) 6svh; }
-/* The headline: Geist, crisp and tight, two lines. ?face=display swaps in Montserrat for comparison. */
+/* The headline: Geist, crisp and tight, two lines. */
 .hero h1 { margin: 0; max-width: 13em; font: 600 clamp(2.375rem, min(3.6vw + 1rem, 8.6svh), 4.25rem)/1.04 var(--font-body); letter-spacing: -0.042em; text-wrap: balance;
   font-kerning: normal; font-feature-settings: "ss01", "liga"; -webkit-font-smoothing: antialiased; color: #fff; }
-.hero[data-face="display"] h1 { font-family: var(--font-display); letter-spacing: -0.045em; line-height: 1.02; }
 .hero__w { display: inline-block; white-space: pre; }
 .hero__lede { margin: clamp(16px, 2.4svh, 22px) 0 0; max-width: 30em; font: 400 clamp(1.0625rem, .35vw + 1rem, 1.25rem)/1.45 var(--font-body); letter-spacing: -0.012em; color: oklch(100% 0 0 / .7); text-wrap: balance; }
 .hero__cta { display: grid; justify-items: center; gap: 14px; margin-top: clamp(28px, 4.4svh, 42px); }

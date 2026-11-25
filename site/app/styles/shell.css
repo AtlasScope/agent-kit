@@ -32,6 +32,15 @@
 @media (max-width: 720px) { .aslogo--mark { display: block; } }
 @media (max-width: 720px) { .wordmark .wordmark__sep { margin-inline: 10px; } }
 @media (max-width: 23rem) { .wordmark .wordmark__sep, .wordmark .wordmark__name { display: none; } }
+/* The brand in the bar, on every page as on the homepage: a steady green light after the product name and a short lit
+   stretch of the header's lower edge. */
+.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; pointer-events: none;
+  background: linear-gradient(90deg, transparent 4%, color-mix(in oklab, var(--c-brand-glow) 80%, transparent) 14%, color-mix(in oklab, var(--c-brand-glow) 22%, transparent) 26%, transparent 38%);
+  box-shadow: 0 0 12px color-mix(in oklab, var(--c-brand-glow) 35%, transparent); }
+.wordmark__name { display: inline-flex; align-items: center; gap: 9px; }
+.wordmark__name::after { content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff 0 12%, var(--c-brand-glow) 46%, var(--c-brand-lo));
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--c-brand-glow) 45%, transparent), 0 0 6px var(--c-brand-glow), 0 0 14px color-mix(in oklab, var(--c-brand-glow) 45%, transparent); }
 /* Section links. The current section is a quiet neutral pill; the text never moves. */
 .links { display: flex; gap: 2px; margin: 0; padding: 0; list-style: none; font-size: .875rem; }
 .links a { display: inline-flex; align-items: center; min-height: 34px; padding: 0 11px; border-radius: var(--radius-sm); color: var(--c-fg-3); font-weight: var(--weight-medium);
