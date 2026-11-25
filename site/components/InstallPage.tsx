@@ -2,14 +2,14 @@
 import Link from "next/link";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { INSTALL_MESSAGE, type Agent } from "@/lib/site";
-import { signInHref } from "./AuthNav";
+import { AccountOffer, Ext } from "./AccountOffer";
 import { AgentMark } from "./AgentMark";
 import { HANDOFF_EVENT } from "./stage/HomeHero";
 import { AGENT_KEY, COPIED_KEY, FALLBACK, FRESH_MS, OPEN_URL, OS_SCRIPT, SHOWN, commandFor, lastAgent, markOS, readHandoff } from "./install-choice";
 
 // The install page. One message to paste into any agent's chat (INSTALL_MESSAGE) is the centrepiece: the agent reads
 // the steps for itself, so nobody picks a tool or opens a terminal. The message itself is never on show: the panel
-// says Copied and offers to open an agent and, to a visitor with no account, one soft offer to make one. Only when
+// says Copied and offers to open an agent and, under it, to a visitor with no account, a reason to make one (AccountOffer). Only when
 // the browser blocks copying does the message appear, selected, to copy by hand. Under the panel one status line says
 // what actually happened (copied, or blocked). Everything else waits behind two closed
 // rows: the per-agent commands ("Or run it yourself") and what gets installed, kit by kit.
@@ -35,7 +35,6 @@ export type KitLine = { name: string; line: string; type: string[]; skills: numb
 
 const Check = () => <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>;
 const CopyIcon = () => <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" /></svg>;
-const Ext = () => <svg className="inst__ext" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 const Chevron = () => <svg className="i inst__chev" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg>;
 // The paste keys for each kind of computer; html[data-os] decides which shows. Linux terminals paste with Ctrl Shift V,
 // and the message may go into a terminal agent or an app, so Linux gets both for the message and the terminal keys for
@@ -64,16 +63,16 @@ const selectText = (el: Element | null) => {
   try { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s?.removeAllRanges(); s?.addRange(r); } catch {}
 };
 
-export function InstallPage({ kits, skills, kitLines, account, children }: { kits: number; skills: number; kitLines: KitLine[]; account: boolean; children: React.ReactNode }) {
+export function InstallPage({ kits, skills, prompts, picks, kitLines, account, children }: { kits: number; skills: number; prompts: number; picks: string[]; kitLines: KitLine[]; account: boolean; children: React.ReactNode }) {
   const [agent, setAgent] = useState<Agent>(SHOWN[0]);
   // The by-hand command's copied state, and the message's, each with its own button.
   const [copied, setCopied] = useState(false);
   const [said1, setSaid1] = useState(false);
   // The browser refused to copy: the message shows, selected, to copy by hand. It is shown at no other time.
   const [blocked, setBlocked] = useState(false);
-  // After a copy, a visitor with no account is offered one once; Not now hides it.
-  const [guest, setGuest] = useState(false);
-  const [later, setLater] = useState(false);
+  // A copy has succeeded on this visit. Unlike said1 it doesn't lapse, so the account offer under the panel stays put.
+  const [everCopied, setEverCopied] = useState(false);
+  useEffect(() => { if (said1) setEverCopied(true); }, [said1]);
   // Once an agent's command has been copied this visit, its light stays softly lit (it never says the clipboard
   // still holds it); another agent's is unlit until its own command is copied.
   const [copiedIds, setCopiedIds] = useState<string[]>([]);
@@ -124,16 +123,6 @@ export function InstallPage({ kits, skills, kitLines, account, children }: { kit
     return () => { removeEventListener("hashchange", on); document.removeEventListener("click", click); };
   }, []);
   useEffect(() => { if (blocked) { root.current?.removeAttribute("data-got"); selectText(msg.current); } }, [blocked]);
-  // The offer of an account opens sign-in in a new tab, so this page stays. When the visitor comes back to it, it asks
-  // again whether they are signed in now, and the offer goes away if they are.
-  useEffect(() => {
-    if (!said1) return;
-    // Clerk's own signed-out rule (lib/auth-hint.ts): __client_uat is 0 when signed out. The cookie, unlike data-auth, changes when another tab signs in.
-      const ask = () => setGuest(!/(?:^|; )__client_uat[^=]*=(?!0(?:;|$))[^;]/.test(document.cookie));
-    ask();
-    addEventListener("focus", ask); document.addEventListener("visibilitychange", ask);
-    return () => { removeEventListener("focus", ask); document.removeEventListener("visibilitychange", ask); };
-  }, [said1]);
   useEffect(() => { if (!copied) return; const t = setTimeout(() => setCopied(false), NOTE_MS); return () => clearTimeout(t); }, [copied]);
   // data-got (set before paint on a full load) shows the Copied panel from the first frame; it ends with the claim.
   useEffect(() => { if (!said1) return; const t = setTimeout(() => { setSaid1(false); root.current?.removeAttribute("data-got"); }, COPIED_MS); return () => clearTimeout(t); }, [said1]);
@@ -222,18 +211,8 @@ export function InstallPage({ kits, skills, kitLines, account, children }: { kit
           </div>
           <p className="inst__how" aria-hidden={msgNote?.kind === "blocked" ? true : undefined}>Works in Claude Code, Codex, Cursor and other coding agents.</p>
           </div>
-          {account && said1 && guest && !later && (
-            <section className="inst__acct" aria-labelledby="inst-acct-h">
-              <div>
-                <h2 id="inst-acct-h">Make a free account</h2>
-                <p>Star the prompts and skills you use, group them into collections, and share a collection with a link. Everything here also works without one.</p>
-              </div>
-              <div className="inst__acctdo">
-                <Link className="inst__agent inst__agent--lead" href={signInHref("/install")} target="_blank" rel="noopener noreferrer">Create a free account<Ext /></Link>
-                <button type="button" className="inst__again" onClick={() => setLater(true)}>Not now</button>
-              </div>
-            </section>
-          )}
+          {/* Not now takes the offer away; focus moves on to the next thing on the page rather than to the top. */}
+          {account && <AccountOffer copied={everCopied} prompts={prompts} picks={picks} onDone={() => root.current?.querySelector<HTMLElement>(".inst__manual > summary")?.focus({ preventScroll: true })} />}
           <p className="inst__phone">Agent Kit installs on a computer. Send yourself this page, or paste the message into your agent there.</p>
 
           <details className="inst__manual" id="manual" open={open} onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}>

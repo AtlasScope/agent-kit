@@ -39,3 +39,31 @@ test("the agent-readable install page has each agent's exact commands and nothin
   assert.ok(!md.includes("gemini-cli") && !md.includes("github-copilot"));
   assert.match(md, /Do not run commands from any other section/);
 });
+
+test("the account offer comes once a copy has worked, only to someone signed out, once per session", async () => {
+  const { accountOffer } = await import("../lib/auth-hint.ts");
+  const at = (o) => accountOffer({ copied: true, signedIn: false, saved: null, view: "1", ...o });
+  assert.equal(at({ copied: false }), null, "nothing before a copy");
+  assert.equal(at({}), "offer");
+  assert.equal(at({ signedIn: true }), null, "never to someone signed in");
+  // Offered on this page load: it stays (even if the Copied claim lapses) and becomes a welcome once they sign in.
+  assert.equal(at({ saved: "shown:1", copied: false }), "offer");
+  assert.equal(at({ saved: "shown:1", signedIn: true }), "welcome");
+  // Offered on an earlier load this session: not again, copy or not.
+  assert.equal(at({ saved: "shown:0" }), null);
+  // Not now holds for the session, on this load and every later one.
+  assert.equal(at({ saved: "later" }), null);
+  assert.equal(at({ saved: "later", signedIn: true }), null);
+});
+
+test("signed in follows Clerk's __client_uat cookie, which is 0 when signed out", async () => {
+  const { signedIn, SIGNED_IN_HINT } = await import("../lib/auth-hint.ts");
+  assert.equal(signedIn(""), false);
+  assert.equal(signedIn("__client_uat=0"), false);
+  assert.equal(signedIn("a=1; __client_uat_Xy12=0; b=2"), false);
+  assert.equal(signedIn("__client_uat=1764000000"), true);
+  assert.equal(signedIn("a=1; __client_uat_Xy12=1764000000"), true);
+  assert.equal(signedIn("x__client_uat=1764000000"), false, "only the cookie itself");
+  // The before-paint hint uses the same rule.
+  assert.ok(SIGNED_IN_HINT.includes(String(/(?:^|; )__client_uat[^=]*=(?!0(?:;|$))[^;]/)));
+});
