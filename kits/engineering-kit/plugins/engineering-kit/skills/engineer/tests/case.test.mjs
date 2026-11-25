@@ -112,3 +112,40 @@ test("a copied folder is a real folder inside each clone, unlike a link; started
   assert.deepEqual(copied.children, [`${path.basename(process.execPath)} -e 0`]);
   assert.equal(fs.readFileSync(path.join(dir, "deps/lib.txt"), "utf8"), "from deps");
 });
+
+function repo(t, files) {
+  const dir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "engineer-case-repo-")));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  for (const [f, text] of Object.entries(files)) fs.writeFileSync(path.join(dir, f), text);
+  return dir;
+}
+const commit = (dir) => { run(dir, "init", "-q"); run(dir, "add", "-A"); run(dir, "commit", "-qm", "fixture"); return dir; };
+const scratch = (t) => { const d = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "engineer-case-outside-"))); t.after(() => fs.rmSync(d, { recursive: true, force: true })); return d; };
+const node = process.execPath;
+
+test("a change, copy or link through a symbolic link in the repository is refused, and nothing outside the copy changes", { skip: process.platform === "win32" && "creating symbolic links needs privileges on Windows" }, async (t) => {
+  const outside = scratch(t);
+  fs.writeFileSync(path.join(outside, "victim.txt"), "original");
+  const dir = repo(t, { ".gitignore": "deps/\n" });
+  fs.symlinkSync(outside, path.join(dir, "linked"));
+  commit(dir);
+  fs.mkdirSync(path.join(dir, "deps"));
+  const attempts = [
+    ...[{ write: "linked/victim.txt", text: "x" }, { append: "linked/victim.txt", text: "x" }, { delete: "linked/victim.txt" }].map((change) => ({ steps: [{ id: "s", change: [change], run: [node, "-e", "0"] }] })),
+    { copy: [{ path: "linked/deps", from: "deps" }] },
+    { link: [{ path: "linked/deps", from: "deps" }] },
+    { steps: [{ id: "s", cwd: "linked", run: [node, "-e", "0"] }] },
+  ];
+  for (const a of attempts) await assert.rejects(async () => runCase(dir, { title: "links", baseline: "HEAD", steps: [{ id: "s", run: [node, "-e", "0"] }], ...a }), /linked is a symbolic link in the copy/);
+  assert.deepEqual(fs.readdirSync(outside), ["victim.txt"]);
+  assert.equal(fs.readFileSync(path.join(outside, "victim.txt"), "utf8"), "original");
+});
+
+test("an untracked link stays a link in the working-tree copy, even one that leads nowhere", { skip: process.platform === "win32" && "creating symbolic links needs privileges on Windows" }, async (t) => {
+  const dir = commit(repo(t, { "src.txt": "hello" }));
+  fs.symlinkSync("src.txt", path.join(dir, "alias.txt"));
+  fs.symlinkSync("missing.txt", path.join(dir, "dangling.txt"));
+  const probe = 'const fs = require("fs"); console.log(["alias.txt", "dangling.txt"].map((f) => f + " " + fs.lstatSync(f).isSymbolicLink() + " " + fs.readlinkSync(f)).join(", "))';
+  const r = (await runCase(dir, { title: "links", baseline: "working-tree", steps: [{ id: "s", run: [node, "-e", probe], expect: { output: "alias.txt true src.txt, dangling.txt true missing.txt" } }] })).steps[0].results.baseline;
+  assert.equal(r.pass, true, r.stdout);
+});

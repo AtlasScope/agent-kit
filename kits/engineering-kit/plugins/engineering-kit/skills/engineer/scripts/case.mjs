@@ -24,8 +24,9 @@
 //     ]
 //   }
 // Steps run in order in the same copy, so a step sees what the steps before it left behind. "change" edits the
-// copy before the step (write, append or delete); "run" is an argument list, or a string for the shell (on
-// Windows a .cmd program such as npm needs the string form); "cwd" runs it in a folder of the copy.
+// copy before the step (write, append or delete), and refuses a path that leads through a symbolic link, which
+// could point out of the copy; "run" is an argument list, or a string for the shell (on Windows a .cmd program
+// such as npm needs the string form); "cwd" runs it in a folder of the copy.
 // "expect" is optional: exit (a number), unchanged (no project file changed, added or deleted), writes (most
 // project files written, identical bytes included), output (text that must appear in stdout or stderr). It
 // applies to both variants, or give each its own, as in a mutation run where the candidate breaks the code on
@@ -44,6 +45,7 @@ import { fileURLToPath } from "node:url";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const TRACER = path.join(here, "case-trace.cjs");
 const OUTPUT_MAX = 4000;
+const WINDOWS = process.platform === "win32";
 const EXPECTATIONS = ["exit", "unchanged", "writes", "output"];
 const VARIANTS = ["baseline", "candidate"];
 
@@ -69,6 +71,21 @@ function repoName(root) {
 function inside(base, rel) {
   if (typeof rel !== "string" || !rel || path.isAbsolute(rel) || /^[a-z]:/i.test(rel) || rel.split(/[\\/]/).includes("..")) throw new Error(`Not a path inside the repository: ${rel}`);
   return path.join(base, ...rel.split("/"));
+}
+
+/**
+ * Refuse a path in the copy that leads through a symbolic link or a Windows junction. The repository's own files,
+ * or a link a step left behind, can point anywhere, so a change, copy or link made through one could land outside
+ * the copy. Every part of the path that exists is checked, the last one included.
+ */
+function refuseLinks(base, rel, what) {
+  let at = base;
+  for (const part of rel.split(WINDOWS ? /[\\/]/ : "/")) {
+    at = path.join(at, part);
+    let st;
+    try { st = fs.lstatSync(at); } catch (e) { if (e.code === "ENOENT" || e.code === "ENOTDIR") return; throw e; }
+    if (st.isSymbolicLink()) throw new Error(`${what}: refused, because ${posix(path.relative(base, at))} is a symbolic link in the copy and following it could lead out of the copy. Nothing was changed through it.`);
+  }
 }
 
 export function validate(spec) {
@@ -131,9 +148,12 @@ function makeCopy(root, ref, dir) {
     const diff = git(root, ["diff", "--binary", "HEAD"]);
     if (diff.trim()) { git(dir, ["apply", "--binary", "--whitespace=nowarn", "-"], diff); changed += diff.split("\ndiff --git ").length; }
     for (const f of git(root, ["ls-files", "-z", "--others", "--exclude-standard"]).split("\0").filter(Boolean)) {
-      const dst = inside(dir, f);
+      const src = inside(root, f), dst = inside(dir, f);
+      refuseLinks(dir, f, `untracked file ${f}`);
       fs.mkdirSync(path.dirname(dst), { recursive: true });
-      fs.copyFileSync(inside(root, f), dst);
+      // a link stays a link to the same target; copyFileSync would follow it and copy what it points to
+      if (fs.lstatSync(src).isSymbolicLink()) fs.symlinkSync(fs.readlinkSync(src), dst);
+      else fs.copyFileSync(src, dst);
       changed++;
     }
     if (changed) {
@@ -163,6 +183,9 @@ function environment(kind, home) {
 }
 
 function runStep(dir, spec, step, variant, logFile, home) {
+  const where = `step ${step.id} (${variant})`;
+  for (const c of step.change || []) { const verb = ["write", "append", "delete"].find((k) => k in c); refuseLinks(dir, c[verb], `${where}: ${verb} ${c[verb]}`); }
+  if (step.cwd) refuseLinks(dir, step.cwd, `${where}: cwd ${step.cwd}`);
   for (const c of step.change || []) {
     if ("delete" in c) fs.rmSync(inside(dir, c.delete), { force: true, recursive: true });
     else {
@@ -255,6 +278,7 @@ export function runCase(root, spec, { keep = false } = {}) {
         const src = typeof l === "string" ? inside(root, l) : path.resolve(root, l.from);
         if (!fs.existsSync(src)) throw new Error(`${how} ${rel}: ${typeof l === "string" ? "not in the checkout" : `${l.from} does not exist`}`);
         const dst = inside(dir, rel);
+        refuseLinks(dir, rel, `${how} ${rel}`);
         if (fs.existsSync(dst)) throw new Error(`${how} ${rel}: the copy already has it; ${how} only ignored folders such as node_modules`);
         fs.mkdirSync(path.dirname(dst), { recursive: true });
         if (how === "link") fs.symlinkSync(src, dst, process.platform === "win32" ? "junction" : "dir");
