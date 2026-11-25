@@ -423,6 +423,34 @@ export function definitionsOf(toks) {
   return out;
 }
 
+/**
+ * The names other modules import a file's definition by: its own name for `export function name`, "default" for
+ * `export default function name` or `export default name`, and X for `export { name as X }`.
+ */
+export function exportNamesOf(toks, defs, name) {
+  const out = new Set();
+  for (const d of defs.filter((x) => x.name === name)) {
+    let k = d.at - 1;
+    if (toks[k]?.v === "*") k--;
+    k--; // the declaration keyword
+    if (toks[k]?.v === "async") k--;
+    if (toks[k]?.v === "default" && toks[k - 1]?.v === "export") out.add("default");
+    else if (toks[k]?.v === "export") out.add(name);
+  }
+  for (let k = 0; k < toks.length; k++) {
+    if (toks[k].t !== "id" || toks[k].v !== "export" || toks[k - 1]?.v === ".") continue;
+    if (toks[k + 1]?.v === "default" && toks[k + 2]?.t === "id" && toks[k + 2].v === name && (!toks[k + 3] || toks[k + 3].v === ";" || toks[k + 3].line > toks[k + 2].line)) out.add("default");
+    if (toks[k + 1]?.t !== "p" || toks[k + 1].v !== "{") continue;
+    const end = matching(toks, k + 1);
+    if (toks[end + 1]?.v === "from") continue; // a re-export of another module
+    for (let m = k + 2; m < end; m++) {
+      if (toks[m].t !== "id" || toks[m].v !== name || toks[m - 1]?.v === "as") continue;
+      out.add(toks[m + 1]?.v === "as" && toks[m + 2] ? toks[m + 2].v : name);
+    }
+  }
+  return out;
+}
+
 /** The token range of a definition's body: braces after a function head, or the initializer of a const. */
 function bodyRange(toks, at) {
   for (let j = at + 1; j < toks.length && j < at + 200; j++) {
@@ -455,19 +483,31 @@ export function analyzeCode(repo, file, toks) {
   const dir = P.dirname(file) === "." ? "" : P.dirname(file);
   const imports = importsOf(toks);
   const used = new Set(imports.map((x) => x.at));
-  const ns = { fs: new Set(), cp: new Set(), http: new Set(), path: new Set(["path"]) }, direct = { fs: new Set(), cp: new Set() };
+  // direct: the local name of each fs or child_process function imported by name, with the name it was imported as
+  const ns = { fs: new Set(), cp: new Set(), http: new Set(), path: new Set(["path"]) }, direct = { fs: new Map(), cp: new Map() };
+  const named = (key, imported, local) => {
+    if (key === "fs" || key === "cp") direct[key].set(local, imported);
+    if (key === "fs" && imported === "promises") ns.fs.add(local);
+  };
   for (const im of imports) for (const [key, re] of Object.entries(MODULES)) if (re.test(im.spec)) for (const nm of im.names || []) {
     if (nm.imported === "default" || nm.imported === "*") ns[key].add(nm.local);
-    else if (key === "fs" || key === "cp") direct[key].add(nm.local);
-    if (key === "fs" && nm.imported === "promises") ns.fs.add(nm.local);
+    else named(key, nm.imported, nm.local);
   }
-  // const fs = require("fs") / const { readFileSync } = require("fs")
+  // const fs = require("fs") / const { readFileSync, writeFileSync: save } = require("fs")
   for (let k = 0; k < toks.length; k++) {
     if (toks[k].v !== "require" || toks[k + 1]?.v !== "(" || toks[k + 2]?.t !== "str") continue;
     const key = Object.keys(MODULES).find((m) => MODULES[m].test(toks[k + 2].v));
     if (!key || toks[k - 1]?.v !== "=") continue;
     if (toks[k - 2]?.t === "id") ns[key].add(toks[k - 2].v);
-    else if (toks[k - 2]?.v === "}") { for (let m = k - 3; m >= 0 && toks[m].v !== "{"; m--) if (toks[m].t === "id" && (key === "fs" || key === "cp")) direct[key].add(toks[m].v); }
+    else if (toks[k - 2]?.v === "}") {
+      let open = k - 3;
+      while (open >= 0 && toks[open].v !== "{") open--;
+      for (let m = open + 1; m < k - 2; m++) {
+        if (toks[m].t !== "id") continue;
+        if (toks[m + 1]?.v === ":" && toks[m + 2]?.t === "id") { named(key, toks[m].v, toks[m + 2].v); m += 2; }
+        else named(key, toks[m].v, toks[m].v);
+      }
+    }
   }
   if (!ns.fs.size && !direct.fs.size) ns.fs.add("fs");
 
@@ -553,7 +593,9 @@ export function analyzeCode(repo, file, toks) {
   }
   tracking = true;
 
-  // Effect calls, then one level of wrappers around them.
+  // Effect calls, then one level of wrappers around them. A function imported under another name
+  // (writeFileSync as save) is classified by the name it was imported as.
+  const apiName = (k) => (toks[k - 1]?.v === "." ? toks[k].v : direct.fs.get(toks[k].v) ?? direct.cp.get(toks[k].v) ?? toks[k].v);
   const callKind = (k) => {
     const t = toks[k];
     if (t.t !== "id" || toks[k + 1]?.v !== "(") return null;
@@ -561,10 +603,11 @@ export function analyzeCode(repo, file, toks) {
     const prev2 = prev && toks[k - 3]?.v === "." ? toks[k - 4] : null;
     const fromFs = (prev && ns.fs.has(prev.v)) || (prev?.v === "promises" && prev2 && ns.fs.has(prev2.v)) || (!prev && direct.fs.has(t.v));
     const fromCp = (prev && ns.cp.has(prev.v)) || (!prev && direct.cp.has(t.v));
-    if (fromFs && FS_READ.has(t.v)) return "read";
-    if (fromFs && FS_WRITE.has(t.v)) return "write";
-    if (fromFs && FS_DELETE.has(t.v)) return "delete";
-    if (fromCp && CP.has(t.v)) return "spawn";
+    const api = apiName(k);
+    if (fromFs && FS_READ.has(api)) return "read";
+    if (fromFs && FS_WRITE.has(api)) return "write";
+    if (fromFs && FS_DELETE.has(api)) return "delete";
+    if (fromCp && CP.has(api)) return "spawn";
     if (!prev && t.v === "fetch") return "network";
     if (prev && ns.http.has(prev.v) && (t.v === "request" || t.v === "get")) return "network";
     return null;
@@ -587,7 +630,7 @@ export function analyzeCode(repo, file, toks) {
         const kind = callKind(j) ?? (wrappers.has(toks[j].v) && toks[j + 1]?.v === "(" && toks[j - 1]?.v !== "." ? wrappers.get(toks[j].v) : null);
         if (!kind || kind === "network") continue;
         const a = args(toks, j + 1);
-        const pick = kind === "spawn" ? a.slice(0, 2) : TWO_ARG.has(toks[j].v) ? a.slice(0, 2) : a.slice(0, 1);
+        const pick = kind === "spawn" ? a.slice(0, 2) : TWO_ARG.has(apiName(j)) ? a.slice(0, 2) : a.slice(0, 1);
         if (pick.some(([lo, hi]) => toks.slice(lo, hi).some((x) => x.t === "id" && x.v === param))) kinds.add(kind);
       }
       const primary = ["spawn", "write", "delete", "read"].find((x) => kinds.has(x));
@@ -603,7 +646,7 @@ export function analyzeCode(repo, file, toks) {
     if (!kind && toks[k].t === "id" && wrappers.has(toks[k].v) && toks[k + 1]?.v === "(" && toks[k - 1]?.v !== "." && !["function", "const", "let", "var"].includes(toks[k - 1]?.v)) { kind = wrappers.get(toks[k].v); via = toks[k].v; }
     if (!kind) continue;
     const line = toks[k].line, a = args(toks, k + 1);
-    const note = via ? `${via}() wraps a ${kind === "spawn" ? "child process" : kind}` : `${toks[k].v}()`;
+    const note = via ? `${via}() wraps a ${kind === "spawn" ? "child process" : kind}` : `${toks[k].v}()${apiName(k) !== toks[k].v ? ` (${apiName(k)})` : ""}`;
     if (kind === "network") { effects.push({ kind: "network", line, text: lineText(line) }); continue; }
     if (kind === "spawn") {
       // the program, then its arguments: a script path in either place is what runs
@@ -635,9 +678,9 @@ export function analyzeCode(repo, file, toks) {
       continue;
     }
     // copy, rename and link take (source, destination): the source is read, the destination written
-    const twoArg = !via && TWO_ARG.has(toks[k].v);
+    const twoArg = !via && TWO_ARG.has(apiName(k));
     const markUsed = (range) => { if (range) for (let m = range[0]; m < range[1]; m++) if (toks[m].t === "str") used.add(m); };
-    if (twoArg && a[0] && /^c(op|p)/.test(toks[k].v)) {
+    if (twoArg && a[0] && /^c(op|p)/.test(apiName(k))) {
       const src = resolveValue(evalPath(a[0][0], a[0][1]));
       if (src && src.path !== file) { markUsed(a[0]); edges.push({ kind: "reads", from: src.path, to: file, line, basis: `${note} source` }); }
     }
@@ -923,26 +966,32 @@ export function query(g, rawTargets, { symbol = null, depth = 3 } = {}) {
     const defs = info.defs.filter((d) => d.name === symbol);
     if (!defs.length) throw new Error(`${file} does not define ${symbol}`);
     defined = defs.map((d) => `${file}:${d.line}`);
-    // importers that bring the name in, directly, through a namespace, or through a re-export one level away
+    // importers that bring the name in, directly, through a namespace, or through a re-export one level away.
+    // They import what the file exports it as: "default" for `export default function compose`.
+    const exported = exportNamesOf(info.toks, info.defs, symbol);
+    if (!exported.size) exported.add(symbol);
     const uses = [];
     const viaReexport = [];
     for (const e of consumers.filter((x) => x.kind === "import")) {
       const names = e.names || [];
-      const hit = names.find((nm) => nm.imported === symbol || nm.imported === "*");
+      const hit = names.find((nm) => exported.has(nm.imported)) ?? names.find((nm) => nm.imported === "*");
       if (!hit && e.basis !== "require") continue;
+      // the names a re-export passes the symbol on as; export * passes on everything but the default export
+      const forwarded = e.basis !== "re-export" ? null : hit.imported !== "*" ? names.filter((nm) => exported.has(nm.imported)).map((nm) => nm.local) : hit.local !== "*" ? [hit.local] : [...exported].filter((x) => x !== "default");
+      if (forwarded && !forwarded.length) continue;
       const toks = g.code.get(e.to)?.toks || [];
       const local = hit?.imported === "*" ? hit.local : hit?.local ?? symbol;
       const lines = [];
       for (let k = 0; k < toks.length; k++) {
         if (toks[k].t !== "id" || (toks[k].line >= e.line && toks[k].line <= (e.endLine ?? e.line))) continue;
-        if (hit?.imported === "*" || e.basis === "require") { if (toks[k].v === local && toks[k + 1]?.v === "." && toks[k + 2]?.v === symbol) lines.push(toks[k].line); }
+        if (hit?.imported === "*" || e.basis === "require") { if (toks[k].v === local && toks[k + 1]?.v === "." && exported.has(toks[k + 2]?.v)) lines.push(toks[k].line); }
         else if (toks[k].v === local && toks[k - 1]?.v !== ".") lines.push(toks[k].line);
       }
       if (!lines.length && e.basis !== "re-export") continue;
       uses.push({ ...e, uses: [...new Set(lines)].slice(0, 8) });
-      if (e.basis === "re-export") viaReexport.push(e.to);
+      if (forwarded) viaReexport.push({ mid: e.to, names: new Set(forwarded) });
     }
-    for (const mid of viaReexport) for (const e of g.edges.filter((x) => x.kind === "import" && x.from === mid && (x.names || []).some((nm) => nm.imported === symbol))) uses.push({ ...e, basis: `${e.basis} via ${mid}` });
+    for (const { mid, names } of viaReexport) for (const e of g.edges.filter((x) => x.kind === "import" && x.from === mid && (x.names || []).some((nm) => names.has(nm.imported)))) uses.push({ ...e, basis: `${e.basis} via ${mid}` });
     symbolUses = uses;
     // only the importers that use the name; mentions of the file say nothing about one symbol
     consumers = uses;
@@ -1006,12 +1055,13 @@ export function report(g, q, { limit = 25 } = {}) {
   const subj = (p) => { if (!p || escapes(p)) return null; const dir = p.endsWith("/"); if (!subjects.has(p)) subjects.set(p, { kind: dir ? "directory" : "file", key: p, label: P.basename(p.replace(/\/$/, "")) + (dir ? "/" : "") }); return p; };
   for (const t of q.targets) subj(t);
   const observations = obs.slice(0, 400).map(({ id, edge: e }) => ({ id, locator: loc(e), subjects: [subj(e.from), subj(e.to)].filter(Boolean), kind: e.kind, summary: summaryOf(e), details: { kind: e.kind, from: e.from, to: e.to, line: e.line, basis: e.basis, ...(e.uses ? { uses: e.uses } : {}) } }));
-  const reachId = `o${obs.length + 1}`;
+  // one counter for every id, whether or not the relationship above made it into the first 400
+  let next = obs.length;
+  const reachId = `o${++next}`;
   const byDepth = {};
   for (const r of q.reach.down) byDepth[r.depth] = (byDepth[r.depth] || 0) + 1;
   observations.push({ id: reachId, locator: q.targets.join(", ").slice(0, 900), subjects: q.targets.map(subj).filter(Boolean), kind: "reach", summary: `${q.reach.down.length} file(s) depend on ${q.targets.join(", ")}${q.symbol ? ` (${q.symbol})` : ""} through import, reads, generates or runs, within ${Object.keys(byDepth).length ? Math.max(...Object.keys(byDepth).map(Number)) : 0} step(s)`, details: { byDepth, files: q.reach.down.slice(0, 200).map((r) => r.path) } });
-  const effectStart = observations.length;
-  q.effects.slice(0, 100).forEach((x, i) => observations.push({ id: `o${effectStart + i + 1}`, locator: `${x.path}:${x.line}`, subjects: [subj(x.path), x.target && subj(x.target)].filter(Boolean), kind: `effect:${x.kind}`, summary: `${x.path}:${x.line} ${x.kind}${x.target ? ` ${x.target}` : ""}${x.detail ? ` (${x.detail})` : ""} when it runs`, details: { ...x } }));
+  q.effects.slice(0, 100).forEach((x) => observations.push({ id: `o${++next}`, locator: `${x.path}:${x.line}`, subjects: [subj(x.path), x.target && subj(x.target)].filter(Boolean), kind: `effect:${x.kind}`, summary: `${x.path}:${x.line} ${x.kind}${x.target ? ` ${x.target}` : ""}${x.detail ? ` (${x.detail})` : ""} when it runs`, details: { ...x } }));
   return {
     tool: "structure",
     repository: repoName(repo.root),

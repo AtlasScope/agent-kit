@@ -6,6 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { tokenize, importsOf, buildGraph, query, report, relations } from "../scripts/structure.mjs";
+import { assemble } from "../scripts/bundle.mjs";
 
 const git = (dir, ...args) => execFileSync("git", ["-c", "user.name=t", "-c", "user.email=t@example.invalid", "-c", "commit.gpgsign=false", ...args], { cwd: dir, encoding: "utf8" });
 
@@ -148,4 +149,39 @@ test("with --root, a relative path names a file in that checkout, wherever the c
   const r = JSON.parse(execFileSync(process.execPath, [script, "app/lib/copy.ts", "--root", dir, "--json"], { cwd: elsewhere, encoding: "utf8" }));
   assert.deepEqual(r.targets, ["app/lib/copy.ts"]);
   assert.ok(r.consumers.some((c) => c.to === "app/lib/content.ts"));
+});
+
+test("--symbol finds the consumers of a named default export", (t) => {
+  const dir = fixture({ "a.mjs": "export default function compose() { return 1; }\n", "b.mjs": 'import compose from "./a.mjs";\nconsole.log(compose());\n', "c.mjs": 'import * as a from "./a.mjs";\na.default();\n' });
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const g = buildGraph(dir);
+  const q = query(g, ["a.mjs"], { symbol: "compose" });
+  assert.deepEqual(q.consumers.map((e) => [e.to, e.uses]), [["b.mjs", [2]], ["c.mjs", [2]]]);
+});
+
+test("effect APIs imported under another name are still reads, writes and child processes", (t) => {
+  const dir = fixture({
+    "w.mjs": 'import { writeFileSync as save, readFileSync as load } from "node:fs";\nimport { execFileSync as run } from "node:child_process";\nconst { copyFileSync: dup } = require("node:fs");\nsave("out.txt", load("in.txt"));\nrun(process.execPath, ["gen.mjs"]);\ndup("in.txt", "copy.txt");\n',
+    "in.txt": "x", "out.txt": "", "copy.txt": "", "gen.mjs": "",
+  });
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const g = buildGraph(dir);
+  const has = (kind, from, to) => g.edges.some((e) => e.kind === kind && e.from === from && e.to === to);
+  assert.ok(has("generates", "w.mjs", "out.txt"));
+  assert.ok(has("reads", "in.txt", "w.mjs"));
+  assert.ok(has("runs", "gen.mjs", "w.mjs"));
+  assert.ok(has("generates", "w.mjs", "copy.txt"));
+  assert.deepEqual(g.effects.get("w.mjs").map((x) => [x.kind, x.target]), [["writes", "out.txt"], ["spawns", "gen.mjs"], ["writes", "copy.txt"]]);
+});
+
+test("observation ids stay unique when the report keeps only the first 400 relationships", (t) => {
+  const files = { "lib.mjs": 'import fs from "node:fs";\nexport const x = 1;\n' + Array.from({ length: 10 }, (_, i) => `fs.writeFileSync("out${i}.txt", "");\n`).join("") };
+  for (let i = 0; i < 405; i++) files[`use${i}.mjs`] = 'import { x } from "./lib.mjs";\nexport default x;\n';
+  const dir = fixture(files);
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const g = buildGraph(dir);
+  const r = report(g, query(g, ["lib.mjs"]));
+  const ids = r.evidence.observations.map((o) => o.id);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.ok(assemble([{ file: path.join(dir, "s.json"), text: JSON.stringify(r), base: dir }], { title: "many" }));
 });
