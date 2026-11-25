@@ -8,7 +8,7 @@
 //   way of working (think)      the prompt as written
 //   older recipe (recipe)       its steps as one prompt, plus what to do when a step's plugin is missing
 //   page recipe (v3.recipes)    its own one-chat text; run step by step, what its first step copies
-//   workflow (flow)             its text, which carries each step's own rules, then the plain-English report line
+//   workflow (flow)             its text, the safeguards of the investigations it uses, then the plain-English report line
 //   investigation (inv, db)     the prompt, then what it may change, what to bring back, the trap, when to stop
 //                               and a report that starts in plain English
 
@@ -62,6 +62,19 @@ export function makeCopy(lib, keen = []) {
     lines.push(PLAIN_REPORT);
     return lines.join("\n\n");
   }
+  // A workflow embeds its investigations' prompts. Their safeguards (a separate database, the traps to avoid) come
+  // from each investigation's own fields, once, and hold after the user approves a change. A step that is hidden from
+  // the listings still brings its safeguards.
+  function flowRules(e) {
+    const rules = [...new Set(e.flow.flatMap(([, ids]) => ids))].map((ref) => items.get(ref)).filter((s) => s && isInvestigation(s)).flatMap((s) => {
+      const lines = [];
+      if (s.iso) lines.push(authority({ ...s, mode: "read" }, lib.composer)[1]);
+      if (clean(s.avoid)) lines.push(`Avoid: ${sentence(clean(s.avoid))}`);
+      if (clean(s.blind)) lines.push(`Watch for: ${sentence(clean(s.blind))}`);
+      return lines.length ? [`- ${s.id}: ${lines.join(" ")}`] : [];
+    });
+    return rules.length ? [`These rules hold for the step that names them, before and after I approve a change:\n${rules.join("\n")}`] : [];
+  }
   function text(e) {
     if (isPageRecipe(e)) return recipe(e);
     if (e.sec === "ecmd" || e.sec === "keen") return clean(e.cmd || e.p) || e.t;
@@ -69,7 +82,7 @@ export function makeCopy(lib, keen = []) {
     const body = clean(e.p) || e.t;
     if (e.sec === "think") return body;
     if (e.steps) return body.includes(RECIPE_FALLBACK) ? body : `${body}\n\n${RECIPE_FALLBACK}`;
-    if (e.flow) return `${body}\n\n${PLAIN_REPORT}`;
+    if (e.flow) return `${body}\n\n${[...flowRules(e), PLAIN_REPORT].join("\n\n")}`;
     const lines = authority(e, lib.composer);
     if (clean(e.ev)) lines.push(`Give me: ${sentence(clean(e.ev))}`);
     if (clean(e.avoid)) lines.push(`Avoid: ${sentence(clean(e.avoid))}`);

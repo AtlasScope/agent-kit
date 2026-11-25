@@ -585,6 +585,12 @@ Choose important historical records and determine whether the system can reprodu
 
 4. Done when: Recomputed examples that now match, an estimate of how much data was affected, and any source limits stated plainly.
 
+These rules hold for the step that names them, before and after I approve a change:
+- PG01: Avoid: Checking a value with the same code or source reading that produced it.
+- PG02: Avoid: Calling different grains, as-of dates or reporting bases errors without checking their definitions.
+- PG03: Avoid: Merging entities just because their names look alike.
+- PG04: Avoid: Requiring bitemporal storage everywhere. Work out what is actually needed before choosing a structure.
+
 Start your report in plain English: what you found, what it means, and whether I need to do anything. Put files, lines and commands underneath.
 ```
 
@@ -802,6 +808,13 @@ Trace where records are validated, transformed, and written across application c
 
 4. Done when: The same results for reference inputs, measurably less work, and retries that do no harm.
 
+These rules hold for the step that names them, before and after I approve a change:
+- PG05: Avoid: Treating every extra writer as wrong. Find the paths that actually conflict or leave ownership unclear.
+- PG07: Anything that changes state, such as a rebuild, replay or migration test, runs only on a separate database with safe test data, never on production. Avoid: Removing evidence, provenance or checkpoints that recovery depends on.
+- PG06: Anything that changes state, such as a rebuild, replay or migration test, runs only on a separate database with safe test data, never on production. Avoid: Suppressing deliberate last-seen timestamps, trigger side effects, version counters or refreshes that are meant to happen.
+- PG08: Anything that changes state, such as a rebuild, replay or migration test, runs only on a separate database with safe test data, never on production. Avoid: Calling an import safe to rerun just because the SQL has ON CONFLICT.
+- PG09: Avoid: Automatically favouring stored procedures, or automatically moving everything out of the database.
+
 Start your report in plain English: what you found, what it means, and whether I need to do anything. Put files, lines and commands underneath.
 ```
 
@@ -857,6 +870,12 @@ Review this database change against the live schema, existing consumers, prior m
 
 4. Done when: Less complexity with unchanged results for users and data.
 
+These rules hold for the step that names them, before and after I approve a change:
+- PG10: Avoid: Calling objects unused, or removing them, without checking dynamic SQL, reporting tools and other outside clients.
+- PG11: Avoid: Rejecting all denormalisation. Copies kept for speed or history can be worth it.
+- PG12: Avoid: Cosmetic renames and broad migrations that break live queries, with no shown maintenance benefit.
+- PG17: Anything that changes state, such as a rebuild, replay or migration test, runs only on a separate database with safe test data, never on production. Avoid: Claiming a rollback exists because the application code can be reverted.
+
 Start your report in plain English: what you found, what it means, and whether I need to do anything. Put files, lines and commands underneath.
 ```
 
@@ -909,6 +928,11 @@ Find database queries whose execution cost grows disproportionately as rows, use
 3. Change: Take the biggest measured savings first. No speculative indexes or partitions.
 
 4. Done when: Workload figures before and after, with no loss of correctness.
+
+These rules hold for the step that names them, before and after I approve a change:
+- PG13: Avoid: Judging an index from a code search alone, or looking only at query time and ignoring write cost.
+- PG06: Anything that changes state, such as a rebuild, replay or migration test, runs only on a separate database with safe test data, never on production. Avoid: Suppressing deliberate last-seen timestamps, trigger side effects, version counters or refreshes that are meant to happen.
+- PG14: Avoid: Partitioning or new layers without a measured or credible need.
 
 Start your report in plain English: what you found, what it means, and whether I need to do anything. Put files, lines and commands underneath.
 ```
@@ -969,6 +993,12 @@ Choose important historical records and determine whether the system can reprodu
 3. Change: Run migrations and restores on a separate database, check compatibility, and plan the recovery.
 
 4. Done when: A migration or restore tested on a separate database, and no claim about production that wasn't proved.
+
+These rules hold for the step that names them, before and after I approve a change:
+- PG17: Anything that changes state, such as a rebuild, replay or migration test, runs only on a separate database with safe test data, never on production. Avoid: Claiming a rollback exists because the application code can be reverted.
+- PG15: Anything that changes state, such as a rebuild, replay or migration test, runs only on a separate database with safe test data, never on production. Avoid: Running a destructive restore against production, or treating a list of backups as proof they restore.
+- G02: Anything that changes state, such as a rebuild, replay or migration test, runs only on a separate database with safe test data, never on production. Avoid: Claiming rollback is safe solely because application code can be reverted.
+- PG04: Avoid: Requiring bitemporal storage everywhere. Work out what is actually needed before choosing a structure.
 
 Start your report in plain English: what you found, what it means, and whether I need to do anything. Put files, lines and commands underneath.
 ```
