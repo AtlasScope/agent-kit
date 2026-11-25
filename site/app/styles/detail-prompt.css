@@ -9,17 +9,20 @@
 .pd-head .lead { max-width: 56ch; }
 .pd-replaced { margin: var(--space-2) 0 0; padding: var(--space-3) var(--space-4); border: 1px solid var(--c-line); border-radius: var(--radius-md); font-size: var(--type-sm); line-height: var(--lh-sm); color: var(--c-fg-2); max-width: 64ch; }
 
-.pd-fit { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: var(--space-4) var(--space-10); margin: var(--space-3) 0 0; padding-top: var(--space-4); border-top: 1px solid var(--c-line); }
+.pd-fit { grid-area: fit; display: grid; gap: var(--space-4); margin: 0; }
 .pd-fit > div { display: grid; gap: var(--space-1); align-content: start; }
 .pd-fit dt { font: var(--weight-semibold) var(--type-sm)/var(--lh-sm) var(--font-body); color: var(--c-fg); }
 .pd-fit dd { margin: 0; font-size: var(--type-sm); line-height: var(--lh-body); color: var(--c-fg-2); max-width: 52ch; text-wrap: pretty; }
 
 /* Body: the text and its Copy on the left, the facts on the right. */
-.pd-grid { display: grid; grid-template-columns: minmax(0, 1fr) 20rem; gap: var(--space-10) var(--space-16); align-items: start; }
-.pd-main { display: grid; gap: var(--space-10); min-width: 0; }
-@media (max-width: 64rem) { .pd-grid { grid-template-columns: minmax(0, 1fr); } }
+.pd-grid { display: grid; grid-template-columns: minmax(0, 1fr) 17.5rem; grid-template-areas: "main fit" "main aside"; grid-template-rows: auto 1fr; gap: var(--space-6) var(--space-12); align-items: start; }
+.pd-main { grid-area: main; display: grid; gap: var(--space-10); min-width: 0; }
+.pd-aside { grid-area: aside; padding-top: var(--space-6); border-top: 1px solid var(--c-line); }
+.pd-grid:not(:has(.pd-fit)) .pd-aside { padding-top: 0; border-top: 0; }
+@media (max-width: 64rem) { .pd-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "fit" "main" "aside"; grid-template-rows: auto; }
+  .pd-fit { grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); column-gap: var(--space-10); } }
 
-/* The payload panel. Flat with a hairline. Its head sticks under the site header so Copy stays in reach through
+/* The payload panel. Its head sticks under the site header so Copy stays in reach through
    a long prompt; that is why this is not the .block primitive, whose overflow: hidden would stop the head sticking. */
 /* The prompt is the page's payload: the glass panel (primitives.css), as on /install. */
 .pd-payload { position: relative; border: 0; border-radius: var(--radius-xl); background: var(--glass-bg); box-shadow: var(--glass-rim), var(--glass-shadow); min-width: 0; }
@@ -37,6 +40,7 @@
 .pd-copywrap { display: inline-flex; align-items: center; gap: var(--space-2); }
 
 .pd-text { margin: 0; padding: var(--space-6); white-space: pre-wrap; overflow-wrap: anywhere; tab-size: 2; font: var(--weight-regular) var(--type-code)/var(--lh-code) var(--font-mono); color: var(--c-fg); border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
+.pd-payload[data-prose] .pd-text { font: var(--weight-regular) var(--type-body)/1.7 var(--font-body); max-width: 72ch; text-wrap: pretty; }
 .pd-text:focus-visible { outline-offset: -2px; }
 .pd-text::selection { background: var(--c-fill-2); }
 
@@ -94,13 +98,13 @@
 
 /* Phones: Copy becomes the wide button in the sticky bar; the line count and id sit on their own row. */
 @media (max-width: 40rem) {
-  .pd-payload { margin-inline: calc(var(--gutter) * -1); border-radius: 0; border-inline: 0; }
-  .pd-payload__head { border-radius: 0; padding: var(--space-2) var(--gutter); }
+  .pd-payload__head { padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4); }
   .pd-payload__acts { width: 100%; margin-left: 0; }
   .pd-copywrap { flex: 1; order: 2; }
   .pd-payload .pd-copy { flex: 1; }
-  .pd-text { padding: var(--space-4) var(--gutter); border-radius: 0; font-size: var(--type-xs); }
-  .pd-steps__note, .pd-steps--copy { padding-inline: var(--gutter); }
+  .pd-text { padding: var(--space-4); font-size: var(--type-xs); }
+  .pd-payload[data-prose] .pd-text { font-size: var(--type-sm); }
+  .pd-steps__note, .pd-steps--copy { padding-inline: var(--space-4); }
   .pd-steps--copy > li { grid-template-columns: 1.5rem minmax(0, 1fr); align-items: baseline; }
   .pd-steps--copy > li > .pd-stepcopywrap { grid-column: 2; justify-self: start; }
 }

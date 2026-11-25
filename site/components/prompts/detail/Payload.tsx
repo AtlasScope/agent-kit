@@ -22,6 +22,8 @@ type Props = {
    *  `data-step={index}`, and its row holds an empty `data-step-slot={index}` element, so a blocked step copy can
    *  show and select the text it would have copied right beside that step. */
   steps?: (string | null)[];
+  // Natural-language text: set in Geist at reading size. Commands and code keep the mono face.
+  prose?: boolean;
 };
 
 type Fallback = { text: string; name: string; n: number; slot?: HTMLElement | null; dock?: boolean };
@@ -46,7 +48,7 @@ const keyboardFocus = (el: Element) => { try { return el.matches(":focus-visible
 //     click, and is driven from focus events rather than CSS :has(:focus), which WebKit doesn't re-evaluate on focus;
 //   - the shared FloatingCopy bar carries the same Copy once the panel's sticky Copy bar starts to scroll away under
 //     the header (the panel's end pushes it up), so Copy is in reach from the top of the page to the footer.
-export function Payload({ label, meta, text, copyLabel, actions, children, title, steps }: Props) {
+export function Payload({ label, meta, text, copyLabel, actions, children, title, steps, prose }: Props) {
   const root = useRef<HTMLElement>(null);
   const head = useRef<HTMLDivElement>(null);
   const pre = useRef<HTMLPreElement>(null);
@@ -185,7 +187,7 @@ export function Payload({ label, meta, text, copyLabel, actions, children, title
 
   return (
     <>
-      <section ref={root} className="pd-payload" aria-label={label} data-keys={(keys && !selected) || undefined} onKeyDown={onKey} onFocus={onFocus} onBlur={onBlur}>
+      <section ref={root} className="pd-payload" data-prose={prose || undefined} aria-label={label} data-keys={(keys && !selected) || undefined} onKeyDown={onKey} onFocus={onFocus} onBlur={onBlur}>
         <div ref={head} className="pd-payload__head">
           <p className="pd-payload__meta"><span className="pd-payload__label">{label}</span>{meta}</p>
           <div className="pd-payload__acts">

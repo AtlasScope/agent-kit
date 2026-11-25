@@ -5,7 +5,6 @@ import { CHANGES, type Start } from "@/lib/starts";
 import { KITS } from "@/lib/site";
 import { CopyButton } from "./CopyButton";
 import { Star } from "./Star";
-import { ScardMore } from "./ScardMore";
 import { modeOf, marksChange } from "./prompts/browse/mode";
 
 // A kit named in a Requires line links to that kit's page, where its install command is.
@@ -19,7 +18,8 @@ export type RowHeading = "h3" | "h4";
 
 // The one prompt row, used wherever the site lists prompts: area pages, Fix, prompt and skill detail, collections.
 // Id, title and what it finds, when to use it, what it changes, then Star and Copy. The title link stretches over the
-// row; Star and Copy sit above it. `n` numbers the row (ordered lists such as Fix); `best` marks it Best first.
+// row; Star and Copy sit above it. `n` numbers the row (ordered lists such as Fix); `best` marks it Best first and
+// makes its Copy the page's one lit action, so pass it to one row per page at most.
 // `action` adds one control after Copy (for example Remove, in collections); it sits above the row link.
 // Put rows in PromptRows, or in a <ul className="prows"> / <ol className="prows prows--ranked"> of <li>s.
 export function PromptRow({ p, n, best, action, as: H = "h3" }: { p: Prompt; n?: number; best?: boolean; action?: ReactNode; as?: RowHeading }) {
@@ -41,7 +41,7 @@ export function PromptRow({ p, n, best, action, as: H = "h3" }: { p: Prompt; n?:
       </p>
       <div className="prow__a">
         <Star kind="prompt" refId={p.id} title={p.t} />
-        <CopyButton className="btn btn--sm" text={copyText(p)} label={copyLabel(p)} name={`${copyLabel(p)}: ${p.t}`} icon />
+        <CopyButton className={best ? "btn btn--brand" : "btn"} text={copyText(p)} label={copyLabel(p)} name={`${copyLabel(p)}: ${p.t}`} icon />
         {action}
       </div>
     </article>
@@ -106,34 +106,36 @@ export function SkillCards({ names, kit = true, action, as }: { names: string[];
   );
 }
 
-// A best-starting-point card: the visitor's job, the recommended entry, the same four answers in the
-// same order, then alternatives with when to choose each.
+// A best-starting-point row: the visitor's job and the recommended entry, when it fits, what it needs and whether it
+// changes code (with the branch-or-copy advice where it does), then Star and Copy. What you get and the alternatives
+// open in a disclosure. Two columns of these on a computer, one on a phone (library.css).
 export function StartCard({ s }: { s: Start }) {
   const p = getPromptById(s.pick);
   if (!p) return null;
+  const cmd = p.t.startsWith("/");
+  const edits = s.changes === "yes" || s.changes === "test";
   return (
-    <article className="pcard scard" data-sec={p.sec} id={s.slug}>
-      <div className="pcard__top">
-        <h3 className="pcard__t">{s.job}</h3>
-        <Star kind="prompt" refId={p.id} title={p.t} />
+    <article className="scard" id={s.slug}>
+      <div className="scard__main">
+        <h3 className="scard__job">{s.job}</h3>
+        <p className={cmd ? "scard__pick scard__pick--cmd" : "scard__pick"}><Link href={`/prompts/${p.slug}`} translate={cmd ? "no" : undefined}>{p.t}</Link></p>
+        <p className="scard__when">{s.useWhen}</p>
+        <p className="scard__needs">
+          <span>Requires {withKitLinks(s.requires.replace(/\.$/, ""))}</span>
+          {edits ? <span className="warn">Changes code: run it on a branch or a copy, never straight on production</span> : <span>{modeOf(p) || CHANGES[s.changes]}</span>}
+        </p>
       </div>
-      <p className={p.t.startsWith("/") ? "scard__pick scard__pick--cmd" : "scard__pick"}><Link href={`/prompts/${p.slug}`} translate={p.t.startsWith("/") ? "no" : undefined}>{p.t}</Link></p>
-      <ScardMore
-        qa={
-          <dl className="scard__qa">
-            <dt>Use when</dt><dd>{s.useWhen}</dd>
-            <dt>You get</dt><dd>{s.youGet}</dd>
-            <dt>Requires</dt><dd>{withKitLinks(s.requires)}</dd>
-            <dt>Changes code?</dt><dd>{CHANGES[s.changes]}</dd>
-          </dl>
-        }
-        actions={
-          <div className="pcard__a">
-            <CopyButton className="btn btn--tint" text={copyText(p)} label={copyLabel(p)} name={`${copyLabel(p)}: ${p.t}`} icon />
-            <Link className="btn" href={`/prompts/${p.slug}`} aria-label={`Details: ${p.t}`}>Details</Link>
-          </div>
-        }
-        alts={s.alts.length > 0 && (
+      <div className="pcard__a scard__a">
+        <Star kind="prompt" refId={p.id} title={p.t} />
+        <CopyButton className="btn btn--sm" text={copyText(p)} label={copyLabel(p)} name={`${copyLabel(p)}: ${p.t}`} icon />
+      </div>
+      <details className="scard__more">
+        <summary>What you get{s.alts.length > 0 && " and other options"}</summary>
+        <dl className="scard__qa">
+          <dt>You get</dt><dd>{s.youGet}</dd>
+          <dt>Changes code?</dt><dd>{CHANGES[s.changes]}</dd>
+        </dl>
+        {s.alts.length > 0 && (
           <ul className="scard__alts">
             {s.alts.map((a) => {
               const x = getPromptById(a.id);
@@ -141,7 +143,7 @@ export function StartCard({ s }: { s: Start }) {
             })}
           </ul>
         )}
-      />
+      </details>
     </article>
   );
 }

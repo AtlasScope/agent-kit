@@ -3,7 +3,6 @@
 /* Library pages */
 .page { padding-block: var(--space-xl) var(--space-2xl); display: grid; gap: var(--space-xl); }
 .page-head { display: grid; gap: var(--space-md); max-width: var(--measure); }
-.page-head h1 { font-size: clamp(2.25rem, 3.4vw + 0.75rem, 3.75rem); line-height: 1.05; }
 .section { display: grid; gap: var(--space-md); }
 .section > h2, .h2 { margin: 0; display: flex; align-items: center; font: 600 var(--type-h2)/var(--lh-h2) var(--font-body); letter-spacing: var(--tr-h2); }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: var(--space-sm); }
@@ -18,7 +17,6 @@
 /* Page heads */
 .page { padding-block: var(--space-xl) var(--space-2xl); gap: var(--space-xl); }
 .page-head { gap: var(--space-sm); }
-.page-head h1 { font-size: clamp(2.125rem, 2.8vw + 1rem, 3.25rem); line-height: 1.05; letter-spacing: -0.035em; }
 .section > h2, .h2 { margin: 0; display: flex; align-items: center; font: 600 var(--type-h2)/var(--lh-h2) var(--font-body); letter-spacing: var(--tr-h2); }
 @media (max-width: 40rem) { .page { padding-top: var(--space-lg); gap: var(--space-lg); } }
 .sec-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-xs) var(--space-md); min-height: 34px; }
