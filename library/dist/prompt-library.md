@@ -4,7 +4,11 @@ Prompts and commands for coding agents, by area. Open prompt-library.html to sea
 
 ## Design
 
-Look at a screen, find out what is wrong with it, and fix it. Type /keen and what you want; typed alone it shows a short menu and suggests one job.
+Give a product an original look, or find out what is wrong with a screen and fix it. Type /keen and what you want; typed alone it shows a short menu and suggests one job.
+
+### Make something new
+
+**/keen create** Turns a product idea, a new screen or a tired one into an original creative direction and a built, working result. This is the job for "make me something", not "fix this".
 
 ### Set up and plan
 
@@ -40,7 +44,7 @@ Look at a screen, find out what is wrong with it, and fix it. Type /keen and wha
 
 **/keen colour** Gives a screen a small set of colours where each one has a purpose, and makes sure everything can be read. Also answers to /keen color.
 
-**/keen bolder** Gives a screen that looks safe, flat or like every other product a clear point of view, by committing harder to what the screen is for.
+**/keen bolder** Gives a screen that looks safe, flat or like every other product a point of view: it finds what the screen is really about and makes that unmistakable.
 
 **/keen quieter** Calms a screen that shouts: too many colours, weights, borders, shadows or things moving. Everything stays on the screen; it stops competing.
 

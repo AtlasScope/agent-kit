@@ -1,6 +1,6 @@
 interface:
   display_name: "Keen"
-  short_description: "Design jobs with a menu, plain English and proof"
+  short_description: "Original design direction and design jobs, with proof"
   default_prompt: "Use $keen to look at this project and suggest the one design job worth doing first. Show the menu and wait for my pick."
 
 policy:
