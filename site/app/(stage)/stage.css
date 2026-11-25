@@ -63,36 +63,46 @@
 @media (pointer: coarse) { .hero__foot { gap: 0 8px; } .hero__foot a { min-height: var(--tap); padding-inline: 6px; } }
 
 /* ---- Install Agent Kit: the signature object. ----
-   A green pill with a lit satin finish: a narrow tonal range from top to foot, a soft bloom of light from above,
-   one fine bright line under the top edge, a precise darker edge a pixel outside it, and the light it throws on the
-   sky. Hover lifts the light; a press sinks it a pixel and squeezes it, at once. A sheen crosses it once when the
-   page arrives and again each time the pointer comes onto it, never on a loop. */
+   A neon tile over the planet: 84px tall, soft corners, cyan type. Its edge is a thin ring of green, white and blue
+   light that turns slowly and swells and fades, one soft cyan light drifts inside it, and the copy icon bounces.
+   Hover turns it white (ink on white), a press sinks it, and keyboard focus glows. Pressing it carries the page to
+   the install page (Stage.tsx), where the message is already copied. The cyan is one wide-gamut colour (--ac), as
+   vivid as a Mac screen shows; other screens clip it to their nearest. Reduced motion keeps every state and stops
+   every loop, and the ring holds still. */
+/* The lit green of the install page's key (install.css) and open-agent link. */
 .stage { --satin-1: color-mix(in oklab, var(--c-brand), var(--c-brand-hi) 34%); --satin-2: color-mix(in oklab, var(--c-brand), var(--c-brand-lo) 30%); }
-.launch__go { --lift: 0; --press: 0; position: relative; isolation: isolate; display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 30px;
-  border-radius: var(--radius-pill); overflow: hidden; color: var(--c-on-brand); font: 600 1rem/1 var(--font-body); letter-spacing: -0.012em; text-decoration: none; white-space: nowrap;
-  background: radial-gradient(130% 110% at 50% -40%, oklch(100% 0 0 / calc(.16 + .06 * var(--lift))), transparent 64%), linear-gradient(180deg, var(--satin-1), var(--satin-2));
-  box-shadow:
-    inset 0 1px 0 oklch(100% 0 0 / .34), inset 0 0 0 1px oklch(100% 0 0 / .07), inset 0 -1px 0 oklch(28% .07 158 / .22),
-    0 0 0 1px var(--c-brand-edge), 0 1px 2px oklch(0% 0 0 / .55),
-    0 10px 28px -12px color-mix(in oklab, var(--c-brand-glow) calc(46% + 18% * var(--lift)), transparent),
-    0 0 56px -10px color-mix(in oklab, var(--c-brand-glow) calc(22% + 14% * var(--lift)), transparent);
-  transform: translateY(calc(1px * var(--press))) scale(calc(1 - .03 * var(--press)));
-  transition: transform 260ms var(--ease-out), box-shadow 260ms var(--ease-out), filter 260ms var(--ease-out);
+@property --ring { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+.launch__go { --ac: oklch(82% .3 212); --ach: oklch(92% .3 212); --press: 0; position: relative; isolation: isolate; display: inline-flex; align-items: center; justify-content: center;
+  min-height: 84px; padding: 0 44px; border-radius: 18px; overflow: hidden; cursor: pointer;
+  color: var(--ach); font: 700 1.25rem/1 var(--font-body); letter-spacing: -0.01em; text-decoration: none; white-space: nowrap; text-shadow: 0 0 10px var(--ac);
+  background: color-mix(in oklch, var(--ac) 6%, transparent);
+  box-shadow: 0 0 13.5px -2px var(--ac), inset 0 0 14px -6px var(--ac);
+  transform: scale(calc(1 - .05 * var(--press)));
+  transition: transform 260ms var(--ease-out), box-shadow 260ms var(--ease-out), background-color 260ms var(--ease-out), color 260ms var(--ease-out);
   -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-/* The sheen: a soft diagonal of light, parked off the left edge. */
-.launch__go::after { content: ""; position: absolute; top: 0; bottom: 0; left: -40%; width: 40%; z-index: -1; pointer-events: none;
-  background: linear-gradient(100deg, transparent 0%, oklch(100% 0 0 / 0) 22%, oklch(100% 0 0 / .32) 50%, oklch(100% 0 0 / 0) 78%, transparent 100%);
-  transform: translateX(0) skewX(-18deg); opacity: 0; }
-.launch__label { position: relative; }
-.launch__go:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 4px; }
+/* The edge: green, white and blue in one ring that turns, breathing in and out. */
+.launch__go::before { content: ""; position: absolute; inset: 0; z-index: 1; border-radius: inherit; padding: 2.5px; pointer-events: none;
+  background: conic-gradient(from var(--ring), oklch(84% .24 150), #fff, oklch(70% .2 250), oklch(84% .24 150), #fff, oklch(70% .2 250), oklch(84% .24 150));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: go-ring 7s linear infinite, go-breathe 3.6s ease-in-out infinite; transition: opacity 260ms var(--ease-out); }
+/* One soft cyan light circling inside, and a line of light that breathes along the top edge. */
+.launch__go::after { content: ""; position: absolute; top: 0; left: 0; z-index: -1; width: 55%; height: 120%; border-radius: 50%; background: var(--ac); filter: blur(14px); opacity: .28; pointer-events: none;
+  animation: go-caustic 5s linear infinite; transition: opacity 260ms var(--ease-out); }
+.launch__fx { position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; box-shadow: inset 0 1.5px 0 var(--ach); animation: go-edge 3.6s ease-in-out infinite; transition: opacity 260ms var(--ease-out); }
+.launch__label { position: relative; display: inline-flex; align-items: center; gap: .5em; }
+.launch__go .i { width: 1.15em; height: 1.15em; flex: none; animation: go-bounce 1.8s ease-in-out infinite; }
+.launch__go:focus-visible { outline: none; box-shadow: 0 0 0 3px #000, 0 0 0 5px var(--ach), 0 0 24px var(--ac); }
 @media (hover: hover) and (pointer: fine) {
-  .launch__go:hover { --lift: 1; filter: brightness(1.03); }
-  .launch__go:hover::after { animation: go-sheen 900ms var(--ease-out) 1 both; }
+  .launch__go:hover { background-color: #fff; color: #0b0e0d; text-shadow: none; box-shadow: 0 0 18px -2px oklch(100% 0 0 / .5); }
+  .launch__go:hover::before, .launch__go:hover::after, .launch__go:hover .launch__fx { opacity: 0; }
 }
 /* The press answers on the frame it happens, with no easing in. */
-.launch__go:active { --press: 1; --lift: .4; transition-duration: 70ms; filter: brightness(.97); }
-.hero[data-load] .launch__go::after { animation: go-sheen 1100ms var(--ease-out) 1250ms 1 both; }
-@keyframes go-sheen { 0% { opacity: 0; transform: translateX(0) skewX(-18deg); } 12% { opacity: 1; } 100% { opacity: 0; transform: translateX(370%) skewX(-18deg); } }
+.launch__go:active { --press: 1; transition-duration: 70ms; }
+@keyframes go-ring { to { --ring: 360deg; } }
+@keyframes go-breathe { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+@keyframes go-caustic { 0% { transform: translate(-10%, -20%); } 25% { transform: translate(120%, -20%); } 50% { transform: translate(120%, 20%); } 75% { transform: translate(-10%, 20%); } 100% { transform: translate(-10%, -20%); } }
+@keyframes go-edge { 50% { box-shadow: inset 0 1.5px 0 #fff, inset 0 8px 16px -10px var(--ach); } }
+@keyframes go-bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-4px); } }
 
 /* Phones: the planet takes the lower third and the column the top of the screen; the button spans the column. */
 @media (max-width: 759.98px), (max-aspect-ratio: 4/5) {
@@ -101,10 +111,10 @@
   .hero h1 { font-size: clamp(2.125rem, 9.6vw, 3rem); line-height: 1.06; max-width: 10.5em; }
   .hero__lede { font-size: 1.0625rem; max-width: 20em; }
   .hero__cta { width: 100%; max-width: 21rem; }
-  .launch__go { width: 100%; min-height: 54px; font-size: 1.0625rem; }
+  .launch__go { width: 100%; min-height: 72px; padding-inline: 24px; font-size: 1.125rem; }
 }
 @media (max-height: 560px) { .hero__msg { padding-block: 2svh 8px; } .hero h1 { font-size: clamp(1.75rem, 8.4svh, 2.75rem); } .hero__lede { margin-top: 10px; } .hero__cta { margin-top: 16px; gap: 8px; } .hero__new { margin-top: 0; } .hero__foot { padding-bottom: max(2px, env(safe-area-inset-bottom)); } }
-@media (min-width: 1800px) and (min-height: 1000px) { .hero__msg { max-width: 56rem; } .hero h1 { font-size: 5rem; } .hero__lede { font-size: 1.375rem; } .launch__go { min-height: 58px; padding-inline: 34px; font-size: 1.0625rem; } .hero__note, .hero__foot { font-size: .875rem; } .hero__new { font-size: 1rem; } }
+@media (min-width: 1800px) and (min-height: 1000px) { .hero__msg { max-width: 56rem; } .hero h1 { font-size: 5rem; } .hero__lede { font-size: 1.375rem; } .hero__note, .hero__foot { font-size: .875rem; } .hero__new { font-size: 1rem; } }
 
 /* The words rise once on a full page load. */
 .hero[data-load] .hero__w { animation: stage-rise 900ms var(--stage-ease) calc(80ms + var(--i) * 45ms) backwards; }
@@ -128,7 +138,7 @@
 .stage__copy :is(.hero__lede, .hero__note, .hero__new) { animation: stage-lift 180ms var(--stage-away) forwards; }
 .stage__copy .hero__foot { animation: stage-out 180ms ease forwards; }
 .stage__copy .launch__go { animation: go-give 300ms cubic-bezier(0.5, 0, 0.2, 1) forwards; transition: none; }
-.stage__copy .launch__go::after { animation: none; }
+.stage__copy .launch__go::before, .stage__copy .launch__go::after, .stage__copy .launch__fx, .stage__copy .launch__go .i { animation: none; }
 .stage__copy .launch__label { animation: stage-out 140ms ease 40ms forwards; }
 @keyframes go-give {
   0% { transform: translateY(1px) scale(.97); filter: brightness(1.2); }
@@ -183,6 +193,11 @@
   .stage__still { transition-duration: 200ms; }
   .stage__veil::before, .stage__veil::after { transition-duration: 200ms; }
   .launch__go, .launch__go:active { transform: none; }
-  .launch__go::after, .hero[data-load] .launch__go::after { animation: none !important; }
+  .launch__go::before, .launch__go::after, .launch__fx, .launch__go .i { animation: none !important; }
   .stage[data-shift] :is(.hero__w, .hero__lede, .hero__cta, .hero__new, .hero__foot, .inst__main > *, .inst__msg .inst__rim, .quiet.inst::before, .quiet.inst::after) { animation: stage-fade 200ms ease backwards; }
 }
+
+/* The bar on the two stage pages: no green dot after the name, and the lit stretch of its lower edge is the Install
+   button's cyan and white. Every other page keeps the brand's green light. */
+body:has(main.home, .inst) .wordmark__name::after { display: none; }
+body:has(main.home, .inst) .top::after { background: linear-gradient(90deg, transparent 4%, oklch(96% .08 205 / .9) 14%, oklch(88% .16 210 / .3) 26%, transparent 38%); box-shadow: 0 0 12px oklch(88% .16 210 / .35); }

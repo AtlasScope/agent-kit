@@ -38,15 +38,17 @@ for (const size of SIZES) {
     const { page, ctx, errors } = await open(size, "/install");
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth) <= 1, "no sideways scroll");
     assert.equal(await page.locator("h1").count(), 1);
-    assert.equal((await page.locator(".inst__say").textContent()).trim(), INSTALL_MESSAGE);
+    // The message is copied, never shown: only a blocked copy puts it on screen.
+    assert.equal(await page.locator(".inst__say").count(), 0);
+    assert.equal(await page.getByText(INSTALL_MESSAGE).count(), 0);
     // Nothing claims a copy before one happens.
     assert.equal(await page.locator(".inst__note").count(), 0);
-    const below = () => page.locator(".inst__manual").evaluate((e) => e.getBoundingClientRect().top + scrollY);
-    const before = await below();
     await page.getByRole("button", { name: "Copy the message" }).click();
     assert.equal(await clip(page), INSTALL_MESSAGE);
     await page.locator(".inst__note", { hasText: "Message copied" }).waitFor();
-    assert.equal(await below(), before, "the copy note doesn't move the page below it");
+    assert.equal((await page.locator(".inst__done .inst__big").innerText()).trim(), "Copied");
+    assert.equal(await page.locator(".inst__agent").count(), 3, "Claude Code, Codex and Cursor can be opened");
+    assert.equal(await page.getByText(INSTALL_MESSAGE).count(), 0, "still not shown after copying");
 
     // The by-hand commands start closed and open on the summary.
     assert.equal(await page.getByRole("tab", { name: "Codex" }).isVisible(), false);
@@ -75,6 +77,10 @@ for (const size of SIZES) {
     await page.goto(base + "/install", { waitUntil: "networkidle" });
     await page.locator(".inst__note", { hasText: "Message copied" }).waitFor();
     assert.equal(await page.locator(".inst[data-arrived]").count(), 1);
+    // The panel opens on Copied, with the message never shown, and the bar has no green dot after the name.
+    assert.ok(await page.locator(".inst__done .inst__big").isVisible());
+    assert.equal(await page.locator(".inst__say").count(), 0);
+    assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".wordmark__name"), "::after").display), "none");
     // A full load (here, or a reload) never blanks the column: the settle plays only on an in-site navigation.
     assert.equal(await page.locator(".inst__in").evaluate((e) => e.getAnimations().length), 0);
     assert.equal(await page.evaluate(() => document.activeElement?.tagName), "H1");

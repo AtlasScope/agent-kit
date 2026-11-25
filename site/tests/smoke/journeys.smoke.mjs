@@ -53,12 +53,15 @@ for (const size of SIZES) {
     const { page, ctx, errors } = await open(size, "/");
     await noSideScroll(page, "/");
     // The homepage is one screen. Install copies one message for any agent on the click and opens /install, which
-    // says so. It is the same on a phone and a computer.
+    // says Copied and offers to open an agent. The message itself is never shown. It is the same on a phone and a computer.
     assert.ok(await page.evaluate(() => document.documentElement.scrollHeight - innerHeight) <= 1, "the homepage does not scroll");
     await page.locator(".launch__go", { hasText: "Install Agent Kit" }).click();
     await page.waitForURL(/\/install$/);
     await page.locator(".inst__note", { hasText: "Message copied" }).waitFor();
     assert.equal(await clipboard(page), INSTALL_MESSAGE, "Install copies the message to paste into an agent");
+    assert.equal((await page.locator(".inst__done .inst__big").innerText()).trim(), "Copied", "the panel says Copied");
+    assert.equal(await page.locator(".inst__say").count(), 0, "the message is not shown");
+    assert.ok(await page.locator(".inst__agent", { hasText: "Claude Code" }).isVisible(), "a link opens the agent");
     await page.getByRole("button", { name: /Copy the message/ }).click();
     assert.equal(await clipboard(page), INSTALL_MESSAGE, "the install page copies the same message");
     // The by-hand commands sit in a closed disclosure under the message.

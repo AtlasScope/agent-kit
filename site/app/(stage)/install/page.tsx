@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { InstallPage } from "@/components/InstallPage";
-import { KITS, KIT_GUIDE, SITE } from "@/lib/site";
+import { KITS, KIT_GUIDE, SITE, authEnabled } from "@/lib/site";
 import { counts, authors, kits } from "@/lib/content";
 import "./install.css";
 
@@ -23,7 +23,7 @@ export default function Install() {
     return { name, line: g.line, type: g.type, skills: k.skills.length };
   });
   return (
-    <InstallPage kits={KITS.length} skills={counts.skills} kitLines={kitLines}>
+    <InstallPage kits={KITS.length} skills={counts.skills} kitLines={kitLines} account={authEnabled()}>
       {counts.borrowed} of the {counts.skills} skills come from other authors:{" "}
       {a.map((x, n) => <span key={x.author}><a href={x.url}>{x.author}</a>{n < a.length - 1 ? ", " : ". "}</span>)}
       <a href={`${SITE.repo}/blob/main/CREDITS.md`}>Credits and licenses</a>
