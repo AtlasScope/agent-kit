@@ -50,6 +50,7 @@ CREATE TABLE ${S}.tags (account_id text NOT NULL REFERENCES ${S}.accounts, tag t
 CREATE TABLE ${S}.balances (account_id text PRIMARY KEY REFERENCES ${S}.accounts, amount bigint NOT NULL);
 CREATE TABLE ${S}.ledger (id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY, account_id text NOT NULL, period date NOT NULL, known_at timestamptz, amount bigint NOT NULL);
 CREATE UNIQUE INDEX ledger_version ON ${S}.ledger (account_id, period, known_at, amount);
+CREATE UNIQUE INDEX ledger_cover ON ${S}.ledger (account_id, period, known_at, id) INCLUDE (amount);
 CREATE TABLE ${S}.events (at timestamptz);
 CREATE TABLE ${S}.audit (at timestamptz DEFAULT clock_timestamp(), what text);
 CREATE SEQUENCE ${S}.seq;
@@ -182,6 +183,8 @@ INSERT INTO ${S}.tenant_rows VALUES (1,'north',10),(2,'north',20),(3,'south',30)
     assert.deepEqual([tagsFk.key_columns, tagsFk.references_relation, tagsFk.references_columns], [["account_id"], `${tag}.accounts`, ["id"]]);
     const version = r.rel.rows.find((row) => row.key_name === "ledger_version");
     assert.deepEqual([version.key_type, version.key_columns], ["unique index", ["account_id", "period", "known_at", "amount"]]);
+    const cover = r.rel.rows.find((row) => row.key_name === "ledger_cover");
+    assert.deepEqual(cover.key_columns, ["account_id", "period", "known_at", "id"], "INCLUDE columns are not part of the key");
     assert.equal(r.rel.rows.find((row) => row.relation === `${tag}.tenant_rows`).row_security, true);
     assert.deepEqual([one(r, "cov").rows, one(r, "cov").rows_without_value, one(r, "cov").column_type], [4, 1, "timestamp with time zone"]);
     assert.deepEqual(r.cov_periods.rows.map((p) => p.rows), [2, 0, 1], "the empty day is shown, not skipped");

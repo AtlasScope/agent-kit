@@ -104,7 +104,9 @@ export const BUILDERS = {
          k.conname::text AS key_name, k.conkey AS cols, k.confrelid AS ref_relid, k.confkey AS ref_cols, NULL::text AS partial_where
   FROM pg_constraint k WHERE k.contype IN ('p', 'u', 'f')
   UNION ALL
-  SELECT i.indrelid, 'unique index', ic.relname::text, i.indkey::int2[], NULL, NULL, pg_get_expr(i.indpred, i.indrelid)
+  SELECT i.indrelid, 'unique index', ic.relname::text,
+         (SELECT array_agg(x.num ORDER BY x.ord) FROM unnest(i.indkey::int2[]) WITH ORDINALITY x(num, ord) WHERE x.ord <= i.indnkeyatts), -- key columns only, not INCLUDE
+         NULL, NULL, pg_get_expr(i.indpred, i.indrelid)
   FROM pg_index i JOIN pg_class ic ON ic.oid = i.indexrelid
   WHERE i.indisunique AND NOT EXISTS (SELECT 1 FROM pg_constraint k WHERE k.conindid = i.indexrelid)
 )
