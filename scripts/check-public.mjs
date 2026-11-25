@@ -22,7 +22,7 @@ const files = [];
 const walk = (p) => {
   const abs = path.join(root, p);
   if (!fs.existsSync(abs) || SKIP.test(p)) return;
-  if (fs.statSync(abs).isDirectory()) for (const n of fs.readdirSync(abs)) walk(path.join(p, n));
+  if (fs.statSync(abs).isDirectory()) for (const n of fs.readdirSync(abs)) walk(path.posix.join(p, n)); // forward slashes, so SKIP matches on Windows too
   else if (EXT.test(p)) files.push(p);
 };
 SCAN.forEach(walk);

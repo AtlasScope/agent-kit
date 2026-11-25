@@ -100,6 +100,33 @@ for (const size of SIZES) {
     await ctx.close();
   });
 
+  test(`${size.name}: following a link to /skills resets a shared view, and Back and Forward bring it back`, async () => {
+    const { page, ctx, errors } = await open(size, "/skills?q=bug&from=borrowed&by=author");
+    await page.waitForFunction(() => document.querySelector("input[type=search][aria-label^='Filter']")?.value === "bug");
+    // The header's Skills link (clicked in the page, as the menu on a phone is folded away).
+    await page.locator('header a[href="/skills"]').first().evaluate((a) => a.click());
+    await page.waitForFunction(() => location.search === "");
+    await page.waitForFunction(() => document.querySelector("input[type=search][aria-label^='Filter']")?.value === "");
+    assert.equal(await page.locator("main li h3 a[href^='/skills/']").count(), data.skills.length, "every skill shows again");
+    if (size.isMobile) await page.getByRole("button", { name: /^Filters/ }).click();
+    assert.equal(await page.getByRole("button", { name: /^All/ }).getAttribute("aria-pressed"), "true", "who-wrote-it is back to All");
+    assert.equal(await page.getByRole("button", { name: "By kit" }).getAttribute("aria-pressed"), "true", "grouping is back to By kit");
+    assert.equal(new URL(page.url()).search, "", "the address stays clean");
+
+    await page.goBack();
+    await page.waitForFunction(() => document.querySelector("input[type=search][aria-label^='Filter']")?.value === "bug");
+    assert.equal(await page.getByRole("button", { name: /^Borrowed/ }).getAttribute("aria-pressed"), "true", "Back restores the shared view");
+    await page.goForward();
+    await page.waitForFunction(() => document.querySelector("input[type=search][aria-label^='Filter']")?.value === "");
+
+    // Typing keeps working, including a trailing space between two words.
+    await filter(page).pressSequentially("code review");
+    assert.equal(await filter(page).inputValue(), "code review");
+    assert.equal(new URL(page.url()).searchParams.get("q"), "code review");
+    assert.deepEqual(errors, []);
+    await ctx.close();
+  });
+
   test(`${size.name}: the kits page opens each kit and copies its commands exactly`, async () => {
     const { page, ctx, errors } = await open(size, "/kits");
     for (const k of KITS) assert.equal(await page.getByRole("link", { name: k, exact: true }).first().getAttribute("href"), `/kits/${k}`);

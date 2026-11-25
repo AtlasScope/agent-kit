@@ -11,6 +11,7 @@ import { Pop } from "./Pop";
 import { Workspace, type RailEntry } from "./account/Workspace";
 import { BOOT, selectionCss } from "./account/boot";
 import { SITE } from "@/lib/site";
+import { RefreshOnSave } from "./account/RefreshOnSave";
 
 export type CollectionData = { id: string; name: string; is_starred: boolean; is_public: boolean; items: Item[] };
 type Action = (s: ActionState, f: FormData) => Promise<ActionState>;
@@ -41,6 +42,8 @@ export function CollectionsView({ cols, actions, sharedHref = (id) => `/collecti
   const resolved = cols.map((c) => ({ c, items: resolve(c.items) }));
   const rail: RailEntry[] = resolved.map(({ c, items }) => ({ id: c.id, name: c.name, count: items.length, starred: c.is_starred, state: stateOf(c) }));
   return (
+    <>
+    <RefreshOnSave />
     <Workspace
       rail={rail}
       boot={<><style>{selectionCss(rail.map((r) => r.id))}</style><script dangerouslySetInnerHTML={{ __html: BOOT }} /><noscript><style>{NOSCRIPT}</style></noscript></>}
@@ -56,6 +59,7 @@ export function CollectionsView({ cols, actions, sharedHref = (id) => `/collecti
     >
       {resolved.map(({ c, items }) => <CollectionPanel key={c.id} c={c} items={items} actions={actions} sharedHref={sharedHref(c.id)} />)}
     </Workspace>
+    </>
   );
 }
 

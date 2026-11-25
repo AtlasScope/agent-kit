@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Writes the /database router's reference from the prompt library, so the prompts live in one place.
-// Usage, from the repo root: node kits/engineering-kit/scripts/build_database_references.mjs
+// Usage, from the repo root: node kits/engineering-kit/scripts/build_database_references.mjs [--out <directory>]
 // Reads library/library.json and writes kits/engineering-kit/plugins/engineering-kit/skills/database/references/prompts.md.
 import fs from "node:fs";
 import path from "node:path";
@@ -8,7 +8,9 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const lib = JSON.parse(fs.readFileSync(path.join(root, "library/library.json"), "utf8"));
-const out = path.join(root, "kits/engineering-kit/plugins/engineering-kit/skills/database/references/prompts.md");
+const outArg = process.argv.indexOf("--out");
+// --out <directory> writes prompts.md there instead of the tracked references folder.
+const out = outArg > 0 ? path.join(path.resolve(process.argv[outArg + 1]), "prompts.md") : path.join(root, "kits/engineering-kit/plugins/engineering-kit/skills/database/references/prompts.md");
 const BY = Object.fromEntries(lib.entries.map((e) => [e.id, e]));
 const db = lib.entries.filter((e) => e.sec === "db");
 const ids = (a) => a.map((x) => `\`${x}\``).join(", ");

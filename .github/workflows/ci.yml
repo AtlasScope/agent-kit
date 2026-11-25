@@ -32,7 +32,7 @@ jobs:
           has() { printf '%s\n' "$files" | grep -qE "$1" && echo true || echo false; }
           all=$(has '^\.github/workflows/')
           site=$(has '^(site|library|kits)/')
-          library=$(has '^(library|kits|tests/routing)/')
+          library=$(has '^(library|kits|tests/routing|tests/library)/')
           public=$(has '^(kits/|library/|scripts/check-public|[A-Z]+\.md$)')
           catalog=$(has '^(kits/|\.claude-plugin/|\.agents/|scripts/check-catalog)')
           motion=$(has '^kits/motion-kit/')
@@ -72,6 +72,10 @@ jobs:
       - name: Check the routing cases
         if: steps.changes.outputs.library == 'true'
         run: node tests/routing/check.mjs
+
+      - name: Check that the library check never writes tracked files
+        if: steps.changes.outputs.library == 'true'
+        run: node --test tests/library/check-read-only.test.mjs
 
       # The capture tests need a browser. Playwright goes in a folder outside the checkout, because the
       # script will not load a copy from inside the project it is looking at.

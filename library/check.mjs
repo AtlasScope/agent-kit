@@ -123,34 +123,43 @@ for (const e of E) {
   if (/this Mac|on my Mac|austinwhitley|claude\.ai\/artifact/i.test(text)) fail(`${e.id} carries personal setup: move it to the private overlay`);
 }
 
-// The built files match the source.
+// The built files match the source. Everything is generated into scratch folders and compared;
+// nothing here writes to a tracked path, so a stale file fails the check and stays stale.
 const tmp = fs.mkdtempSync(path.join(fs.realpathSync(process.env.TMPDIR || process.env.TEMP || "/tmp"), "plcheck-"));
-execFileSync(process.execPath, [path.join(here, "build.mjs"), "--out", tmp], { stdio: "ignore" });
-for (const f of ["prompt-library.html", "prompt-library.md", "inventory.csv"]) {
-  const built = fs.readFileSync(path.join(tmp, f), "utf8");
-  const dist = fs.readFileSync(path.join(here, "dist", f), "utf8");
-  if (built !== dist) fail(`library/dist/${f} is out of date: run node library/build.mjs`);
+const gen = (script, ...args) => {
+  try { execFileSync(process.execPath, [script, ...args], { stdio: "pipe" }); return true; }
+  catch (err) { fail(`${path.relative(path.join(here, ".."), script)} failed: ${String(err.stderr || err.message).trim().split("\n").slice(-1)[0]}`); return false; }
+};
+const compare = (dir, files, tracked, rebuild) => {
+  for (const f of files) {
+    const fresh = path.join(dir, f), have = path.join(tracked, f);
+    const rel = path.relative(path.join(here, ".."), have);
+    if (!fs.existsSync(have)) fail(`${rel} is missing: run ${rebuild}`);
+    else if (!fs.existsSync(fresh)) fail(`${rel} was not generated: run ${rebuild}`);
+    else if (!fs.readFileSync(fresh).equals(fs.readFileSync(have))) fail(`${rel} is out of date: run ${rebuild}`);
+  }
+};
+const kits = path.join(here, "../kits");
+try {
+  const dist = path.join(tmp, "dist");
+  if (gen(path.join(here, "build.mjs"), "--out", dist)) compare(dist, ["prompt-library.html", "prompt-library.md", "inventory.csv"], path.join(here, "dist"), "node library/build.mjs");
+  // The /engineer router's references come from this library too.
+  const eng = path.join(tmp, "engineer");
+  if (gen(path.join(kits, "engineering-kit/scripts/build_references.mjs"), "--out", eng)) compare(eng, ["start-here.md", "investigations.md"], path.join(kits, "engineering-kit/plugins/engineering-kit/skills/engineer/references"), "node kits/engineering-kit/scripts/build_references.mjs");
+  // And the /design router's.
+  const des = path.join(tmp, "design");
+  if (gen(path.join(kits, "design-kit/scripts/build_references.mjs"), "--out", des)) compare(des, ["catalog.md", "recipes.md", "situations.md"], path.join(kits, "design-kit/plugins/design-kit/skills/design/references"), "node kits/design-kit/scripts/build_references.mjs");
+  // And the /database router's.
+  const dbr = path.join(tmp, "database");
+  if (gen(path.join(kits, "engineering-kit/scripts/build_database_references.mjs"), "--out", dbr)) compare(dbr, ["prompts.md"], path.join(kits, "engineering-kit/plugins/engineering-kit/skills/database/references"), "node kits/engineering-kit/scripts/build_database_references.mjs");
+} finally {
+  fs.rmSync(tmp, { recursive: true, force: true });
 }
-// The /engineer router's references come from this library too.
-const engRefs = ["start-here.md", "investigations.md"].map((f) => path.join(here, "../kits/engineering-kit/plugins/engineering-kit/skills/engineer/references", f));
-const engBefore = engRefs.map((f) => fs.readFileSync(f, "utf8"));
-execFileSync(process.execPath, [path.join(here, "../kits/engineering-kit/scripts/build_references.mjs")], { stdio: "ignore" });
-engRefs.forEach((f, i) => { if (fs.readFileSync(f, "utf8") !== engBefore[i]) fail(`The /engineer reference ${path.basename(f)} was out of date and has been rebuilt: commit the change`); });
-// And the /design router's.
-const desRefs = ["catalog.md", "recipes.md", "situations.md"].map((f) => path.join(here, "../kits/design-kit/plugins/design-kit/skills/design/references", f));
-const desBefore = desRefs.map((f) => fs.readFileSync(f, "utf8"));
-execFileSync(process.execPath, [path.join(here, "../kits/design-kit/scripts/build_references.mjs")], { stdio: "ignore" });
-desRefs.forEach((f, i) => { if (fs.readFileSync(f, "utf8") !== desBefore[i]) fail(`The /design reference ${path.basename(f)} was out of date and has been rebuilt: commit the change`); });
-const ref = path.join(here, "../kits/engineering-kit/plugins/engineering-kit/skills/database/references/prompts.md");
-const before = fs.readFileSync(ref, "utf8");
-execFileSync(process.execPath, [path.join(here, "../kits/engineering-kit/scripts/build_database_references.mjs")], { stdio: "ignore" });
-if (fs.readFileSync(ref, "utf8") !== before) fail("The /database reference was out of date and has been rebuilt: commit the change");
-fs.rmSync(tmp, { recursive: true, force: true });
 
 // An overlay, if given, must still apply cleanly.
 const i = process.argv.indexOf("--overlay");
 if (i > 0) {
-  const ovOut = fs.mkdtempSync(tmp + "-ov");
+  const ovOut = fs.mkdtempSync(path.join(fs.realpathSync(process.env.TMPDIR || process.env.TEMP || "/tmp"), "plcheck-ov-"));
   try { execFileSync(process.execPath, [path.join(here, "build.mjs"), "--overlay", process.argv[i + 1], "--out", ovOut], { stdio: "pipe" }); }
   catch (err) { fail("Overlay does not apply: " + String(err.stderr || err.message).split("\n").find((l) => l.includes("Error"))); }
   fs.rmSync(ovOut, { recursive: true, force: true });
