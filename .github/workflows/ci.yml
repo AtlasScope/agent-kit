@@ -55,7 +55,7 @@ jobs:
           [ "$skillshape" = true ] && routing=true
           checker=$(has '^(library/(check\.mjs|build\.mjs|template\.html)$|kits/(design-kit|engineering-kit)/scripts/|tests/library/)')
           public=$(has '^(kits/|library/library\.json$|scripts/check-public|[A-Z]+\.md$)')
-          catalog=$(has '^(\.claude-plugin/|\.agents/|scripts/check-catalog|kits/[^/]+/plugins/[^/]+/(\.(claude|codex)-plugin/plugin\.json$|README\.md$|skills/[^/]+/SKILL\.md$))')
+          catalog=$(has '^(\.claude-plugin/|\.agents/|scripts/(check-catalog|sync-page)|tests/sync-page|kits/[^/]+/plugins/[^/]+/(\.(claude|codex)-plugin/plugin\.json$|README\.md$|skills/[^/]+/(SKILL\.md|scripts/(worksheet|evidence)\.mjs|references/evidence\.md)$))')
           [ "$skillshape" = true ] && catalog=true
           motion=$(has '^kits/motion-kit/plugins/motion-kit/skills/motion/(scripts|tests)/')
           keen=$(has '^kits/design-kit/plugins/design-kit/skills/keen/(scripts|tests)/')
@@ -88,7 +88,9 @@ jobs:
 
       - name: Check the plugin catalogs, manifests and skill folders
         if: steps.changes.outputs.catalog == 'true'
-        run: node scripts/check-catalog.mjs
+        run: |
+          node scripts/check-catalog.mjs
+          node --test tests/sync-page.test.mjs
 
       - name: Check the prompt library
         if: steps.changes.outputs.library == 'true'
