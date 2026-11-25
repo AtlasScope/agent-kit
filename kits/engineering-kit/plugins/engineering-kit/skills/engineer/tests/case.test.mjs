@@ -165,9 +165,12 @@ test("a deleted file is reported as deleted, and expected output is found anywhe
 test("whatever a step leaves running is stopped before the files are compared, at a timeout or after a normal exit", { skip: process.platform === "win32" && "Windows stops only a timed-out program's tree" }, async (t) => {
   const markers = scratch(t);
   const dir = commit(repo(t, { "src.txt": "hello" }));
-  // a worker that writes a marker outside the copy and then a project file, unless it is stopped first
-  const worker = (name) => JSON.stringify(`setTimeout(() => { require("fs").writeFileSync(${JSON.stringify(path.join(markers, name))}, "x"); require("fs").appendFileSync("src.txt", "late"); }, 800)`);
-  const start = (name, detached) => `require("child_process").spawn(process.execPath, ["-e", ${worker(name)}], { detached: ${detached}, stdio: "ignore" }).unref();`;
+  // a worker that writes a marker outside the copy and then a project file, unless it is stopped first. The marker
+  // folder reaches it through the environment and its name as an argument, so no value is pasted into code.
+  process.env.ENGINEER_TEST_MARKERS = markers;
+  t.after(() => { delete process.env.ENGINEER_TEST_MARKERS; });
+  const worker = JSON.stringify(`setTimeout(() => { const fs = require("fs"); fs.writeFileSync(require("path").join(process.env.ENGINEER_TEST_MARKERS, process.argv[1]), "x"); fs.appendFileSync("src.txt", "late"); }, 800)`);
+  const start = (name, detached) => `require("child_process").spawn(process.execPath, ["-e", ${worker}, "${name}"], { detached: ${detached}, stdio: "ignore" }).unref();`;
   const out = await runCase(dir, { title: "leftovers", baseline: "HEAD", timeout: 0.5, steps: [
     { id: "hang", run: [node, "-e", `${start("detached-at-timeout", true)} ${start("child-at-timeout", false)} setInterval(() => {}, 1000)`] },
     { id: "exit", run: [node, "-e", start("detached-after-exit", true)] },
