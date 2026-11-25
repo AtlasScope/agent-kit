@@ -75,6 +75,10 @@ test("evidence that looks like it holds a credential is refused, saying where, w
   const named = evidencePage();
   named.evidence.observations[0].details = { github_pat_11ABCDEFG0123456789abcdefghij: { note: "x" } };
   assert.throws(() => addPage(dir, named), (error) => /a GitHub token in a key name in evidence\.observations\[0\]\.details/.test(error.message) && !error.message.includes("11ABCDEFG"));
+  // A secret in a field that also makes the bundle invalid is still refused as a secret, never quoted by validation.
+  const invalid = evidencePage();
+  invalid.evidence.observations[0].source = "ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8";
+  assert.throws(() => addPage(dir, invalid), (error) => /a GitHub token in evidence\.observations\[0\]\.source/.test(error.message) && !error.message.includes("A1b2C3d4"));
   assert.equal(readBook(dir).length, 0);
 
   // Ordinary text and redacted addresses are fine.
