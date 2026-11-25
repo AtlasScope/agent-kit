@@ -24,7 +24,7 @@ Give a product an original look, or find out what is wrong with a screen and fix
 
 **/keen audit** Measures a screen against published standards and reports what passes, what fails and who each failure stops. Measurements and yes-or-no checks only. For an opinion on whether the design works, the job is critique.
 
-**/keen variants** Builds three different versions of one part of a screen, shows them side by side, and applies the one the person picks.
+**/keen variants** Builds two or three different versions of one part of a screen, shows them running beside the original, revises any of them on request, and applies the one the person picks.
 
 ### Change what is on the screen
 
