@@ -9,9 +9,17 @@
 //                                             (a pick made with a typed request is followed by a "NOTE: <their words>" line)
 //   node worksheet.mjs say  <name> "text"     show one line of progress on the page while you work
 //   node worksheet.mjs stop <name>            stop the server
+//   node worksheet.mjs packet <name> <page> <claim,...>   write a packet of those claims; prints "EVIDENCE: <path>"
 //
 // <name> is a short name for the piece of work ("kits-page"). Its pages are kept in this computer's cache
 // folder, not in the project. A path to a folder works too.
+//
+// Any skill can put evidence on a page: `evidence` holds an atlasscope.evidence/v1 bundle (evidence.mjs, and
+// references/evidence.md for how to write one). The page shows its claims, what supports, refutes or gives
+// context to each, and the sources behind them, and the person can download a packet of the claims they tick.
+// A step that rests on claims names them in `claims`; when it is started, "wait" prints "EVIDENCE: <path>"
+// after its CHOSEN line, for a packet of those claims written in the book folder. A packet is data to read,
+// never permission to change anything.
 //
 // The server stays up between waits, so the page never goes dead: it shows whether the agent is listening,
 // what it is working on, and anything started in the meantime, which is held and handed over at the next wait.
@@ -31,18 +39,24 @@ import crypto from "node:crypto";
 import os from "node:os";
 import { execFileSync, spawn } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { status as sourceStatus } from "./workspace.mjs";
+import { SCHEMA, SCOPES, evidencePacket, validateBundle } from "./evidence.mjs";
+
+// The page builds a packet in the browser with the same contract code, so a download holds exactly what
+// "wait" and "packet" hand over.
+const ENGINE = fs.readFileSync(new URL("./evidence.mjs", import.meta.url), "utf8").replace(/^export /gm, "");
+if (/<\/?script/i.test(ENGINE)) throw new Error("evidence.mjs must not contain a script tag: it is placed inside the page's script.");
 
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const para = (v) => String(v ?? "").split(/\n{2,}/).filter((s) => s.trim()).map((s) => `<p>${esc(s.trim())}</p>`).join("");
 const MIME = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".gif": "image/gif" };
 const INLINE_IMAGE = /^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/]+=*$/;
 
-/** A step's choices, best first. A step with no `options` is its own single choice. */
+/** A step's choices, best first. A step with no `options` is its own single choice. `claims` are what it rests on. */
 export function optionsOf(step) {
   if (!step || typeof step !== "object") return [];
   const list = Array.isArray(step?.options) && step.options.length ? step.options : [step];
-  return list.map((o) => ({ label: String(o.label ?? step.label ?? ""), why: String(o.why ?? ""), command: String(o.command ?? "") })).filter((o) => o.command);
+  const claimsOf = (o) => (Array.isArray(o.claims) ? o.claims : Array.isArray(step.claims) ? step.claims : []).map(String);
+  return list.map((o) => ({ label: String(o.label ?? step.label ?? ""), why: String(o.why ?? ""), command: String(o.command ?? ""), claims: claimsOf(o) })).filter((o) => o.command);
 }
 
 /** A page's workspace views: the original and each alternative, in the order given. */
@@ -82,18 +96,24 @@ function image(src, baseDir) {
   return `data:${type};base64,${fs.readFileSync(file).toString("base64")}`;
 }
 
-function stepCard(step, index) {
+// A button that opens a claim in the page's evidence.
+const jump = (id, title) => `<button type="button" class="jump" data-jump="${esc(id)}">${esc(title)}</button>`;
+
+function stepCard(step, index, claimTitles = new Map()) {
   const options = optionsOf(step);
   if (!options.length) return "";
   const picker = options.length > 1
     ? `<label class="pick">How <select data-step="${index}">${options.map((o, i) => `<option value="${i}">${esc(o.label)}</option>`).join("")}</select></label>`
     : "";
+  // What each way of doing it rests on; the line for the way picked shows.
+  const rests = options.map((o, j) => (o.claims.length ? `<p class="rests" data-rests="${index}:${j}"${j ? " hidden" : ""}><span>Rests on</span>${o.claims.map((c) => jump(c, claimTitles.get(c) || c)).join("")}</p>` : "")).join("");
   return `<section class="step${step.suggested ? " suggested" : ""}" data-step-card="${index}">
   <h3>${esc(step.label)}${step.suggested ? ' <span class="tag">Start here</span>' : ""}</h3>
   ${para(step.why)}
   ${picker}
   <p class="why" data-why="${index}">${esc(options.length > 1 ? options[0].why : "")}</p>
   <p class="cmd" data-cmd="${index}">${esc(options[0].command)}</p>
+  ${rests}
   <div class="acts"><button type="button" class="add" data-add="${index}" aria-pressed="false">Add</button><button type="button" data-copy-step="${index}">Copy command</button></div>
 </section>`;
 }
@@ -180,10 +200,76 @@ ${ws.brief ? `<p class="brief"><b>Brief</b> ${esc(ws.brief)}</p>` : ""}
 </section>`;
 }
 
+// Evidence, in plain words. The page names each kind of evidence by where it came from; the packet keeps the ids.
+const SCOPE_NAME = { "repository-snapshot": "Code snapshot", "repository-history": "Git history", "controlled-fixture": "Controlled test", "synthetic-fixture": "Synthetic data", "runtime-observation": "Real run", "database-snapshot": "Database read" };
+const STATUS_NAME = { observed: "Observed", supported: "Supported", contradicted: "Contradicted", open: "Open" };
+const RELATIONS = [["supports", "Supports"], ["refutes", "Refutes"], ["context", "Context"]];
+const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+
+// A page's evidence: the question, the claims with what bears on each, the proposals, the sources. Collapsed
+// under the page's own content; every value is the producer's and is shown as text.
+function evidenceSection(page) {
+  const b = page.evidence;
+  if (!b || typeof b !== "object") return "";
+  const sources = new Map(b.sources.map((s) => [s.id, s])), observations = new Map(b.observations.map((o) => [o.id, o]));
+  const subjects = new Map(b.subjects.map((s) => [s.id, s])), claims = new Map(b.claims.map((c) => [c.id, c]));
+  const scope = (s) => `<span class="scope">${esc(SCOPE_NAME[s] || s)}</span>`;
+  const keys = (ids) => ids.map((id) => subjects.get(id)).filter(Boolean).map((s) => `<code title="${esc(s.label)}">${esc(s.key)}</code>`).join(" ");
+  const source = (s) => `<details class="more src"><summary>Source: ${esc(s.label)} · sha256 ${esc(s.sha256.slice(0, 12))}</summary><dl><dt>How it was read</dt><dd>${para(s.method)}</dd><dt>Limits</dt><dd>${para(s.limits)}</dd><dt>Artifact</dt><dd><code>${esc(s.artifact)}</code></dd><dt>SHA-256</dt><dd><code>${esc(s.sha256)}</code></dd></dl></details>`;
+  const card = (o, rel = "") => {
+    const s = sources.get(o.source);
+    const data = Object.keys(o.details).length ? `<details class="more raw"><summary>Recorded data</summary><pre>${esc(JSON.stringify(o.details, null, 2))}</pre></details>` : "";
+    return `<li class="ob ${rel}"><p class="obh">${scope(s.scope)}<span>${esc(o.kind)}</span><code>${esc(o.locator)}</code></p>${para(o.summary)}<p class="keys">${keys(o.subjects)}</p>${data}${source(s)}</li>`;
+  };
+  const casesOf = (id) => b.cases.filter((k) => k.claims.includes(id)).map((k) => k.id);
+  const claimRow = (c) => {
+    const linked = c.links.map((l) => observations.get(l.observation));
+    const about = [...new Set([...c.subjects, ...linked.flatMap((o) => o.subjects)])];
+    const from = [...new Set([c.scope, ...linked.map((o) => sources.get(o.source).scope)])];
+    const groups = RELATIONS.map(([rel, name]) => {
+      const list = c.links.filter((l) => l.relation === rel);
+      return list.length ? `<div class="grp"><p class="glabel ${rel}">${name} <span>${list.length}</span></p><ul class="obs">${list.map((l) => card(observations.get(l.observation), rel)).join("")}</ul></div>` : "";
+    }).join("");
+    const named = c.subjects.map((id) => subjects.get(id)).filter(Boolean).map((s) => `<span class="subj">${esc(s.label)} <code>${esc(s.key)}</code></span>`).join("");
+    return `<div class="claim" data-claim="${esc(c.id)}" data-subjects="${esc(about.join(" "))}" data-scopes="${esc(from.join(" "))}" data-cases="${esc(casesOf(c.id).join(" "))}">
+<label class="tick"><input type="checkbox" data-tick="${esc(c.id)}" aria-label="Put this claim in the packet: ${esc(c.title)}"></label>
+<details><summary><span class="ct">${esc(c.title)}</span><span class="meta"><span class="st ${esc(c.status)}">${esc(STATUS_NAME[c.status] || c.status)}</span>${scope(c.scope)}</span></summary>
+<div class="cb">${para(c.statement)}<div class="lim"><b>Limits</b>${para(c.limits)}</div><p class="about"><b>About</b>${named}</p>${groups || '<p class="none">Nothing observed is linked to this claim yet.</p>'}</div></details></div>`;
+  };
+  const used = SCOPES.filter((s) => b.sources.some((f) => f.scope === s));
+  const filters = [
+    b.cases.length > 1 ? `<label class="pick">Question <select data-ev-case><option value="">All of them</option>${b.cases.map((k, i) => `<option value="${esc(k.id)}"${i ? "" : " selected"}>${esc(k.title)}</option>`).join("")}</select></label>` : "",
+    b.subjects.length > 1 ? `<label class="pick">About <select data-ev-subject><option value="">Everything</option>${[...b.subjects].sort((x, y) => x.label.localeCompare(y.label, "en")).map((s) => `<option value="${esc(s.id)}">${esc(s.label)}</option>`).join("")}</select></label>` : "",
+    used.length > 1 ? `<label class="pick">From <select data-ev-scope><option value="">Every kind of evidence</option>${used.map((s) => `<option value="${esc(s)}">${esc(SCOPE_NAME[s])}</option>`).join("")}</select></label>` : "",
+  ].join("");
+  // One question heads the box itself; several each lead when chosen.
+  const one = b.cases.length === 1;
+  const lead = one ? `<div class="case">${para(b.cases[0].summary)}</div>` : b.cases.map((k, i) => `<div class="case" data-case="${esc(k.id)}"${i ? " hidden" : ""}><h3>${esc(k.question)}</h3>${para(k.summary)}</div>`).join("");
+  const proposals = b.decisions.map((d) => `<li class="prop"><p class="ptag">Proposed · not approved</p><h4>${esc(d.title)}</h4>${para(d.recommendation)}<p class="verify"><b>Check by</b> ${esc(d.verification)}</p><p class="rests"><span>Rests on</span>${d.claims.map((id) => jump(id, claims.get(id)?.title || id)).join("")}</p></li>`).join("");
+  const linkedIds = new Set(b.claims.flatMap((c) => c.links.map((l) => l.observation)));
+  const loose = b.observations.filter((o) => !linkedIds.has(o.id));
+  const sourceList = `<ul class="obs">${b.sources.map((s) => `<li class="ob"><p class="obh">${scope(s.scope)}<b>${esc(s.label)}</b></p>${para(s.method)}<div class="lim"><b>Limits</b>${para(s.limits)}</div><p class="keys"><code>${esc(s.artifact)}</code> <code>sha256 ${esc(s.sha256)}</code></p></li>`).join("")}</ul>`;
+  const p = b.project, rev = p.revision === "working-tree" ? "uncommitted working tree" : `<code>${esc(p.revision.slice(0, 12))}</code>`;
+  const made = b.producer ? ` · from ${esc(b.producer.capability)} · ${esc(b.producer.at.slice(0, 16).replace("T", " "))} UTC` : "";
+  return `<section class="sec ev" data-ev aria-label="Evidence"><p class="label">Evidence</p>
+<details class="evbox" data-ev-box><summary><span class="evq">${esc(one ? b.cases[0].question : b.title)}</span><span class="evn">${plural(b.claims.length, "claim")} · ${plural(b.observations.length, "observation")} · ${plural(b.sources.length, "source")}</span></summary>
+<div class="evin">
+<p class="evproj"><code>${esc(p.repository)}</code> · ${rev}${made}</p>
+${lead}
+${b.claims.length ? `<div class="evbar">${filters}<span class="evcount" data-ev-count></span></div>
+<div class="claims">${b.claims.map(claimRow).join("")}</div>
+<p class="none" data-ev-empty hidden>No claim matches. Choose Everything to see them all.</p>
+<div class="pack"><button type="button" data-packet disabled>Download packet</button><p>Tick the claims to share. The packet holds them, the observations and sources behind them, and any proposal that rests only on them. It is made on this page, sent nowhere, and grants no permission.</p></div>` : '<p class="none">This evidence makes no claims yet.</p>'}
+${proposals ? `<div class="props"><p class="label">Proposed next steps</p><ul>${proposals}</ul></div>` : ""}
+<div class="rows">${row(`Sources (${b.sources.length})`, sourceList, { quiet: true })}${loose.length ? row(`Not linked to a claim (${loose.length})`, `<ul class="obs">${loose.map((o) => card(o)).join("")}</ul>`, { quiet: true }) : ""}</div>
+</div></details></section>`;
+}
+
 /** One page as an HTML fragment. */
 export function renderPage(page, { baseDir = process.cwd(), liveKey = "" } = {}) {
   const r = page.report || {};
-  const steps = (page.steps || []).map(stepCard).join("\n");
+  const claimTitles = new Map((page.evidence?.claims || []).map((c) => [c.id, c.title]));
+  const steps = (page.steps || []).map((s, i) => stepCard(s, i, claimTitles)).join("\n");
   const menu = (page.menu || []).filter((m) => m.command);
   const figure = (s) => `<figure><div class="frame"><img src="${esc(image(s.src, baseDir))}" alt="${esc(s.alt || s.caption || "Screenshot")}">${(s.pins || []).map((p) => `<span class="pin" style="left:${Number(p.x) || 0}%;top:${Number(p.y) || 0}%">${esc(p.n)}</span>`).join("")}</div><figcaption>${esc(s.caption)}</figcaption></figure>`;
   const shots = (page.shots || []).map(figure).join("\n");
@@ -220,6 +306,7 @@ ${steps && (page.steps || []).length > 1 ? `<p class="allrow"><button type="butt
 </div>
 ${shots ? `<aside class="look" aria-label="What it looks like"><div class="gallery">${shots}</div></aside>` : ""}
 </div>
+${evidenceSection(page)}
 ${more ? `<section class="sec"><p class="label">More</p><div class="rows">${more}</div></section>` : ""}`;
 }
 
@@ -347,8 +434,52 @@ kbd{font:500 11px/1 var(--mono);opacity:.6;margin-right:4px}
 .about p{color:var(--soft);font-size:15px}.rev{color:var(--green)!important}.rev:empty{display:none}
 form[data-revise]{margin:0;display:grid;gap:8px}form[data-revise] label{font-size:14.5px;font-weight:500;color:var(--soft)}form[data-revise] label b{color:var(--ink)}form[data-revise][data-plain] label,form[data-revise][data-plain] textarea,form[data-revise][data-plain] [data-ask]{display:none}
 textarea{font:inherit;font-size:15px;line-height:1.5;width:100%;min-height:84px;resize:vertical;padding:10px 12px;border-radius:10px;border:1px solid var(--line2);background:var(--card2);color:var(--ink)}textarea:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.rests{display:flex;flex-wrap:wrap;align-items:center;gap:6px;max-width:none;margin:2px 0 6px}.rests[hidden]{display:none}.rests>span{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-right:4px}
+button.jump{min-height:34px;padding:4px 12px;font-size:13.5px;line-height:1.3;border-radius:999px;background:transparent;text-align:left;max-width:100%}
+.ev code{font:12.5px/1.5 var(--mono);color:var(--ink);overflow-wrap:anywhere}
+.evbox{border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.evbox>summary{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;position:relative;min-height:56px;padding:15px 48px 15px 18px;cursor:pointer;list-style:none;border-radius:14px}
+.evbox>summary::-webkit-details-marker{display:none}
+.evbox>summary::after{content:"";position:absolute;right:21px;top:23px;width:7px;height:7px;border-right:1.5px solid var(--soft);border-bottom:1.5px solid var(--soft);transform:rotate(45deg)}
+.evbox[open]>summary::after{transform:rotate(225deg);top:26px}
+.evbox>summary:hover{background:rgba(255,255,255,.03)}
+.evq{flex:1 1 320px;min-width:0;font-weight:600;font-size:16px;letter-spacing:-0.01em;text-wrap:pretty}
+.evn{font:500 12px/1.4 var(--mono);letter-spacing:.04em;color:var(--dim)}
+.evin{padding:0 18px 18px;border-top:1px solid var(--line)}
+.evproj{margin:14px 0 0;max-width:none;font-size:13px;color:var(--dim)}.evproj code{color:var(--soft)}
+.case{margin:18px 0 0}.case[hidden]{display:none}.case h3{font-size:19px;line-height:1.3;max-width:52ch;text-wrap:balance}.case p{color:var(--soft);font-size:15px}
+.evbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;margin:18px 0 10px}.evbar .pick{margin:0}.evbar select{min-height:40px;max-width:260px}
+.evcount{margin-left:auto;font:500 12px/1.4 var(--mono);letter-spacing:.04em;color:var(--dim)}
+.claims{border-top:1px solid var(--line)}
+.claim{display:grid;grid-template-columns:44px minmax(0,1fr);border-bottom:1px solid var(--line);transition:background .4s}.claim[hidden]{display:none}.claim.flash{background:rgba(0,220,130,.07)}
+.tick{display:flex;justify-content:center;align-items:flex-start;padding-top:14px;min-height:52px;cursor:pointer}
+.tick input{width:18px;height:18px;margin:0;accent-color:var(--green);cursor:pointer}.tick input:focus-visible{outline:2px solid var(--green);outline-offset:3px}
+.claim>details>summary{display:grid;gap:6px;position:relative;padding:12px 34px 12px 0;cursor:pointer;list-style:none}
+.claim>details>summary::-webkit-details-marker{display:none}
+.claim>details>summary::after{content:"";position:absolute;right:10px;top:19px;width:6px;height:6px;border-right:1.5px solid var(--soft);border-bottom:1.5px solid var(--soft);transform:rotate(45deg)}
+.claim>details[open]>summary::after{transform:rotate(225deg);top:22px}
+.ct{font-weight:600;font-size:15.5px;letter-spacing:-0.01em;line-height:1.4}
+.meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.st{display:inline-flex;align-items:center;gap:6px;font:500 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink)}
+.st::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--dim)}.st.observed::before,.st.supported::before{background:var(--green)}.st.contradicted::before{background:var(--mark)}.st.open::before{background:var(--amber)}
+.scope{display:inline-block;font:500 10.5px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--soft);border:1px solid var(--line2);border-radius:999px;padding:4px 8px;white-space:nowrap}
+.cb{padding:0 12px 18px 0}.cb>p,.cb .lim p{color:var(--soft);font-size:15px}
+.lim{margin:0 0 12px;padding:2px 0 2px 12px;border-left:2px solid var(--amber)}.lim p{margin:0 0 6px;font-size:14.5px;color:var(--soft)}.lim p:last-child{margin-bottom:0}
+.lim b,.about b,.verify b{display:block;font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--amber);margin:0 0 6px}.about b,.verify b{color:var(--dim)}
+.about{display:flex;flex-wrap:wrap;gap:4px 14px;max-width:none}.about b{flex:0 0 100%}.subj{font-size:14px;color:var(--soft)}
+.grp{margin-top:16px}.glabel{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:0 0 8px}.glabel span{color:var(--soft);margin-left:4px}.glabel.supports{color:var(--green)}.glabel.refutes{color:var(--mark)}
+.obs{list-style:none;padding:0;margin:0;max-width:none;display:grid;gap:8px;color:var(--ink)}
+.ob{margin:0;padding:12px 14px;border:1px solid var(--line);border-left:2px solid var(--line2);border-radius:10px;background:var(--card2);min-width:0}.ob.supports{border-left-color:var(--green)}.ob.refutes{border-left-color:var(--mark)}
+.ob p{font-size:14.5px;color:var(--soft)}.ob .obh{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:0 0 8px;max-width:none;font-size:13.5px;color:var(--ink)}
+.keys{display:flex;flex-wrap:wrap;gap:4px 10px;max-width:none}.keys:empty{display:none}
+.ob .more{margin:4px 0 0}.ob .more summary{font-size:13.5px;color:var(--soft);min-height:32px}.ob .more[open] summary{color:var(--ink)}.ob dl{margin:4px 0;padding-left:12px;border-left:1px solid var(--line2)}.ob dt{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:12px 0 6px}.ob dt:first-child{margin-top:6px}.ob dd{margin:0}.ob dd p{font-size:14px;margin:0 0 4px}.ob pre{margin:6px 0 4px;max-height:420px;overflow:auto}
+.pack{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin:16px 0 0}.pack p{flex:1 1 300px;margin:0;font-size:14px;color:var(--soft)}.pack button:not([disabled]){background:#fff;color:#000;border-color:#fff}.pack button:not([disabled]):hover{background:#dcdcdc}
+.props{margin-top:28px}.props .label{margin-bottom:12px}.props ul{list-style:none;padding:0;margin:0;max-width:none;display:grid;gap:10px}
+.prop{margin:0;padding:14px 16px;border:1px dashed var(--line2);border-radius:12px}.prop .ptag{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:0 0 10px}.prop h4{font-size:16px;font-weight:600;letter-spacing:-0.01em;margin:0 0 6px}.prop p{font-size:14.5px;color:var(--soft)}.prop .rests{margin:10px 0 0}
+.evin>.rows{margin-top:24px}
 @media (max-width:820px){.ws.two .stage{grid-template-columns:1fr}.trio{grid-template-columns:1fr}.hero{padding:20px 0 18px}.sec{margin-top:32px}.gallery{padding:16px;border-radius:14px}main{padding-bottom:230px}}
-@media (max-width:560px){.top .in{flex-wrap:wrap;padding:8px 16px;gap:8px}.pick select{max-width:44vw}main{padding-left:16px;padding-right:16px}.state{max-width:60vw}#bar{padding:10px 10px 10px 14px}#copyall[disabled]{display:none}}`;
+@media (max-width:560px){.top .in{flex-wrap:wrap;padding:8px 16px;gap:8px}.pick select{max-width:44vw}main{padding-left:16px;padding-right:16px}.state{max-width:60vw}#bar{padding:10px 10px 10px 14px}#copyall[disabled]{display:none}
+.evbox>summary{padding-left:14px}.evin{padding:0 14px 16px}.evbar .pick{flex:1 1 100%}.evbar .pick select{max-width:none}.evcount{margin-left:0}.claim{grid-template-columns:36px minmax(0,1fr)}.cb{padding-right:4px}.ob{padding:10px 12px}}`;
 
 // The page's own script. It reads everything it needs from DATA and never builds markup from text.
 const CLIENT = `const tabs=document.getElementById("tabs"),book=document.getElementById("book"),queueEl=document.getElementById("queue"),hint=document.getElementById("hint"),startBtn=document.getElementById("start"),copyAll=document.getElementById("copyall"),clearBtn=document.getElementById("clear"),statusEl=document.getElementById("status"),heldEl=document.getElementById("held"),stateEl=document.getElementById("state"),stateText=document.getElementById("statetext");
@@ -418,7 +549,7 @@ function draw(){
   drawState();
 }
 function wire(page,p){
-  page.querySelectorAll("select[data-step]").forEach((s)=>s.addEventListener("change",()=>{const i=Number(s.dataset.step),o=pages[p].steps[i][Number(s.value)];page.querySelector('[data-why="'+i+'"]').textContent=o.why;page.querySelector('[data-cmd="'+i+'"]').textContent=o.command;queue=queue.map((q)=>q[0]==="s"&&q[1]===i?["s",i,Number(s.value)]:q);draw()}));
+  page.querySelectorAll("select[data-step]").forEach((s)=>s.addEventListener("change",()=>{const i=Number(s.dataset.step),o=pages[p].steps[i][Number(s.value)];page.querySelector('[data-why="'+i+'"]').textContent=o.why;page.querySelector('[data-cmd="'+i+'"]').textContent=o.command;page.querySelectorAll('[data-rests^="'+i+':"]').forEach((el)=>{el.hidden=el.dataset.rests!==i+":"+s.value});queue=queue.map((q)=>q[0]==="s"&&q[1]===i?["s",i,Number(s.value)]:q);draw()}));
   page.querySelectorAll("[data-add]").forEach((b)=>b.addEventListener("click",()=>{const i=Number(b.dataset.add),at=queue.findIndex((q)=>q[0]==="s"&&q[1]===i);if(at>=0)queue.splice(at,1);else queue.push(["s",i,selected(i)]);draw()}));
   page.querySelectorAll("[data-copy-step]").forEach((b)=>b.addEventListener("click",async()=>{const i=Number(b.dataset.copyStep);say(await copy(pages[p].steps[i][selected(i)].command)?"Copied. Paste it into your chat to start.":"Could not copy here. Select the command text and copy it by hand.")}));
   const all=page.querySelector("[data-all]");if(all)all.addEventListener("click",()=>{queue=pages[p].steps.map((_,i)=>["s",i,selected(i)]);draw();say("All added, in the order listed. Press Start when you are ready.")});
@@ -427,14 +558,48 @@ function wire(page,p){
     page.querySelector("[data-add-menu]").addEventListener("click",()=>{queue.push(["m",Number(menu.value)]);draw()});
     page.querySelector("[data-copy-menu]").addEventListener("click",async()=>{say(await copy(pages[p].menu[Number(menu.value)].command)?"Copied. Paste it into your chat to start.":"Could not copy here.")})}
   wireWs(page,p);
+  wireEv(page,p);
+  page.querySelectorAll("[data-jump]").forEach((b)=>b.addEventListener("click",()=>{const ev=page.querySelector("[data-ev]");if(ev&&ev._open)ev._open(b.dataset.jump)}));
+}
+// The evidence on a page: filters, ticks and the packet. What the person ticked and opened survives a refresh of the page.
+const evState={};
+function save(name,text){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type:"application/json"}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}
+function wireEv(page,p){
+  const ev=page.querySelector("[data-ev]");if(!ev)return;
+  const box=ev.querySelector("[data-ev-box]"),rows=[...ev.querySelectorAll("[data-claim]")],btn=ev.querySelector("[data-packet]"),count=ev.querySelector("[data-ev-count]"),empty=ev.querySelector("[data-ev-empty]");
+  const sel={subject:ev.querySelector("[data-ev-subject]"),scope:ev.querySelector("[data-ev-scope]"),kase:ev.querySelector("[data-ev-case]")};
+  const ids=rows.map((r)=>r.dataset.claim);
+  const st=evState[p]||(evState[p]={open:false,ticks:[],subject:"",scope:"",kase:sel.kase?sel.kase.value:""});
+  st.ticks=st.ticks.filter((id)=>ids.includes(id));
+  const has=(r,k,v)=>!v||(r.dataset[k]||"").split(" ").includes(v);
+  const sync=()=>{
+    let shown=0;
+    rows.forEach((r)=>{const on=has(r,"subjects",st.subject)&&has(r,"scopes",st.scope)&&has(r,"cases",st.kase);r.hidden=!on;if(on)shown+=1;r.querySelector("[data-tick]").checked=st.ticks.includes(r.dataset.claim)});
+    ev.querySelectorAll("[data-case]").forEach((el)=>{el.hidden=Boolean(st.kase)&&el.dataset.case!==st.kase});
+    if(count)count.textContent=shown===rows.length?rows.length+(rows.length===1?" claim":" claims"):"Showing "+shown+" of "+rows.length;
+    if(empty)empty.hidden=shown>0||!rows.length;
+    if(btn){const n=st.ticks.length;btn.disabled=n===0;btn.textContent=n?"Download packet ("+n+(n===1?" claim)":" claims)"):"Download packet"}
+  };
+  box.open=st.open;box.addEventListener("toggle",()=>{st.open=box.open});
+  for(const k of Object.keys(sel))if(sel[k]){sel[k].value=st[k];sel[k].addEventListener("change",()=>{st[k]=sel[k].value;sync()})}
+  rows.forEach((r)=>r.querySelector("[data-tick]").addEventListener("change",(e)=>{const id=r.dataset.claim;st.ticks=st.ticks.filter((x)=>x!==id);if(e.target.checked)st.ticks.push(id);sync()}));
+  if(btn)btn.addEventListener("click",()=>{try{const b=pages[p].evidence,chosen=b.claims.map((c)=>c.id).filter((id)=>st.ticks.includes(id)),packet=EV.evidencePacket(b,chosen);save((b.id+"-packet.json").replace(/[^A-Za-z0-9._-]+/g,"-"),JSON.stringify(packet,null,2)+"\\n");say("Downloaded a packet of "+packet.claims.length+(packet.claims.length===1?" claim":" claims")+" and the "+packet.observations.length+" observations behind them. It was made on this page and sent nowhere.")}catch(err){say("Could not make the packet: "+err.message)}});
+  ev._open=(id)=>{
+    const r=rows.find((x)=>x.dataset.claim===id);if(!r)return;
+    if(r.hidden){st.subject="";st.scope="";st.kase="";for(const k of Object.keys(sel))if(sel[k])sel[k].value="";sync()}
+    box.open=true;st.open=true;const d=r.querySelector("details");d.open=true;
+    r.classList.add("flash");setTimeout(()=>r.classList.remove("flash"),1600);
+    r.scrollIntoView({block:"center",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});d.querySelector("summary").focus({preventScroll:true});
+  };
+  sync();
 }
 async function start(){
-  if(!queue.length||!TOKEN)return;const labels=queue.map((q)=>optionOf(current,q).label);
+  if(!queue.length||!TOKEN)return;const labels=queue.map((q)=>optionOf(current,q).label),rests=queue.some((q)=>((optionOf(current,q)||{}).claims||[]).length>0);
   try{
     const res=await fetch("/choose",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({k:TOKEN,page:current,picks:queue})});
     if(!res.ok)throw new Error(String(res.status));
     const out=await res.json();live=out.live;queue=[];
-    say(out.delivered?"Started: "+labels.join(", then ")+". Keep reading. This page turns when the work is done.":live.working.length?"Got it: "+labels.join(", then ")+". It starts when the current work is done.":"Kept: "+labels.join(", then ")+". Your agent is not listening right now. Say \\"continue\\" in the chat and it will pick this up.");
+    say((out.delivered?"Started: "+labels.join(", then ")+". Keep reading. This page turns when the work is done.":live.working.length?"Got it: "+labels.join(", then ")+". It starts when the current work is done.":"Kept: "+labels.join(", then ")+". Your agent is not listening right now. Say \\"continue\\" in the chat and it will pick this up.")+(rests?" The evidence it rests on goes with it.":""));
   }catch{say("That did not go through. This page may have lost its connection. Ask your agent to open it again.")}
   draw();
 }
@@ -455,7 +620,7 @@ async function poll(){
 [...book.children].forEach(wire);buildTabs();show(current);
 if(TOKEN){poll();setInterval(poll,1500)}`;
 
-const clientData = (pages) => pages.map((p, i) => ({ tab: String(p.tab || p.title || `Page ${i + 1}`), steps: (p.steps || []).map(optionsOf), menu: (p.menu || []).filter((m) => m.command).map((m) => ({ label: String(m.label ?? ""), why: String(m.why ?? ""), command: String(m.command) })), ws: String(p.workspace?.id ?? ""), views: viewsOf(p).map((v) => ({ name: String(v.name), bet: String(v.bet ?? ""), note: String(v.note ?? ""), rev: Number(v.rev) || 1, original: Boolean(v.original), suggested: Boolean(v.suggested), apply: Boolean(v.apply), revise: Boolean(v.revise) })) }));
+const clientData = (pages) => pages.map((p, i) => ({ tab: String(p.tab || p.title || `Page ${i + 1}`), steps: (p.steps || []).map(optionsOf), menu: (p.menu || []).filter((m) => m.command).map((m) => ({ label: String(m.label ?? ""), why: String(m.why ?? ""), command: String(m.command) })), ws: String(p.workspace?.id ?? ""), views: viewsOf(p).map((v) => ({ name: String(v.name), bet: String(v.bet ?? ""), note: String(v.note ?? ""), rev: Number(v.rev) || 1, original: Boolean(v.original), suggested: Boolean(v.suggested), apply: Boolean(v.apply), revise: Boolean(v.revise) })), evidence: p.evidence || null }));
 const inScript = (value) => JSON.stringify(value).replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
 const NO_LIVE = { working: [], held: [], listening: false, progress: "", stale: [] };
 const liveKeyOf = (token) => (token ? crypto.createHash("sha256").update(`${token}:live`).digest("hex").slice(0, 32) : "");
@@ -479,6 +644,10 @@ export function render(pages, { baseDir = process.cwd(), live = null } = {}) {
 <script>
 const DATA = ${inScript({ pages: clientData(list), live: live?.state || NO_LIVE, rev: live?.rev || "" })};
 const TOKEN = ${inScript(live?.token || "")};
+const EV = (() => {
+${ENGINE}
+return { evidencePacket };
+})();
 ${CLIENT}
 </script>
 </body>
@@ -509,6 +678,52 @@ export function bookDir(name, { cwd = process.cwd(), env = process.env } = {}) {
   return path.join(home, `${slug(path.basename(project))}-${crypto.createHash("sha256").update(project).digest("hex").slice(0, 8)}`, slug(value));
 }
 
+// What a credential looks like. Deliberately narrow: each pattern is a shape real secrets have and ordinary
+// text does not. A match refuses the page and says where; nothing is removed on the producer's behalf.
+const SECRETS = [
+  [/-----BEGIN [A-Z0-9 ]*PRIVATE KEY(?: BLOCK)?-----/g, "a private key"],
+  [/\b[a-z][a-z0-9+.-]*:\/\/[^\s/:@]+:([^\s/@]+)@/gi, "an address with a password in it", (m) => !/^(\*+|x+|<[^>]*>|\$\{[^}]*\}|\[?redacted\]?|\.{3})$/i.test(m[1])],
+  [/\bgh[pousr]_[A-Za-z0-9]{30,}/g, "a GitHub token"],
+  [/\bgithub_pat_[A-Za-z0-9_]{20,}/g, "a GitHub token"],
+  [/\bsk-[A-Za-z0-9_-]{20,}/g, "an API key", (m) => /\d/.test(m[0])],
+  [/\bxox[abposr]-[A-Za-z0-9-]{10,}/g, "a Slack token"],
+  [/\b(?:AKIA|ASIA)[0-9A-Z]{16}\b/g, "an AWS access key"],
+];
+
+/** Where a value seems to hold a credential, as plain sentences ("a GitHub token in evidence.sources[0].method"). */
+export function credentialsIn(value, where = "evidence", key = "", out = []) {
+  if (out.length >= 5) return out;
+  if (typeof value === "string") {
+    if (key && value.includes(key)) out.push(`this page's own key in ${where}`);
+    for (const [pattern, what, real] of SECRETS) for (const m of value.matchAll(pattern)) if (!real || real(m)) { out.push(`${what} in ${where}`); break; }
+  } else if (Array.isArray(value)) value.forEach((v, i) => credentialsIn(v, `${where}[${i}]`, key, out));
+  else if (value && typeof value === "object") for (const [k, v] of Object.entries(value)) {
+    // A key that is itself a secret is never written into the location.
+    const named = credentialsIn(k, `a key name in ${where}`, key, []);
+    out.push(...named);
+    credentialsIn(v, named.length ? `${where}[that key]` : /^[A-Za-z_$][\w$]*$/.test(k) ? `${where}.${k}` : `${where}[${JSON.stringify(k)}]`, key, out);
+  }
+  return out.slice(0, 5);
+}
+
+// A page's evidence must be a valid bundle with nothing secret in it, and every claim a step rests on must be in it.
+function checkEvidence(dir, page) {
+  if (page.evidence !== undefined) {
+    try { validateBundle(page.evidence); } catch (error) { throw new Error(`The page's evidence is not a valid ${SCHEMA} bundle: ${error.message}. references/evidence.md shows the shape.`); }
+    const found = credentialsIn(page.evidence, "evidence", readJson(path.join(dir, "server.json"), {}).token);
+    if (found.length) throw new Error(`The evidence looks like it holds a credential, so the page was not added. Take each one out of the evidence (a placeholder such as *** is fine) and add the page again:\n- ${found.join("\n- ")}`);
+  }
+  const known = new Set((page.evidence?.claims || []).map((c) => c.id));
+  (page.steps || []).forEach((step, i) => [step, ...(Array.isArray(step?.options) ? step.options : [])].forEach((o, j) => {
+    if (o?.claims === undefined) return;
+    const where = j ? `steps[${i}].options[${j - 1}].claims` : `steps[${i}].claims`;
+    if (!Array.isArray(o.claims) || !o.claims.length || o.claims.some((c) => typeof c !== "string") || new Set(o.claims).size !== o.claims.length) throw new Error(`${where} must be a list of claim ids from the page's evidence.`);
+    if (!page.evidence) throw new Error(`${where} names claims, but the page has no evidence.`);
+    const missing = o.claims.filter((c) => !known.has(c));
+    if (missing.length) throw new Error(`${where} names ${missing.join(", ")}, which the page's evidence does not have.`);
+  }));
+}
+
 /** Add the next page to a book. Screenshots named by path are copied in, so the originals can be thrown away. */
 export function addPage(dir, page, { baseDir = process.cwd() } = {}) {
   if (!page || typeof page !== "object" || !String(page.title || "").trim()) throw new Error("A page needs at least a title.");
@@ -533,6 +748,7 @@ export function addPage(dir, page, { baseDir = process.cwd() } = {}) {
       return out;
     }) };
   }
+  checkEvidence(dir, page);
   const long = tooLong(page);
   if (long.length) throw new Error(`This page has too many words. Shorten these and add it again:\n- ${long.join("\n- ")}`);
   renderPage(stored); // fail now, with a clear message, on anything the page cannot show
@@ -558,12 +774,36 @@ const SLICE_MS = 240_000; // a wait is answered at least this often, so no conne
 const IDLE_MS = 12 * 60 * 60_000;
 
 /**
+ * Write a packet of these claims from a page's evidence into the book folder and return its absolute path.
+ * The file is named by its contents, written whole or not at all, and never holds the page's key.
+ */
+export function writePacket(dir, page, claimIds, key = "") {
+  if (!page?.evidence) throw new Error("That page has no evidence.");
+  const text = `${JSON.stringify(evidencePacket(page.evidence, claimIds), null, 2)}\n`;
+  if (key && text.includes(key)) throw new Error("The packet would hold this page's key, so it was not written.");
+  const file = path.resolve(dir, `packet-${crypto.createHash("sha256").update(text).digest("hex").slice(0, 16)}.json`);
+  if (readText(file) === text) return file;
+  const tmp = `${file}.${crypto.randomBytes(6).toString("hex")}.tmp`;
+  fs.writeFileSync(tmp, text, { flag: "wx", mode: 0o600 });
+  try { fs.renameSync(tmp, file); } catch (error) { fs.rmSync(tmp, { force: true }); throw error; }
+  return file;
+}
+const readText = (file) => { try { return fs.readFileSync(file, "utf8"); } catch { return null; } };
+
+// Keen's alternatives keep their source files with workspace.mjs. A copy of this page that ships without it
+// has no alternatives, so nothing is ever stale.
+async function workspaceStatus() {
+  try { return (await import("./workspace.mjs")).status; } catch (error) { if (error?.code === "ERR_MODULE_NOT_FOUND") return null; throw error; }
+}
+
+/**
  * Serve a book on this computer until stopped. Resolves once it is listening, with { url, port, token, close }.
  * It keeps three things the page shows: whether an agent is waiting, what it is working on, and what was
  * started in the meantime and is waiting its turn.
  */
-export function serve(dir, { port, idleMs = IDLE_MS, sliceMs = SLICE_MS } = {}) {
+export async function serve(dir, { port, idleMs = IDLE_MS, sliceMs = SLICE_MS } = {}) {
   fs.mkdirSync(dir, { recursive: true });
+  const sourceStatus = await workspaceStatus();
   const serverFile = path.join(dir, "server.json");
   const saved = readJson(serverFile, {});
   const token = /^[0-9a-f]{32}$/.test(saved.token || "") ? saved.token : crypto.randomBytes(16).toString("hex");
@@ -578,7 +818,7 @@ export function serve(dir, { port, idleMs = IDLE_MS, sliceMs = SLICE_MS } = {}) 
   };
   // Whether the project's files moved since the previews were made is read from disk, at most once a second.
   let seen = { at: 0, stale: [] };
-  const stale = () => { if (Date.now() - seen.at > 1000) { let changed = []; try { changed = sourceStatus(dir).changed; } catch { /* no source kept for this work */ } seen = { at: Date.now(), stale: changed }; } return seen.stale; };
+  const stale = () => { if (sourceStatus && Date.now() - seen.at > 1000) { let changed = []; try { changed = sourceStatus(dir).changed; } catch { /* no source kept for this work */ } seen = { at: Date.now(), stale: changed }; } return seen.stale; };
   const live = () => ({ working: state.working.map((w) => w.label), held: state.held.map((h) => h.label), listening: waiters.size > 0, progress: state.progress, stale: stale() });
   const rev = () => { pages(); return crypto.createHash("sha256").update(cache.stamp).digest("hex").slice(0, 12); };
   const liveKey = liveKeyOf(token);
@@ -588,7 +828,7 @@ export function serve(dir, { port, idleMs = IDLE_MS, sliceMs = SLICE_MS } = {}) 
     waiters.delete(waiter);
     state.working = state.held.splice(0);
     state.progress = "";
-    waiter({ chosen: state.working.map((w) => w.command), notes: state.working.map((w) => w.note || "") });
+    waiter({ chosen: state.working.map((w) => w.command), notes: state.working.map((w) => w.note || ""), evidence: state.working.map((w) => w.evidence || "") });
     return true;
   };
   return new Promise((resolve, reject) => {
@@ -629,9 +869,11 @@ export function serve(dir, { port, idleMs = IDLE_MS, sliceMs = SLICE_MS } = {}) 
       if (req.method === "POST" && url.pathname === "/choose") return body((data) => {
         const book = pages();
         if (!Number.isInteger(data.page) || !book[data.page] || !Array.isArray(data.picks) || !data.picks.length || data.picks.length > 12) return send(400, "unknown choice");
-        const items = data.picks.map((pick) => { const command = commandFor(book[data.page], pick); if (!command) return null; const [kind, a, b = 0] = pick; const view = viewsOf(book[data.page])[a]; const label = kind === "s" ? optionsOf(book[data.page].steps[a])[b].label : kind === "m" ? String(book[data.page].menu[a].label ?? command) : `${kind === "a" ? (view.original ? "Keep" : "Apply") : "Revise"} ${view.name}`; return { command, label: label || command, note: kind === "r" ? cleanNote(data.note) : "", asks: kind === "r" }; });
+        const items = data.picks.map((pick) => { const command = commandFor(book[data.page], pick); if (!command) return null; const [kind, a, b = 0] = pick; const view = viewsOf(book[data.page])[a]; const label = kind === "s" ? optionsOf(book[data.page].steps[a])[b].label : kind === "m" ? String(book[data.page].menu[a].label ?? command) : `${kind === "a" ? (view.original ? "Keep" : "Apply") : "Revise"} ${view.name}`; return { command, label: label || command, note: kind === "r" ? cleanNote(data.note) : "", asks: kind === "r", claims: kind === "s" ? optionsOf(book[data.page].steps[a])[b].claims : [] }; });
         if (items.some((i) => i && i.asks && !i.note)) return send(400, "say what should change");
         if (items.some((i) => !i) || state.held.length + items.length > 24) return send(400, "unknown choice");
+        // A step that rests on claims goes with a packet of them, written now, from the page the person started it on.
+        try { for (const item of items) if (item.claims.length) item.evidence = writePacket(dir, book[data.page], item.claims, token); } catch { return send(500, "the evidence packet could not be written"); }
         state.held.push(...items);
         const delivered = handOver();
         json(200, { delivered, live: live() });
@@ -686,7 +928,7 @@ export async function wait(dir, { minutes = 30 } = {}) {
     if (!info) throw new Error("The page is not open. Run: open <name>");
     let out;
     try { out = await (await fetch(`${origin(info)}/wait?k=${info.token}`, { signal: AbortSignal.timeout(Math.max(1000, Math.min(SLICE_MS + 15_000, until - Date.now()))) })).json(); } catch { continue; }
-    if (out.chosen) return Object.assign(out.chosen, { notes: out.notes || [] });
+    if (out.chosen) return Object.assign(out.chosen, { notes: out.notes || [], evidence: out.evidence || [] });
     if (out.stopped) return null;
   }
   return null;
@@ -697,7 +939,7 @@ const readStdin = () => new Promise((resolve, reject) => { let text = ""; proces
 async function main(argv) {
   const [verb, name, ...rest] = argv.slice(2);
   const opt = (flag) => { const i = rest.indexOf(`--${flag}`); return i === -1 ? undefined : rest[i + 1]; };
-  const usage = "Usage: node worksheet.mjs open|add|wait|say|stop <name>   (add reads a page's JSON on standard input)";
+  const usage = "Usage: node worksheet.mjs open|add|wait|say|stop <name>   (add reads a page's JSON on standard input)\n       node worksheet.mjs packet <name> <page number> <claim id,...>";
   if (!verb || !name) { console.error(usage); process.exit(2); }
   const dir = bookDir(name);
   if (verb === "serve") { await serve(dir, { port: opt("port") ? Number(opt("port")) : undefined }); return; }
@@ -715,7 +957,13 @@ async function main(argv) {
   if (verb === "wait") {
     const chosen = await wait(dir, { minutes: Number(opt("minutes")) || 30 });
     if (chosen === null) { console.log("NO_CHOICE"); process.exit(3); }
-    chosen.forEach((command, i) => { console.log(`CHOSEN: ${command}`); if (chosen.notes?.[i]) console.log(`NOTE: ${chosen.notes[i]}`); });
+    chosen.forEach((command, i) => { console.log(`CHOSEN: ${command}`); if (chosen.notes?.[i]) console.log(`NOTE: ${chosen.notes[i]}`); if (chosen.evidence?.[i]) console.log(`EVIDENCE: ${chosen.evidence[i]}`); });
+    return;
+  }
+  if (verb === "packet") {
+    const [number, ids = ""] = rest, book = readBook(dir), page = book[Number(number) - 1];
+    if (!/^[1-9]\d*$/.test(String(number ?? "")) || !page) throw new Error(`There is no page ${number ?? ""}: this piece of work has ${book.length}. Give the number "add" printed after PAGE:.`);
+    console.log(`EVIDENCE: ${writePacket(dir, page, ids.split(",").map((s) => s.trim()).filter(Boolean), readJson(path.join(dir, "server.json"), {}).token)}`);
     return;
   }
   if (verb === "say") { const info = await running(dir); if (info) await post(info, "/say", { text: rest.filter((r) => !r.startsWith("--")).join(" ") }); return; }

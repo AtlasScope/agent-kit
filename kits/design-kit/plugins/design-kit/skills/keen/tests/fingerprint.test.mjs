@@ -1,9 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import path from "node:path";
-import { createRequire } from "node:module";
-import { execSync } from "node:child_process";
 import { oklch, judge, pageScript, defaultAccentHue } from "../scripts/fingerprint.mjs";
+import { browserSkip, launch } from "./browser.mjs";
 
 const near = (a, b, tol, msg) => assert.ok(Math.abs(a - b) <= tol, `${msg}: ${a} is not within ${tol} of ${b}`);
 
@@ -58,32 +56,7 @@ test("the page script is one expression that parses and carries its own maths", 
   for (const name of ["function oklch", "function judge", "function readPage", "STOCK_FONTS"]) assert.ok(script.includes(name), name);
 });
 
-// In a real browser, when Playwright is on this machine (MOTION_PLAYWRIGHT_DIR, NODE_PATH or the global
-// modules). KEEN_REQUIRE_BROWSER=1 (set in CI) turns a missing Playwright into a failure, and a browser
-// that will not launch always fails: a test that cannot look must never pass as if it had.
-function findPlaywright() {
-  let globalRoot = "";
-  try { globalRoot = execSync("npm root -g", { stdio: ["ignore", "pipe", "ignore"] }).toString().trim(); } catch { /* no npm */ }
-  const bases = [process.env.MOTION_PLAYWRIGHT_DIR, ...(process.env.NODE_PATH || "").split(path.delimiter), globalRoot, path.resolve(process.execPath, "../../lib/node_modules"), path.resolve(process.execPath, "../node_modules")].filter(Boolean);
-  for (const base of bases) for (const dir of [path.join(base, "node_modules", "playwright"), path.join(base, "playwright")]) {
-    try { return createRequire(path.join(dir, "package.json"))(dir); } catch { /* not here */ }
-  }
-  return null;
-}
-const pw = findPlaywright();
-const required = process.env.KEEN_REQUIRE_BROWSER === "1";
-const browserSkip = pw || required ? false : "Playwright is not available on this machine (set KEEN_REQUIRE_BROWSER=1 to make this a failure)";
-
-async function launch() {
-  assert.ok(pw, "KEEN_REQUIRE_BROWSER=1 but Playwright was not found");
-  // Playwright's own browser first, then an installed Chrome or Edge.
-  const errors = [];
-  for (const opts of [{}, { channel: "chrome" }, { channel: "msedge" }]) {
-    try { return await pw.chromium.launch(opts); } catch (e) { errors.push(`${opts.channel || "bundled"}: ${String(e.message).split("\n")[0]}`); }
-  }
-  assert.fail(`Playwright is installed but no browser launched:\n${errors.join("\n")}`);
-}
-
+// In a real browser (see browser.mjs for where Playwright comes from).
 const GENERIC_PAGE = `<!doctype html><html lang="en"><body style="margin:0;font-family:Inter,system-ui,sans-serif;background:#fff">
 <header style="text-align:center;padding:80px 20px"><h1 style="font-size:40px;background:linear-gradient(90deg,#6366f1,#8b5cf6);-webkit-background-clip:text;background-clip:text;color:transparent">Ship faster</h1>
 <p style="font-size:18px">The all-in-one platform for modern teams.</p>

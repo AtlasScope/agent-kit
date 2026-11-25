@@ -1,0 +1,136 @@
+// The shared evidence contract, atlasscope.evidence/v1. A bundle names a project at an exact revision, the
+// subjects it is about, the sources it read, what was observed, the claims those observations support, refute
+// or give context to, and next steps proposed on those claims. It is data: it never grants permission to
+// change code, data, configuration or infrastructure.
+//
+// This file has no imports and touches no files, network or processes. It is copied unchanged next to every
+// skill that publishes evidence (see scripts/sync-page.mjs in the Agent Kit repository), and the Keen page
+// runs the same code in the browser to build a packet.
+export const SCHEMA = "atlasscope.evidence/v1";
+export const MAX_BYTES = 2_000_000;
+export const SCOPES = ["repository-snapshot", "repository-history", "controlled-fixture", "synthetic-fixture", "runtime-observation", "database-snapshot"];
+const STATUS = ["observed", "supported", "contradicted", "open"];
+const REL = ["supports", "refutes", "context"];
+const KIND = ["file", "directory", "metric", "experiment", "relation"];
+const cleanObject = (v) => v !== null && typeof v === "object" && !Array.isArray(v) && [Object.prototype, null].includes(Object.getPrototypeOf(v));
+const assert = (x, m) => { if (!x) throw Error(m); };
+const str = (x, max = 2000) => typeof x === "string" && x.length > 0 && x.length <= max && !x.includes("\0");
+const id = (x) => typeof x === "string" && /^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,159}$/.test(x) && !["constructor", "prototype", "__proto__"].includes(x);
+const pathOk = (x) => str(x, 1000) && !x.startsWith("/") && !x.includes("\\") && !x.split("/").some((p) => p === ".." || p === ".") && !/^[a-zA-Z]:/.test(x);
+const ref = (x, map, label) => assert(map.has(x), `Unknown ${label}: ${String(x).slice(0, 100)}`);
+const distinct = (v, max = 5000) => Array.isArray(v) && v.length <= max && new Set(v).size === v.length;
+const exact = (v, keys) => cleanObject(v) && Object.keys(v).every((k) => keys.includes(k));
+const index = (rows, name, max) => {
+  assert(Array.isArray(rows) && rows.length <= max, `Invalid ${name}`);
+  const m = new Map();
+  for (const r of rows) { assert(cleanObject(r) && id(r.id) && !m.has(r.id), `Invalid or duplicate ${name} ID`); m.set(r.id, r); }
+  return m;
+};
+// A full commit hash, or "working-tree" for the uncommitted state of a checkout.
+const revisionOk = (x) => typeof x === "string" && (/^[a-f0-9]{40,64}$/.test(x) || x === "working-tree");
+// An ISO-8601 UTC time with seconds, such as 2026-11-25T10:04:05Z or 2026-11-25T10:04:05.123Z.
+const utcOk = (x) => typeof x === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,9})?Z$/.test(x) && !Number.isNaN(Date.parse(x)) && new Date(x).toISOString().slice(0, 19) === x.slice(0, 19);
+
+export function subjectKey(project, s) { return JSON.stringify([project.repository, project.revision, s.kind, s.key]); }
+
+export function validateBundle(b) {
+  assert(exact(b, ["schema", "id", "title", "project", "subjects", "sources", "observations", "claims", "decisions", "cases", "producer"]), "Invalid bundle shape");
+  assert(b.schema === SCHEMA && id(b.id) && str(b.title, 160), "Unsupported evidence contract");
+  assert(exact(b.project, ["repository", "revision"]) && str(b.project.repository, 200) && revisionOk(b.project.revision), "Repository snapshot required");
+  if ("producer" in b) assert(exact(b.producer, ["capability", "at"]) && id(b.producer.capability) && utcOk(b.producer.at), "Invalid producer: give capability (such as engineer) and at (an ISO-8601 UTC time)");
+  const bytes = new TextEncoder().encode(JSON.stringify(b)).length;
+  assert(bytes <= MAX_BYTES, "Bundle exceeds size limit");
+  const S = index(b.subjects, "subject", 2000), F = index(b.sources, "source", 100), O = index(b.observations, "observation", 5000), C = index(b.claims, "claim", 500), D = index(b.decisions, "decision", 100), K = index(b.cases, "case", 100);
+  const keys = new Set();
+  for (const s of S.values()) {
+    assert(exact(s, ["id", "kind", "key", "label"]) && KIND.includes(s.kind) && str(s.label, 200) && str(s.key, 1000), "Invalid subject");
+    if (["file", "directory"].includes(s.kind)) assert(pathOk(s.key) && s.key.endsWith("/") === (s.kind === "directory"), "Invalid repository path");
+    const k = subjectKey(b.project, s);
+    assert(!keys.has(k), "Duplicate subject identity");
+    keys.add(k);
+  }
+  for (const f of F.values()) assert(exact(f, ["id", "label", "scope", "artifact", "sha256", "method", "limits"]) && str(f.label, 200) && SCOPES.includes(f.scope) && pathOk(f.artifact) && /^[a-f0-9]{64}$/.test(f.sha256) && str(f.method, 4000) && str(f.limits, 4000), "Invalid evidence source");
+  for (const o of O.values()) {
+    assert(exact(o, ["id", "source", "locator", "subjects", "kind", "summary", "details"]) && str(o.locator, 1000) && str(o.kind, 100) && str(o.summary, 4000) && distinct(o.subjects, 100) && o.subjects.length > 0 && cleanObject(o.details), "Invalid observation");
+    ref(o.source, F, "source");
+    for (const s of o.subjects) ref(s, S, "subject");
+  }
+  for (const c of C.values()) {
+    assert(exact(c, ["id", "title", "statement", "scope", "status", "limits", "links", "subjects"]) && str(c.title, 180) && str(c.statement, 5000) && SCOPES.includes(c.scope) && STATUS.includes(c.status) && str(c.limits, 4000) && distinct(c.subjects, 100) && c.subjects.length > 0 && Array.isArray(c.links) && c.links.length <= 200, "Invalid claim");
+    for (const s of c.subjects) ref(s, S, "subject");
+    const seen = new Set();
+    for (const l of c.links) {
+      assert(exact(l, ["observation", "relation"]) && REL.includes(l.relation) && !seen.has(l.observation), "Invalid claim link");
+      seen.add(l.observation);
+      ref(l.observation, O, "observation");
+      if (l.relation !== "context") {
+        assert(F.get(O.get(l.observation).source).scope === c.scope, "Cross-scope evidence cannot support or refute a claim");
+        assert(O.get(l.observation).subjects.some((s) => c.subjects.includes(s)), "Supporting evidence must share a subject");
+      }
+    }
+    const supports = c.links.some((l) => l.relation === "supports"), refutes = c.links.some((l) => l.relation === "refutes");
+    if (c.status === "observed" || c.status === "supported") assert(supports && !refutes, "Supported claim needs support and no unresolved refutation");
+    if (c.status === "contradicted") assert(refutes && !supports, "Contradicted claim needs refutation and no unresolved support");
+    if (c.status === "open") assert((!supports && !refutes) || (supports && refutes), "Open claims may have context or unresolved conflicting evidence, not one-sided proof");
+  }
+  for (const d of D.values()) {
+    assert(exact(d, ["id", "title", "recommendation", "state", "claims", "verification"]) && str(d.title, 180) && str(d.recommendation, 4000) && d.state === "proposed" && distinct(d.claims, 100) && d.claims.length > 0 && str(d.verification, 4000), "Invalid proposed decision");
+    for (const c of d.claims) ref(c, C, "claim");
+  }
+  for (const k of K.values()) {
+    assert(exact(k, ["id", "title", "question", "summary", "subjects", "claims", "decisions"]) && str(k.title, 180) && str(k.question, 1000) && str(k.summary, 2000) && distinct(k.subjects, 100) && k.subjects.length > 0 && distinct(k.claims, 100) && distinct(k.decisions, 100), "Invalid investigation");
+    for (const s of k.subjects) ref(s, S, "subject");
+    for (const c of k.claims) ref(c, C, "claim");
+    for (const d of k.decisions) { ref(d, D, "decision"); assert(D.get(d).claims.every((x) => k.claims.includes(x)), "Case missing decision claim"); }
+  }
+  return b;
+}
+
+export function makeIndex(b) {
+  validateBundle(b);
+  const maps = Object.fromEntries(["subjects", "sources", "observations", "claims", "decisions", "cases"].map((k) => [k, new Map(b[k].map((x) => [x.id, x]))]));
+  const bySubject = new Map(b.subjects.map((s) => [s.id, []]));
+  for (const o of b.observations) for (const s of o.subjects) bySubject.get(s).push(o);
+  return { ...maps, bySubject, bundle: b };
+}
+
+export function inspectSubject(i, sid, { scope = "all", query = "" } = {}) {
+  ref(sid, i.subjects, "subject");
+  assert(scope === "all" || SCOPES.includes(scope), "Unknown scope");
+  const q = String(query).toLowerCase().trim();
+  return i.bySubject.get(sid).filter((o) => (scope === "all" || i.sources.get(o.source).scope === scope) && (!q || `${o.summary} ${o.kind} ${o.locator}`.toLowerCase().includes(q)));
+}
+
+export function searchSubjects(i, q = "") {
+  const text = String(q).trim().toLowerCase();
+  return i.bundle.subjects.filter((s) => !text || `${s.label} ${s.key}`.toLowerCase().includes(text)).sort((a, b) => a.label.localeCompare(b.label, "en"));
+}
+
+// Only the selected claims and what they rest on: their observations, those observations' sources, every
+// subject named, and a proposed decision only when all of its claims are selected. A packet is itself a valid
+// bundle, for review only: it is not authority to act.
+export function evidencePacket(b, claimIds) {
+  const i = makeIndex(b);
+  assert(distinct(claimIds, 500) && claimIds.length, "Select at least one claim");
+  for (const c of claimIds) ref(c, i.claims, "claim");
+  const selected = new Set(claimIds), claims = b.claims.filter((c) => selected.has(c.id));
+  const ids = new Set(claims.flatMap((c) => c.links.map((l) => l.observation)));
+  const observations = b.observations.filter((o) => ids.has(o.id)), sourceIds = new Set(observations.map((o) => o.source));
+  const subjectIds = new Set([...claims.flatMap((c) => c.subjects), ...observations.flatMap((o) => o.subjects)]);
+  const decisions = b.decisions.filter((d) => d.claims.every((c) => selected.has(c)));
+  const packet = { schema: SCHEMA, id: "review-packet", title: "Selected evidence · review only", project: b.project, ...(b.producer ? { producer: b.producer } : {}), subjects: b.subjects.filter((s) => subjectIds.has(s.id)), sources: b.sources.filter((s) => sourceIds.has(s.id)), observations, claims, decisions, cases: [] };
+  return validateBundle(packet);
+}
+
+// Exact identity only. A path at another revision is not the same subject, and nothing is merged.
+export function matchSubjects(a, b) {
+  validateBundle(a);
+  validateBundle(b);
+  const right = new Map(b.subjects.map((s) => [subjectKey(b.project, s), s.id]));
+  return a.subjects.flatMap((s) => { const other = right.get(subjectKey(a.project, s)); return other ? [{ left: s.id, right: other }] : []; });
+}
+
+export function parseBundle(text) {
+  assert(typeof text === "string" && new TextEncoder().encode(text).length <= MAX_BYTES, "Bundle exceeds size limit");
+  return validateBundle(JSON.parse(text));
+}
