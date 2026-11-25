@@ -26,19 +26,19 @@
 
 /* Install panel. Same anatomy as the prompt page's payload: flat surface, a bar with the label and the one Copy
    that sticks under the header, then the exact text. Not the .block primitive: its overflow would stop the sticky bar. */
-.ip { min-width: 0; border: 1px solid var(--c-line); border-radius: var(--radius-lg); background: var(--c-surface); }
-.ip-head { position: sticky; top: var(--header-h); z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4); border-bottom: 1px solid var(--c-line); border-radius: var(--radius-lg) var(--radius-lg) 0 0; background: var(--c-raised); }
+/* The install panel is the page's payload: the glass panel (primitives.css), as on /install. */
+.ip { min-width: 0; border: 0; border-radius: var(--radius-xl); background: var(--glass-bg); box-shadow: var(--glass-rim), var(--glass-shadow); }
+.ip-head { position: sticky; top: var(--header-h); z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4); border-bottom: 1px solid var(--c-line); border-radius: var(--radius-xl) var(--radius-xl) 0 0; background: var(--c-raised); box-shadow: inset 0 1px 0 oklch(100% 0 0 / .06); }
 .ip-title { margin: 0 auto 0 0; font: var(--weight-semibold) var(--type-sm)/1.3 var(--font-body); letter-spacing: -0.01em; color: var(--c-fg); }
 .ip-tabs { order: 3; flex: 1 0 100%; display: flex; gap: 2px; padding: 2px; border-radius: var(--radius-md); background: var(--c-fill); }
 .ip-tab { flex: 1 1 0; min-width: 0; min-height: var(--control-h-sm); padding: 0 var(--space-3); border: 0; border-radius: calc(var(--radius-md) - 2px); background: transparent; color: var(--c-fg-3); font: var(--weight-medium) var(--type-xs)/1.2 var(--font-body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
 .ip-tab[aria-selected="true"] { background: var(--c-surface); color: var(--c-fg); box-shadow: var(--shadow-1); }
 @media (hover: hover) and (pointer: fine) { .ip-tab:not([aria-selected="true"]):hover { color: var(--c-fg); } }
 .ip-copywrap { display: inline-flex; align-items: center; gap: var(--space-2); }
-.ip-copy { min-width: 7.5rem; min-height: var(--control-h-sm); border-color: transparent; background: var(--c-primary); color: var(--c-on-primary); font-weight: var(--weight-semibold); transition: background-color var(--dur-fast) var(--ease-out); }
+.ip-copy { min-width: 7.5rem; min-height: var(--control-h-sm); } /* the lit key: .btn--brand */
 .ip-copy .i { width: 16px; height: 16px; } /* 16px: the icon's drawn size */
 .ip-copy[data-copied] .i { display: none; }
-.ip-copy[data-copied]::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--c-signal-bright); } /* 7px: the .led size */
-@media (hover: hover) and (pointer: fine) { .ip-copy:hover { background: var(--c-primary-hover); } }
+.ip-copy[data-copied]::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--c-signal); } /* 7px: the .led size */
 .ip-key { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 5px; border: 1px solid var(--c-line-2); border-radius: var(--radius-xs); font: var(--weight-medium) var(--type-micro)/1 var(--font-mono); color: var(--c-fg-3); }
 @media (pointer: coarse) { .ip-key { display: none; } }
 .ip-key { visibility: hidden; }

@@ -21,13 +21,14 @@
 
 /* The payload panel. Flat with a hairline. Its head sticks under the site header so Copy stays in reach through
    a long prompt; that is why this is not the .block primitive, whose overflow: hidden would stop the head sticking. */
-.pd-payload { position: relative; border: 1px solid var(--c-line); border-radius: var(--radius-lg); background: var(--c-surface); min-width: 0; }
+/* The prompt is the page's payload: the glass panel (primitives.css), as on /install. */
+.pd-payload { position: relative; border: 0; border-radius: var(--radius-xl); background: var(--glass-bg); box-shadow: var(--glass-rim), var(--glass-shadow); min-width: 0; }
 .pd-payload__head {
   position: sticky; top: var(--header-h); z-index: 2;
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-4);
   padding: var(--space-2) var(--space-2) var(--space-2) var(--space-6);
-  border-bottom: 1px solid var(--c-line); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-line); border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  background: var(--c-raised); box-shadow: inset 0 1px 0 oklch(100% 0 0 / .06);
 }
 .pd-payload__meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-3); margin: 0; font-size: var(--type-xs); line-height: var(--lh-xs); color: var(--c-fg-3); font-variant-numeric: tabular-nums; }
 .pd-payload__label { font-weight: var(--weight-semibold); color: var(--c-fg); }
@@ -45,7 +46,6 @@
 .pd-copy { min-width: 9.5rem; justify-content: center; }
 .pd-copy[data-copied] .i, .pd-stepcopy[data-copied] .i { display: none; }
 .pd-copy[data-copied]::before, .pd-stepcopy[data-copied]::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--c-signal); } /* 7px: the .led primitive's size */
-.pd-copy[data-copied]::before { background: currentColor; }
 .pd-stepcopy { min-width: 5.5rem; justify-content: center; }
 
 .pd-key { display: none; min-width: 22px; padding: 0 var(--space-2); border: 1px solid var(--c-edge); border-radius: var(--radius-sm); font: var(--weight-regular) var(--type-micro)/20px var(--font-mono); text-align: center; color: var(--c-fg-3); } /* 22px / 20px: same box as the header search key */

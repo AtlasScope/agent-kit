@@ -28,7 +28,7 @@ export function Nav() {
         </Link>
         <NavLinks />
         <Search />
-        <div className="nav__end">{authEnabled() && <AuthNav />}<GitHubLink /><Link className="btn btn--sm btn--primary nav__install" href="/install">Install</Link></div>
+        <div className="nav__end">{authEnabled() && <AuthNav />}<GitHubLink /><Link className="btn btn--sm btn--brand nav__install" href="/install">Install</Link></div>
         <NavMenu />
       </div>
     </header>

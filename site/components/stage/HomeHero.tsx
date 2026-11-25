@@ -12,8 +12,7 @@ import { HERO, INSTALL_MESSAGE, SITE } from "@/lib/site";
 //
 // The words rise once on a full page load (the inline script marks it; React does not run the script on an in-site
 // navigation, where the stage's own arrival plays instead).
-// ?face=display sets the headline in Montserrat instead of Geist, for comparing the two; nothing links to it.
-const LOADED = `try{var e=document.currentScript.parentElement;if(/[?&]face=display\\b/.test(location.search))e.setAttribute("data-face","display");if(!matchMedia("(prefers-reduced-motion: reduce)").matches)e.setAttribute("data-load","")}catch(e){}`;
+const LOADED = `try{var e=document.currentScript.parentElement;if(!matchMedia("(prefers-reduced-motion: reduce)").matches)e.setAttribute("data-load","")}catch(e){}`;
 export const HANDOFF_EVENT = "agent-kit:handoff";
 // Arriving at the guide from Start here, a new visitor is offered a free account there (StartWelcome.tsx).
 const markStartHere = () => { try { sessionStorage.setItem("agent-kit:start-here", String(Date.now())); } catch {} };

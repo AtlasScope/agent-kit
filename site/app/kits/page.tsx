@@ -21,7 +21,7 @@ export default function Kits() {
           <h1>Kits</h1>
           <p className="lead ink2">Each kit is one plugin you install as a group. To take one skill by itself, <Link href="/skills">find it under Skills</Link>.</p>
           {/* The way to act on this page: every kit at once, from the install page. One kit installs from its own page. */}
-          <p className="page-act"><Link className="btn btn--solid" href="/install">Install all {KITS.length} kits</Link><span className="ink2">or open a kit to install just that one.</span></p>
+          <p className="page-act"><Link className="btn btn--brand" href="/install">Install all {KITS.length} kits</Link><span className="ink2">or open a kit to install just that one.</span></p>
         </div>
         <AgentSupport only="plugin" />
       </div>

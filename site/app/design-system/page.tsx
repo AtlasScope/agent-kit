@@ -81,6 +81,7 @@ export default function DesignSystem() {
       <section className="section" aria-labelledby="ds-controls">
         <h2 id="ds-controls">Controls</h2>
         <div className="ds-row">
+          <button className="btn btn--brand" type="button">Brand (one per page)</button>
           <button className="btn btn--primary" type="button">Primary</button>
           <button className="btn" type="button">Default</button>
           <button className="btn btn--ghost" type="button">Ghost</button>

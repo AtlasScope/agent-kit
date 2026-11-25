@@ -1,4 +1,5 @@
-/* Buttons. Hairline, 10px radius, medium weight. Primary is neutral: ink on light, white on dark . */
+/* Buttons. Hairline, 10px radius, medium weight. Primary is neutral: ink on light, white on dark. The one lit main
+   action of a page is .btn--brand, below. */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--control-h); padding: 0 var(--space-4);
   border: 1px solid var(--c-line-2); border-radius: var(--radius-md); background: var(--c-surface); color: var(--c-fg); box-shadow: var(--shadow-1);
   font: var(--weight-medium) .875rem/1 var(--font-body); letter-spacing: -0.005em; text-decoration: none; cursor: pointer; white-space: nowrap;
@@ -20,6 +21,27 @@
 @media (hover: hover) and (pointer: fine) { .btn--primary:hover, .btn--solid:hover { background: var(--c-primary-hover); border-color: transparent; } }
 @media (hover: hover) and (pointer: fine) { .btn--ghost:hover { background: var(--c-fill); border-color: transparent; } }
 @media (hover: hover) and (pointer: fine) { .btn--danger:hover { background: color-mix(in oklab, var(--c-danger), #000 10%); } }
+/* Brand: the homepage's Install object, small. A green pill with a lit satin finish: a narrow tonal range, a soft
+   bloom from above, a fine bright line under the top edge, a darker edge a pixel outside it and the light it casts.
+   One per page: the thing the page is for. Hover lifts the light; a press sinks it at once. No sheen or loop here. */
+.btn--brand { --lift: 0; border: 0; border-radius: var(--radius-pill); color: var(--c-on-brand); font-weight: var(--weight-semibold); letter-spacing: -0.01em;
+  background: radial-gradient(130% 110% at 50% -40%, oklch(100% 0 0 / calc(.16 + .06 * var(--lift))), transparent 64%),
+    linear-gradient(180deg, color-mix(in oklab, var(--c-brand), var(--c-brand-hi) 34%), color-mix(in oklab, var(--c-brand), var(--c-brand-lo) 30%));
+  box-shadow: inset 0 1px 0 oklch(100% 0 0 / .34), inset 0 -1px 0 oklch(28% .07 158 / .2), 0 0 0 1px var(--c-brand-edge),
+    0 8px 22px -12px color-mix(in oklab, var(--c-brand-glow) calc(48% + 20% * var(--lift)), transparent);
+  transition: box-shadow var(--dur-slow) var(--ease-out), filter var(--dur-slow) var(--ease-out), transform var(--dur-instant) var(--ease-out); }
+.btn--brand.btn--sm { padding-inline: var(--space-4); }
+.btn--brand .i { color: currentColor; }
+@media (hover: hover) and (pointer: fine) { .btn--brand:hover { --lift: 1; background-color: transparent; filter: brightness(1.04); } }
+.btn--brand:active { transition-duration: 70ms; filter: brightness(.97); }
+/* Copied: the key steps back to glass so the green dot or tick beside its words is the state, as on /install. */
+.btn--brand[data-copied] { filter: none; background: var(--c-fill-2); color: var(--c-fg); box-shadow: inset 0 0 0 1px var(--c-line-2); }
+/* A page with its own lit action keeps the header's Install quiet, so there is never more than one. */
+:root:has(main .btn--brand) .nav__install.btn--brand { --lift: 0; border: 1px solid var(--c-line-2); background: var(--c-fill); color: var(--c-fg); box-shadow: none; }
+@media (hover: hover) and (pointer: fine) { :root:has(main .btn--brand) .nav__install.btn--brand:hover { background: var(--c-fill-2); filter: none; } }
+/* Glass: the panel that holds what a page is for (a prompt, a command, a message), as on /install. A lit rim brighter
+   above than below, a deep soft shadow and a faint green underglow. One or two per page. */
+.glass { border: 0; border-radius: var(--radius-xl); background: var(--glass-bg); box-shadow: var(--glass-rim), var(--glass-shadow); }
 /* Copy. Stable width so the label change never moves the row; green only once the copy worked. */
 .copy { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex: 0 0 auto; min-width: 4.75rem; min-height: 32px; padding: 0 var(--space-3);
   border: 1px solid var(--c-line-2); border-radius: var(--radius-sm); background: var(--c-surface); color: var(--c-fg); font: var(--weight-medium) var(--type-xs)/1 var(--font-body); cursor: pointer;
@@ -59,9 +81,12 @@
 .tag--signal::before, .tag--warn::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--c-signal); }
 .tag--warn::before { background: var(--c-warm); }
 /* Code: a block with a labelled head and Copy, or a single command line. Payload text is shown exactly. */
-.block { position: relative; overflow: hidden; border: 1px solid var(--c-line); border-radius: var(--radius-lg); background: var(--c-surface); box-shadow: var(--shadow-1); }
+/* Code blocks take the glass finish without its glow, so a page of them stays calm; .glass on a block adds the glow
+   for the one that is the page's payload. */
+.block { position: relative; overflow: hidden; border: 0; border-radius: var(--radius-lg); background: var(--glass-bg); box-shadow: var(--glass-rim), var(--shadow-1); }
+.block.glass { border-radius: var(--radius-xl); box-shadow: var(--glass-rim), var(--glass-shadow); }
 .block__head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); min-height: 44px; padding: 6px 6px 6px var(--space-4);
-  border-bottom: 1px solid var(--c-line); background: var(--c-raised); color: var(--c-fg-3); font-size: var(--type-xs); font-weight: var(--weight-medium); }
+  border-bottom: 1px solid var(--c-line); background: var(--c-fill); color: var(--c-fg-3); font-size: var(--type-xs); font-weight: var(--weight-medium); }
 .block pre { margin: 0; padding: var(--space-4) var(--space-5); white-space: pre-wrap; overflow-wrap: anywhere; font: 400 var(--type-code)/var(--lh-code) var(--font-mono); color: var(--c-fg); tab-size: 2; }
 .cmdline { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-width: 0; padding: 6px 6px 6px var(--space-4);
   border: 1px solid var(--c-line); border-radius: var(--radius-md); background: var(--c-surface); font: 400 var(--type-xs)/1.5 var(--font-mono); }
@@ -139,8 +164,8 @@
 .fcopy { position: fixed; z-index: 20; top: calc(var(--header-h) + var(--space-2));
   right: max(var(--gutter), env(safe-area-inset-right), calc((100% - var(--container)) / 2 + var(--gutter)));
   display: flex; align-items: center; gap: var(--space-3); max-width: min(28rem, calc(100vw - 2 * var(--gutter)));
-  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-4); border: 1px solid var(--c-line); border-radius: var(--radius-lg);
-  background: var(--c-raised); box-shadow: var(--shadow-3); visibility: hidden; opacity: 0;
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-4); border: 0; border-radius: var(--radius-pill);
+  background: var(--c-raised); box-shadow: var(--glass-rim), var(--shadow-3); visibility: hidden; opacity: 0;
   transform: translateY(calc(-1 * var(--space-2) * var(--travel)));
   transition: opacity var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out), visibility 0s linear var(--dur-base); }
 .fcopy[data-on] { visibility: visible; opacity: 1; transform: none; transition-delay: 0s; }
@@ -150,7 +175,7 @@
 .fcopy__copy { flex: none; min-width: 6.5rem; }
 .fcopy__copy .i { width: 16px; height: 16px; }
 .fcopy__copy[data-copied] .i { display: none; }
-.fcopy__copy[data-copied]::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--c-signal-bright); }
+.fcopy__copy[data-copied]::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--c-signal); }
 @media (max-width: 40rem) {
   .fcopy { top: auto; left: 0; right: 0; bottom: 0; max-width: none; border-width: 1px 0 0; border-radius: 0;
     padding: var(--space-2) max(var(--gutter), env(safe-area-inset-right)) calc(var(--space-2) + env(safe-area-inset-bottom)) max(var(--gutter), env(safe-area-inset-left));
