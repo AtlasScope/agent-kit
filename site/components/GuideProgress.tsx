@@ -23,15 +23,17 @@ function useDone(store: string) {
 const Check = () => <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>;
 
 // "3 of 8 done" and a Continue link, shown beside a hub section's heading once the reader has started.
-export function GuideResume({ items, base, store }: { items: Item[]; base: string; store: string }) {
+// `lead` makes it the page's one lit action: it also shows before the reader has started, as a Start link to the
+// first item, and it is the satin pill. Only on a page with no other lit action.
+export function GuideResume({ items, base, store, lead }: { items: Item[]; base: string; store: string; lead?: boolean }) {
   const done = useDone(store);
   const next = items.find((s) => !done.includes(s.slug));
   const n = items.filter((s) => done.includes(s.slug)).length;
-  if (!n || !next) return null;
+  if (!next || (!n && !lead)) return null;
   return (
     <p className="guide-resume">
-      <span><i className="led is-on" aria-hidden="true" />{n} of {items.length} done</span>
-      <Link className="btn btn--sm" href={`${base}/${next.slug}`}>Continue: {next.title}</Link>
+      {n > 0 && <span><i className="led is-on" aria-hidden="true" />{n} of {items.length} done</span>}
+      <Link className={lead ? "btn btn--brand" : "btn btn--sm"} href={`${base}/${next.slug}`}>{n ? "Continue" : "Start"}: {next.title}</Link>
     </p>
   );
 }
