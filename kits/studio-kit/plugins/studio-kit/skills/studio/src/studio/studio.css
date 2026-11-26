@@ -475,3 +475,8 @@ details.fine[open]>.ctl:not(:last-child){border-bottom:0}
 }
 .pcol>.hacts{flex-wrap:nowrap}.pcol>.hacts .seg{min-width:0;flex:0 1 auto}@media (max-width:1240px){.pcol>.hacts .seg button{padding:5px 9px}}
 .chip .now{margin-left:8px}
+/* the tall preview spans the right-hand rows: any spare height goes to the choices, so the step bar, title and steps never move between steps */
+.work{grid-template-rows:auto auto auto 1fr}
+.work.wide,.work.reviewing{grid-template-rows:none}
+@media (max-width:899px){.work{grid-template-rows:none}}
+.head .hwhy{line-height:1.45;min-height:2.9em} /* one or two lines of explanation take the same room */

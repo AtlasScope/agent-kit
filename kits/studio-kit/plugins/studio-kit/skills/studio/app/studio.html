@@ -485,6 +485,11 @@ details.fine[open]>.ctl:not(:last-child){border-bottom:0}
 }
 .pcol>.hacts{flex-wrap:nowrap}.pcol>.hacts .seg{min-width:0;flex:0 1 auto}@media (max-width:1240px){.pcol>.hacts .seg button{padding:5px 9px}}
 .chip .now{margin-left:8px}
+/* the tall preview spans the right-hand rows: any spare height goes to the choices, so the step bar, title and steps never move between steps */
+.work{grid-template-rows:auto auto auto 1fr}
+.work.wide,.work.reviewing{grid-template-rows:none}
+@media (max-width:899px){.work{grid-template-rows:none}}
+.head .hwhy{line-height:1.45;min-height:2.9em} /* one or two lines of explanation take the same room */
 
 /* ===== the example page ("In a page"). Every colour and type value is a custom property a studio may set; see scene.js ===== */
 .scene{--sc-bg:transparent;--sc-surface:rgba(255,255,255,.055);--sc-line:rgba(255,255,255,.12);--sc-control:rgba(255,255,255,.3);--sc-fg:#f3f5f4;--sc-fg2:#b4bdba;--sc-fg3:#8b9592;--sc-accent:#8ab4ff;--sc-fill:#f3f5f4;--sc-on-fill:#0b0e0d;--sc-ok:#4ade80;--sc-warn:#f5b94a;--sc-bad:#f87171;
