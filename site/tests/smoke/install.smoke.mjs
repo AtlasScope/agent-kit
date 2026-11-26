@@ -38,9 +38,9 @@ for (const size of SIZES) {
     const { page, ctx, errors } = await open(size, "/install");
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth) <= 1, "no sideways scroll");
     assert.equal(await page.locator("h1").count(), 1);
-    // The message is copied, never shown: only a blocked copy puts it on screen.
+    // The message is copied, not shown: it stays folded under See the message, and only a blocked copy opens it.
     assert.equal(await page.locator(".inst__say").count(), 0);
-    assert.equal(await page.getByText(INSTALL_MESSAGE).count(), 0);
+    assert.equal(await page.getByText(INSTALL_MESSAGE).isVisible(), false);
     // Nothing claims a copy before one happens.
     assert.equal(await page.locator(".inst__note").count(), 0);
     await page.getByRole("button", { name: "Copy the message" }).click();
@@ -48,7 +48,7 @@ for (const size of SIZES) {
     await page.locator(".inst__note", { hasText: "Message copied" }).waitFor();
     assert.equal((await page.locator(".inst__done .inst__big").innerText()).trim(), "Copied");
     assert.equal(await page.locator(".inst__agent").count(), 3, "Claude Code, Codex and Cursor can be opened");
-    assert.equal(await page.getByText(INSTALL_MESSAGE).count(), 0, "still not shown after copying");
+    assert.equal(await page.getByText(INSTALL_MESSAGE).isVisible(), false, "still folded after copying");
 
     // The by-hand commands start closed and open on the summary.
     assert.equal(await page.getByRole("tab", { name: "Codex" }).isVisible(), false);
@@ -100,7 +100,7 @@ for (const size of SIZES) {
     await page.getByRole("tab", { name: "Claude Code" }).waitFor();
     // And a same-page link while the address already ends in #manual.
     await page.locator(".inst__manual > summary").click();
-    await page.evaluate(() => { const l = document.createElement("a"); l.href = "#manual"; l.id = "to-manual"; l.textContent = "commands"; document.querySelector(".inst__more")?.append(l); });
+    await page.evaluate(() => { const l = document.createElement("a"); l.href = "#manual"; l.id = "to-manual"; l.textContent = "commands"; document.querySelector(".inst__find")?.append(l); });
     await page.locator("#to-manual").click();
     await page.getByRole("tab", { name: "Claude Code" }).waitFor();
     assert.deepEqual(errors, []);

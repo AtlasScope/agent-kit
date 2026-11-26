@@ -2,17 +2,19 @@
 import Link from "next/link";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { INSTALL_MESSAGE, type Agent } from "@/lib/site";
+import { OFFER_KEY } from "@/lib/auth-hint";
 import { AccountOffer, Ext } from "./AccountOffer";
 import { AgentMark } from "./AgentMark";
 import { HANDOFF_EVENT } from "./stage/HomeHero";
 import { AGENT_KEY, COPIED_KEY, FALLBACK, FRESH_MS, OPEN_URL, OS_SCRIPT, SHOWN, commandFor, lastAgent, markOS, readHandoff } from "./install-choice";
 
-// The install page. One message to paste into any agent's chat (INSTALL_MESSAGE) is the centrepiece: the agent reads
-// the steps for itself, so nobody picks a tool or opens a terminal. The message itself is never on show: the panel
-// says Copied and offers to open an agent and, under it, to a visitor with no account, a reason to make one (AccountOffer). Only when
-// the browser blocks copying does the message appear, selected, to copy by hand. Under the panel one status line says
-// what actually happened (copied, or blocked). Everything else waits behind two closed
-// rows: the per-agent commands ("Or run it yourself") and what gets installed, kit by kit.
+// The install page: one onboarding column. One message to paste into any agent's chat (INSTALL_MESSAGE) is the
+// centrepiece: the agent reads the steps for itself, so nobody picks a tool or opens a terminal. The panel says Copied
+// and offers to open an agent; the message stays folded under "See the message", and opens selected only when the
+// browser blocks copying. Under the panel one status line says what actually happened (copied, or blocked) and never
+// that anything is installed. Then, to a visitor with no account, the reason to make one (AccountOffer); then real
+// things to ask the agent once the kits are in, and the library's search. The per-agent commands ("Or run it
+// yourself") and what gets installed, kit by kit, wait behind two closed rows.
 //
 // It shares the homepage's view from orbit (components/stage/Stage.tsx), seen from further away, and that stage plays
 // the arrival from the homepage's Install button. By then the message is on the clipboard (readHandoff,
@@ -24,7 +26,7 @@ import { AGENT_KEY, COPIED_KEY, FALLBACK, FRESH_MS, OPEN_URL, OS_SCRIPT, SHOWN, 
 // before paint, every agent's command, test note and next step are in the page, and CSS shows the marked one.
 // It also marks a full page load (data-load): only then does it run, since React doesn't run inline scripts it inserts on
 // an in-site navigation. The homepage arrival's settle plays only without it, so a reload never blanks the column.
-const AGENT_SCRIPT = `document.currentScript.parentElement.setAttribute("data-load","");try{var h=JSON.parse(sessionStorage.getItem("${COPIED_KEY}")||"null");if(h&&h.message&&Date.now()-h.at<${FRESH_MS})document.currentScript.parentElement.setAttribute("data-got","")}catch(e){}try{var a=(localStorage.getItem("${AGENT_KEY}")||"").replace(/^t-/,"");if(/^(${SHOWN.map((a) => a.id).join("|")})$/.test(a))document.currentScript.parentElement.setAttribute("data-agent",a)}catch(e){}`;
+const AGENT_SCRIPT = `document.currentScript.parentElement.setAttribute("data-load","");try{var h=JSON.parse(sessionStorage.getItem("${COPIED_KEY}")||"null");if(h&&h.message&&Date.now()-h.at<${FRESH_MS})document.currentScript.parentElement.setAttribute("data-got","")}catch(e){}try{var a=(localStorage.getItem("${AGENT_KEY}")||"").replace(/^t-/,"");if(/^(${SHOWN.map((a) => a.id).join("|")})$/.test(a))document.currentScript.parentElement.setAttribute("data-agent",a)}catch(e){}try{if(sessionStorage.getItem("${OFFER_KEY}")==="later")document.currentScript.parentElement.setAttribute("data-no-offer","")}catch(e){}`;
 // How long a "copied" note lasts. After that the page stops claiming anything about the clipboard.
 const NOTE_MS = 6000;
 // How long the panel keeps saying Copied: long enough to switch to an agent and back, short enough that a tab left open
@@ -63,14 +65,23 @@ const selectText = (el: Element | null) => {
   try { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s?.removeAllRanges(); s?.addRange(r); } catch {}
 };
 
-export function InstallPage({ kits, skills, prompts, picks, kitLines, account, children }: { kits: number; skills: number; prompts: number; picks: string[]; kitLines: KitLine[]; account: boolean; children: React.ReactNode }) {
+// One real request per kit for "Then ask your agent": the kit, the command it starts with (KIT_GUIDE) and something
+// to say after it.
+const STARTERS = [
+  { kit: "design-kit", ask: "make the pricing page feel finished" },
+  { kit: "engineering-kit", ask: "find out why checkout fails in Safari" },
+  { kit: "working-style", type: "/recommend", ask: "Postgres or SQLite for this app?" },
+];
+
+export function InstallPage({ kits, skills, prompts, kitLines, account, children }: { kits: number; skills: number; prompts: number; kitLines: KitLine[]; account: boolean; children: React.ReactNode }) {
+  const starters = STARTERS.map((t) => { const k = kitLines.find((x) => x.name === t.kit)!; return { ...t, type: t.type ?? k.type[0], skills: k.skills }; });
   const [agent, setAgent] = useState<Agent>(SHOWN[0]);
   // The by-hand command's copied state, and the message's, each with its own button.
   const [copied, setCopied] = useState(false);
   const [said1, setSaid1] = useState(false);
   // The browser refused to copy: the message shows, selected, to copy by hand. It is shown at no other time.
   const [blocked, setBlocked] = useState(false);
-  // A copy has succeeded on this visit. Unlike said1 it doesn't lapse, so the account offer under the panel stays put.
+  // A copy has succeeded on this visit. Unlike said1 it doesn't lapse, so the line under the panel stays put.
   const [everCopied, setEverCopied] = useState(false);
   useEffect(() => { if (said1) setEverCopied(true); }, [said1]);
   // Once an agent's command has been copied this visit, its light stays softly lit (it never says the clipboard
@@ -163,12 +174,14 @@ export function InstallPage({ kits, skills, prompts, picks, kitLines, account, c
           <h1 ref={h1} tabIndex={-1}>Install Agent Kit</h1>
           <p className="inst__lede">Paste one message into your agent. It installs {kits} kits and {skills} skills.</p>
 
-          {/* The panel the homepage's Install button travels to. It never shows the message. Arriving from the homepage
-              the message is already copied, so the panel opens on Copied (data-got marks it before the first paint, so
-              nothing flashes from one state to the other) and offers to open an agent. Visited directly, it is only
-              the Copy key until Copy is pressed. A copy that truly succeeded runs one light round the rim and swells a
-              bloom under it (both remounted per copy). Screen readers hear the same through the status below. If the
-              browser blocked copying, the message shows here, selected, and Copy tries again. */}
+          {/* The panel the homepage's Install button travels to, finished like a short chat: what happened, the one
+              next step, and where to go. Arriving from the homepage the message is already copied, so it opens on
+              Copied (data-got marks it before the first paint, so nothing flashes from one state to the other) and
+              offers to open an agent. Visited directly, it is the Copy key until Copy is pressed. The message itself
+              stays folded under "See the message" (it is a long line nobody needs to read to use it); if the browser
+              blocked copying, it shows open and selected, and Copy tries again. A copy that truly succeeded runs one
+              light round the rim and swells a bloom under it (both remounted per copy). Screen readers hear the same
+              through the status below. */}
           <section className={`inst__msg${said1 ? " is-copied" : ""}`} data-blocked={blocked || undefined} aria-labelledby="inst-msg-h">
             <span className="inst__rim" aria-hidden="true" />
             {trace > 0 && <><span className="inst__trace" key={`t${trace}`} aria-hidden="true" /><span className="inst__bloom" key={`b${trace}`} aria-hidden="true" /></>}
@@ -176,8 +189,12 @@ export function InstallPage({ kits, skills, prompts, picks, kitLines, account, c
             {blocked && <pre className="inst__say" ref={msg}>{INSTALL_MESSAGE}</pre>}
             <div className="inst__done">
               <div className="inst__got">
-                <p className="inst__big"><span className="inst__tick"><Check /></span>Copied</p>
-                <p className="inst__sub">Paste it into your agent<Keys /> and press return.</p>
+                <span className="inst__tick"><Check /></span>
+                <div className="inst__gotsay">
+                  <p className="inst__big">Copied</p>
+                  <p className="inst__sub">Paste it into your agent<Keys /> and press Return.</p>
+                </div>
+                <button type="button" className="inst__again inst__again--top" onClick={copyMessage} aria-label="Copied. Copy the message again"><CopyIcon />Copy again</button>
               </div>
               <div className="inst__open">
                 <span className="inst__label">Open your agent</span>
@@ -187,18 +204,24 @@ export function InstallPage({ kits, skills, prompts, picks, kitLines, account, c
                       <AgentMark id={a.id} /><span>{a.label}</span><Ext />
                     </a>
                   ))}
-                  <button type="button" className="inst__again" onClick={copyMessage} aria-label="Copied. Copy the message again">Copy again</button>
                 </div>
               </div>
             </div>
             <div className="inst__bar inst__idle">
-              <span className="inst__label" aria-hidden="true"><i className="led" />{blocked ? "Copy it yourself" : "Ready to copy"}</span>
+              <span className="inst__label" aria-hidden="true"><i className="led" />{blocked ? "Copy it yourself" : "One message installs everything"}</span>
               <button type="button" className="inst__copy inst__copy--main" onClick={copyMessage} aria-label="Copy the message"><CopyIcon />{blocked ? "Copy" : "Copy install message"}</button>
             </div>
+            {!blocked && (
+              <details className="inst__peek">
+                <summary><Chevron /><span>See the message</span></summary>
+                <p className="inst__peekmsg" translate="no">{INSTALL_MESSAGE}</p>
+              </details>
+            )}
           </section>
 
-          {/* The status: a success is said inside the composer, so here it is only announced; a blocked copy needs
-              the visitor to act, so it shows in place of the idle line (one grid cell, so nothing below moves). */}
+          {/* The status: a success is said inside the panel, so here it is only announced; a blocked copy needs the
+              visitor to act, so it shows in place of the line under the panel (one grid cell, so nothing below moves).
+              That line never says the kits are installed: copying is all this page has done. */}
           <div className="inst__stat">
           <div className="inst__status" role="status">
             {msgNote && (
@@ -209,11 +232,41 @@ export function InstallPage({ kits, skills, prompts, picks, kitLines, account, c
               </p>
             )}
           </div>
-          <p className="inst__how" aria-hidden={msgNote?.kind === "blocked" ? true : undefined}>Works in Claude Code, Codex, Cursor and other coding agents.</p>
+          <p className="inst__how" aria-hidden={msgNote?.kind === "blocked" ? true : undefined}>{everCopied
+            ? "Nothing is installed until your agent runs it. It tells you what it added."
+            : "Works in Claude Code, Codex, Cursor and other coding agents."}</p>
           </div>
-          {/* Not now takes the offer away; focus moves on to the next thing on the page rather than to the top. */}
-          {account && <AccountOffer copied={everCopied} prompts={prompts} picks={picks} onDone={() => root.current?.querySelector<HTMLElement>(".inst__manual > summary")?.focus({ preventScroll: true })} />}
           <p className="inst__phone">Agent Kit installs on a computer. Send yourself this page, or paste the message into your agent there.</p>
+          {/* Not now takes the offer away; focus moves on to the next thing on the page rather than to the top. */}
+          {account && <AccountOffer prompts={prompts} skills={skills} onDone={() => root.current?.querySelector<HTMLElement>(".inst__try h2")?.focus({ preventScroll: true })} />}
+
+          {/* What to do once it is in: one real request per kit, typed the way the agent starts it, each leading to its
+              kit page; then the library itself. */}
+          <section className="inst__try" aria-labelledby="inst-try-h">
+            <div className="inst__tryhead">
+              <h2 id="inst-try-h" tabIndex={-1}>Then ask your agent</h2>
+              <p>In a new session, start with a kit’s command and say what you want. In Codex, type $ for /.</p>
+            </div>
+            <ul className="inst__cards">
+              {starters.map((t) => (
+                <li key={t.kit}>
+                  <Link href={`/kits/${t.kit}`} className="inst__card">
+                    <span className="inst__ask"><code translate="no">{t.type}</code> {t.ask}</span>
+                    <span className="inst__cardfoot"><span>{t.kit}</span><span>{t.skills} skills</span></span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <div className="inst__find">
+              <button type="button" className="inst__search" onClick={() => dispatchEvent(new Event("agent-kit:search"))}>
+                <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>
+                <span>Search {prompts} prompts and {skills} skills</span>
+                <kbd aria-hidden="true">/</kbd>
+              </button>
+              <Link href="/fix">Fix a problem</Link>
+              <Link href="/start">New to coding agents?</Link>
+            </div>
+          </section>
 
           <details className="inst__manual" id="manual" open={open} onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}>
             <summary>
@@ -298,12 +351,6 @@ export function InstallPage({ kits, skills, prompts, picks, kitLines, account, c
             </div>
           </details>
 
-          <nav className="inst__more" aria-label="After installing">
-            <Link href="/start">New to coding agents?</Link>
-            <Link href="/kits">Kits</Link>
-            <Link href="/prompts">Prompts</Link>
-            <Link href="/skills">Skills</Link>
-          </nav>
         </div>
       </div>
 

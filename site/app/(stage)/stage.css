@@ -47,57 +47,65 @@
 /* Small words over the picture carry a soft dark halo of their own, so they read wherever cloud passes behind them
    without darkening the planet. */
 .hero { --halo: 0 0 1px oklch(0% 0 0 / .5), 0 1px 10px oklch(0% 0 0 / .85), 0 0 22px oklch(0% 0 0 / .6); }
-.hero__note { margin: 0; font-size: .8125rem; line-height: 1.4; letter-spacing: -0.003em; color: oklch(100% 0 0 / .66); text-shadow: var(--halo); }
-.hero__new { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: 4px; min-height: var(--tap); margin-top: clamp(6px, 1.4svh, 14px); color: #fff; text-shadow: var(--halo);
-  font-size: .9375rem; letter-spacing: -0.006em; text-decoration: none; transition: color var(--dur-fast) var(--ease-out); }
-/* On a short phone the planet's edge can pass behind the link: a small pool of shade of its own keeps it readable. */
-.hero__new::before { content: ""; position: absolute; z-index: -1; inset: -4px -28px; pointer-events: none;
-  background: radial-gradient(50% 50% at 50% 50%, oklch(0% 0 0 / .6), oklch(0% 0 0 / 0)); }
-.hero__new svg { width: 15px; height: 15px; transition: transform var(--dur-slow) var(--ease-out); }
+/* "New to coding agents?" leads the foot row: the same small type, a touch brighter, with its arrow. */
+.hero__new a { gap: 3px; color: #fff; }
+.hero__new svg { width: 13px; height: 13px; transition: transform var(--dur-slow) var(--ease-out); }
 .hero__foot { position: relative; isolation: isolate; display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 20px; margin: 0; padding: 0 0 14px; list-style: none; font-size: .8125rem; letter-spacing: 0; }
 /* A soft pool of shade only behind the row of links, not a band across the picture. */
 .hero__foot::before { content: ""; position: absolute; z-index: -1; inset: -18px -48px 0; pointer-events: none;
   background: radial-gradient(50% 60% at 50% 60%, oklch(0% 0 0 / .68), oklch(0% 0 0 / 0) 100%); }
 .hero__foot a { display: inline-flex; align-items: center; min-height: 32px; color: oklch(100% 0 0 / .9); text-shadow: var(--halo); text-decoration: none; transition: color var(--dur-fast) var(--ease-out); }
-@media (hover: hover) and (pointer: fine) { .hero__foot a:hover { color: #fff; } .hero__new:hover { text-decoration: underline; text-decoration-color: oklch(100% 0 0 / .4); text-underline-offset: .25em; } .hero__new:hover svg { transform: translateX(3px); } }
+@media (hover: hover) and (pointer: fine) { .hero__foot a:hover { color: #fff; } .hero__new a:hover svg { transform: translateX(2px); } }
 @media (pointer: coarse) { .hero__foot { gap: 0 8px; } .hero__foot a { min-height: var(--tap); padding-inline: 6px; } }
 
 /* ---- Install Agent Kit: the signature object. ----
    A neon tile over the planet: 84px tall, soft corners, cyan type. Its edge is a thin ring of green, white and blue
    light that turns slowly and swells and fades, one soft cyan light drifts inside it, and the copy icon bounces.
-   Hover turns it white (ink on white), a press sinks it, and keyboard focus glows. Pressing it carries the page to
-   the install page (Stage.tsx), where the message is already copied. The cyan is one wide-gamut colour (--ac), as
-   vivid as a Mac screen shows; other screens clip it to their nearest. Reduced motion keeps every state and stops
-   every loop, and the ring holds still. */
+   Every light inside the tile lives in .launch__fx, which is clipped to the tile's own rounded shape with clip-path
+   (overflow: hidden is not enough: Safari leaves blurred, animated layers unclipped and showed a cyan rectangle past
+   the corners). The glow outside is box-shadow, which follows the radius in every browser.
+   Hover charges it: the ring and the glow brighten, the glass fills with cyan, and a white-cyan light gathers under
+   the pointer (--mx, --my, set by HomeHero). A press flares and sinks it, and keyboard focus glows. Pressing it
+   carries the page to the install page (Stage.tsx), where the message is already copied. The cyan is one wide-gamut
+   colour (--ac), as vivid as a Mac screen shows; other screens clip it to their nearest. Reduced motion keeps every
+   state and stops every loop, and the ring holds still. */
 /* The lit green of the install page's key (install.css) and open-agent link. */
 .stage { --satin-1: color-mix(in oklab, var(--c-brand), var(--c-brand-hi) 34%); --satin-2: color-mix(in oklab, var(--c-brand), var(--c-brand-lo) 30%); }
 @property --ring { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
-.launch__go { --ac: oklch(82% .3 212); --ach: oklch(92% .3 212); --press: 0; position: relative; isolation: isolate; display: inline-flex; align-items: center; justify-content: center;
-  min-height: 84px; padding: 0 44px; border-radius: 18px; overflow: hidden; cursor: pointer;
-  color: var(--ach); font: 700 1.25rem/1 var(--font-body); letter-spacing: -0.01em; text-decoration: none; white-space: nowrap; text-shadow: 0 0 10px var(--ac);
-  background: color-mix(in oklch, var(--ac) 6%, transparent);
-  box-shadow: 0 0 13.5px -2px var(--ac), inset 0 0 14px -6px var(--ac);
-  transform: scale(calc(1 - .05 * var(--press)));
-  transition: transform 260ms var(--ease-out), box-shadow 260ms var(--ease-out), background-color 260ms var(--ease-out), color 260ms var(--ease-out);
+@property --charge { syntax: "<number>"; inherits: true; initial-value: 0; }
+.launch__go { --ac: oklch(82% .3 212); --ach: oklch(92% .3 212); --r: 18px; --press: 0; --charge: 0; --mx: 50%; --my: 50%;
+  position: relative; isolation: isolate; display: inline-flex; align-items: center; justify-content: center;
+  min-height: 84px; padding: 0 44px; border-radius: var(--r); cursor: pointer;
+  color: color-mix(in oklch, var(--ach), #fff calc(var(--charge) * 85%)); font: 700 1.25rem/1 var(--font-body); letter-spacing: -0.01em; text-decoration: none; white-space: nowrap;
+  text-shadow: 0 0 calc(10px + 4px * var(--charge)) var(--ac), 0 0 calc(2px * var(--charge)) var(--ach), 0 1px calc(6px * var(--charge)) oklch(20% .08 220 / calc(.6 * var(--charge)));
+  background: color-mix(in oklch, var(--ac) calc(6% + 5% * var(--charge)), transparent);
+  box-shadow: 0 0 calc(13.5px + 12px * var(--charge)) -2px var(--ac), 0 0 calc(56px * var(--charge)) calc(-14px + 4px * var(--charge)) var(--ac), inset 0 0 calc(14px + 10px * var(--charge)) -6px var(--ac);
+  transform: translateY(calc(-1px * var(--charge))) scale(calc(1 - .05 * var(--press)));
+  transition: --charge 420ms var(--ease-out), transform 260ms var(--ease-out);
   -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-/* The edge: green, white and blue in one ring that turns, breathing in and out. */
+/* The edge: green, white and blue in one ring that turns, breathing in and out. Charged, it burns brighter. */
 .launch__go::before { content: ""; position: absolute; inset: 0; z-index: 1; border-radius: inherit; padding: 2.5px; pointer-events: none;
   background: conic-gradient(from var(--ring), oklch(84% .24 150), #fff, oklch(70% .2 250), oklch(84% .24 150), #fff, oklch(70% .2 250), oklch(84% .24 150));
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  animation: go-ring 7s linear infinite, go-breathe 3.6s ease-in-out infinite; transition: opacity 260ms var(--ease-out); }
-/* One soft cyan light circling inside, and a line of light that breathes along the top edge. */
-.launch__go::after { content: ""; position: absolute; top: 0; left: 0; z-index: -1; width: 55%; height: 120%; border-radius: 50%; background: var(--ac); filter: blur(14px); opacity: .28; pointer-events: none;
-  animation: go-caustic 5s linear infinite; transition: opacity 260ms var(--ease-out); }
-.launch__fx { position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; box-shadow: inset 0 1.5px 0 var(--ach); animation: go-edge 3.6s ease-in-out infinite; transition: opacity 260ms var(--ease-out); }
+  filter: brightness(calc(1 + .12 * var(--charge))) saturate(calc(1 + .35 * var(--charge)));
+  animation: go-ring 7s linear infinite, go-breathe 3.6s ease-in-out infinite; }
+/* The inside of the tile, clipped exactly to its shape: the drifting cyan light, a line of light breathing along the
+   top edge, and the light that gathers under the pointer when charged. */
+.launch__fx { position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; overflow: hidden;
+  clip-path: inset(0 round var(--r)); -webkit-clip-path: inset(0 round var(--r));
+  box-shadow: inset 0 1.5px 0 var(--ach); animation: go-edge 3.6s ease-in-out infinite; }
+.launch__fx::before { content: ""; position: absolute; top: 0; left: 0; width: 55%; height: 120%; border-radius: 50%; background: var(--ac); filter: blur(14px);
+  opacity: calc(.28 + .14 * var(--charge)); animation: go-caustic 5s linear infinite; }
+.launch__fx::after { content: ""; position: absolute; inset: 0; opacity: var(--charge);
+  background: radial-gradient(90px 64px at var(--mx) var(--my), oklch(100% 0 0 / .28), color-mix(in oklch, var(--ach) 30%, transparent) 40%, transparent 75%),
+    radial-gradient(120% 70% at 50% 0%, color-mix(in oklch, var(--ach) 26%, transparent), transparent 60%),
+    radial-gradient(90% 60% at 50% 110%, color-mix(in oklch, oklch(70% .2 250) 30%, transparent), transparent 70%); }
 .launch__label { position: relative; display: inline-flex; align-items: center; gap: .5em; }
-.launch__go .i { width: 1.15em; height: 1.15em; flex: none; animation: go-bounce 1.8s ease-in-out infinite; }
-.launch__go:focus-visible { outline: none; box-shadow: 0 0 0 3px #000, 0 0 0 5px var(--ach), 0 0 24px var(--ac); }
-@media (hover: hover) and (pointer: fine) {
-  .launch__go:hover { background-color: #fff; color: #0b0e0d; text-shadow: none; box-shadow: 0 0 18px -2px oklch(100% 0 0 / .5); }
-  .launch__go:hover::before, .launch__go:hover::after, .launch__go:hover .launch__fx { opacity: 0; }
-}
-/* The press answers on the frame it happens, with no easing in. */
-.launch__go:active { --press: 1; transition-duration: 70ms; }
+.launch__go .i { width: 1.15em; height: 1.15em; flex: none; animation: go-bounce 1.8s ease-in-out infinite; filter: drop-shadow(0 0 calc(6px * var(--charge)) var(--ac)); }
+.launch__go:focus-visible { --charge: .6; outline: none; box-shadow: 0 0 0 3px #000, 0 0 0 5px var(--ach), 0 0 28px var(--ac), inset 0 0 20px -6px var(--ac); }
+@media (hover: hover) and (pointer: fine) { .launch__go:hover { --charge: 1; } }
+/* The press answers on the frame it happens, with no easing in: the charge flares and the tile sinks. */
+.launch__go:active { --press: 1; --charge: 1.25; transition-duration: 70ms; }
 @keyframes go-ring { to { --ring: 360deg; } }
 @keyframes go-breathe { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
 @keyframes go-caustic { 0% { transform: translate(-10%, -20%); } 25% { transform: translate(120%, -20%); } 50% { transform: translate(120%, 20%); } 75% { transform: translate(-10%, 20%); } 100% { transform: translate(-10%, -20%); } }
@@ -111,16 +119,15 @@
   .hero h1 { font-size: clamp(2.125rem, 9.6vw, 3rem); line-height: 1.06; max-width: 10.5em; }
   .hero__lede { font-size: 1.0625rem; max-width: 20em; }
   .hero__cta { width: 100%; max-width: 21rem; }
-  .launch__go { width: 100%; min-height: 72px; padding-inline: 24px; font-size: 1.125rem; }
+  .launch__go { --r: 16px; width: 100%; min-height: 72px; padding-inline: 24px; font-size: 1.125rem; }
 }
-@media (max-height: 560px) { .hero__msg { padding-block: 2svh 8px; } .hero h1 { font-size: clamp(1.75rem, 8.4svh, 2.75rem); } .hero__lede { margin-top: 10px; } .hero__cta { margin-top: 16px; gap: 8px; } .hero__new { margin-top: 0; } .hero__foot { padding-bottom: max(2px, env(safe-area-inset-bottom)); } }
-@media (min-width: 1800px) and (min-height: 1000px) { .hero__msg { max-width: 56rem; } .hero h1 { font-size: 5rem; } .hero__lede { font-size: 1.375rem; } .hero__note, .hero__foot { font-size: .875rem; } .hero__new { font-size: 1rem; } }
+@media (max-height: 560px) { .hero__msg { padding-block: 2svh 8px; } .hero h1 { font-size: clamp(1.75rem, 8.4svh, 2.75rem); } .hero__lede { margin-top: 10px; } .hero__cta { margin-top: 16px; gap: 8px; } .hero__foot { padding-bottom: max(2px, env(safe-area-inset-bottom)); } }
+@media (min-width: 1800px) and (min-height: 1000px) { .hero__msg { max-width: 56rem; } .hero h1 { font-size: 5rem; } .hero__lede { font-size: 1.375rem; } .hero__foot { font-size: .875rem; } }
 
 /* The words rise once on a full page load. */
 .hero[data-load] .hero__w { animation: stage-rise 900ms var(--stage-ease) calc(80ms + var(--i) * 45ms) backwards; }
 .hero[data-load] .hero__lede { animation: stage-rise 900ms var(--stage-ease) 380ms backwards; }
 .hero[data-load] .hero__cta { animation: stage-rise 900ms var(--stage-ease) 470ms backwards; }
-.hero[data-load] .hero__new { animation: stage-fade 900ms ease 650ms backwards; }
 .hero[data-load] .hero__foot { animation: stage-fade 900ms ease 760ms backwards; }
 @keyframes stage-rise { from { opacity: 0; transform: translateY(18px); } }
 @keyframes stage-fade { from { opacity: 0; } }
@@ -135,10 +142,10 @@
    the press with a flash of its own light, then gives that light up: its body dims and closes to a single lit line,
    which Stage.tsx carries to the message panel's lower edge (.stage__beam). */
 .stage__copy .hero__w { animation: stage-lift 200ms var(--stage-away) calc(var(--i) * 8ms) forwards; }
-.stage__copy :is(.hero__lede, .hero__note, .hero__new) { animation: stage-lift 180ms var(--stage-away) forwards; }
+.stage__copy .hero__lede { animation: stage-lift 180ms var(--stage-away) forwards; }
 .stage__copy .hero__foot { animation: stage-out 180ms ease forwards; }
 .stage__copy .launch__go { animation: go-give 300ms cubic-bezier(0.5, 0, 0.2, 1) forwards; transition: none; }
-.stage__copy .launch__go::before, .stage__copy .launch__go::after, .stage__copy .launch__fx, .stage__copy .launch__go .i { animation: none; }
+.stage__copy .launch__go::before, .stage__copy .launch__fx, .stage__copy .launch__fx::before, .stage__copy .launch__go .i { animation: none; }
 .stage__copy .launch__label { animation: stage-out 140ms ease 40ms forwards; }
 @keyframes go-give {
   0% { transform: translateY(1px) scale(.97); filter: brightness(1.2); }
@@ -184,7 +191,7 @@
 .stage[data-shift="home"] .hero__w { animation: stage-fall 860ms var(--stage-ease) calc(180ms + var(--i) * 36ms) backwards; }
 .stage[data-shift="home"] :is(.hero__lede, .hero__cta) { animation: stage-fall 860ms var(--stage-ease) 380ms backwards; }
 .stage[data-shift="home"] .hero__cta { animation-delay: 450ms; }
-.stage[data-shift="home"] :is(.hero__new, .hero__foot) { animation: stage-fade 700ms ease 620ms backwards; }
+.stage[data-shift="home"] .hero__foot { animation: stage-fade 700ms ease 620ms backwards; }
 @keyframes stage-fall { from { opacity: 0; transform: translateY(-22px); } }
 
 /* Reduced motion: no copy is made and nothing travels; the two stills cross-fade and the words simply appear. The
@@ -193,8 +200,10 @@
   .stage__still { transition-duration: 200ms; }
   .stage__veil::before, .stage__veil::after { transition-duration: 200ms; }
   .launch__go, .launch__go:active { transform: none; }
-  .launch__go::before, .launch__go::after, .launch__fx, .launch__go .i { animation: none !important; }
-  .stage[data-shift] :is(.hero__w, .hero__lede, .hero__cta, .hero__new, .hero__foot, .inst__main > *, .inst__msg .inst__rim, .quiet.inst::before, .quiet.inst::after) { animation: stage-fade 200ms ease backwards; }
+  .launch__go { transition: --charge 200ms ease; }
+  .launch__go::before, .launch__fx, .launch__fx::before, .launch__go .i { animation: none !important; }
+  .launch__fx::after { --mx: 50%; --my: 50%; }
+  .stage[data-shift] :is(.hero__w, .hero__lede, .hero__cta, .hero__foot, .inst__main > *, .inst__msg .inst__rim, .quiet.inst::before, .quiet.inst::after) { animation: stage-fade 200ms ease backwards; }
 }
 
 /* The bar on the two stage pages: no green dot after the name, and the lit stretch of its lower edge is the Install
