@@ -1,0 +1,87 @@
+/* ===== Spacing module. Drawings bring their own page colour (set inline from the palette or the project's page) ===== */
+.sp{box-sizing:border-box;text-align:left;width:100%;min-height:100%;-webkit-font-smoothing:antialiased;overflow:hidden}
+.sp *{box-sizing:border-box;margin:0}
+.sp-live{container-type:inline-size;padding:28px clamp(12px,3%,32px) 40px}
+.sp-tile>.sp-page{max-width:340px;margin:0 auto}
+.sp-page{width:100%;margin:0 auto;font-size:var(--sp-bs,13px);line-height:1.5}
+.sp-live .sp-page{box-shadow:0 0 0 1px var(--sp-line)}
+.sp-v{display:block;width:100%;flex:none;position:relative}
+.sp-hz{display:inline-block;height:1em;flex:none;position:relative;vertical-align:middle}
+.sp-v::after,.sp-hz::after{content:attr(data-n);position:absolute;inset:0;display:grid;place-items:center;font:600 9px/1 ui-monospace,Menlo,Consolas,monospace;color:var(--sp-fg);opacity:0;overflow:hidden}
+.sp-on .sp-v::after,.sp-on .sp-hz::after{opacity:.75}
+.sp-on .sp-kg{background:rgba(255,128,48,.42)}
+.sp-on .sp-ks{background:rgba(255,190,40,.5)}
+.sp-on .sp-kx{background:rgba(24,190,160,.38)}
+.sp-on .sp-kp{background:rgba(124,92,255,.4)}
+.sp-on .sp-card{box-shadow:inset 0 0 0 1px var(--sp-line),inset 0 0 0 var(--sp-pad) rgba(124,92,255,.38)}
+.sp-on .sp-items{background:rgba(255,128,48,.42)}
+.sp-on .sp-cols{background:rgba(255,128,48,.3)}
+.sp-on .sp-list li{background:linear-gradient(rgba(60,150,255,.38),rgba(60,150,255,.38)) top/100% var(--sp-row) no-repeat,linear-gradient(rgba(60,150,255,.38),rgba(60,150,255,.38)) bottom/100% var(--sp-row) no-repeat}
+.sp-pl{display:none;position:absolute;top:2px;left:5px;font:600 9px/1 ui-monospace,Menlo,Consolas,monospace;color:var(--sp-fg);opacity:.8}
+.sp-on .sp-pl{display:block}
+.sp-hdr{display:flex;align-items:center;border-bottom:1px solid var(--sp-line);font-size:.92em;white-space:nowrap}
+.sp-brand{font-family:var(--sp-display);font-weight:650}
+.sp-links{min-width:0;display:flex;align-items:center;color:var(--sp-fg2);overflow:hidden}
+.sp-ghost{display:inline-flex;align-items:center;border-radius:8px;box-shadow:inset 0 0 0 1px var(--sp-ctrl);margin-left:12px}
+.sp-h{font-family:var(--sp-display);font-weight:650;font-size:var(--sp-hs,18px);line-height:1.15;letter-spacing:-.015em;text-wrap:balance;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.sp-p{color:var(--sp-fg2);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:var(--sp-lines,3);overflow:hidden;text-wrap:pretty;max-width:62ch}
+.sp-hero,.sp-cols>*{min-width:0}
+.sp-card,.sp-list{background:var(--sp-surf);box-shadow:inset 0 0 0 1px var(--sp-line);border-radius:12px;position:relative}
+.sp-list{list-style:none;padding:0}
+.sp-list li{display:flex;align-items:baseline;gap:8px;border-top:1px solid var(--sp-line)}
+.sp-list li:first-child{border-top:0}
+.sp-lab{display:block;font-weight:600;font-size:.92em}
+.sp-field{display:flex;align-items:center;border-radius:9px;box-shadow:inset 0 0 0 1px var(--sp-ctrl);color:var(--sp-fg3);min-width:0;overflow:hidden;white-space:nowrap}
+.sp-btnrow{display:flex}
+.sp-btn{display:inline-flex;align-items:center;border-radius:9px;background:var(--sp-fill);color:var(--sp-onfill);font-weight:600;white-space:nowrap}
+.sp-rt{font-weight:500;white-space:nowrap}
+.sp-rm{color:var(--sp-fg3);font-size:.88em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.sp-items{display:grid;grid-template-columns:1fr 1fr;border-radius:8px}
+.sp-it{background:var(--sp-surf);box-shadow:inset 0 0 0 1px var(--sp-line);border-radius:8px;height:46px;padding:9px 10px;display:flex;flex-direction:column;justify-content:space-between}
+.sp-it i,.sp-bar{display:block;height:6px;border-radius:3px;background:var(--sp-fg3);opacity:.7}
+.sp-it i+i{width:60%;background:var(--sp-line);opacity:1}
+.sp-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+/* alignment */
+.sp-a-center{text-align:center}
+.sp-a-center .sp-hdr{flex-direction:column;gap:6px}
+.sp-a-center .sp-hero .sp-p{margin-inline:auto}
+.sp-a-center .sp-field{justify-content:center}
+.sp-a-center .sp-btnrow{justify-content:center}
+.sp-a-center .sp-list li{flex-direction:column;align-items:center;gap:0}
+.sp-a-split .sp-links{margin-left:auto}
+.sp-a-split .sp-btnrow{justify-content:flex-end}
+.sp-a-split .sp-list li .sp-rm{margin-left:auto}
+.sp-a-end{text-align:right}
+.sp-a-end .sp-hdr{flex-direction:row-reverse}
+.sp-a-end .sp-hero .sp-p{margin-left:auto}
+.sp-a-end .sp-field{justify-content:flex-end}
+.sp-a-end .sp-btnrow{justify-content:flex-end}
+.sp-a-end .sp-list li{flex-direction:row-reverse}
+.sp-a-end .sp-links{flex-direction:row-reverse}
+.sp-ind{display:grid;grid-template-columns:54px minmax(0,1fr);column-gap:14px;align-items:start}
+.sp-il{font-size:.8em;color:var(--sp-fg3);font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding-top:.3em}
+/* the scale ladder and small drawings */
+.sp-lad{display:grid;gap:5px;align-content:start}
+.sp-rung{display:grid;grid-template-columns:26px 1fr;align-items:center;gap:7px;font:500 10px/1 ui-monospace,Menlo,Consolas,monospace;color:var(--sp-fg2)}
+.sp-rung i{display:block;height:9px;border-radius:2px;background:var(--sp-fg);opacity:.8}
+.sp-rung span{text-align:right}
+.sp-rhy{display:grid;grid-template-columns:minmax(0,1fr) 78px;gap:18px;align-items:start;padding:16px}
+.sp-blk{display:block;width:100%;height:20px;border-radius:5px;background:var(--sp-surf);box-shadow:inset 0 0 0 1px var(--sp-ctrl)}
+.sp-ctls{display:flex;flex-direction:column;gap:10px;padding:16px;align-items:flex-start}
+.sp-ctls .sp-field,.sp-ctls .sp-btn{max-width:100%}
+.sp-px{font:600 10px/1 ui-monospace,Menlo,Consolas,monospace;color:var(--sp-fg3)}
+.sp-frame{position:relative;margin:16px;height:104px;border-radius:8px;box-shadow:inset 0 0 0 1px var(--sp-line);background:var(--sp-surf)}
+.sp-col{position:absolute;top:0;bottom:0;left:50%;transform:translateX(-50%);background:var(--sp-page);box-shadow:inset 0 0 0 1px var(--sp-ctrl);padding:12px;display:grid;gap:6px;align-content:start;overflow:hidden}
+.sp-frame .sp-px{position:absolute;right:8px;bottom:6px}
+.sp-meta{font:500 12px/1.4 var(--font);color:var(--sp-fg3);margin-top:22px}
+.sp-ladlive{margin-top:26px;max-width:340px}
+.sp-cap{display:block;font:500 12px/1.4 var(--font);color:var(--sp-fg3);padding:0 0 8px}
+/* in the shell: tiles, looks and compare grow to the drawing */
+.art:has(.sp),.cmp-art:has(.sp){height:auto;min-height:150px;place-items:stretch;place-content:stretch}
+.art:has(.sp)>.art-in,.cmp-art:has(.sp)>.art-in{width:100%;transform:none!important}
+.looks .art:has(.sp){min-height:240px}
+.tiles .art:has(.sp),.looks .art:has(.sp){height:auto}
+@media (max-width:899px){.tiles.wide:has(.sp),.looks:has(.sp){grid-template-columns:minmax(0,1fr)}.tiles .art:has(.sp){min-height:0}}
+@container (max-width:470px){.sp-live .sp-cols{grid-template-columns:minmax(0,1fr);row-gap:var(--sp-section)}}
+.art:has(.sp)>.art-in{height:100%}
+.tiles:has(.sp){align-items:start}
