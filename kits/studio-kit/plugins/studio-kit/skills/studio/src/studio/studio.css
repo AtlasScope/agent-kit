@@ -363,4 +363,4 @@ details.fine .ctl+.ctl{border-top:0}
 @media (max-width:720px){.aslogo--full{display:none}.aslogo--mark{display:block}}
 @media (max-width:899px){.work.wide.reviewing{grid-template-columns:minmax(0,1fr);grid-template-areas:"head" "scol"}}
 .tiles .sel{display:none}
-.ib svg.sun,[data-theme=light] .ib svg.moon{display:none}[data-theme=light] .ib svg.sun{display:block}
+.ib svg.sun,.ib svg.moon{display:none}[data-theme=light] .ib svg.moon,[data-theme=dark] .ib svg.sun{display:block}

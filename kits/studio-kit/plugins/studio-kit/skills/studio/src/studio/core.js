@@ -63,10 +63,10 @@ const P = Object.assign({
 }, PROJECT);
 const COLUMN = +P.column || 440;
 
-/* The studio's own light or dark: the person's last choice, else their computer's. Designs keep their own colours. */
+/* The studio's own light or dark: the person's last choice, else light. Designs keep their own colours. */
 const THEME_KEY = 'studio:theme';
 function setTheme(t) { document.documentElement.dataset.theme = t; try { localStorage.setItem(THEME_KEY, t); } catch {} }
-(() => { let t = null; try { t = localStorage.getItem(THEME_KEY); } catch {} document.documentElement.dataset.theme = t || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'); })();
+(() => { let t = null; try { t = localStorage.getItem(THEME_KEY); } catch {} document.documentElement.dataset.theme = t === 'dark' ? 'dark' : 'light'; })();
 
 const STUDIO = {
   mods: [], by: {},
