@@ -23,7 +23,9 @@ export const HANDOFF_EVENT = "agent-kit:handoff";
 // nothing. This runs with the page's first bytes: until the hero has mounted (window.__akHero), it copies on the press,
 // saves the same hand-off the hero does, and goes to /install once the clipboard has answered. The hero's own handler
 // takes over once it mounts.
-const EARLY = `document.addEventListener("click",function(v){var a=v.target&&v.target.closest&&v.target.closest(".launch__go");if(!a||window.__akHero||v.metaKey||v.ctrlKey||v.shiftKey||v.altKey||v.button)return;v.preventDefault();var k=${JSON.stringify(COPIED_KEY)},go=function(h){try{h.at=Date.now();sessionStorage.setItem(k,JSON.stringify(h))}catch(x){}location.assign(a.href)};try{sessionStorage.removeItem(k);navigator.clipboard.writeText(${JSON.stringify(INSTALL_MESSAGE)}).then(function(){go({message:true})},function(){go({blocked:true})})}catch(x){go({blocked:true})}},true);`;
+// Values written into the script are escaped so nothing in them could close the tag or break the line.
+const js = (v: unknown) => JSON.stringify(v).replace(/[<>&\u2028\u2029]/g, (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, "0")}`);
+const EARLY = `document.addEventListener("click",function(v){var a=v.target&&v.target.closest&&v.target.closest(".launch__go");if(!a||window.__akHero||v.metaKey||v.ctrlKey||v.shiftKey||v.altKey||v.button)return;v.preventDefault();var k=${js(COPIED_KEY)},go=function(h){try{h.at=Date.now();sessionStorage.setItem(k,JSON.stringify(h))}catch(x){}location.assign(a.href)};try{sessionStorage.removeItem(k);navigator.clipboard.writeText(${js(INSTALL_MESSAGE)}).then(function(){go({message:true})},function(){go({blocked:true})})}catch(x){go({blocked:true})}},true);`;
 // Arriving at the guide from Start here, a new visitor is offered a free account there (StartWelcome.tsx).
 const markStartHere = () => { try { sessionStorage.setItem("agent-kit:start-here", String(Date.now())); } catch {} };
 
