@@ -1,5 +1,5 @@
 /* MORE: choices the agent added when someone asked for more. Keys are control keys: a bare key (material) or
-   'button.material' is the button studio's; other studios are 'palette.<key>' and 'type.<key>' (see references/).
+   'button.material' is the button studio's; other studios are '<studio>.<key>': palette, type, surface, spacing, motion, icons (see references/).
    Each entry: [value, 'Plain name', 'One short plain sentence', {optional}]. Colours: swatch:[['Name',hue,chroma,lightness,'Sentence']].
    Optional: {set:{key:value}} changes other values with it; {onlyWith:{material:['glass']}} hides it where it would not show;
    {setup:true} marks a measured project value that is not new. Backgrounds: bg:[['NAME','Name','Sentence']].

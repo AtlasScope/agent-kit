@@ -493,5 +493,6 @@
     defaults: DEFAULTS, today, measured, groups, looks: LOOKS, keep: ['pair'],
     fix, pick, touch, vars: () => ({}), live, still, control, changes, tile: () => ({}), tall: () => true,
     scene, share, warn, notes, summary, roles: slots,
+    reach: [['system', 'The colour tokens', 'Change the shared colour tokens, so everything built from them follows.'], ['area', 'Only the screens shown', 'Use these colours where you looked, and leave the rest of the product as it is.']],
   });
 }

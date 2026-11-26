@@ -166,6 +166,7 @@ select:hover{border-color:var(--line2)}
 .cmp-art.ground{padding:0;place-items:stretch}
 .cmp-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 16px 14px;border-top:1px solid var(--line);font-size:13px;color:var(--mut)}
 .cmp-foot p{margin:0;flex:1 1 100%}
+.cmp-foot .cmp-ctx{font-size:12px;color:var(--mut);opacity:.85}
 .cmp-tip{grid-column:1/-1;margin:0;padding:14px 16px;border-radius:14px;background:var(--s1);border:1px dashed var(--line2);font-size:14px;color:var(--mut)}
 .cmp-tip b{color:var(--fg)}
 .mini{all:unset;cursor:pointer;padding:5px 12px;border-radius:9px;font-size:13px;font-weight:600;background:var(--fg);color:var(--bg)}
@@ -609,6 +610,34 @@ details.fine[open]>.ctl:not(:last-child){border-bottom:0}
 .sc-heroonly .sc-link{margin-top:14px;color:var(--sc-fg);font-weight:400}
 .sc-foot{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 20px;margin:auto 0 0;font-size:calc(var(--sc-size)*.8125);color:var(--sc-fg2)}
 @container (max-width:560px){.sc-heroonly .sc-cta,.sc-heroonly #mount{width:100%;max-width:21rem}.sc-heroonly .sc-h{font-size:clamp(2.1rem,9.6cqw,3rem)}}
+/* Surface, Spacing, Motion and Icons paint the same page. Each value falls back to the page's own look, so a studio
+   that is not open changes nothing:
+   surface  --sc-radius --sc-radius-sm --sc-border --sc-border-a --sc-shadow --sc-card-alpha --sc-blur --sc-texture
+   spacing  --sc-space --sc-pad --sc-gap --sc-stack --sc-section --sc-row --sc-align --sc-maxw --sc-control-h
+   motion   --sc-dur --sc-ease --sc-dist --sc-stagger --sc-lift
+   icons    --sc-icon --sc-icon-stroke --sc-icon-gap, and the glyphs drawn into .sc-ic by the Icons studio */
+.scene .sc-card,.scene .sc-list,.scene .sc-code{border-radius:var(--sc-radius,14px);box-shadow:inset 0 0 0 var(--sc-border,1px) color-mix(in srgb,var(--sc-line) calc(var(--sc-border-a,1)*100%),transparent),var(--sc-shadow,0 0 #0000);
+ background:var(--sc-texture,none),color-mix(in srgb,var(--sc-surface) calc(var(--sc-card-alpha,1)*100%),transparent);-webkit-backdrop-filter:blur(var(--sc-blur,0px));backdrop-filter:blur(var(--sc-blur,0px));
+ transition:translate var(--sc-dur,0ms) var(--sc-ease,ease),box-shadow var(--sc-dur,0ms) var(--sc-ease,ease)}
+.scene .sc-card{padding:var(--sc-pad,16px);gap:calc(var(--sc-stack,12px)/2)}
+.scene .sc-list{padding:calc(var(--sc-pad,16px)/4) var(--sc-pad,16px)}
+.scene .sc-list li{padding:var(--sc-row,11px) 0}
+.scene .sc-field,.scene .sc-ghost,.scene .sc-btn{border-radius:var(--sc-radius-sm,9px)}
+.scene .sc-field{min-height:var(--sc-control-h,auto);display:flex;align-items:center}
+.scene .sc-grid{gap:var(--sc-gap,16px)}
+.scene .sc-p{margin-top:var(--sc-stack,14px)}
+.scene .sc-cta{margin-top:calc(var(--sc-stack,14px)*1.85);gap:var(--sc-gap,14px) calc(var(--sc-gap,14px)*1.4)}
+.scene .sc-hero{padding-block:var(--sc-section,clamp(28px,7cqw,64px)) calc(var(--sc-section,clamp(24px,5cqw,44px))*.7);text-align:var(--sc-align,start)}
+.scene .sc-hero .sc-cta{justify-content:var(--sc-align,start)}
+.scene .sc-code{margin-top:var(--sc-gap,16px)}
+@media (hover:hover){.scene .sc-card:hover,.scene .sc-list:hover{translate:0 calc(var(--sc-lift,0px)*-1)}}
+.stage.rm .scene .sc-card,.stage.rm .scene .sc-list{transition:none}
+.sc-ic{display:none}
+.scene.has-icons .sc-ic{display:inline-flex;flex:none;align-items:center;justify-content:center;width:var(--sc-icon,18px);height:var(--sc-icon,18px);color:currentColor}
+.scene.has-icons .sc-ic svg{width:100%;height:100%;display:block}
+.scene.has-icons .sc-list li{align-items:center;gap:var(--sc-icon-gap,10px)}
+.scene.has-icons .sc-ghost,.scene.has-icons .sc-label{display:inline-flex;align-items:center;gap:var(--sc-icon-gap,8px)}
+.scene.has-icons .sc-search{color:var(--sc-fg2)}
 
 /* ===== the button ===== */
 /* The turning angle for the spinning edge and sweeping light. Without it those choices stand still. */
@@ -1142,7 +1171,7 @@ const PROJECT={
 </script>
 <script>
 /* MORE: choices the agent added when someone asked for more. Keys are control keys: a bare key (material) or
-   'button.material' is the button studio's; other studios are 'palette.<key>' and 'type.<key>' (see references/).
+   'button.material' is the button studio's; other studios are '<studio>.<key>': palette, type, surface, spacing, motion, icons (see references/).
    Each entry: [value, 'Plain name', 'One short plain sentence', {optional}]. Colours: swatch:[['Name',hue,chroma,lightness,'Sentence']].
    Optional: {set:{key:value}} changes other values with it; {onlyWith:{material:['glass']}} hides it where it would not show;
    {setup:true} marks a measured project value that is not new. Backgrounds: bg:[['NAME','Name','Sentence']].
@@ -1485,6 +1514,7 @@ const DEFAULTS = {
   hover: 'lift', press: 'sink', focus: 'blue', showFocus: false,
   label: LABELS[0][0], sub: '', font: P.font ? 'project' : 'ui', case: 'normal', wt: 600, fs: 1, trk: -0.01,
   icon: 'arrow', iconpos: 'right', isz: 1.1, tile: 'none',
+  fspace: 'own', fmotion: 'own', ficons: 'own', // follow the Spacing, Motion and Icons studios (see module.js)
   split: 'none', agent: 0, nagents: Math.min(3, AG.length || 3), gap: 2, divider: 'gap',
   confirm: 'swap', dur: 2.2, showagents: true, next: 'none',
   menuStyle: 'glass', menuR: 16, mdens: 'regular', mw: 260, micons: true, msubs: false, mkeys: false, manim: 'pop', mhi: 'tint',
@@ -1867,9 +1897,10 @@ const RADIUS = { pill: '999px', blob: '999px', circle: '999px', leaf: '999px', s
 /** CSS custom properties the button styles read. */
 function previewVars() {
   const s = S, k = btnColour(s);
-  const r = s.shape === 'squircle' ? Math.round(s.h * 0.36) + 'px' : RADIUS[s.shape] || s.rr + 'px';
+  const sp = btnSpace(s), mo = btnMotion(s);
+  const r = s.shape === 'shared' ? btnCorner(s) + 'px' : s.shape === 'squircle' ? Math.round(sp.h * 0.36) + 'px' : RADIUS[s.shape] || s.rr + 'px';
   return {
-    '--h': s.h + 'px', '--r': r, '--pad': s.pad, '--H': k.H, '--H2': s.H2, '--C': k.C, '--L': k.L,
+    '--h': sp.h + 'px', '--r': r, '--pad': sp.pad, ...(mo ? { '--ease': mo.ease, '--tt': `${mo.dur}ms ${mo.ease}` } : {}), '--H': k.H, '--H2': s.H2, '--C': k.C, '--L': k.L,
     '--on': autoDark(s) ? `oklch(.2 .05 ${k.H})` : '#fff', '--glassfg': lightBg() ? '#0b0e0d' : '#fff',
     '--blur': s.blur, '--fa': s.fa, '--tint': s.tint, '--rim': s.rim, '--depth': s.depth, '--gloss': s.gloss, '--spd': s.spd,
     '--wt': s.wt, '--fs': s.fs, '--trk': s.trk, '--isz': s.isz + 'em', '--bf': btnFont(s),
@@ -1884,7 +1915,7 @@ const svg = (id) => `<svg aria-hidden="true"><use href="#i-${id}"/></svg>`;
 const chev = svg('chevron');
 function label() {
   const s = S;
-  const icon = s.icon !== 'none' ? svg(s.icon) : '';
+  const icon = s.icon !== 'none' ? btnIcon(s) : '';
   const i = icon && s.tile === 'tile' ? `<span class="ti ${s.iconpos === 'right' ? 'r' : ''}">${icon}</span>` : icon;
   if (s.shape === 'circle') return (i || svg('arrow')) + `<span class="t">${esc(s.label)}</span>`;
   const t = `<span class="t">${esc(s.label)}${s.sub ? `<span class="sub">${esc(s.sub)}</span>` : ''}</span>`;
@@ -2143,6 +2174,30 @@ function btnFont(s) {
   return FONTS[s.font] || FONTS.ui;
 }
 const sceneIsLight = () => V.mode === 'context' && !!shared('light');
+/* The Surface, Spacing, Motion and Icons studios: the button can take its corners, size, timing and icon style from
+   them, and stops following the moment the person picks its own. Each falls back to the button's own values. */
+function btnCorner(s) { const f = s.shape === 'shared' && shared('surface'); return f && isFinite(+f.r) ? Math.max(0, Math.min(+f.r, 999)) : s.rr; }
+function btnSpace(s) {
+  const f = s.fspace === 'follow' && shared('spacing');
+  return f && isFinite(+f.controlH) ? { h: Math.max(28, Math.min(96, Math.round(+f.controlH))), pad: isFinite(+f.padX) ? Math.max(0.2, Math.min(0.9, +f.padX)) : s.pad } : { h: s.h, pad: s.pad };
+}
+function btnMotion(s) { const f = s.fmotion === 'follow' && shared('motion'); return f && isFinite(+f.dur) && f.ease ? { dur: Math.round(+f.dur), ease: String(f.ease).replace(/[;{}<>"]/g, '') } : null; }
+function btnIcon(s) {
+  const f = s.ficons === 'follow' && shared('icons');
+  if (f && typeof f.draw === 'function') { try { const g = f.draw(s.icon, 24); if (g) return g.replace('<svg', '<svg aria-hidden="true"'); } catch {} }
+  return svg(s.icon);
+}
+/** What the button follows, in plain words, for the proposal. */
+function btnFollows(s) {
+  const out = [];
+  if (s.swatch === LINK_SW && STUDIO.has('palette')) out.push('Its colour is the Palette accent.');
+  if (s.font === 'shared' && STUDIO.has('type')) out.push('Its lettering is the Typography text face.');
+  if (s.shape === 'shared' && STUDIO.has('surface')) out.push(`Its corners are the Surface corner radius (${btnCorner(s)}px now).`);
+  if (s.fspace === 'follow' && STUDIO.has('spacing')) out.push(`Its height and side space come from the Spacing control size (${btnSpace(s).h}px now).`);
+  if (s.fmotion === 'follow' && STUDIO.has('motion')) { const m = btnMotion(s); if (m) out.push(`Its hover and press timing is the Motion timing (${m.dur}ms, ${m.ease}).`); }
+  if (s.ficons === 'follow' && STUDIO.has('icons')) out.push('Its icon is drawn in the Icons style.');
+  return out;
+}
 
 {
   const SEC = { shape: 'Appearance', material: 'Appearance', colour: 'Appearance', content: 'Content', interact: 'Interaction', motion: 'Interaction', split: 'Behaviour', confirm: 'Behaviour', menu: 'Behaviour' };
@@ -2156,6 +2211,19 @@ const sceneIsLight = () => V.mode === 'context' && !!shared('light');
     ['H', 'C', 'L'].forEach((k) => { ctl(k, 'range').show = (s) => s.swatch !== LINK_SW; });
   }
   if (BUILT.includes('type')) ctl('font', 'chips').opts.unshift(o('shared', 'From Typography', 'Follows the lettering chosen in the Typography studio.'));
+  if (BUILT.includes('surface')) ctl('shape', 'chips').opts.splice(1, 0, o('shared', 'From Surface', 'Takes its corners from the Surface studio, and changes with it.'));
+  const stepOf = (k) => STEPS.find((st) => st.ctl.some((c) => c.k === k));
+  const follow = (k, mod, name, d, after) => {
+    if (!BUILT.includes(mod)) return;
+    const st = stepOf(after);
+    if (!st) return;
+    const i = st.ctl.findIndex((c) => c.k === after);
+    st.ctl.splice(i + 1, 0, ch(k, name, [o('own', 'Its own', 'Set here, for this button.'), o('follow', `From ${cap(mod)}`, d)]));
+  };
+  follow('fspace', 'spacing', 'Size from', 'Height and side space follow the Spacing studio’s control size.', 'h');
+  follow('fmotion', 'motion', 'Timing from', 'Hover and press move with the Motion studio’s timing and feel.', 'press');
+  follow('ficons', 'icons', 'Icon style from', 'The icon is drawn in the Icons studio’s style: its stroke, ends and fill.', 'icon');
+  if (BUILT.includes('spacing')) ['h', 'pad'].forEach((k) => STEPS.flatMap((st) => st.ctl).filter((c) => c.k === k).forEach((c) => { const sh = c.show; c.show = (s) => s.fspace !== 'follow' && (!sh || sh(s)); }));
 
   /* How each control's choices are drawn. Anything not listed is a list of words. */
   const TILES = {
@@ -2194,7 +2262,8 @@ const sceneIsLight = () => V.mode === 'context' && !!shared('light');
     const out = [], r = withS(s, () => contrastOf(s));
     if (r != null && r < 4.5) out.push({ k: 'tc', t: `The words have a contrast of ${COLOUR.showRatio(r)} to 1 against the button colour. 4.5 is the usual minimum for text this size.` });
     else if (r == null && s.shape !== 'circle') out.push({ k: 'material', soft: true, t: `With ${nameIn('button', 'material', s).toLowerCase()}, how readable the words are depends on what is behind or inside the button, so it cannot be measured here. Check it on your real page.` });
-    if (s.h < 44) out.push({ k: 'h', t: `At ${s.h}px tall it is under the 44px that is comfortable to tap on a phone.` });
+    const hh = btnSpace(s).h;
+    if (hh < 44) out.push({ k: s.fspace === 'follow' ? 'fspace' : 'h', t: `At ${hh}px tall it is under the 44px that is comfortable to tap on a phone.` });
     if (anyMotion(s)) out.push({ k: 'idle', soft: true, t: 'It moves while nobody is touching it. That draws the eye every time, and costs a little battery on phones. It stays still for people who ask for less motion.' });
     if (s.press === 'hold') out.push({ k: 'press', soft: true, t: 'Hold to confirm needs a second way in for people who cannot hold a press. The keyboard confirms at once here.' });
     if (String(s.label).length > 28 && s.shape !== 'circle') out.push({ k: 'label', soft: true, t: 'The words are long. Check them on a phone, and in any other languages the product ships.' });
@@ -2225,13 +2294,25 @@ const sceneIsLight = () => V.mode === 'context' && !!shared('light');
   STUDIO.add({
     id: 'button', name: 'Button',
     title: () => P.noun,
-    defaults: Object.assign({}, DEFAULTS, { menuOpen: false }, BUILT.includes('palette') && !P.measured ? { swatch: LINK_SW } : {}),
+    defaults: Object.assign({}, DEFAULTS, { menuOpen: false }, BUILT.includes('palette') && !P.measured ? { swatch: LINK_SW } : {},
+      // a project with no design yet starts by following every foundation in the workspace; a measured one keeps today's
+      !P.measured && BUILT.includes('surface') ? { shape: 'shared' } : {}, !P.measured && BUILT.includes('spacing') ? { fspace: 'follow' } : {},
+      !P.measured && BUILT.includes('motion') ? { fmotion: 'follow' } : {}, !P.measured && BUILT.includes('icons') ? { ficons: 'follow' } : {}),
     today: P.today, measured: !!P.measured,
     groups: STEPS,
     looks: LOOKS,
     keep: ['label', 'sub', 'agent', 'nagents', 'font', 'swatch', 'H', 'C', 'L'],
     transient: ['menuOpen', 'showFocus'],
-    fix: (s) => { fixState(s); if (s.swatch === LINK_SW && !STUDIO.has('palette')) s.swatch = SW[0][0]; if (s.font === 'shared' && !STUDIO.has('type')) s.font = P.font ? 'project' : 'ui'; },
+    fix: (s) => {
+      fixState(s);
+      if (s.swatch === LINK_SW && !STUDIO.has('palette')) s.swatch = SW[0][0];
+      if (s.font === 'shared' && !STUDIO.has('type')) s.font = P.font ? 'project' : 'ui';
+      if (s.shape === 'shared' && !STUDIO.has('surface')) s.shape = 'soft';
+      if (!STUDIO.has('spacing')) s.fspace = 'own';
+      if (!STUDIO.has('motion')) s.fmotion = 'own';
+      if (!STUDIO.has('icons')) s.ficons = 'own';
+    },
+    follows: btnFollows,
     pick: (s, c, op) => withS(s, () => onPick(c, op)),
     after: (c) => afterPick(c),
     onNav: () => onStepChange(),
@@ -2752,6 +2833,7 @@ const sceneIsLight = () => V.mode === 'context' && !!shared('light');
     defaults: DEFAULTS, today, measured, groups, looks: LOOKS, keep: ['pair'],
     fix, pick, touch, vars: () => ({}), live, still, control, changes, tile: () => ({}), tall: () => true,
     scene, share, warn, notes, summary, roles: slots,
+    reach: [['system', 'The colour tokens', 'Change the shared colour tokens, so everything built from them follows.'], ['area', 'Only the screens shown', 'Use these colours where you looked, and leave the rest of the product as it is.']],
   });
 }
 
@@ -3154,6 +3236,7 @@ const sceneIsLight = () => V.mode === 'context' && !!shared('light');
     groups, keep: [],
     looks: T.measured ? looks : looks.filter((l) => l.id !== 'builtin'), // without a measured Today, Built in is the starting point
     fix, pick: pickType, vars, still, live, scene, share, warn, notes, summary,
+    reach: [['system', 'The type styles', 'Change the shared text and heading styles, so every page built from them follows.'], ['area', 'Only the text shown', 'Set this lettering where you looked, and leave the rest of the product as it is.']],
     tile: (c) => TILES[c.k] || null,
     tall: () => true,
   });
@@ -3309,9 +3392,36 @@ STUDIO.mods.forEach((m) => { NAV.cat[m.id] = 'looks'; });
 const AM = () => STUDIO.by[NAV.mod];
 const AS = () => ST[NAV.mod];
 
-const HIST = { undo: [], redo: [] }; // [{ mod, s }] the state a module had before a change
-const PINS = []; // [{ id, name, mod, s }] up to three versions kept to compare
-let SCOPE = ''; // how far the proposal should reach: 'one' | 'family' | 'system'
+const HIST = { undo: [], redo: [] }; // [{ mod, s, also? }] the state a module had before a change; also: { mid: s } for other modules changed with it
+const PINS = []; // [{ id, name, mod, s, ctx }] up to three versions per studio; ctx: the shared foundations it was drawn with
+const PIN_MAX = 3;
+const SCOPE = {}; // module id -> how far its part of the proposal should reach (an id from reachOf(m))
+/* Saved data this page cannot use right now (a studio not open here, a choice no longer offered, a pin for a studio not
+   in this page). It is kept and written back with every save, so opening the page somewhere else loses nothing. */
+const KEPT = { mods: {}, keys: {}, pins: [] };
+const LOST = []; // what restore could not take back this time, said once to the person
+
+/* ---- shared foundations: what one studio's drawings follow from the others ---- */
+/** The modules other studios can follow (those with share), as { mid: state }, for a pin to keep. */
+function foundations(except, from = ST) {
+  const out = {};
+  for (const m of STUDIO.mods) if (m.share && m.id !== except && from[m.id]) out[m.id] = clone(from[m.id]);
+  return out;
+}
+/** Runs fn with other studios' states swapped for ctx, so a drawing shows the foundations it was made with. */
+function withCtx(ctx, fn) {
+  if (!ctx) return fn();
+  const was = {};
+  for (const id in ctx) if (STUDIO.has(id) && ctx[id]) { was[id] = ST[id]; ST[id] = ctx[id]; }
+  try { return fn(); } finally { for (const id in was) ST[id] = was[id]; }
+}
+const sameCtx = (a, b) => Object.keys(a || {}).every((id) => !STUDIO.has(id) || !b[id] || sameLook(id, a[id], b[id]));
+/** The ways a studio's part of the proposal can reach. A component reaches one place, its family or the system; a
+    foundation (colour, type, surface ...) says which of its own scopes fit. */
+const COMPONENT_REACH = [['one', 'Only this one', 'Change this one place and leave everything like it alone.'], ['family', 'Every one like it', 'Change the shared style, so every matching one follows.'], ['system', 'The design system', 'Change the foundations (colours, type, shared styles) that the rest is built from.']];
+const reachOf = (m) => (Array.isArray(m.reach) && m.reach.length ? m.reach : COMPONENT_REACH);
+/** A foundation has a sensible default reach; a component waits for the person to choose. */
+const reachNow = (m) => SCOPE[m.id] || (Array.isArray(m.reach) && m.reach.length ? m.reach[0][0] : '');
 const UI = {
   ask: { target: null, text: '' }, // the request box, and the control it is about (null: the whole page in view)
   pending: null, // the last request sent to the agent
@@ -3333,16 +3443,22 @@ function shared(k) {
 }
 
 /* ---- history: call commit() before changing a module's state ---- */
-function commit(mid = NAV.mod) {
-  HIST.undo.push({ mod: mid, s: clone(ST[mid]) });
+function commit(mid = NAV.mod, others = []) {
+  const e = { mod: mid, s: clone(ST[mid]) };
+  const also = others.filter((id) => id !== mid && STUDIO.has(id));
+  if (also.length) e.also = Object.fromEntries(also.map((id) => [id, clone(ST[id])]));
+  HIST.undo.push(e);
   if (HIST.undo.length > 60) HIST.undo.shift();
   HIST.redo.length = 0;
 }
 function travel(from, to) {
   const e = from.pop();
   if (!e || !STUDIO.has(e.mod)) return;
-  to.push({ mod: e.mod, s: clone(ST[e.mod]) });
+  const back = { mod: e.mod, s: clone(ST[e.mod]) };
+  if (e.also) back.also = Object.fromEntries(Object.keys(e.also).filter((id) => STUDIO.has(id)).map((id) => [id, clone(ST[id])]));
+  to.push(back);
   setState(e.mod, e.s);
+  for (const id in e.also || {}) if (STUDIO.has(id)) setState(id, e.also[id]);
   NAV.mod = e.mod;
   redrawAll(); save();
 }
@@ -3359,40 +3475,55 @@ const sameLook = (mid, a, b) => STUDIO.by[mid].keys.every((k) => STUDIO.by[mid].
 function snapshot() {
   const { ask, pending, fresh: f, known, expanded, fine, seen, devAt } = UI;
   const mods = {};
-  for (const m of STUDIO.mods) { mods[m.id] = Object.assign({}, ST[m.id]); m.transient.forEach((k) => { mods[m.id][k] = DEFS[m.id][k]; }); }
+  for (const m of STUDIO.mods) {
+    mods[m.id] = Object.assign({}, KEPT.keys[m.id] || {}, ST[m.id]); // values kept for choices not offered right now ride along
+    m.transient.forEach((k) => { mods[m.id][k] = DEFS[m.id][k]; });
+  }
+  for (const id in KEPT.mods) if (!STUDIO.has(id)) mods[id] = KEPT.mods[id]; // a studio not open on this page keeps its picks
   return {
-    v: 3, mods, view: V, nav: NAV, pins: PINS, scope: SCOPE, hist: { undo: HIST.undo.slice(-30), redo: HIST.redo.slice(-30) },
+    v: 3, mods, view: V, nav: NAV, pins: [...PINS, ...KEPT.pins], scope: Object.assign({}, KEPT.scope || {}, SCOPE), hist: { undo: HIST.undo.slice(-30), redo: HIST.redo.slice(-30) },
     ui: { ask, pending, fresh: f, known, expanded, fine, seen, devAt }, scroll: scrollY, at: Date.now(),
   };
 }
 
-/** A saved state for one module, keeping only values that still make sense for this page. Returns a full state. */
-function cleanState(mid, saved) {
+/** A saved state for one module, keeping only values that still make sense for this page. Returns a full state.
+    With note, a value that cannot be used is remembered in KEPT (and LOST, to tell the person) instead of vanishing. */
+function cleanState(mid, saved, note) {
   const m = STUDIO.by[mid], out = fresh(mid);
   if (!saved || typeof saved !== 'object') return out;
+  const keep = (k, v) => {
+    if (!note) return;
+    (KEPT.keys[mid] = KEPT.keys[mid] || {})[k] = v;
+    LOST.push({ mid, k, v });
+  };
+  for (const k in saved) if (!(k in out) && note) (KEPT.keys[mid] = KEPT.keys[mid] || {})[k] = saved[k]; // a category not here today
   for (const k in out) {
     if (!(k in saved) || m.transient.includes(k)) continue;
     const v = saved[k];
-    if (typeof v !== typeof out[k]) continue;
+    if (typeof v !== typeof out[k]) { keep(k, v); continue; }
     const cs = ctlsFor(mid, k);
     const sw = cs.find((c) => c.t === 'swatches');
-    if (sw) { if (sw.sw.some((w) => w[0] === v)) out[k] = v; continue; }
+    if (sw) { if (sw.sw.some((w) => w[0] === v)) out[k] = v; else keep(k, v); continue; }
     const chips = cs.filter((c) => c.t === 'chips');
     const free = cs.some((c) => c.t !== 'chips');
-    if (chips.length && !free && !chips.some((c) => optOf(c, v))) continue; // a choice that no longer exists
+    if (chips.length && !free && !chips.some((c) => optOf(c, v))) { keep(k, v); continue; } // a choice that no longer exists
     const r = cs.find((c) => c.t === 'range');
     out[k] = r && typeof v === 'number' ? Math.min(r.max, Math.max(r.min, v)) : v;
+    if (note && KEPT.keys[mid]) delete KEPT.keys[mid][k];
   }
   if (m.fix) m.fix(out);
   return out;
 }
+/** A pin's foundations, cleaned like any saved state; studios not on this page are left out of the drawing. */
+const cleanCtx = (ctx) => Object.fromEntries(Object.entries(ctx && typeof ctx === 'object' ? ctx : {}).filter(([id, s]) => STUDIO.has(id) && s && typeof s === 'object').map(([id, s]) => [id, cleanState(id, s)]));
 
 /** Takes a saved snapshot back. Only data is read from it: nothing in it is ever run. */
 function restore(d) {
   if (!d || typeof d !== 'object') return false;
   if (d.v === 2 && d.S) d = { v: 3, mods: { button: d.S }, view: { device: d.S.device, bg: d.S.bg, rm: d.S.rm }, ui: d.ui, scroll: d.scroll, at: d.at }; // the button studio's older format
   if (d.v !== 3 || !d.mods) return false;
-  for (const m of STUDIO.mods) if (d.mods[m.id]) setState(m.id, cleanState(m.id, d.mods[m.id]));
+  for (const m of STUDIO.mods) if (d.mods[m.id]) setState(m.id, cleanState(m.id, d.mods[m.id], true));
+  for (const id in d.mods) if (!STUDIO.has(id) && d.mods[id] && typeof d.mods[id] === 'object') KEPT.mods[id] = d.mods[id];
   const vw = d.view || {};
   if (DEV[vw.device]) V.device = vw.device;
   if (typeof vw.bg === 'string') V.bg = vw.bg;
@@ -3402,11 +3533,30 @@ function restore(d) {
   if (STUDIO.has(n.mod)) NAV.mod = n.mod;
   NAV.review = !!n.review;
   for (const m of STUDIO.mods) { const c = n.cat && n.cat[m.id]; if (c === 'looks' || m.groups.some((g) => g.id === c)) NAV.cat[m.id] = c; }
-  PINS.length = 0;
-  for (const p of Array.isArray(d.pins) ? d.pins.slice(0, 3) : []) if (p && STUDIO.has(p.mod)) PINS.push({ id: String(p.id), name: String(p.name || '').slice(0, 60), mod: p.mod, s: cleanState(p.mod, p.s) });
-  SCOPE = ['one', 'family', 'system'].includes(d.scope) ? d.scope : '';
+  PINS.length = 0; KEPT.pins.length = 0;
+  for (const p of Array.isArray(d.pins) ? d.pins : []) {
+    if (!p || typeof p !== 'object') continue;
+    if (!STUDIO.has(p.mod)) { if (KEPT.pins.length < 21) KEPT.pins.push(p); continue; }
+    if (PINS.filter((x) => x.mod === p.mod).length >= PIN_MAX) continue;
+    PINS.push({ id: String(p.id), name: String(p.name || '').slice(0, 60), mod: p.mod, s: cleanState(p.mod, p.s), ctx: cleanCtx(p.ctx) });
+  }
+  for (const k in SCOPE) delete SCOPE[k];
+  KEPT.scope = {};
+  if (typeof d.scope === 'string' && d.scope) { for (const m of STUDIO.mods) if (!m.reach) SCOPE[m.id] = d.scope; } // one reach for the whole page, from before each studio had its own
+  else if (d.scope && typeof d.scope === 'object') {
+    for (const [id, v] of Object.entries(d.scope)) {
+      const m = STUDIO.by[id];
+      if (m && reachOf(m).some((r) => r[0] === v)) SCOPE[id] = v; else if (!m) KEPT.scope[id] = v;
+    }
+  }
+  const histEntry = (e) => {
+    const out = { mod: e.mod, s: cleanState(e.mod, e.s) };
+    const also = Object.entries(e.also && typeof e.also === 'object' ? e.also : {}).filter(([id]) => STUDIO.has(id));
+    if (also.length) out.also = Object.fromEntries(also.map(([id, s]) => [id, cleanState(id, s)]));
+    return out;
+  };
   for (const side of ['undo', 'redo']) {
-    HIST[side] = ((d.hist && d.hist[side]) || []).filter((e) => e && STUDIO.has(e.mod)).slice(-30).map((e) => ({ mod: e.mod, s: cleanState(e.mod, e.s) }));
+    HIST[side] = ((d.hist && d.hist[side]) || []).filter((e) => e && STUDIO.has(e.mod)).slice(-30).map(histEntry);
   }
   const u = d.ui || {}, a = u.ask || {};
   Object.assign(UI, {
@@ -3415,6 +3565,11 @@ function restore(d) {
     seen: Object.assign({ dev: [], bg: [], rm: false, mode: [] }, u.seen || {}), devAt: u.devAt || null, scroll: d.scroll || 0,
   });
   return true;
+}
+
+/** What restore could not use, in plain words: 'Material “brushed”, Shape “blob”'. */
+function lostWords() {
+  return LOST.slice(0, 4).map((x) => { const c = ctlsFor(x.mid, x.k)[0]; return `${c ? c.label : x.k} “${String(x.v).slice(0, 30)}”`; }).join(', ') + (LOST.length > 4 ? ` and ${LOST.length - 4} more` : '');
 }
 
 /** The server copy and the browser copy can differ; the newer one wins. */
@@ -3461,7 +3616,8 @@ addEventListener('pagehide', () => { if (!HOLDING) try { localStorage.setItem(SK
              --sc-ok --sc-warn --sc-bad
      type    --sc-display --sc-body --sc-mono (font families)  --sc-size (px)  --sc-ratio (step between sizes)
              --sc-lh --sc-hlh (line heights)  --sc-htrack (em)  --sc-hweight --sc-bweight  --sc-hcase  --sc-measure (ch)
-             --sc-num (font-variant-numeric) */
+             --sc-num (font-variant-numeric)
+     surface, spacing, motion and icons: see the end of scene.css */
 
 const CX = Object.assign({ eyebrow: '', headline: '', body: '', links: [], secondary: '', field: '', hint: '', placeholder: '', rows: [], code: '', real: false, layout: '', note: '', foot: [], bg: '' }, P.context || {});
 
@@ -3491,9 +3647,10 @@ function sceneHTML() {
  ${CX.foot.length ? `<p class="sc-foot">${CX.foot.slice(0, 6).map((l) => `<span>${esc(l)}</span>`).join('')}</p>` : ''}
 </div>`;
   }
-  const row = (r) => `<li><span class="sc-rt">${esc(r[0])}</span><span class="sc-rm">${esc(r[1] || '')}</span>${r[2] ? `<span class="sc-badge">${esc(r[2])}</span>` : ''}</li>`;
+  const RIC = ['calendar', 'download', 'user', 'settings'];
+  const row = (r, i) => `<li><span class="sc-ic" data-ic="${RIC[i % RIC.length]}"></span><span class="sc-rt">${esc(r[0])}</span><span class="sc-rm">${esc(r[1] || '')}</span>${r[2] ? `<span class="sc-badge">${esc(r[2])}</span>` : ''}</li>`;
   return `<div class="scene" id="scene">
- <div class="sc-top"><b class="sc-brand">${esc(P.name)}</b><span class="sc-links">${links.map((l) => `<span>${esc(l)}</span>`).join('')}</span><span class="sc-ghost">Sign in</span></div>
+ <div class="sc-top"><b class="sc-brand">${esc(P.name)}</b><span class="sc-links">${links.map((l) => `<span>${esc(l)}</span>`).join('')}</span><span class="sc-ic sc-search" data-ic="search"></span><span class="sc-ghost"><span class="sc-ic" data-ic="user"></span>Sign in</span></div>
  <div class="sc-hero">
   ${CX.eyebrow ? `<p class="sc-eyebrow">${esc(CX.eyebrow)}</p>` : ''}
   <h2 class="sc-h">${esc(CX.headline || 'A clear headline that says what this is')}</h2>
@@ -3501,7 +3658,7 @@ function sceneHTML() {
   <div class="sc-cta">${action}<span class="sc-link">${esc(CX.secondary || (P.secondary && P.secondary[0]) || 'See how it works')} →</span></div>
  </div>
  <div class="sc-grid">
-  <div class="sc-card"><span class="sc-label">${esc(CX.field || 'Email')}</span><span class="sc-field">${esc(CX.placeholder || (CX.field ? '' : 'name@example.com')) || '&nbsp;'}</span><span class="sc-hint">${esc(CX.hint || 'Used only to sign you in.')}</span>
+  <div class="sc-card"><span class="sc-label"><span class="sc-ic" data-ic="bell"></span>${esc(CX.field || 'Email')}</span><span class="sc-field">${esc(CX.placeholder || (CX.field ? '' : 'name@example.com')) || '&nbsp;'}</span><span class="sc-hint">${esc(CX.hint || 'Used only to sign you in.')}</span>
    <span class="sc-status"><i class="ok"></i>Saved <i class="warn"></i>Needs a look <i class="bad"></i>Failed</span></div>
   <ul class="sc-list">${rows.map(row).join('')}</ul>
  </div>
@@ -3523,6 +3680,10 @@ function paintSceneVars() {
   if (sc.dataset.base == null) sc.dataset.base = sc.className; // its own layout classes, kept under the added ones
   sc.className = sc.dataset.base + ' ' + STUDIO.mods.map((m) => dimCls(m.id, ST[m.id])).join(' ');
   sc.classList.toggle('light', sceneLight());
+  /* the Icons studio draws the page's icons in its style; without it they stay hidden */
+  const ic = shared('icons'), draw = ic && typeof ic.draw === 'function' ? ic.draw : null;
+  sc.classList.toggle('has-icons', !!draw);
+  if (draw) sc.querySelectorAll('.sc-ic[data-ic]').forEach((el) => { try { el.innerHTML = draw(el.dataset.ic, parseFloat(vars['--sc-icon']) || 18) || ''; } catch (e) { report('icons draw: ' + e.message); } });
 }
 function paintScene() {
   paintSceneVars();
@@ -3571,20 +3732,31 @@ function stageState() {
    Compare and States: plain cards across the workspace, every drawing at the same scale on the same ground. These are
    not drawn inside a simulated device: a device frame around a comparison only makes everything smaller. */
 const boardMode = () => ['compare', 'states'].includes(modeNow());
-function cmpArt(m, s, opt) {
-  let inner;
-  try { inner = m.still(s, opt); } catch (e) { report(m.id + ' drawing: ' + e.message); inner = ''; }
-  return `<div class="cmp-art${m.ground ? ' ground' : ' bgd'}" ${m.ground ? '' : bgAttr()}><span class="art-in cmp-in ${dimCls(m.id, s)}" style="${varsCss(m.vars(s))}">${inner}</span></div>`;
+/** A drawing for Compare, Review and States. ctx: other studios' states to draw it with (the foundations it was made
+    with), so a shortlisted or baseline version stays faithful when the palette, type or surfaces change later. */
+function cmpArt(m, s, opt, ctx) {
+  return withCtx(ctx, () => {
+    let inner;
+    try { inner = m.still(s, opt); } catch (e) { report(m.id + ' drawing: ' + e.message); inner = ''; }
+    return `<div class="cmp-art${m.ground ? ' ground' : ' bgd'}" ${m.ground ? '' : bgAttr()}><span class="art-in cmp-in ${dimCls(m.id, s)}" style="${varsCss(m.vars(s))}">${inner}</span></div>`;
+  });
 }
+/** Names of the studios whose foundations differ between a pin's ctx and now: 'Palette and Surface'. */
+const ctxDiff = (ctx) => STUDIO.mods.filter((x) => ctx && ctx[x.id] && !sameLook(x.id, ctx[x.id], ST[x.id])).map((x) => x.name);
 function compareHTML() {
   const m = AM(), mid = m.id, now = AS();
   const pins = PINS.filter((p) => p.mod === mid);
   const sum = (s) => { try { return m.summary ? m.summary(s) : ''; } catch { return ''; } };
-  const card = (name, badge, s, key, extra = '') => `<figure class="cmp${key === 'now' ? ' cur' : ''}"><div class="cmp-top"><b>${esc(name)}</b><span>${esc(badge)}</span></div>${cmpArt(m, s, { compare: true })}`
-    + `<figcaption class="cmp-foot"><p>${esc(sum(s))}</p>${key !== 'now' && !sameLook(mid, s, now) ? `<button class="mini" data-use="${esc(key)}">Use this</button>` : key !== 'now' ? '<span>In use now</span>' : ''}${extra}</figcaption></figure>`;
+  const baseCtx = foundations(mid, DEFS);
+  const card = (name, badge, s, key, extra = '', ctx = null) => {
+    const diff = ctx ? ctxDiff(ctx) : [];
+    const note = diff.length ? `<p class="cmp-ctx">${key === 'base' ? `Drawn with ${m.measured ? 'today’s' : 'the starting'} ${esc(list(diff).toLowerCase())}` : `Drawn with the ${esc(list(diff).toLowerCase())} it was shortlisted with`}</p>` : '';
+    return `<figure class="cmp${key === 'now' ? ' cur' : ''}"><div class="cmp-top"><b>${esc(name)}</b><span>${esc(badge)}</span></div>${cmpArt(m, s, { compare: true }, ctx)}`
+      + `<figcaption class="cmp-foot"><p>${esc(sum(s))}</p>${note}${key !== 'now' && !(sameLook(mid, s, now) && !diff.length) ? `<button class="mini" data-use="${esc(key)}">Use this</button>` : key !== 'now' ? '<span>In use now</span>' : ''}${extra}</figcaption></figure>`;
+  };
   const nowPinned = pins.some((p) => sameLook(mid, p.s, now)) || sameLook(mid, DEFS[mid], now);
-  return card(baseName(m), m.measured ? 'Measured' : 'Starting point', DEFS[mid], 'base')
-    + pins.map((p) => card(p.name, 'Shortlisted', p.s, p.id, `<button class="mini q" data-unpin="${esc(p.id)}" aria-label="Remove ${esc(p.name)} from the shortlist">Remove</button>`)).join('')
+  return card(baseName(m), m.measured ? 'Measured' : 'Starting point', DEFS[mid], 'base', '', baseCtx)
+    + pins.map((p) => card(p.name, 'Shortlisted', p.s, p.id, `<button class="mini q" data-unpin="${esc(p.id)}" aria-label="Remove ${esc(p.name)} from the shortlist">Remove</button>`, p.ctx)).join('')
     + (nowPinned ? '' : card('Now', 'Not shortlisted', now, 'now', '<button class="mini q" data-act="pin">Shortlist</button>'))
     + (pins.length ? '' : `<p class="cmp-tip">Press <b>Shortlist</b> on a version you like, keep exploring, and it waits here beside ${esc(baseName(m).toLowerCase())}. Up to three.</p>`);
 }
@@ -3709,7 +3881,7 @@ function renderStageBar() {
   $('rmtog').setAttribute('aria-pressed', String(V.rm));
   $('hold').textContent = 'Hold to see ' + baseName(m).toLowerCase();
   $('hold').disabled = !changedKeys(m.id).length;
-  const full = PINS.length >= 3;
+  const full = PINS.filter((p) => p.mod === m.id).length >= PIN_MAX;
   const isBase = sameLook(m.id, AS(), DEFS[m.id]);
   $('pin').disabled = full || isBase || PINS.some((p) => p.mod === m.id && sameLook(m.id, p.s, AS()));
   $('pin').title = full ? 'Three are shortlisted. Remove one in Compare to add another.' : isBase ? `This is ${baseName(m).toLowerCase()}; Compare always shows it` : 'Keep this version to compare with later ones';
@@ -3744,10 +3916,11 @@ function pinNow() {
   if (sameLook(m.id, s, DEFS[m.id])) return msg(`This is ${esc(baseName(m).toLowerCase())}, which Compare always shows. Change something first, then pin it.`);
   const twin = PINS.find((p) => p.mod === m.id && sameLook(m.id, s, p.s));
   if (twin) return msg(`Already shortlisted as ${esc(twin.name)}.`);
-  if (PINS.length >= 3) return msg('Three versions are shortlisted already. Remove one in Compare first.', 'warn');
-  const letter = ['A', 'B', 'C'].find((l) => !PINS.some((p) => p.name.startsWith(l + ' ·') || p.name === l));
+  const mine = PINS.filter((p) => p.mod === m.id);
+  if (mine.length >= PIN_MAX) return msg(`Three ${esc(m.name.toLowerCase())} versions are shortlisted already. Remove one in Compare first.`, 'warn');
+  const letter = ['A', 'B', 'C'].find((l) => !mine.some((p) => p.name.startsWith(l + ' ·') || p.name === l));
   const what = m.summary ? m.summary(s) : (() => { const c = m.groups[0] && m.groups[0].ctl.find((x) => x.t === 'chips'); const op = c && optOf(c, s[c.k]); return op ? op.n : ''; })();
-  PINS.push({ id: 'p' + Date.now().toString(36), name: letter + (what ? ' · ' + what : ''), mod: m.id, s: clone(s) });
+  PINS.push({ id: 'p' + Date.now().toString(36), name: letter + (what ? ' · ' + what : ''), mod: m.id, s: clone(s), ctx: foundations(m.id) });
   renderStageBar(); save();
   if (modeNow() === 'compare') renderStage();
   else msg(`Shortlisted as ${esc(PINS[PINS.length - 1].name)}. <button class="chip sm" data-mode="compare">Compare</button>`, 'ok');
@@ -3756,10 +3929,25 @@ function usePinned(key) {
   const mid = NAV.mod, p = PINS.find((x) => x.id === key);
   const s = key === 'base' ? fresh(mid) : p && clone(p.s);
   if (!s) return;
+  const ctx = key === 'base' ? foundations(mid, DEFS) : p.ctx, diff = ctxDiff(ctx);
   commit(mid);
   setState(mid, s);
   redrawAll(); save();
-  msg(`Now using ${esc(key === 'base' ? baseName(AM()).toLowerCase() : p.name)}. Undo brings back what you had.`, 'ok');
+  const name = esc(key === 'base' ? baseName(AM()).toLowerCase() : p.name);
+  msg(diff.length
+    ? `Now using ${name}. It was drawn with ${key === 'base' ? 'today’s' : 'a different'} ${esc(list(diff).toLowerCase())}; yours stay as they are. <button class="chip sm" data-pinctx="${esc(key)}">Bring ${diff.length > 1 ? 'those' : 'that'} back too</button>`
+    : `Now using ${name}. Undo brings back what you had.`, 'ok', !!diff.length);
+}
+/** Takes back the foundations a pin (or the baseline) was drawn with, as one step that Undo reverses. */
+function usePinCtx(key) {
+  const mid = NAV.mod, p = PINS.find((x) => x.id === key);
+  const ctx = key === 'base' ? foundations(mid, DEFS) : p && p.ctx;
+  const ids = Object.keys(ctx || {}).filter((id) => STUDIO.has(id) && !sameLook(id, ctx[id], ST[id]));
+  if (!ids.length) return;
+  commit(ids[0], ids);
+  ids.forEach((id) => setState(id, clone(ctx[id])));
+  redrawAll(); save();
+  msg(`${esc(list(ids.map((id) => STUDIO.by[id].name)))} back as ${ids.length > 1 ? 'they were' : 'it was'}. Undo reverses it.`, 'ok');
 }
 function unpin(id) {
   const i = PINS.findIndex((p) => p.id === id);
@@ -3955,7 +4143,7 @@ function stepHTML() {
   if (NAV.review || modeNow() !== 'alone') return '';
   const list = steps(), i = list.findIndex((x) => x.id === NAV.cat[NAV.mod]), pv = prevStep(), nx = nextStep();
   const where = i < 0 ? 'Start' : list[i].extra ? 'Extra' : `Step ${i + 1} of ${lastMain(list) + 1}`;
-  const skip = i >= lastMain(list) && nx.cat !== 'review' && nx.cat !== 'looks' ? '<button class="skip" data-cat="review">Skip to Review</button>' : '';
+  const skip = i >= lastMain(list) && nx.cat !== 'review' ? '<button class="skip" data-cat="review">Skip to Review</button>' : '';
   return `<span class="count">${where}</span>${skip}`
     + (pv ? '<button class="go q" data-act="prev">Back</button>' : '')
     + `<button class="go" data-act="next">${i < 0 && sameLook(NAV.mod, AS(), DEFS[NAV.mod]) ? (AM().measured ? 'Start from today' : 'Use the starting point') : 'Next: ' + esc(nx.n)} →</button>`;
@@ -3968,7 +4156,18 @@ function renderHead() {
   $('hwhy').innerHTML = h.why;
 }
 
-const SCOPES = [['one', 'Only this one', 'Change this one place and leave everything like it alone.'], ['family', 'Every one like it', 'Change the shared style, so every matching one follows.'], ['system', 'The design system', 'Change the foundations (colours, type, shared styles) that the rest is built from.']];
+/** "How far should this reach?", once per changed studio, in that studio's own terms: a button reaches one place, its
+    family or the system; a palette its tokens or one area. A foundation starts on its sensible default. */
+function reachHTML(mods) {
+  if (!mods.length) return '';
+  return mods.map((m) => {
+    const now = reachNow(m), opts = reachOf(m), id = 'l_scope_' + m.id, pick = opts.find((x) => x[0] === now);
+    return `<div class="ctl reach"><div class="lrow"><span class="lbl" id="${id}">${mods.length > 1 ? `${esc(m.name)}: how far should it reach?` : 'How far should this reach?'}</span></div><div class="chips" role="group" aria-labelledby="${id}">${opts.map(([k, n]) => `<button class="chip" data-scope="${esc(m.id)}|${esc(k)}" aria-pressed="${now === k}">${esc(n)}</button>`).join('')}</div>`
+      + `<p class="desc">${pick ? esc(pick[2]) : 'Choose one, so the agent knows whether to touch one place or the shared styles.'}</p></div>`;
+  }).join('');
+}
+/** Changed studios that still need a reach chosen. */
+const reachMissing = () => STUDIO.mods.filter((m) => changes(m).length && !reachNow(m));
 /** What changed in one module, as [{ c, label, from, to }], one per key. */
 function changes(m) {
   const s = ST[m.id], d = DEFS[m.id];
@@ -3999,7 +4198,7 @@ function reviewHTML() {
     const open = UI.expanded['review.' + m.id] || ch.length <= SHOW + 2;
     return `<section class="rvm" id="rv-${m.id}"><h3>${esc(cap(m.title()))}<span class="rvn">${ch.length ? `${ch.length} change${ch.length > 1 ? 's' : ''}` : 'unchanged'}</span></h3>`
       + (ch.length
-        ? `<div class="ba"><figure>${art(m, DEFS[m.id], { compare: true })}<figcaption>${esc(baseName(m))}</figcaption></figure><figure>${art(m, ST[m.id], { compare: true })}<figcaption>Proposed</figcaption></figure></div>`
+        ? `<div class="ba"><figure>${withCtx(foundations(m.id, DEFS), () => art(m, DEFS[m.id], { compare: true }))}<figcaption>${esc(baseName(m))}</figcaption></figure><figure>${art(m, ST[m.id], { compare: true })}<figcaption>Proposed</figcaption></figure></div>`
           + `<ul class="rv">${(open ? ch : ch.slice(0, SHOW)).map(row).join('')}</ul>`
           + (open ? '' : `<button class="chip ghost rvmore" data-expand="review.${m.id}">Show all ${ch.length} changes</button>`)
         : '')
@@ -4008,8 +4207,7 @@ function reviewHTML() {
   const any = total > 0;
   // what changed at a glance, and the one decision that matters, before the detail
   const summary = `<div class="rvtop"><p class="rvsum">${any ? `${total} change${total > 1 ? 's' : ''}: ${all.filter((x) => x.ch.length).map((x) => `<a href="#rv-${x.m.id}">${esc(x.m.name)} ${x.ch.length}</a>`).join(' · ')}` : 'Nothing has changed yet. Pick something in a studio, then come back.'}</p>`
-    + `<div class="ctl"><div class="lrow"><span class="lbl" id="l_scope">How far should this reach?</span></div><div class="chips" role="group" aria-labelledby="l_scope">${SCOPES.map(([k, n]) => `<button class="chip" data-scope="${k}" aria-pressed="${SCOPE === k}">${n}</button>`).join('')}</div>`
-    + `<p class="desc">${SCOPE ? esc(SCOPES.find((x) => x[0] === SCOPE)[2]) : 'Choose one, so the agent knows whether to touch one place or the shared styles.'}</p></div></div>`;
+    + reachHTML(all.filter((x) => x.ch.length).map((x) => x.m)) + '</div>';
   return summary + blocks
     + `<p class="checked">${esc(checkedLine())}</p>`
     + `<details class="fine" data-fine="review"${UI.fine.review ? ' open' : ''}><summary><b>The exact proposal the agent receives</b></summary><pre class="spec">${esc(specText())}</pre></details>`
@@ -4030,20 +4228,23 @@ function steps(m = AM()) {
   return [...main, ...extra].map((g) => ({ id: g.id, n: g.short || g.t, g, extra: !!g.extra }));
 }
 const lastMain = (list) => list.filter((x) => !x.extra).length - 1;
-/** Where Next goes from here: Start, each step, the next studio's Start, then Review. */
+/** Where Next goes from here: Start, each main step, the next studio's Start, then Review. Extras are optional: Next
+    never walks through them; the person opens one from the Extras row, and Next from there moves on. */
 function nextStep() {
   const m = AM(), list = steps(m), i = list.findIndex((x) => x.id === NAV.cat[m.id]);
-  if (i < list.length - 1) return { mod: m.id, cat: list[i + 1].id, n: list[i + 1].n };
+  const nx = list[i + 1];
+  if (nx && !nx.extra) return { mod: m.id, cat: nx.id, n: nx.n };
   const k = STUDIO.mods.indexOf(m);
   if (k < STUDIO.mods.length - 1) { const nm = STUDIO.mods[k + 1]; return { mod: nm.id, cat: 'looks', n: nm.name }; }
   return { mod: m.id, cat: 'review', n: 'Review' };
 }
 function prevStep() {
-  const m = AM(), list = steps(m), i = list.findIndex((x) => x.id === NAV.cat[m.id]);
+  const m = AM(), list = steps(m), i = list.findIndex((x) => x.id === NAV.cat[m.id]), main = list.filter((x) => !x.extra);
+  if (i >= 0 && list[i].extra) return main.length ? { mod: m.id, cat: main[main.length - 1].id } : { mod: m.id, cat: 'looks' }; // back from an extra: the last main step
   if (i > 0) return { mod: m.id, cat: list[i - 1].id };
   if (i === 0) return { mod: m.id, cat: 'looks' };
   const k = STUDIO.mods.indexOf(m);
-  if (k > 0) { const pm = STUDIO.mods[k - 1], pl = steps(pm); return { mod: pm.id, cat: pl[pl.length - 1].id }; }
+  if (k > 0) { const pm = STUDIO.mods[k - 1], pl = steps(pm).filter((x) => !x.extra); return { mod: pm.id, cat: pl.length ? pl[pl.length - 1].id : 'looks' }; }
   return null;
 }
 function navHTML() {
@@ -4138,10 +4339,11 @@ function goControl(id) {
 }
 
 /* ---- the proposal the agent receives ---- */
-function specLines(m) {
-  const s = ST[m.id], out = [];
+function specLines(m, skipped = []) {
+  const s = ST[m.id], out = [], changed = new Set(changedKeys(m.id));
   for (const g of m.groups) {
     if (g.na && g.na(s)) continue;
+    if (g.extra && !g.ctl.some((c) => changed.has(c.k))) { skipped.push(g.short || g.t); continue; } // an optional step left alone is not a decision
     const parts = [], done = new Set();
     for (const c of g.ctl) {
       if (c.inSpec === false || !shown(c, s) || done.has(c.k)) continue;
@@ -4164,20 +4366,24 @@ function specLines(m) {
   return out;
 }
 function specText() {
-  const scope = SCOPES.find((x) => x[0] === SCOPE);
-  const out = [`A proposal from the studio for ${P.name}. Nothing has been changed. Do not build it until I say so in the chat. ${P.specRules}`, '',
-    `Reach: ${scope ? `${scope[1]}. ${scope[2]}` : 'not chosen yet. Ask me before deciding.'}`];
+  const out = [`A proposal from the studio for ${P.name}. Nothing has been changed. Do not build it until I say so in the chat. ${P.specRules}`];
   for (const m of STUDIO.mods) {
     const ch = changes(m);
     out.push('', `== ${m.name}: ${m.title()} ==`);
     if (!ch.length) { out.push(`No change from ${baseName(m).toLowerCase()}.`); continue; }
+    const r = reachOf(m).find((x) => x[0] === reachNow(m));
+    out.push(`Reach: ${r ? `${r[1]}. ${r[2]}` : 'not chosen yet. Ask me before deciding.'}${r && !SCOPE[m.id] ? ' (the studio’s default for this; not chosen by me)' : ''}`);
     out.push('Changed: ' + ch.map((x) => `${x.label} ${x.from}${x.known === 'not measured' ? ' (starting value, not measured from the project)' : x.known === 'new' ? ' (a category added in this session)' : ''} → ${x.to}`).join('; ') + '.');
-    out.push(...specLines(m).map((l, i) => `${i + 1}. ${l}`));
+    const skipped = [];
+    out.push(...specLines(m, skipped).map((l, i) => `${i + 1}. ${l}`));
+    if (skipped.length) out.push(`Left as they are (optional, not opened or not changed): ${skipped.join(', ')}.`);
+    const follows = m.follows ? m.follows(ST[m.id]) : [];
+    if (follows.length) out.push(`Follows: ${follows.join(' ')} If those foundations change, this follows them; build it from the shared tokens, not fixed values.`);
     const warn = m.warn ? m.warn(ST[m.id]) : [];
     if (warn.length) out.push('To check: ' + warn.map((w) => w.t).join(' '));
     if (m.notes) out.push(...m.notes(ST[m.id]));
     const cats = m.groups.filter((g) => g.dim && changedKeys(m.id).some((k) => g.ctl.some((x) => x.k === k)));
-    if (cats.length) out.push(`New in this session: ${cats.map((g) => g.t).join(', ')}. The studio draws ${cats.length > 1 ? 'them' : 'it'} with the .x-${cats[0].ctl[0].k}-* rules (and --x-* properties) in its own <style id="more-css">; carry that look into the project's own styles.`);
+    if (cats.length) out.push(`New in this session: ${cats.map((g) => `${g.t} (drawn by the .x-${g.ctl[0].k}-* rules${g.ctl.length > 1 ? ` and ${g.ctl.slice(1).map((c) => '--x-' + c.k).join(', ')}` : ''})`).join('; ')}, in the studio's own <style id="more-css">; carry that look into the project's own styles.`);
     const system = m.system ? m.system() : [];
     if (system.length) out.push(`How the project builds this today: ${system.join(' ')} These choices may change that. Where they differ and the reach allows it, update or add to the design system to match rather than special-casing.`);
   }
@@ -4288,7 +4494,8 @@ async function deliver(payload, words, okMsg, after, done = () => {}) {
     try { await api('/api/send', payload); msg(okMsg, 'ok'); done('agent'); return true; } catch {}
   }
   if (STATUS.live) {
-    AWAY = { payload, words, after, done, name: payload.stepName || '' };
+    if (AWAY) await keepQueued(); // a request still waiting for Send now or Keep in queue is kept, never replaced
+    AWAY = { payload, words, after, done, name: payload.stepName || '', wish: payload.wish || '' };
     if (!NAV.review && typeof renderPanel === 'function') renderPanel(); // the choice appears in the box that was clicked
     else msg('The agent is not watching the studio right now. <button class="chip sm" data-act="sendnow">Send now</button> <button class="chip sm" data-act="queue">Keep in queue</button>', 'warn', true);
     return false;
@@ -4343,7 +4550,8 @@ async function sendModule(id) {
   await deliver({ kind: 'module', id: 'r' + Date.now().toString(36), module: id }, words, `Asked the agent to add ${esc(name)}. It needs a minute to read the project; this page reloads when it is ready.`, 'This page reloads when it is ready.');
 }
 async function sendSpec() {
-  if (!SCOPE) { msg('First choose how far this should reach, just above.', 'warn'); const el = document.querySelector('[data-scope]'); if (el) el.scrollIntoView({ block: 'center', behavior: RM_OS ? 'auto' : 'smooth' }); return; }
+  const missing = reachMissing();
+  if (missing.length) { msg(`First choose how far ${esc(list(missing.map((m) => m.name)))} should reach, just above.`, 'warn'); const el = document.querySelector(`[data-scope^="${missing[0].id}|"]`); if (el) el.scrollIntoView({ block: 'center', behavior: RM_OS ? 'auto' : 'smooth' }); return; }
   const text = specText();
   if (CLOUD) {
     const copied = await copyText(text), kept = await cloudSend({ kind: 'spec', text });
@@ -4466,9 +4674,15 @@ async function importFile(f) {
   if (!d || typeof d !== 'object' || !d.mods || typeof d.mods !== 'object') return msg('That is not a file saved from the studio.', 'warn');
   const took = STUDIO.mods.filter((m) => d.mods[m.id] && typeof d.mods[m.id] === 'object');
   if (!took.length) return msg('That file has nothing for the studios open here.', 'warn');
-  took.forEach((m) => { commit(m.id); setState(m.id, cleanState(m.id, d.mods[m.id])); });
+  LOST.length = 0;
+  took.forEach((m) => { commit(m.id); setState(m.id, cleanState(m.id, d.mods[m.id], true)); });
+  const away = Object.keys(d.mods).filter((id) => !STUDIO.has(id) && d.mods[id] && typeof d.mods[id] === 'object');
+  away.forEach((id) => { KEPT.mods[id] = d.mods[id]; }); // studios not open here are kept for when they are
   redrawAll(); save();
-  msg(`Opened ${esc(list(took.map((m) => m.name)))} from the file. Undo brings back what you had.`, 'ok');
+  const awayNames = away.map((id) => (AVAILABLE.find((x) => x[0] === id) || [id, id])[1]);
+  msg(`Opened ${esc(list(took.map((m) => m.name)))} from the file. Undo brings back what you had.`
+    + (awayNames.length ? ` The file also has ${esc(list(awayNames))}, which ${awayNames.length > 1 ? 'are' : 'is'} not open here; kept for when ${awayNames.length > 1 ? 'they are' : 'it is'}.` : '')
+    + (LOST.length ? ` ${LOST.length} saved choice${LOST.length > 1 ? 's are' : ' is'} not offered here (${esc(lostWords())}); kept in case ${LOST.length > 1 ? 'they come' : 'it comes'} back.` : ''), 'ok', !!(awayNames.length || LOST.length));
 }
 function resetAll() {
   STUDIO.mods.filter((m) => changedKeys(m.id).length).forEach((m) => { commit(m.id); setState(m.id, fresh(m.id)); });
@@ -4489,7 +4703,7 @@ const ACTIONS = {
   resetall: resetAll,
   sendnow: () => sendNow(),
   queue: () => keepQueued(),
-  awaycancel: () => { AWAY = null; renderPanel(); },
+  awaycancel: () => { if (AWAY && AWAY.wish) UI.ask.text = AWAY.wish; AWAY = null; renderPanel(); }, // what was typed comes back to the box
   next: () => { const n = nextStep(); go(n.mod, n.cat); },
   prev: () => { const p = prevStep(); if (p) go(p.mod, p.cat); },
   pin: () => pinNow(),
@@ -4530,7 +4744,8 @@ document.addEventListener('click', (e) => {
   if ((el = at('[data-moreask]'))) { const k = el.dataset.moreask; UI.ask.target = k === '@looks' ? null : k; return sendAsk('more', k); }
   if ((el = at('[data-quick]'))) return sendAsk(el.dataset.quick);
   if ((el = at('[data-goctl]'))) return goControl(el.dataset.goctl);
-  if ((el = at('[data-scope]'))) { SCOPE = el.dataset.scope; renderPanel(); return save(); }
+  if ((el = at('[data-scope]'))) { const [mid, v] = el.dataset.scope.split('|'); if (STUDIO.has(mid)) SCOPE[mid] = v; renderPanel(); return save(); }
+  if ((el = at('[data-pinctx]'))) return usePinCtx(el.dataset.pinctx);
   if ((el = at('[data-cat]'))) return go(null, el.dataset.cat);
   if ((el = at('[data-mod]'))) return go(el.dataset.mod, NAV.cat[el.dataset.mod]);
   if ((el = at('[data-mode]'))) return setMode(el.dataset.mode);
@@ -4700,6 +4915,7 @@ function studioCheck() {
   const added = had ? all.filter((k) => !UI.known.includes(k)) : [];
   UI.fresh = [...new Set(UI.fresh.concat(added))].filter((k) => all.includes(k));
   UI.known = all;
+  if (LOST.length) msg(`${LOST.length} saved choice${LOST.length > 1 ? 's are' : ' is'} not offered on this page right now (${esc(lostWords())}). ${LOST.length > 1 ? 'They are' : 'It is'} kept, and come${LOST.length > 1 ? '' : 's'} back if the choice returns.`, 'warn', true);
   if (DIM_BAD.length) {
     msg(`A new category the agent added has a mistake, so it is left out: ${esc(DIM_BAD[0])} Everything else works, and your choices are safe.`, 'warn', true);
     report('MORE.dims: ' + DIM_BAD.join(' '));

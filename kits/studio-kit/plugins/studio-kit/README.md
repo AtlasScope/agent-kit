@@ -1,11 +1,12 @@
 # Studio Kit
 
-One command, `/studio`, for choosing how your interface looks. It opens a live page on your computer where you see finished looks and every option drawn for real, for a button, a colour palette or typography. Pick one or more of those studios and work in one workspace. Compare options, fine-tune them, undo, ask the agent for more, then send a proposal back to chat.
+One command, `/studio`, for choosing how your interface looks. It opens a live page on your computer where you see finished looks and every option drawn for real, for a button, a colour palette, typography, surfaces (cards, edges, shadows), spacing, motion or icons. Pick one or more of those studios and work in one workspace. Compare options, fine-tune them, undo, ask the agent for more, then send a proposal back to chat.
 
 | You type | What happens | Changes files |
 |---|---|---|
 | `/studio button` | Opens the studio for your buttons, starting from the buttons the project already has | No |
 | `/studio palette type` | Opens one workspace with a colour palette studio and a typography studio side by side | No |
+| `/studio surface spacing motion` | Opens the foundations a product's feel is built from: surfaces, spacing and movement, each drawn on your own page | No |
 | `/studio` | Asks which studios you want, then opens them | No |
 
 Nothing in your application changes while you explore. When you send a proposal to chat, the agent applies it only after you approve it. The command runs only when you type it.

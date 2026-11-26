@@ -45,3 +45,31 @@
 .sc-heroonly .sc-link{margin-top:14px;color:var(--sc-fg);font-weight:400}
 .sc-foot{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 20px;margin:auto 0 0;font-size:calc(var(--sc-size)*.8125);color:var(--sc-fg2)}
 @container (max-width:560px){.sc-heroonly .sc-cta,.sc-heroonly #mount{width:100%;max-width:21rem}.sc-heroonly .sc-h{font-size:clamp(2.1rem,9.6cqw,3rem)}}
+/* Surface, Spacing, Motion and Icons paint the same page. Each value falls back to the page's own look, so a studio
+   that is not open changes nothing:
+   surface  --sc-radius --sc-radius-sm --sc-border --sc-border-a --sc-shadow --sc-card-alpha --sc-blur --sc-texture
+   spacing  --sc-space --sc-pad --sc-gap --sc-stack --sc-section --sc-row --sc-align --sc-maxw --sc-control-h
+   motion   --sc-dur --sc-ease --sc-dist --sc-stagger --sc-lift
+   icons    --sc-icon --sc-icon-stroke --sc-icon-gap, and the glyphs drawn into .sc-ic by the Icons studio */
+.scene .sc-card,.scene .sc-list,.scene .sc-code{border-radius:var(--sc-radius,14px);box-shadow:inset 0 0 0 var(--sc-border,1px) color-mix(in srgb,var(--sc-line) calc(var(--sc-border-a,1)*100%),transparent),var(--sc-shadow,0 0 #0000);
+ background:var(--sc-texture,none),color-mix(in srgb,var(--sc-surface) calc(var(--sc-card-alpha,1)*100%),transparent);-webkit-backdrop-filter:blur(var(--sc-blur,0px));backdrop-filter:blur(var(--sc-blur,0px));
+ transition:translate var(--sc-dur,0ms) var(--sc-ease,ease),box-shadow var(--sc-dur,0ms) var(--sc-ease,ease)}
+.scene .sc-card{padding:var(--sc-pad,16px);gap:calc(var(--sc-stack,12px)/2)}
+.scene .sc-list{padding:calc(var(--sc-pad,16px)/4) var(--sc-pad,16px)}
+.scene .sc-list li{padding:var(--sc-row,11px) 0}
+.scene .sc-field,.scene .sc-ghost,.scene .sc-btn{border-radius:var(--sc-radius-sm,9px)}
+.scene .sc-field{min-height:var(--sc-control-h,auto);display:flex;align-items:center}
+.scene .sc-grid{gap:var(--sc-gap,16px)}
+.scene .sc-p{margin-top:var(--sc-stack,14px)}
+.scene .sc-cta{margin-top:calc(var(--sc-stack,14px)*1.85);gap:var(--sc-gap,14px) calc(var(--sc-gap,14px)*1.4)}
+.scene .sc-hero{padding-block:var(--sc-section,clamp(28px,7cqw,64px)) calc(var(--sc-section,clamp(24px,5cqw,44px))*.7);text-align:var(--sc-align,start)}
+.scene .sc-hero .sc-cta{justify-content:var(--sc-align,start)}
+.scene .sc-code{margin-top:var(--sc-gap,16px)}
+@media (hover:hover){.scene .sc-card:hover,.scene .sc-list:hover{translate:0 calc(var(--sc-lift,0px)*-1)}}
+.stage.rm .scene .sc-card,.stage.rm .scene .sc-list{transition:none}
+.sc-ic{display:none}
+.scene.has-icons .sc-ic{display:inline-flex;flex:none;align-items:center;justify-content:center;width:var(--sc-icon,18px);height:var(--sc-icon,18px);color:currentColor}
+.scene.has-icons .sc-ic svg{width:100%;height:100%;display:block}
+.scene.has-icons .sc-list li{align-items:center;gap:var(--sc-icon-gap,10px)}
+.scene.has-icons .sc-ghost,.scene.has-icons .sc-label{display:inline-flex;align-items:center;gap:var(--sc-icon-gap,8px)}
+.scene.has-icons .sc-search{color:var(--sc-fg2)}

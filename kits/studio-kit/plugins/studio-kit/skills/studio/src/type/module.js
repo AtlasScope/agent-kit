@@ -394,6 +394,7 @@
     groups, keep: [],
     looks: T.measured ? looks : looks.filter((l) => l.id !== 'builtin'), // without a measured Today, Built in is the starting point
     fix, pick: pickType, vars, still, live, scene, share, warn, notes, summary,
+    reach: [['system', 'The type styles', 'Change the shared text and heading styles, so every page built from them follows.'], ['area', 'Only the text shown', 'Set this lettering where you looked, and leave the rest of the product as it is.']],
     tile: (c) => TILES[c.k] || null,
     tall: () => true,
   });

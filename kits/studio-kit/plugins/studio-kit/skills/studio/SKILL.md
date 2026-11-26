@@ -1,9 +1,9 @@
 ---
 name: studio
-description: Use only when the user explicitly invokes /studio or $studio. Opens a live design studio page for a button, a colour palette, typography, or several together, with finished looks and every option drawn for real, compare, undo, ask for more, then a proposal sent to chat. Never changes the application until the user approves. Ordinary design requests must not activate it.
+description: Use only when the user explicitly invokes /studio or $studio. Opens a live design studio page for a button, a colour palette, typography, surfaces, spacing, motion, icons, or several together, with finished looks and every option drawn for real, compare, undo, ask for more, then a proposal sent to chat. Never changes the application until the user approves. Ordinary design requests must not activate it.
 disable-model-invocation: true
 metadata:
-  short-description: Live studio for choosing how buttons, colours and type look
+  short-description: Live studio for choosing how buttons, colours, type, surfaces, spacing, motion and icons look
   author: AtlasScope/agent-kit
 ---
 
@@ -17,9 +17,19 @@ The page is the deliverable. A written list of recommendations, or a static file
 
 ## Studios
 
-`node <skill>/scripts/studio.mjs list` prints what exists. Today: `button` (shape, material, colour, words, hover and press, movement, choosing an option, after press), `palette` (a whole coordinated set of colours and each role in it) and `type` (typefaces, sizes, spacing). They share one page, one preview and one saved session. Where it makes sense one follows another: the button can take the palette's accent colour and the typography studio's lettering, and stops following the moment the user picks something else.
+`node <skill>/scripts/studio.mjs list` prints what exists:
 
-Build only the studios asked for. "The checkout button" is `button`. "Our colours" is `palette`. "The whole look" is all three.
+- `button`: shape, material, colour, words, hover and press, movement, choosing an option, after press.
+- `palette`: a whole coordinated set of colours and each role in it.
+- `type`: typefaces, sizes, spacing between lines and letters.
+- `surface`: materials, corners, edges, shadows, light, depth, see-through and texture of cards, panels and fields.
+- `spacing`: density, the spacing scale, padding, gaps, rhythm and alignment.
+- `motion`: timing, feel, springs, how things arrive, sequencing, transitions and responses to pointer and press.
+- `icons`: icon families, stroke, size, fill, placement next to words and optical alignment.
+
+They share one page, one preview and one saved session, and each paints the shared example page ("In a page"). The foundations (palette, type, surface, spacing, motion, icons) can be followed: the button can take the palette's accent, the typography's lettering, the surface's corners, the spacing's control size, the motion's timing and the icon style. Each is a plain choice ("From Surface"); it follows until the user picks the button's own value, and picking "From ..." again follows again. A project with no design starts the button following every foundation in the page; a measured one keeps today's values. Shortlisted versions keep the foundations they were drawn with, so they stay faithful when a foundation changes later.
+
+Build only the studios asked for. "The checkout button" is `button`. "Our colours" is `palette`. "Cards feel flat" is `surface`. "Everything is cramped" is `spacing`. "Make it feel smoother" is `motion`. "Our icons don't match" is `icons`. "The whole look" is all seven. Read `references/<name>.md` before filling a studio's part of `PROJECT`.
 
 ## Gates
 
@@ -43,7 +53,7 @@ Build only the studios asked for. "The checkout button" is `button`. "Our colour
    - `choices`: when the button carries a choice (agent, plan, workspace): `noun` and `items` as `[name, colour, letter, description]`. With no items those parts drop out. `secondary`: quieter actions beside it.
    - `system`: how the project builds this today, as plain sentences. `today`: found values keyed like `DEFAULTS` (list at the end). `sources`: per key, how it was found. `dropSteps`: group ids that make no sense here (`motion`, `split`, `confirm`, `menu`). The page shows the main steps first and these as optional Extras; decide them from the project, not from any example: a button that carries no choice has no `split` or `menu`, and one with no after-press flow has no `confirm`.
    - `context`: the project's own words for the example page: `eyebrow`, `headline`, `body`, `links`, `secondary`, `field`, `placeholder`, `hint`, `rows` as `[title, detail, tag]`, `code`. Without them the page shows stand-in words and says so. Reproduce the real surroundings of the target, not a generic page: `layout:'hero'` draws a landing page's single centred column (headline, `body` as its one line, the action, `note` under it, `secondary` as a link, `foot` as the small links), and `bg` names a stage background, such as the page's own picture added with `MORE.bg` and its CSS (embed it as a data URL; the page works offline). `real:false` keeps the label that says it is a representative page.
-   - `palette` and `type`: read `references/palette.md` or `references/type.md` first when that studio is in the page.
+   - `palette`, `type`, `surface`, `spacing`, `motion`, `icons`: read `references/<name>.md` first for each one in the page. Each has `measured`, `today` and `drop` (step ids to leave out), plus its own fields.
    - A found value with no matching choice: add it to `MORE` with `{setup:true}` and its CSS, and set `today` to it.
 
 3. **Check.** `node <skill>/scripts/studio.mjs check <dir>` must print `OK`.
@@ -72,7 +82,7 @@ MORE: {"id":"r1","module":"button","step":"material","stepName":"Material","cont
 
 Add 2 to 4 choices that fit, look clearly different from everything in `existing` and from each other, and work with the current picks. Edit only the studio's `index.html`:
 
-- In `MORE`: `key: [[value, 'Plain name', 'One short plain sentence.', {optional}], ...]`. Button keys are bare (`material`) or `button.material`; the others are `palette.<key>` and `type.<key>` (their references say what can be added). Colours: `swatch: [['Name', hue, chroma, lightness, 'Sentence.']]`. A whole look: `look: [['id', 'Name', 'Sentence.', {set:{...}}]]`. Optional: `set:{key:value}` brings other values with it; `onlyWith:{material:['glass']}` hides it where it would not show; `setup:true` for project values that are not new.
+- In `MORE`: `key: [[value, 'Plain name', 'One short plain sentence.', {optional}], ...]`. Button keys are bare (`material`) or `button.material`; the others are `<studio>.<key>`, such as `palette.<key>`, `surface.<key>` or `motion.<key>` (each reference says what can be added). Colours: `swatch: [['Name', hue, chroma, lightness, 'Sentence.']]`. A whole look: `look: [['id', 'Name', 'Sentence.', {set:{...}}]]`. Optional: `set:{key:value}` brings other values with it; `onlyWith:{material:['glass']}` hides it where it would not show; `setup:true` for project values that are not new.
 - A button choice needs CSS in `<style id="more-css">`: material `.m-NAME`, main movement `.i-NAME` (its `.fx` child is a clipped layer), light layer `.l-NAME`, hover `.h-NAME:hover` (inside `@media (hover:hover)`), press `.p-NAME:active` (use `!important` on transform), icon movement `.if-NAME`, entrance `.e-NAME`, shape `.sh-NAME` (or `set:{rr:...}`), keyboard outline `.f-NAME`, background `.device[data-bg=NAME]` (listed in `MORE.bg`), list style `.menu.NAME`. Animate whole-button movement with `translate`, `scale` or `rotate`, not `transform`. Use the engine's variables (`--ac`, `--ach`, `--acl`, `--h`, `--r`, `--spd`, `--dp`, `--on`) so colour, size and speed follow the picks.
 - An icon needs `<symbol id="i-NAME" viewBox="0 0 24 24">` after the `MORE ICONS` comment. A new after-press flow or layout needs a function in `MORE_JS.confirm[NAME]` or `MORE_JS.split[NAME]`.
 - Every name is plain and every sentence short. No design jargon in anything the user reads.
@@ -102,7 +112,7 @@ If the page is open without the server, its buttons copy a message instead and t
 
 ## When a proposal arrives
 
-It is intent, not code. It names the reach the user chose: **only this one**, **every one like it**, or **the design system**. Honour it: do not widen a one-place change into the shared styles, and do not special-case one button when they chose the system. Each line gives the plain choice and the engine value; `[unchanged]` marks today's values; "starting value, not measured" marks a before-value that was never found in the project, so check it in the source rather than trusting it. "To check" lists real problems the page saw; raise them. Map every line onto the project's own tokens and components, reconcile with the current source and any uncommitted work, honour reduced motion, and ship it the way the project ships changes. Never paste studio CSS into the product. Say in plain words what in the system changed.
+It is intent, not code. Each studio's part names its own reach: a component (the button) reaches **only this one**, **every one like it** or **the design system**; a foundation reaches its shared tokens or only the screens shown (a foundation's default is marked as not chosen by the user; confirm it when it matters). "Follows" lines say which button values come from which foundation: build them from the shared tokens, not copied numbers. Honour the reach: do not widen a one-place change into the shared styles, and do not special-case one button when they chose the system. Each line gives the plain choice and the engine value; `[unchanged]` marks today's values; "starting value, not measured" marks a before-value that was never found in the project, so check it in the source rather than trusting it. "To check" lists real problems the page saw; raise them. Map every line onto the project's own tokens and components, reconcile with the current source and any uncommitted work, honour reduced motion, and ship it the way the project ships changes. Never paste studio CSS into the product. Say in plain words what in the system changed.
 
 ## In a cloud session
 

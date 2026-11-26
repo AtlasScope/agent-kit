@@ -48,6 +48,7 @@ const DEFAULTS = {
   hover: 'lift', press: 'sink', focus: 'blue', showFocus: false,
   label: LABELS[0][0], sub: '', font: P.font ? 'project' : 'ui', case: 'normal', wt: 600, fs: 1, trk: -0.01,
   icon: 'arrow', iconpos: 'right', isz: 1.1, tile: 'none',
+  fspace: 'own', fmotion: 'own', ficons: 'own', // follow the Spacing, Motion and Icons studios (see module.js)
   split: 'none', agent: 0, nagents: Math.min(3, AG.length || 3), gap: 2, divider: 'gap',
   confirm: 'swap', dur: 2.2, showagents: true, next: 'none',
   menuStyle: 'glass', menuR: 16, mdens: 'regular', mw: 260, micons: true, msubs: false, mkeys: false, manim: 'pop', mhi: 'tint',

@@ -119,10 +119,14 @@ export function serve(dir) {
     "POST /api/state": (req, res, body) => { writeJSON(stateFile, body); json(res, 200, { saved: true }); },
     "POST /api/send": (req, res, v) => {
       const str = (x, n) => (x == null ? null : String(x).slice(0, n));
+      // nothing is cut without saying so: a long list or proposal says how much was left out
+      const listOf = (x) => { const j = JSON.stringify(x || []); return j.length < 60000 ? { existing: x || [] } : { existing: Array.isArray(x) ? x.slice(0, 200) : [], existingCut: true }; };
+      const long = (x, n) => { const t = String(x == null ? "" : x); return t.length <= n ? t : t.slice(0, n) + `
+[The studio cut this at ${n} characters; ${t.length - n} more were not sent. Ask me to open Review and copy the rest.]`; };
       const id = str(v.id, 24);
-      if (v.kind === "more") push({ kind: "more", id, module: str(v.module, 40) || "button", intent: ["more", "like", "different", "what"].includes(v.intent) ? v.intent : "", pinned: Array.isArray(v.pinned) ? v.pinned.slice(0, 3).map((x) => str(x, 60)) : [], step: str(v.step, 60) || "", stepName: str(v.stepName, 120) || "", control: str(v.control, 60), controlName: str(v.controlName, 120), wish: str(v.wish, 400) || "", current: str(v.current, 200), existing: JSON.stringify(v.existing || []).length < 8000 ? v.existing : [] });
+      if (v.kind === "more") push({ kind: "more", id, module: str(v.module, 40) || "button", intent: ["more", "like", "different", "what"].includes(v.intent) ? v.intent : "", pinned: Array.isArray(v.pinned) ? v.pinned.slice(0, 3).map((x) => str(x, 60)) : [], step: str(v.step, 60) || "", stepName: str(v.stepName, 120) || "", control: str(v.control, 60), controlName: str(v.controlName, 120), wish: str(v.wish, 400) || "", current: str(v.current, 200), ...listOf(v.existing) });
       else if (v.kind === "module") push({ kind: "module", id, module: String(v.module || "").replace(/[^a-z0-9-]/g, "").slice(0, 40) });
-      else if (v.kind === "spec") push({ kind: "spec", text: str(v.text, 20000) || "" });
+      else if (v.kind === "spec") push({ kind: "spec", text: long(v.text, 200000) });
       else if (v.kind === "error") push({ kind: "error", message: str(v.message, 500) || "" });
       else return json(res, 400, { error: "kind" });
       json(res, 200, { queued: true, listening: listening() });

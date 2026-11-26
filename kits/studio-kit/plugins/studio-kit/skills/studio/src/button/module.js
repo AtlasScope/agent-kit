@@ -15,6 +15,30 @@ function btnFont(s) {
   return FONTS[s.font] || FONTS.ui;
 }
 const sceneIsLight = () => V.mode === 'context' && !!shared('light');
+/* The Surface, Spacing, Motion and Icons studios: the button can take its corners, size, timing and icon style from
+   them, and stops following the moment the person picks its own. Each falls back to the button's own values. */
+function btnCorner(s) { const f = s.shape === 'shared' && shared('surface'); return f && isFinite(+f.r) ? Math.max(0, Math.min(+f.r, 999)) : s.rr; }
+function btnSpace(s) {
+  const f = s.fspace === 'follow' && shared('spacing');
+  return f && isFinite(+f.controlH) ? { h: Math.max(28, Math.min(96, Math.round(+f.controlH))), pad: isFinite(+f.padX) ? Math.max(0.2, Math.min(0.9, +f.padX)) : s.pad } : { h: s.h, pad: s.pad };
+}
+function btnMotion(s) { const f = s.fmotion === 'follow' && shared('motion'); return f && isFinite(+f.dur) && f.ease ? { dur: Math.round(+f.dur), ease: String(f.ease).replace(/[;{}<>"]/g, '') } : null; }
+function btnIcon(s) {
+  const f = s.ficons === 'follow' && shared('icons');
+  if (f && typeof f.draw === 'function') { try { const g = f.draw(s.icon, 24); if (g) return g.replace('<svg', '<svg aria-hidden="true"'); } catch {} }
+  return svg(s.icon);
+}
+/** What the button follows, in plain words, for the proposal. */
+function btnFollows(s) {
+  const out = [];
+  if (s.swatch === LINK_SW && STUDIO.has('palette')) out.push('Its colour is the Palette accent.');
+  if (s.font === 'shared' && STUDIO.has('type')) out.push('Its lettering is the Typography text face.');
+  if (s.shape === 'shared' && STUDIO.has('surface')) out.push(`Its corners are the Surface corner radius (${btnCorner(s)}px now).`);
+  if (s.fspace === 'follow' && STUDIO.has('spacing')) out.push(`Its height and side space come from the Spacing control size (${btnSpace(s).h}px now).`);
+  if (s.fmotion === 'follow' && STUDIO.has('motion')) { const m = btnMotion(s); if (m) out.push(`Its hover and press timing is the Motion timing (${m.dur}ms, ${m.ease}).`); }
+  if (s.ficons === 'follow' && STUDIO.has('icons')) out.push('Its icon is drawn in the Icons style.');
+  return out;
+}
 
 {
   const SEC = { shape: 'Appearance', material: 'Appearance', colour: 'Appearance', content: 'Content', interact: 'Interaction', motion: 'Interaction', split: 'Behaviour', confirm: 'Behaviour', menu: 'Behaviour' };
@@ -28,6 +52,19 @@ const sceneIsLight = () => V.mode === 'context' && !!shared('light');
     ['H', 'C', 'L'].forEach((k) => { ctl(k, 'range').show = (s) => s.swatch !== LINK_SW; });
   }
   if (BUILT.includes('type')) ctl('font', 'chips').opts.unshift(o('shared', 'From Typography', 'Follows the lettering chosen in the Typography studio.'));
+  if (BUILT.includes('surface')) ctl('shape', 'chips').opts.splice(1, 0, o('shared', 'From Surface', 'Takes its corners from the Surface studio, and changes with it.'));
+  const stepOf = (k) => STEPS.find((st) => st.ctl.some((c) => c.k === k));
+  const follow = (k, mod, name, d, after) => {
+    if (!BUILT.includes(mod)) return;
+    const st = stepOf(after);
+    if (!st) return;
+    const i = st.ctl.findIndex((c) => c.k === after);
+    st.ctl.splice(i + 1, 0, ch(k, name, [o('own', 'Its own', 'Set here, for this button.'), o('follow', `From ${cap(mod)}`, d)]));
+  };
+  follow('fspace', 'spacing', 'Size from', 'Height and side space follow the Spacing studio’s control size.', 'h');
+  follow('fmotion', 'motion', 'Timing from', 'Hover and press move with the Motion studio’s timing and feel.', 'press');
+  follow('ficons', 'icons', 'Icon style from', 'The icon is drawn in the Icons studio’s style: its stroke, ends and fill.', 'icon');
+  if (BUILT.includes('spacing')) ['h', 'pad'].forEach((k) => STEPS.flatMap((st) => st.ctl).filter((c) => c.k === k).forEach((c) => { const sh = c.show; c.show = (s) => s.fspace !== 'follow' && (!sh || sh(s)); }));
 
   /* How each control's choices are drawn. Anything not listed is a list of words. */
   const TILES = {
@@ -66,7 +103,8 @@ const sceneIsLight = () => V.mode === 'context' && !!shared('light');
     const out = [], r = withS(s, () => contrastOf(s));
     if (r != null && r < 4.5) out.push({ k: 'tc', t: `The words have a contrast of ${COLOUR.showRatio(r)} to 1 against the button colour. 4.5 is the usual minimum for text this size.` });
     else if (r == null && s.shape !== 'circle') out.push({ k: 'material', soft: true, t: `With ${nameIn('button', 'material', s).toLowerCase()}, how readable the words are depends on what is behind or inside the button, so it cannot be measured here. Check it on your real page.` });
-    if (s.h < 44) out.push({ k: 'h', t: `At ${s.h}px tall it is under the 44px that is comfortable to tap on a phone.` });
+    const hh = btnSpace(s).h;
+    if (hh < 44) out.push({ k: s.fspace === 'follow' ? 'fspace' : 'h', t: `At ${hh}px tall it is under the 44px that is comfortable to tap on a phone.` });
     if (anyMotion(s)) out.push({ k: 'idle', soft: true, t: 'It moves while nobody is touching it. That draws the eye every time, and costs a little battery on phones. It stays still for people who ask for less motion.' });
     if (s.press === 'hold') out.push({ k: 'press', soft: true, t: 'Hold to confirm needs a second way in for people who cannot hold a press. The keyboard confirms at once here.' });
     if (String(s.label).length > 28 && s.shape !== 'circle') out.push({ k: 'label', soft: true, t: 'The words are long. Check them on a phone, and in any other languages the product ships.' });
@@ -97,13 +135,25 @@ const sceneIsLight = () => V.mode === 'context' && !!shared('light');
   STUDIO.add({
     id: 'button', name: 'Button',
     title: () => P.noun,
-    defaults: Object.assign({}, DEFAULTS, { menuOpen: false }, BUILT.includes('palette') && !P.measured ? { swatch: LINK_SW } : {}),
+    defaults: Object.assign({}, DEFAULTS, { menuOpen: false }, BUILT.includes('palette') && !P.measured ? { swatch: LINK_SW } : {},
+      // a project with no design yet starts by following every foundation in the workspace; a measured one keeps today's
+      !P.measured && BUILT.includes('surface') ? { shape: 'shared' } : {}, !P.measured && BUILT.includes('spacing') ? { fspace: 'follow' } : {},
+      !P.measured && BUILT.includes('motion') ? { fmotion: 'follow' } : {}, !P.measured && BUILT.includes('icons') ? { ficons: 'follow' } : {}),
     today: P.today, measured: !!P.measured,
     groups: STEPS,
     looks: LOOKS,
     keep: ['label', 'sub', 'agent', 'nagents', 'font', 'swatch', 'H', 'C', 'L'],
     transient: ['menuOpen', 'showFocus'],
-    fix: (s) => { fixState(s); if (s.swatch === LINK_SW && !STUDIO.has('palette')) s.swatch = SW[0][0]; if (s.font === 'shared' && !STUDIO.has('type')) s.font = P.font ? 'project' : 'ui'; },
+    fix: (s) => {
+      fixState(s);
+      if (s.swatch === LINK_SW && !STUDIO.has('palette')) s.swatch = SW[0][0];
+      if (s.font === 'shared' && !STUDIO.has('type')) s.font = P.font ? 'project' : 'ui';
+      if (s.shape === 'shared' && !STUDIO.has('surface')) s.shape = 'soft';
+      if (!STUDIO.has('spacing')) s.fspace = 'own';
+      if (!STUDIO.has('motion')) s.fmotion = 'own';
+      if (!STUDIO.has('icons')) s.ficons = 'own';
+    },
+    follows: btnFollows,
     pick: (s, c, op) => withS(s, () => onPick(c, op)),
     after: (c) => afterPick(c),
     onNav: () => onStepChange(),

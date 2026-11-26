@@ -109,9 +109,15 @@ async function importFile(f) {
   if (!d || typeof d !== 'object' || !d.mods || typeof d.mods !== 'object') return msg('That is not a file saved from the studio.', 'warn');
   const took = STUDIO.mods.filter((m) => d.mods[m.id] && typeof d.mods[m.id] === 'object');
   if (!took.length) return msg('That file has nothing for the studios open here.', 'warn');
-  took.forEach((m) => { commit(m.id); setState(m.id, cleanState(m.id, d.mods[m.id])); });
+  LOST.length = 0;
+  took.forEach((m) => { commit(m.id); setState(m.id, cleanState(m.id, d.mods[m.id], true)); });
+  const away = Object.keys(d.mods).filter((id) => !STUDIO.has(id) && d.mods[id] && typeof d.mods[id] === 'object');
+  away.forEach((id) => { KEPT.mods[id] = d.mods[id]; }); // studios not open here are kept for when they are
   redrawAll(); save();
-  msg(`Opened ${esc(list(took.map((m) => m.name)))} from the file. Undo brings back what you had.`, 'ok');
+  const awayNames = away.map((id) => (AVAILABLE.find((x) => x[0] === id) || [id, id])[1]);
+  msg(`Opened ${esc(list(took.map((m) => m.name)))} from the file. Undo brings back what you had.`
+    + (awayNames.length ? ` The file also has ${esc(list(awayNames))}, which ${awayNames.length > 1 ? 'are' : 'is'} not open here; kept for when ${awayNames.length > 1 ? 'they are' : 'it is'}.` : '')
+    + (LOST.length ? ` ${LOST.length} saved choice${LOST.length > 1 ? 's are' : ' is'} not offered here (${esc(lostWords())}); kept in case ${LOST.length > 1 ? 'they come' : 'it comes'} back.` : ''), 'ok', !!(awayNames.length || LOST.length));
 }
 function resetAll() {
   STUDIO.mods.filter((m) => changedKeys(m.id).length).forEach((m) => { commit(m.id); setState(m.id, fresh(m.id)); });
@@ -132,7 +138,7 @@ const ACTIONS = {
   resetall: resetAll,
   sendnow: () => sendNow(),
   queue: () => keepQueued(),
-  awaycancel: () => { AWAY = null; renderPanel(); },
+  awaycancel: () => { if (AWAY && AWAY.wish) UI.ask.text = AWAY.wish; AWAY = null; renderPanel(); }, // what was typed comes back to the box
   next: () => { const n = nextStep(); go(n.mod, n.cat); },
   prev: () => { const p = prevStep(); if (p) go(p.mod, p.cat); },
   pin: () => pinNow(),
@@ -173,7 +179,8 @@ document.addEventListener('click', (e) => {
   if ((el = at('[data-moreask]'))) { const k = el.dataset.moreask; UI.ask.target = k === '@looks' ? null : k; return sendAsk('more', k); }
   if ((el = at('[data-quick]'))) return sendAsk(el.dataset.quick);
   if ((el = at('[data-goctl]'))) return goControl(el.dataset.goctl);
-  if ((el = at('[data-scope]'))) { SCOPE = el.dataset.scope; renderPanel(); return save(); }
+  if ((el = at('[data-scope]'))) { const [mid, v] = el.dataset.scope.split('|'); if (STUDIO.has(mid)) SCOPE[mid] = v; renderPanel(); return save(); }
+  if ((el = at('[data-pinctx]'))) return usePinCtx(el.dataset.pinctx);
   if ((el = at('[data-cat]'))) return go(null, el.dataset.cat);
   if ((el = at('[data-mod]'))) return go(el.dataset.mod, NAV.cat[el.dataset.mod]);
   if ((el = at('[data-mode]'))) return setMode(el.dataset.mode);

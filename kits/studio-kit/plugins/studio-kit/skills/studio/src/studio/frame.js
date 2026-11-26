@@ -39,20 +39,31 @@ function stageState() {
    Compare and States: plain cards across the workspace, every drawing at the same scale on the same ground. These are
    not drawn inside a simulated device: a device frame around a comparison only makes everything smaller. */
 const boardMode = () => ['compare', 'states'].includes(modeNow());
-function cmpArt(m, s, opt) {
-  let inner;
-  try { inner = m.still(s, opt); } catch (e) { report(m.id + ' drawing: ' + e.message); inner = ''; }
-  return `<div class="cmp-art${m.ground ? ' ground' : ' bgd'}" ${m.ground ? '' : bgAttr()}><span class="art-in cmp-in ${dimCls(m.id, s)}" style="${varsCss(m.vars(s))}">${inner}</span></div>`;
+/** A drawing for Compare, Review and States. ctx: other studios' states to draw it with (the foundations it was made
+    with), so a shortlisted or baseline version stays faithful when the palette, type or surfaces change later. */
+function cmpArt(m, s, opt, ctx) {
+  return withCtx(ctx, () => {
+    let inner;
+    try { inner = m.still(s, opt); } catch (e) { report(m.id + ' drawing: ' + e.message); inner = ''; }
+    return `<div class="cmp-art${m.ground ? ' ground' : ' bgd'}" ${m.ground ? '' : bgAttr()}><span class="art-in cmp-in ${dimCls(m.id, s)}" style="${varsCss(m.vars(s))}">${inner}</span></div>`;
+  });
 }
+/** Names of the studios whose foundations differ between a pin's ctx and now: 'Palette and Surface'. */
+const ctxDiff = (ctx) => STUDIO.mods.filter((x) => ctx && ctx[x.id] && !sameLook(x.id, ctx[x.id], ST[x.id])).map((x) => x.name);
 function compareHTML() {
   const m = AM(), mid = m.id, now = AS();
   const pins = PINS.filter((p) => p.mod === mid);
   const sum = (s) => { try { return m.summary ? m.summary(s) : ''; } catch { return ''; } };
-  const card = (name, badge, s, key, extra = '') => `<figure class="cmp${key === 'now' ? ' cur' : ''}"><div class="cmp-top"><b>${esc(name)}</b><span>${esc(badge)}</span></div>${cmpArt(m, s, { compare: true })}`
-    + `<figcaption class="cmp-foot"><p>${esc(sum(s))}</p>${key !== 'now' && !sameLook(mid, s, now) ? `<button class="mini" data-use="${esc(key)}">Use this</button>` : key !== 'now' ? '<span>In use now</span>' : ''}${extra}</figcaption></figure>`;
+  const baseCtx = foundations(mid, DEFS);
+  const card = (name, badge, s, key, extra = '', ctx = null) => {
+    const diff = ctx ? ctxDiff(ctx) : [];
+    const note = diff.length ? `<p class="cmp-ctx">${key === 'base' ? `Drawn with ${m.measured ? 'today’s' : 'the starting'} ${esc(list(diff).toLowerCase())}` : `Drawn with the ${esc(list(diff).toLowerCase())} it was shortlisted with`}</p>` : '';
+    return `<figure class="cmp${key === 'now' ? ' cur' : ''}"><div class="cmp-top"><b>${esc(name)}</b><span>${esc(badge)}</span></div>${cmpArt(m, s, { compare: true }, ctx)}`
+      + `<figcaption class="cmp-foot"><p>${esc(sum(s))}</p>${note}${key !== 'now' && !(sameLook(mid, s, now) && !diff.length) ? `<button class="mini" data-use="${esc(key)}">Use this</button>` : key !== 'now' ? '<span>In use now</span>' : ''}${extra}</figcaption></figure>`;
+  };
   const nowPinned = pins.some((p) => sameLook(mid, p.s, now)) || sameLook(mid, DEFS[mid], now);
-  return card(baseName(m), m.measured ? 'Measured' : 'Starting point', DEFS[mid], 'base')
-    + pins.map((p) => card(p.name, 'Shortlisted', p.s, p.id, `<button class="mini q" data-unpin="${esc(p.id)}" aria-label="Remove ${esc(p.name)} from the shortlist">Remove</button>`)).join('')
+  return card(baseName(m), m.measured ? 'Measured' : 'Starting point', DEFS[mid], 'base', '', baseCtx)
+    + pins.map((p) => card(p.name, 'Shortlisted', p.s, p.id, `<button class="mini q" data-unpin="${esc(p.id)}" aria-label="Remove ${esc(p.name)} from the shortlist">Remove</button>`, p.ctx)).join('')
     + (nowPinned ? '' : card('Now', 'Not shortlisted', now, 'now', '<button class="mini q" data-act="pin">Shortlist</button>'))
     + (pins.length ? '' : `<p class="cmp-tip">Press <b>Shortlist</b> on a version you like, keep exploring, and it waits here beside ${esc(baseName(m).toLowerCase())}. Up to three.</p>`);
 }
@@ -177,7 +188,7 @@ function renderStageBar() {
   $('rmtog').setAttribute('aria-pressed', String(V.rm));
   $('hold').textContent = 'Hold to see ' + baseName(m).toLowerCase();
   $('hold').disabled = !changedKeys(m.id).length;
-  const full = PINS.length >= 3;
+  const full = PINS.filter((p) => p.mod === m.id).length >= PIN_MAX;
   const isBase = sameLook(m.id, AS(), DEFS[m.id]);
   $('pin').disabled = full || isBase || PINS.some((p) => p.mod === m.id && sameLook(m.id, p.s, AS()));
   $('pin').title = full ? 'Three are shortlisted. Remove one in Compare to add another.' : isBase ? `This is ${baseName(m).toLowerCase()}; Compare always shows it` : 'Keep this version to compare with later ones';
@@ -212,10 +223,11 @@ function pinNow() {
   if (sameLook(m.id, s, DEFS[m.id])) return msg(`This is ${esc(baseName(m).toLowerCase())}, which Compare always shows. Change something first, then pin it.`);
   const twin = PINS.find((p) => p.mod === m.id && sameLook(m.id, s, p.s));
   if (twin) return msg(`Already shortlisted as ${esc(twin.name)}.`);
-  if (PINS.length >= 3) return msg('Three versions are shortlisted already. Remove one in Compare first.', 'warn');
-  const letter = ['A', 'B', 'C'].find((l) => !PINS.some((p) => p.name.startsWith(l + ' ·') || p.name === l));
+  const mine = PINS.filter((p) => p.mod === m.id);
+  if (mine.length >= PIN_MAX) return msg(`Three ${esc(m.name.toLowerCase())} versions are shortlisted already. Remove one in Compare first.`, 'warn');
+  const letter = ['A', 'B', 'C'].find((l) => !mine.some((p) => p.name.startsWith(l + ' ·') || p.name === l));
   const what = m.summary ? m.summary(s) : (() => { const c = m.groups[0] && m.groups[0].ctl.find((x) => x.t === 'chips'); const op = c && optOf(c, s[c.k]); return op ? op.n : ''; })();
-  PINS.push({ id: 'p' + Date.now().toString(36), name: letter + (what ? ' · ' + what : ''), mod: m.id, s: clone(s) });
+  PINS.push({ id: 'p' + Date.now().toString(36), name: letter + (what ? ' · ' + what : ''), mod: m.id, s: clone(s), ctx: foundations(m.id) });
   renderStageBar(); save();
   if (modeNow() === 'compare') renderStage();
   else msg(`Shortlisted as ${esc(PINS[PINS.length - 1].name)}. <button class="chip sm" data-mode="compare">Compare</button>`, 'ok');
@@ -224,10 +236,25 @@ function usePinned(key) {
   const mid = NAV.mod, p = PINS.find((x) => x.id === key);
   const s = key === 'base' ? fresh(mid) : p && clone(p.s);
   if (!s) return;
+  const ctx = key === 'base' ? foundations(mid, DEFS) : p.ctx, diff = ctxDiff(ctx);
   commit(mid);
   setState(mid, s);
   redrawAll(); save();
-  msg(`Now using ${esc(key === 'base' ? baseName(AM()).toLowerCase() : p.name)}. Undo brings back what you had.`, 'ok');
+  const name = esc(key === 'base' ? baseName(AM()).toLowerCase() : p.name);
+  msg(diff.length
+    ? `Now using ${name}. It was drawn with ${key === 'base' ? 'today’s' : 'a different'} ${esc(list(diff).toLowerCase())}; yours stay as they are. <button class="chip sm" data-pinctx="${esc(key)}">Bring ${diff.length > 1 ? 'those' : 'that'} back too</button>`
+    : `Now using ${name}. Undo brings back what you had.`, 'ok', !!diff.length);
+}
+/** Takes back the foundations a pin (or the baseline) was drawn with, as one step that Undo reverses. */
+function usePinCtx(key) {
+  const mid = NAV.mod, p = PINS.find((x) => x.id === key);
+  const ctx = key === 'base' ? foundations(mid, DEFS) : p && p.ctx;
+  const ids = Object.keys(ctx || {}).filter((id) => STUDIO.has(id) && !sameLook(id, ctx[id], ST[id]));
+  if (!ids.length) return;
+  commit(ids[0], ids);
+  ids.forEach((id) => setState(id, clone(ctx[id])));
+  redrawAll(); save();
+  msg(`${esc(list(ids.map((id) => STUDIO.by[id].name)))} back as ${ids.length > 1 ? 'they were' : 'it was'}. Undo reverses it.`, 'ok');
 }
 function unpin(id) {
   const i = PINS.findIndex((p) => p.id === id);

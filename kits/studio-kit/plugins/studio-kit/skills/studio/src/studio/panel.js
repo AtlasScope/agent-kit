@@ -168,7 +168,7 @@ function stepHTML() {
   if (NAV.review || modeNow() !== 'alone') return '';
   const list = steps(), i = list.findIndex((x) => x.id === NAV.cat[NAV.mod]), pv = prevStep(), nx = nextStep();
   const where = i < 0 ? 'Start' : list[i].extra ? 'Extra' : `Step ${i + 1} of ${lastMain(list) + 1}`;
-  const skip = i >= lastMain(list) && nx.cat !== 'review' && nx.cat !== 'looks' ? '<button class="skip" data-cat="review">Skip to Review</button>' : '';
+  const skip = i >= lastMain(list) && nx.cat !== 'review' ? '<button class="skip" data-cat="review">Skip to Review</button>' : '';
   return `<span class="count">${where}</span>${skip}`
     + (pv ? '<button class="go q" data-act="prev">Back</button>' : '')
     + `<button class="go" data-act="next">${i < 0 && sameLook(NAV.mod, AS(), DEFS[NAV.mod]) ? (AM().measured ? 'Start from today' : 'Use the starting point') : 'Next: ' + esc(nx.n)} →</button>`;
@@ -181,7 +181,18 @@ function renderHead() {
   $('hwhy').innerHTML = h.why;
 }
 
-const SCOPES = [['one', 'Only this one', 'Change this one place and leave everything like it alone.'], ['family', 'Every one like it', 'Change the shared style, so every matching one follows.'], ['system', 'The design system', 'Change the foundations (colours, type, shared styles) that the rest is built from.']];
+/** "How far should this reach?", once per changed studio, in that studio's own terms: a button reaches one place, its
+    family or the system; a palette its tokens or one area. A foundation starts on its sensible default. */
+function reachHTML(mods) {
+  if (!mods.length) return '';
+  return mods.map((m) => {
+    const now = reachNow(m), opts = reachOf(m), id = 'l_scope_' + m.id, pick = opts.find((x) => x[0] === now);
+    return `<div class="ctl reach"><div class="lrow"><span class="lbl" id="${id}">${mods.length > 1 ? `${esc(m.name)}: how far should it reach?` : 'How far should this reach?'}</span></div><div class="chips" role="group" aria-labelledby="${id}">${opts.map(([k, n]) => `<button class="chip" data-scope="${esc(m.id)}|${esc(k)}" aria-pressed="${now === k}">${esc(n)}</button>`).join('')}</div>`
+      + `<p class="desc">${pick ? esc(pick[2]) : 'Choose one, so the agent knows whether to touch one place or the shared styles.'}</p></div>`;
+  }).join('');
+}
+/** Changed studios that still need a reach chosen. */
+const reachMissing = () => STUDIO.mods.filter((m) => changes(m).length && !reachNow(m));
 /** What changed in one module, as [{ c, label, from, to }], one per key. */
 function changes(m) {
   const s = ST[m.id], d = DEFS[m.id];
@@ -212,7 +223,7 @@ function reviewHTML() {
     const open = UI.expanded['review.' + m.id] || ch.length <= SHOW + 2;
     return `<section class="rvm" id="rv-${m.id}"><h3>${esc(cap(m.title()))}<span class="rvn">${ch.length ? `${ch.length} change${ch.length > 1 ? 's' : ''}` : 'unchanged'}</span></h3>`
       + (ch.length
-        ? `<div class="ba"><figure>${art(m, DEFS[m.id], { compare: true })}<figcaption>${esc(baseName(m))}</figcaption></figure><figure>${art(m, ST[m.id], { compare: true })}<figcaption>Proposed</figcaption></figure></div>`
+        ? `<div class="ba"><figure>${withCtx(foundations(m.id, DEFS), () => art(m, DEFS[m.id], { compare: true }))}<figcaption>${esc(baseName(m))}</figcaption></figure><figure>${art(m, ST[m.id], { compare: true })}<figcaption>Proposed</figcaption></figure></div>`
           + `<ul class="rv">${(open ? ch : ch.slice(0, SHOW)).map(row).join('')}</ul>`
           + (open ? '' : `<button class="chip ghost rvmore" data-expand="review.${m.id}">Show all ${ch.length} changes</button>`)
         : '')
@@ -221,8 +232,7 @@ function reviewHTML() {
   const any = total > 0;
   // what changed at a glance, and the one decision that matters, before the detail
   const summary = `<div class="rvtop"><p class="rvsum">${any ? `${total} change${total > 1 ? 's' : ''}: ${all.filter((x) => x.ch.length).map((x) => `<a href="#rv-${x.m.id}">${esc(x.m.name)} ${x.ch.length}</a>`).join(' · ')}` : 'Nothing has changed yet. Pick something in a studio, then come back.'}</p>`
-    + `<div class="ctl"><div class="lrow"><span class="lbl" id="l_scope">How far should this reach?</span></div><div class="chips" role="group" aria-labelledby="l_scope">${SCOPES.map(([k, n]) => `<button class="chip" data-scope="${k}" aria-pressed="${SCOPE === k}">${n}</button>`).join('')}</div>`
-    + `<p class="desc">${SCOPE ? esc(SCOPES.find((x) => x[0] === SCOPE)[2]) : 'Choose one, so the agent knows whether to touch one place or the shared styles.'}</p></div></div>`;
+    + reachHTML(all.filter((x) => x.ch.length).map((x) => x.m)) + '</div>';
   return summary + blocks
     + `<p class="checked">${esc(checkedLine())}</p>`
     + `<details class="fine" data-fine="review"${UI.fine.review ? ' open' : ''}><summary><b>The exact proposal the agent receives</b></summary><pre class="spec">${esc(specText())}</pre></details>`
@@ -243,20 +253,23 @@ function steps(m = AM()) {
   return [...main, ...extra].map((g) => ({ id: g.id, n: g.short || g.t, g, extra: !!g.extra }));
 }
 const lastMain = (list) => list.filter((x) => !x.extra).length - 1;
-/** Where Next goes from here: Start, each step, the next studio's Start, then Review. */
+/** Where Next goes from here: Start, each main step, the next studio's Start, then Review. Extras are optional: Next
+    never walks through them; the person opens one from the Extras row, and Next from there moves on. */
 function nextStep() {
   const m = AM(), list = steps(m), i = list.findIndex((x) => x.id === NAV.cat[m.id]);
-  if (i < list.length - 1) return { mod: m.id, cat: list[i + 1].id, n: list[i + 1].n };
+  const nx = list[i + 1];
+  if (nx && !nx.extra) return { mod: m.id, cat: nx.id, n: nx.n };
   const k = STUDIO.mods.indexOf(m);
   if (k < STUDIO.mods.length - 1) { const nm = STUDIO.mods[k + 1]; return { mod: nm.id, cat: 'looks', n: nm.name }; }
   return { mod: m.id, cat: 'review', n: 'Review' };
 }
 function prevStep() {
-  const m = AM(), list = steps(m), i = list.findIndex((x) => x.id === NAV.cat[m.id]);
+  const m = AM(), list = steps(m), i = list.findIndex((x) => x.id === NAV.cat[m.id]), main = list.filter((x) => !x.extra);
+  if (i >= 0 && list[i].extra) return main.length ? { mod: m.id, cat: main[main.length - 1].id } : { mod: m.id, cat: 'looks' }; // back from an extra: the last main step
   if (i > 0) return { mod: m.id, cat: list[i - 1].id };
   if (i === 0) return { mod: m.id, cat: 'looks' };
   const k = STUDIO.mods.indexOf(m);
-  if (k > 0) { const pm = STUDIO.mods[k - 1], pl = steps(pm); return { mod: pm.id, cat: pl[pl.length - 1].id }; }
+  if (k > 0) { const pm = STUDIO.mods[k - 1], pl = steps(pm).filter((x) => !x.extra); return { mod: pm.id, cat: pl.length ? pl[pl.length - 1].id : 'looks' }; }
   return null;
 }
 function navHTML() {
@@ -351,10 +364,11 @@ function goControl(id) {
 }
 
 /* ---- the proposal the agent receives ---- */
-function specLines(m) {
-  const s = ST[m.id], out = [];
+function specLines(m, skipped = []) {
+  const s = ST[m.id], out = [], changed = new Set(changedKeys(m.id));
   for (const g of m.groups) {
     if (g.na && g.na(s)) continue;
+    if (g.extra && !g.ctl.some((c) => changed.has(c.k))) { skipped.push(g.short || g.t); continue; } // an optional step left alone is not a decision
     const parts = [], done = new Set();
     for (const c of g.ctl) {
       if (c.inSpec === false || !shown(c, s) || done.has(c.k)) continue;
@@ -377,20 +391,24 @@ function specLines(m) {
   return out;
 }
 function specText() {
-  const scope = SCOPES.find((x) => x[0] === SCOPE);
-  const out = [`A proposal from the studio for ${P.name}. Nothing has been changed. Do not build it until I say so in the chat. ${P.specRules}`, '',
-    `Reach: ${scope ? `${scope[1]}. ${scope[2]}` : 'not chosen yet. Ask me before deciding.'}`];
+  const out = [`A proposal from the studio for ${P.name}. Nothing has been changed. Do not build it until I say so in the chat. ${P.specRules}`];
   for (const m of STUDIO.mods) {
     const ch = changes(m);
     out.push('', `== ${m.name}: ${m.title()} ==`);
     if (!ch.length) { out.push(`No change from ${baseName(m).toLowerCase()}.`); continue; }
+    const r = reachOf(m).find((x) => x[0] === reachNow(m));
+    out.push(`Reach: ${r ? `${r[1]}. ${r[2]}` : 'not chosen yet. Ask me before deciding.'}${r && !SCOPE[m.id] ? ' (the studio’s default for this; not chosen by me)' : ''}`);
     out.push('Changed: ' + ch.map((x) => `${x.label} ${x.from}${x.known === 'not measured' ? ' (starting value, not measured from the project)' : x.known === 'new' ? ' (a category added in this session)' : ''} → ${x.to}`).join('; ') + '.');
-    out.push(...specLines(m).map((l, i) => `${i + 1}. ${l}`));
+    const skipped = [];
+    out.push(...specLines(m, skipped).map((l, i) => `${i + 1}. ${l}`));
+    if (skipped.length) out.push(`Left as they are (optional, not opened or not changed): ${skipped.join(', ')}.`);
+    const follows = m.follows ? m.follows(ST[m.id]) : [];
+    if (follows.length) out.push(`Follows: ${follows.join(' ')} If those foundations change, this follows them; build it from the shared tokens, not fixed values.`);
     const warn = m.warn ? m.warn(ST[m.id]) : [];
     if (warn.length) out.push('To check: ' + warn.map((w) => w.t).join(' '));
     if (m.notes) out.push(...m.notes(ST[m.id]));
     const cats = m.groups.filter((g) => g.dim && changedKeys(m.id).some((k) => g.ctl.some((x) => x.k === k)));
-    if (cats.length) out.push(`New in this session: ${cats.map((g) => g.t).join(', ')}. The studio draws ${cats.length > 1 ? 'them' : 'it'} with the .x-${cats[0].ctl[0].k}-* rules (and --x-* properties) in its own <style id="more-css">; carry that look into the project's own styles.`);
+    if (cats.length) out.push(`New in this session: ${cats.map((g) => `${g.t} (drawn by the .x-${g.ctl[0].k}-* rules${g.ctl.length > 1 ? ` and ${g.ctl.slice(1).map((c) => '--x-' + c.k).join(', ')}` : ''})`).join('; ')}, in the studio's own <style id="more-css">; carry that look into the project's own styles.`);
     const system = m.system ? m.system() : [];
     if (system.length) out.push(`How the project builds this today: ${system.join(' ')} These choices may change that. Where they differ and the reach allows it, update or add to the design system to match rather than special-casing.`);
   }

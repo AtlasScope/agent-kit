@@ -100,7 +100,8 @@ async function deliver(payload, words, okMsg, after, done = () => {}) {
     try { await api('/api/send', payload); msg(okMsg, 'ok'); done('agent'); return true; } catch {}
   }
   if (STATUS.live) {
-    AWAY = { payload, words, after, done, name: payload.stepName || '' };
+    if (AWAY) await keepQueued(); // a request still waiting for Send now or Keep in queue is kept, never replaced
+    AWAY = { payload, words, after, done, name: payload.stepName || '', wish: payload.wish || '' };
     if (!NAV.review && typeof renderPanel === 'function') renderPanel(); // the choice appears in the box that was clicked
     else msg('The agent is not watching the studio right now. <button class="chip sm" data-act="sendnow">Send now</button> <button class="chip sm" data-act="queue">Keep in queue</button>', 'warn', true);
     return false;
@@ -155,7 +156,8 @@ async function sendModule(id) {
   await deliver({ kind: 'module', id: 'r' + Date.now().toString(36), module: id }, words, `Asked the agent to add ${esc(name)}. It needs a minute to read the project; this page reloads when it is ready.`, 'This page reloads when it is ready.');
 }
 async function sendSpec() {
-  if (!SCOPE) { msg('First choose how far this should reach, just above.', 'warn'); const el = document.querySelector('[data-scope]'); if (el) el.scrollIntoView({ block: 'center', behavior: RM_OS ? 'auto' : 'smooth' }); return; }
+  const missing = reachMissing();
+  if (missing.length) { msg(`First choose how far ${esc(list(missing.map((m) => m.name)))} should reach, just above.`, 'warn'); const el = document.querySelector(`[data-scope^="${missing[0].id}|"]`); if (el) el.scrollIntoView({ block: 'center', behavior: RM_OS ? 'auto' : 'smooth' }); return; }
   const text = specText();
   if (CLOUD) {
     const copied = await copyText(text), kept = await cloudSend({ kind: 'spec', text });

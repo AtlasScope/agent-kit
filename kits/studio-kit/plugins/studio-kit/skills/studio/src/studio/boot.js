@@ -91,6 +91,7 @@ function studioCheck() {
   const added = had ? all.filter((k) => !UI.known.includes(k)) : [];
   UI.fresh = [...new Set(UI.fresh.concat(added))].filter((k) => all.includes(k));
   UI.known = all;
+  if (LOST.length) msg(`${LOST.length} saved choice${LOST.length > 1 ? 's are' : ' is'} not offered on this page right now (${esc(lostWords())}). ${LOST.length > 1 ? 'They are' : 'It is'} kept, and come${LOST.length > 1 ? '' : 's'} back if the choice returns.`, 'warn', true);
   if (DIM_BAD.length) {
     msg(`A new category the agent added has a mistake, so it is left out: ${esc(DIM_BAD[0])} Everything else works, and your choices are safe.`, 'warn', true);
     report('MORE.dims: ' + DIM_BAD.join(' '));

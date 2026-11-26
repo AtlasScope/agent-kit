@@ -16,9 +16,10 @@ const RADIUS = { pill: '999px', blob: '999px', circle: '999px', leaf: '999px', s
 /** CSS custom properties the button styles read. */
 function previewVars() {
   const s = S, k = btnColour(s);
-  const r = s.shape === 'squircle' ? Math.round(s.h * 0.36) + 'px' : RADIUS[s.shape] || s.rr + 'px';
+  const sp = btnSpace(s), mo = btnMotion(s);
+  const r = s.shape === 'shared' ? btnCorner(s) + 'px' : s.shape === 'squircle' ? Math.round(sp.h * 0.36) + 'px' : RADIUS[s.shape] || s.rr + 'px';
   return {
-    '--h': s.h + 'px', '--r': r, '--pad': s.pad, '--H': k.H, '--H2': s.H2, '--C': k.C, '--L': k.L,
+    '--h': sp.h + 'px', '--r': r, '--pad': sp.pad, ...(mo ? { '--ease': mo.ease, '--tt': `${mo.dur}ms ${mo.ease}` } : {}), '--H': k.H, '--H2': s.H2, '--C': k.C, '--L': k.L,
     '--on': autoDark(s) ? `oklch(.2 .05 ${k.H})` : '#fff', '--glassfg': lightBg() ? '#0b0e0d' : '#fff',
     '--blur': s.blur, '--fa': s.fa, '--tint': s.tint, '--rim': s.rim, '--depth': s.depth, '--gloss': s.gloss, '--spd': s.spd,
     '--wt': s.wt, '--fs': s.fs, '--trk': s.trk, '--isz': s.isz + 'em', '--bf': btnFont(s),
@@ -33,7 +34,7 @@ const svg = (id) => `<svg aria-hidden="true"><use href="#i-${id}"/></svg>`;
 const chev = svg('chevron');
 function label() {
   const s = S;
-  const icon = s.icon !== 'none' ? svg(s.icon) : '';
+  const icon = s.icon !== 'none' ? btnIcon(s) : '';
   const i = icon && s.tile === 'tile' ? `<span class="ti ${s.iconpos === 'right' ? 'r' : ''}">${icon}</span>` : icon;
   if (s.shape === 'circle') return (i || svg('arrow')) + `<span class="t">${esc(s.label)}</span>`;
   const t = `<span class="t">${esc(s.label)}${s.sub ? `<span class="sub">${esc(s.sub)}</span>` : ''}</span>`;
