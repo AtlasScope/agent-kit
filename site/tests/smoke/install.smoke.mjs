@@ -121,3 +121,24 @@ for (const size of SIZES) {
     await ctx.close();
   });
 }
+
+// On a phone the button is on screen before the page's scripts have started. A press then must still copy the message
+// and arrive on Copied, not follow the bare link and copy nothing (seen on an iPhone).
+test("phone: Install pressed before the page's scripts start still copies and arrives on Copied", async () => {
+  const ctx = await browser.newContext({ ...SIZES[1], permissions: ["clipboard-read", "clipboard-write"],
+    userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1" });
+  const page = await ctx.newPage();
+  let release; const gate = new Promise((r) => (release = r));
+  await page.route(/_next\/static\/chunks\/.*\.js/, async (route) => { await gate; await route.continue(); });
+  await page.goto(base + "/", { waitUntil: "commit" });
+  await page.locator(".launch__go").click({ noWaitAfter: true });
+  await page.waitForURL(/\/install$/, { waitUntil: "commit" });
+  await page.locator(".inst h1").waitFor();
+  assert.equal((await page.locator(".inst h1").innerText()).trim(), "Copied", "Copied from the first paint, before scripts");
+  release();
+  await page.waitForLoadState("networkidle");
+  assert.equal(await page.evaluate(() => navigator.clipboard.readText()), INSTALL_MESSAGE);
+  // On a phone, Cursor's button opens its app when installed (cursor.com/agents is in its app links).
+  assert.equal(await page.locator(".inst__agent", { hasText: "Cursor" }).getAttribute("href"), "https://cursor.com/agents");
+  await ctx.close();
+});

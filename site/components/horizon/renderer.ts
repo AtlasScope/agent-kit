@@ -89,6 +89,9 @@ export function createHorizon(canvas: HTMLCanvasElement, options: { maps?: Maps;
   // memory of the four the browser would otherwise keep.
   // `needed` marks a map without which the live picture would not match its still (the cloud, the surface): if one
   // fails, the scene reports itself broken instead of drawing a planet with a layer missing.
+  // One texture upload per animation frame: each waits for the one before it and then for a fresh frame.
+  let queue: Promise<void> = Promise.resolve();
+  const turn = () => (queue = queue.then(() => new Promise<void>((done) => requestAnimationFrame(() => done()))));
   const load = (slot: number, unit: number, name: string, url: string | undefined, srgb: boolean, cap: number, needed = false) => {
     gl.uniform1i(U(name), unit);
     if (!url) return;
@@ -98,11 +101,17 @@ export function createHorizon(canvas: HTMLCanvasElement, options: { maps?: Maps;
     image.onload = async () => {
       if (gone) return;
       try {
-        let source: TexImageSource = image;
+        // Decode before the upload, off the main thread (createImageBitmap, or decode() where that is missing):
+        // handing WebGL an undecoded image makes the browser decode it inside texImage2D, which froze Safari on
+        // phones for a moment per map just after the page loaded. Uploads then go one per frame (turn), so several
+        // large maps arriving together never stack into one long pause.
         const limit = Math.min(maxTexture, cap);
-        if (image.naturalWidth > limit) {
-          source = await createImageBitmap(image, { resizeWidth: limit, resizeHeight: Math.round((limit * image.naturalHeight) / image.naturalWidth), resizeQuality: "high" });
-        }
+        let source: TexImageSource = image;
+        if (image.naturalWidth > limit) source = await createImageBitmap(image, { resizeWidth: limit, resizeHeight: Math.round((limit * image.naturalHeight) / image.naturalWidth), resizeQuality: "high" });
+        else if (typeof createImageBitmap === "function") source = await createImageBitmap(image, { colorSpaceConversion: "none" });
+        else await image.decode?.();
+        await turn();
+        if (gone) return;
         const texture = gl.createTexture();
         gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);

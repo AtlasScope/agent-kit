@@ -10,7 +10,14 @@
 /* The picture fills the window and stays put while the install page scrolls over it. A still of each pose is the
    first paint and the fallback; the live canvas fades in over it. Stills are fitted by height from the centre,
    exactly as the canvas frames the scene, so one lies on the other. */
-.stage__scene { position: fixed; top: 0; left: 0; width: 100vw; height: 100lvh; z-index: -1; overflow: hidden; pointer-events: none; background: #000; }
+.stage__scene { position: fixed; top: 0; left: 0; width: 100vw; height: calc(100lvh + env(safe-area-inset-bottom)); z-index: -1; overflow: hidden; pointer-events: none; background: #000; }
+/* On the homepage the picture is part of the page rather than fixed: Safari on iOS 26 cuts fixed layers off above its
+   floating bottom bar, but lets the page itself run underneath it. The homepage never scrolls, so nothing moves; the
+   size matches the fixed version exactly, so the move to Install (which switches back to fixed) doesn't jump. Below
+   the bar and behind the status bar Safari shows only the page's background colour, so the picture fades to that
+   black at its foot on phones (the veil, below). */
+.stage[data-mode="home"] { min-height: calc(100lvh + env(safe-area-inset-bottom) - var(--header-h, 65px)); }
+.stage[data-mode="home"] .stage__scene { position: absolute; top: calc(-1 * var(--header-h, 65px)); }
 .stage__still, .stage__gl, .stage__veil { position: absolute; inset: 0; width: 100%; height: 100%; }
 .stage__still img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; }
 .stage__still { opacity: 0; transition: opacity 500ms ease; }
@@ -114,7 +121,7 @@
 
 /* Phones: the planet takes the lower third and the column the top of the screen; the button spans the column. */
 @media (max-width: 759.98px), (max-aspect-ratio: 4/5) {
-  .stage__veil::before { background: linear-gradient(to bottom, rgba(0,0,0,.4), rgba(0,0,0,0) 90px), linear-gradient(to top, rgba(0,0,0,.45), rgba(0,0,0,0) 72px); }
+  .stage__veil::before { background: linear-gradient(to bottom, rgba(0,0,0,.4), rgba(0,0,0,0) 90px), linear-gradient(to top, #000, rgba(0,0,0,.72) 26px, rgba(0,0,0,.3) 90px, rgba(0,0,0,0) 150px); }
   .hero__msg { padding-block: clamp(28px, 8svh, 72px) 24px; }
   .hero h1 { font-size: clamp(2.125rem, 9.6vw, 3rem); line-height: 1.06; max-width: 10.5em; }
   .hero__lede { font-size: 1.0625rem; max-width: 20em; }

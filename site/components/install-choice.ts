@@ -13,6 +13,12 @@ export const lastAgent = (): Agent => {
 export const commandFor = (a: Agent) => a.steps.join("\n");
 // Where the homepage's "Open <agent>" link goes: the agent's own site. "Any agent" has none, so no link.
 export const OPEN_URL: Record<string, string> = { claude: "https://claude.ai/code", codex: "https://chatgpt.com/codex", cursor: "https://cursor.com" };
+// On a phone, links that open the agent's app when it is installed and its website when it isn't. Apps open only from
+// the paths their makers list (/.well-known/apple-app-site-association, assetlinks.json): claude.ai/code/* already
+// does; Cursor's app opens from cursor.com/agents. ChatGPT's app opens from no Codex address that also has a web page
+// (its /open-app goes to the App Store when the app is missing), so Codex stays on the web.
+export const OPEN_URL_PHONE: Record<string, string> = { cursor: "https://cursor.com/agents" };
+export const isPhone = () => { try { return /iPhone|iPod|Android.+Mobile/.test(navigator.userAgent); } catch { return false; } };
 
 // The hand-off from the homepage's Install button to the install page: which agent's command was copied, or that the
 // browser blocked it, and when. The install page believes it only for a few seconds, so a hand-off that never landed

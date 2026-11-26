@@ -5,7 +5,7 @@ import { INSTALL_MESSAGE, type Agent } from "@/lib/site";
 import { InstallPaths, Ext, type Place } from "./InstallPaths";
 import { AgentMark } from "./AgentMark";
 import { HANDOFF_EVENT } from "./stage/HomeHero";
-import { AGENT_KEY, COPIED_KEY, FALLBACK, FRESH_MS, OPEN_URL, OS_SCRIPT, SHOWN, commandFor, lastAgent, markOS, readHandoff } from "./install-choice";
+import { AGENT_KEY, COPIED_KEY, FALLBACK, FRESH_MS, OPEN_URL, OPEN_URL_PHONE, OS_SCRIPT, SHOWN, commandFor, isPhone, lastAgent, markOS, readHandoff } from "./install-choice";
 
 // The install page: a short welcome. It confirms the install message was copied (INSTALL_MESSAGE, copied by the
 // homepage's Install button) and offers Claude Code, Codex and Cursor; on a direct visit its first line is the Copy key
@@ -68,6 +68,9 @@ export function InstallPage({ places, kits, skills, kitLines, account, children 
   // says so, and the account path comes forward).
   const [peek, setPeek] = useState(false);
   const [opened, setOpened] = useState("");
+  // On a phone some agents have a link that opens their app (OPEN_URL_PHONE); set after load, so the page renders the same.
+  const [phone, setPhone] = useState(false);
+  useEffect(() => setPhone(isPhone()), []);
   const [agent, setAgent] = useState<Agent>(SHOWN[0]);
   // The by-hand command's copied state, and the message's, each with its own button.
   const [copied, setCopied] = useState(false);
@@ -179,7 +182,7 @@ export function InstallPage({ places, kits, skills, kitLines, account, children 
             {/* Three equal choices, each lit in its own colour. They open in a new tab, so this page stays. */}
             <div className="inst__agents" role="group" aria-label="Open your agent">
               {openable.map((a) => (
-                <a key={a.id} className="inst__agent" data-a-light={a.id} href={OPEN_URL[a.id]} target="_blank" rel="noopener noreferrer" onClick={() => setOpened(a.label)}>
+                <a key={a.id} className="inst__agent" data-a-light={a.id} href={(phone && OPEN_URL_PHONE[a.id]) || OPEN_URL[a.id]} target="_blank" rel="noopener noreferrer" onClick={() => setOpened(a.label)}>
                   <AgentMark id={a.id} /><span>{a.label}</span><Ext /><span className="sr"> (opens in a new tab)</span>
                 </a>
               ))}
