@@ -17,17 +17,18 @@
 .btn--tint { flex: 1; }
 /* Pressed toggles are something the visitor chose: the warm accent. */
 .btn[aria-pressed="true"] { background: var(--c-warm-soft); border-color: var(--c-warm); }
-@media (hover: hover) and (pointer: fine) { .btn:hover { background: var(--c-raised); border-color: var(--c-edge); } }
+/* Quiet controls answer a hover with the brand only at their edge. */
+@media (hover: hover) and (pointer: fine) { .btn:hover { background: var(--c-raised); border-color: var(--c-brand-line); } }
 @media (hover: hover) and (pointer: fine) { .btn--primary:hover, .btn--solid:hover { background: var(--c-primary-hover); border-color: transparent; } }
 @media (hover: hover) and (pointer: fine) { .btn--ghost:hover { background: var(--c-fill); border-color: transparent; } }
 @media (hover: hover) and (pointer: fine) { .btn--danger:hover { background: color-mix(in oklab, var(--c-danger), #000 10%); } }
-/* Brand: the homepage's Install object, small. A green pill with a lit satin finish: a narrow tonal range, a soft
+/* Brand: the homepage's Install object, small. A cyan pill with a lit satin finish: a narrow tonal range, a soft
    bloom from above, a fine bright line under the top edge, a darker edge a pixel outside it and the light it casts.
    At most one per page, and only where the page has a thing it is for; reading and browsing pages have none. Hover lifts the light; a press sinks it at once. No sheen or loop here. */
 .btn--brand { --lift: 0; border: 0; border-radius: var(--radius-pill); color: var(--c-on-brand); font-weight: var(--weight-semibold); letter-spacing: -0.01em;
   background: radial-gradient(130% 110% at 50% -40%, oklch(100% 0 0 / calc(.16 + .06 * var(--lift))), transparent 64%),
     linear-gradient(180deg, color-mix(in oklab, var(--c-brand), var(--c-brand-hi) 34%), color-mix(in oklab, var(--c-brand), var(--c-brand-lo) 30%));
-  box-shadow: inset 0 1px 0 oklch(100% 0 0 / .34), inset 0 -1px 0 oklch(28% .07 158 / .2), 0 0 0 1px var(--c-brand-edge),
+  box-shadow: inset 0 1px 0 oklch(100% 0 0 / .34), inset 0 -1px 0 oklch(30% .08 225 / .22), 0 0 0 1px var(--c-brand-edge),
     0 8px 22px -12px color-mix(in oklab, var(--c-brand-glow) calc(48% + 20% * var(--lift)), transparent);
   transition: box-shadow var(--dur-slow) var(--ease-out), filter var(--dur-slow) var(--ease-out), transform var(--dur-instant) var(--ease-out); }
 .btn--brand.btn--sm { padding-inline: var(--space-4); }
@@ -40,7 +41,7 @@
 main:has(.lead-act) .guide-next.btn--brand { --lift: 0; border: 1px solid var(--c-line-2); background: var(--c-surface); color: var(--c-fg); box-shadow: var(--shadow-1); }
 @media (hover: hover) and (pointer: fine) { main:has(.lead-act) .guide-next.btn--brand:hover { background: var(--c-raised); filter: none; } }
 /* Glass: the panel that holds what a page is for (a prompt, a command, a message), as on /install. A lit rim brighter
-   above than below, a deep soft shadow and a faint green underglow. One or two per page. */
+   above than below, a deep soft shadow and a faint cyan underglow. One or two per page. */
 .glass { border: 0; border-radius: var(--radius-xl); background: var(--glass-bg); box-shadow: var(--glass-rim), var(--glass-shadow); }
 /* Copy. Stable width so the label change never moves the row; green only once the copy worked. */
 .copy { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex: 0 0 auto; min-width: 4.75rem; min-height: 32px; padding: 0 var(--space-3);
@@ -52,14 +53,14 @@ main:has(.lead-act) .guide-next.btn--brand { --lift: 0; border: 1px solid var(--
 .i--warm { color: var(--c-warm); }
 .copy--main, .block .copy.copy--main { background: var(--c-primary); color: var(--c-on-primary); border-color: transparent; font-weight: var(--weight-semibold); }
 .copy--main[data-copied]::before { background: currentColor; }
-@media (hover: hover) and (pointer: fine) { .copy:hover { background: var(--c-raised); border-color: var(--c-edge); } }
+@media (hover: hover) and (pointer: fine) { .copy:hover { background: var(--c-raised); border-color: var(--c-brand-line); } }
 @media (hover: hover) and (pointer: fine) { .copy--main:hover, .block .copy.copy--main:hover { background: var(--c-primary-hover); } }
 @media (pointer: coarse) { .copy { min-height: 40px; } }
 /* Fields */
 .input { min-width: 0; min-height: var(--control-h); padding: 0 var(--space-3); border: 1px solid var(--c-edge); border-radius: var(--radius-md); background: var(--c-surface); color: var(--c-fg);
   font: inherit; font-size: var(--type-sm); transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out); }
 .input::placeholder { color: var(--c-fg-4); }
-.input:focus { border-color: var(--c-fg-3); }
+.input:focus { border-color: var(--c-brand-edge); box-shadow: 0 0 0 3px color-mix(in oklab, var(--c-brand) 18%, transparent); }
 .input:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 1px; }
 .field { display: grid; gap: 6px; }
 .field > label, .field > span { font-size: var(--type-xs); font-weight: var(--weight-medium); color: var(--c-fg-2); }
@@ -74,7 +75,7 @@ main:has(.lead-act) .guide-next.btn--brand { --lift: 0; border: 1px solid var(--
 .chip__n { font: 400 var(--type-micro)/1 var(--font-mono); color: var(--c-fg-3); }
 .chip[aria-pressed="true"], .chip[aria-current="page"], .chip[aria-selected="true"] { background: var(--c-fg); border-color: var(--c-fg); color: var(--c-canvas); }
 .chip[aria-pressed="true"] .chip__n, .chip[aria-current="page"] .chip__n { color: inherit; opacity: .7; }
-@media (hover: hover) and (pointer: fine) { .chip:hover { background: var(--c-raised); border-color: var(--c-edge); color: var(--c-fg); } }
+@media (hover: hover) and (pointer: fine) { .chip:hover { background: var(--c-raised); border-color: var(--c-brand-line); color: var(--c-fg); } }
 @media (pointer: coarse) { .chip { min-height: 40px; padding: 0 var(--space-4); } }
 .tag { display: inline-flex; align-items: center; gap: 6px; min-height: 22px; padding: 0 8px; border-radius: var(--radius-xs); background: var(--c-fill); color: var(--c-fg-2);
   font: var(--weight-medium) var(--type-micro)/1 var(--font-body); white-space: nowrap; }
@@ -115,6 +116,8 @@ main:has(.lead-act) .guide-next.btn--brand { --lift: 0; border: 1px solid var(--
 .star--label { min-height: var(--control-h-sm); padding: 0 12px; border: 1px solid var(--c-line-2); background: var(--c-surface); color: var(--c-fg); }
 .star--label[aria-pressed="true"] { background: var(--c-warm-soft); border-color: var(--c-warm); color: var(--c-fg); }
 .star--label[aria-pressed="true"] .i { color: var(--c-warm); }
+.star-wrap { display: contents; }
+.star-kept a { color: var(--c-fg); text-decoration: underline; text-underline-offset: .2em; }
 @media (hover: hover) and (pointer: fine) { .star:hover { color: var(--c-fg); background: var(--c-fill); } }
 @media (pointer: coarse) { .star { min-width: 44px; min-height: 44px; } }
 .dot { display: inline-block; flex: none; width: 8px; height: 8px; margin-right: 10px; border-radius: 50%; background: var(--tone, var(--c-fg-3)); }

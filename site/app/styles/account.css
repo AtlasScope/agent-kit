@@ -1,23 +1,59 @@
 /* Sign in, Collections and shared collection pages.
    Owner: W10 accounts and utility pages (DESIGN-CONTRACT.md). */
 
-/* Sign in: why an account helps on the left, the form on the right; stacked on phones. */
-.signin { grid-template-columns: minmax(0, 1fr) auto; align-items: start; column-gap: var(--space-16); }
-.signin__why { display: grid; gap: var(--space-4); max-width: 34rem; padding-top: var(--space-4); }
-.signin__why h1 { font-size: clamp(2.125rem, 2.8vw + 1rem, 3.25rem); line-height: 1.05; letter-spacing: -0.035em; }
-.signin__list { display: grid; margin: var(--space-2) 0 0; padding: 0; list-style: none; border-top: 1px solid var(--c-line); counter-reset: why; }
-.signin__list li { display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: var(--space-3); padding-block: var(--space-3); border-bottom: 1px solid var(--c-line); color: var(--c-fg-2); line-height: 1.5; counter-increment: why; }
-.signin__list li::before { content: counter(why, decimal-leading-zero); color: var(--c-fg-3); font: 400 0.8125rem/1.85 var(--font-mono); }
-.signin__list strong { color: var(--c-fg); font-weight: 600; }
-.signin__form { justify-self: end; min-width: 0; }
-.signin__wait { display: grid; place-items: center; width: min(25rem, 100%); min-height: 22rem; border: 1px solid var(--c-line); border-radius: var(--radius-md); background: var(--c-surface); }
-/* The page's h1 already says what this is, so Clerk's own title on the first step goes. Later steps ("Check your email") keep theirs. */
-.signin__form .cl-card.cl-signIn-start .cl-header { display: none; }
-@media (max-width: 60rem) {
-  .signin { grid-template-columns: minmax(0, 1fr); row-gap: var(--space-10); }
-  .signin__form { justify-self: stretch; }
-  .signin__form > * { margin-inline: auto; }
+/* Sign in (components/auth/SignInShell.tsx): always dark, one centred column on the stage's floor (.quiet), the
+   form in glass. Clerk draws the form; these rules only dress its card, fields and buttons to match the install page:
+   a transparent card inside our glass, dark wells for fields, and the lit cyan key for Continue. */
+.signin { min-height: calc(100svh - var(--header-h, 65px)); }
+.signin::after { top: 18svh; height: 420px; background: radial-gradient(42% 46% at 50% 50%, color-mix(in oklab, var(--c-brand-glow) 16%, transparent), color-mix(in oklab, oklch(70% .12 250) 5%, transparent) 55%, transparent 78%); }
+.signin__in { display: grid; justify-items: center; width: min(600px, 100% - 2 * var(--gutter)); margin-inline: auto; padding-block: clamp(32px, 7svh, 96px) 72px; text-align: center; }
+.signin h1 { margin: 0; font: 600 clamp(2.125rem, 2vw + 1.4rem, 3rem)/1.05 var(--font-body); letter-spacing: -0.04em; color: #fff; text-wrap: balance; }
+.signin__lede { margin: 10px 0 0; font-size: 1.0625rem; line-height: 1.5; color: var(--c-fg-3); text-wrap: balance; }
+.signin__card { position: relative; width: min(440px, 100%); margin-top: clamp(24px, 4svh, 36px); padding: 8px; border-radius: 26px; text-align: left;
+  background: linear-gradient(180deg, oklch(21% .01 235 / .8), oklch(12% .007 235 / .86)); -webkit-backdrop-filter: blur(26px) saturate(1.4); backdrop-filter: blur(26px) saturate(1.4);
+  box-shadow: inset 0 1px 0 oklch(100% 0 0 / .14), inset 0 0 0 1px oklch(100% 0 0 / .07), 0 1px 2px oklch(0% 0 0 / .5), 0 30px 60px -24px oklch(0% 0 0 / .9), 0 34px 80px -34px color-mix(in oklab, var(--c-brand-glow) 40%, transparent); }
+.signin__card::before { content: ""; position: absolute; top: 0; left: 12%; right: 12%; height: 1px; background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--c-brand-hi) 80%, transparent), transparent); }
+.signin__out { margin: 22px 0 0; }
+.signin__out a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 10px; color: var(--c-fg-2); font-size: .9375rem; text-decoration: none; }
+.signin__note { margin: 4px 0 0; font-size: .8125rem; color: var(--c-fg-4); }
+.signin__note a { color: var(--c-fg-3); text-decoration: underline; text-decoration-color: var(--c-line-2); text-underline-offset: .2em; }
+@media (hover: hover) and (pointer: fine) { .signin__out a:hover { color: #fff; background: oklch(100% 0 0 / .06); } .signin__note a:hover { color: var(--c-fg); } }
+.signin__wait { display: grid; place-items: center; min-height: 22rem; }
+/* Clerk's card sits inside ours: no second box. */
+.signin .cl-rootBox, .signin .cl-cardBox { width: 100%; max-width: none; }
+.signin .cl-cardBox { border: 0; border-radius: 20px; background: transparent; box-shadow: none; }
+.signin .cl-card { padding: 22px 20px 18px; border: 0; border-radius: 20px; background: transparent; box-shadow: none; }
+.signin .cl-headerTitle { font: 600 1.25rem/1.2 var(--font-body); letter-spacing: -0.02em; color: #fff; }
+.signin .cl-headerSubtitle { color: var(--c-fg-3); }
+.signin .cl-socialButtonsBlockButton { min-height: 46px; border: 0; border-radius: 14px; background: oklch(100% 0 0 / .06); box-shadow: inset 0 0 0 1px var(--c-line-2); color: var(--c-fg); transition: box-shadow var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out); }
+.signin .cl-dividerLine { background: var(--c-line); }
+.signin .cl-dividerText { color: var(--c-fg-4); }
+.signin .cl-formFieldLabel { color: var(--c-fg-2); }
+.signin .cl-formFieldInput { min-height: 46px; border: 0; border-radius: 14px; background: oklch(6% .005 240 / .7); box-shadow: inset 0 0 0 1px var(--c-line-2); color: var(--c-fg); }
+.signin .cl-formFieldInput:focus { box-shadow: inset 0 0 0 1px var(--c-brand-edge), 0 0 0 3px color-mix(in oklab, var(--c-brand) 22%, transparent); }
+.signin .cl-formButtonPrimary { min-height: 48px; border: 0; border-radius: 14px; color: var(--c-on-brand); font-weight: 600; font-size: .9375rem;
+  background: radial-gradient(120% 100% at 50% -30%, oklch(100% 0 0 / .18), transparent 62%), linear-gradient(180deg, color-mix(in oklab, var(--c-brand), var(--c-brand-hi) 34%), color-mix(in oklab, var(--c-brand), var(--c-brand-lo) 30%));
+  box-shadow: inset 0 1px 0 oklch(100% 0 0 / .34), 0 0 0 1px var(--c-brand-edge), 0 10px 26px -12px color-mix(in oklab, var(--c-brand-glow) 60%, transparent); }
+.signin .cl-footer { background: transparent; }
+.signin .cl-footerActionText { color: var(--c-fg-3); }
+.signin .cl-footerActionLink { color: var(--c-brand-hi); }
+@media (hover: hover) and (pointer: fine) {
+  .signin .cl-socialButtonsBlockButton:hover { background: oklch(100% 0 0 / .1); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--c-brand) 45%, transparent); }
+  .signin .cl-formButtonPrimary:hover { filter: brightness(1.05); }
 }
+/* The page's heading already says what this is, so Clerk's own title on the first step goes. Later steps ("Check your
+   email") keep theirs. */
+.signin .cl-card.cl-signIn-start .cl-header { display: none; }
+/* The sample stand-in for Clerk's form (/account/fixture/sign-in): the same sizes and finish, signing nobody in. */
+.signin__sample { display: grid; gap: 12px; padding: 22px 20px 20px; }
+.signin__sampleh { margin: 0 0 4px; font: 600 1.0625rem/1.3 var(--font-body); color: #fff; text-align: center; }
+.signin__sample > span { display: flex; align-items: center; justify-content: center; min-height: 46px; border-radius: 14px; font-size: .9375rem; }
+.signin__samplebtn { background: oklch(100% 0 0 / .06); box-shadow: inset 0 0 0 1px var(--c-line-2); color: var(--c-fg); }
+.signin__sample > .signin__samplediv { min-height: 20px; color: var(--c-fg-4); font-size: .8125rem; }
+.signin__sample > .signin__samplein { justify-content: flex-start; padding-left: 16px; background: oklch(6% .005 240 / .7); box-shadow: inset 0 0 0 1px var(--c-line-2); color: var(--c-fg-4); }
+.signin__samplego { color: var(--c-on-brand); font-weight: 600;
+  background: radial-gradient(120% 100% at 50% -30%, oklch(100% 0 0 / .18), transparent 62%), linear-gradient(180deg, color-mix(in oklab, var(--c-brand), var(--c-brand-hi) 34%), color-mix(in oklab, var(--c-brand), var(--c-brand-lo) 30%));
+  box-shadow: inset 0 1px 0 oklch(100% 0 0 / .34), 0 0 0 1px var(--c-brand-edge), 0 10px 26px -12px color-mix(in oklab, var(--c-brand-glow) 60%, transparent); }
 
 /* Small panels that open in place (Pop): New collection, Rename, Delete, Remove. */
 .col__pop { position: relative; }

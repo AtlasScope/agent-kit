@@ -7,8 +7,10 @@
    - warm (amber): what you chose or kept (a star, a pressed toggle).
    - danger (red): destructive actions and errors only.
    - section hues (--s-*): retired from interior pages (hierarchy comes from type); kept for the design-system page.
-   - brand (--c-brand*): the homepage's green as light and material. One lit main action per page (.btn--brand) and
-     the header's small light; never text colour, a wash or decoration. Truthful state stays --c-signal.
+   - brand (--c-brand*): the homepage Install button's cyan as light and material. One lit main action per page
+     (.btn--brand) and the header's small light; quieter controls take it only as a faint edge or a 2px marker when
+     hovered or current (--c-brand-line, --c-brand-ink). Never body text, a wash or decoration. Truthful state stays
+     --c-signal (green).
    Dark is the homepage's black with cool greys; the interior shares it, so the whole site reads as one. */
 :root {
   color-scheme: light;
@@ -43,10 +45,12 @@
   --c-warm: #B45309; --c-warm-soft: #FDF1E3;
   --c-danger: #B42318; --c-on-danger: #FFFFFF;
 
-  /* Brand green: a lit surface from light to deep, an edge a step darker, the light it casts, the ink on it. The same
-     object in both themes. Glass: the panel that holds what you copy. */
-  --c-brand: oklch(76% .175 154); --c-brand-hi: oklch(87% .16 151); --c-brand-lo: oklch(64% .165 157);
-  --c-brand-edge: oklch(48% .12 158); --c-brand-glow: oklch(80% .19 151); --c-on-brand: oklch(17% .045 160);
+  /* Brand cyan: a lit surface from light to deep, an edge a step darker, the light it casts, the ink on it. The same
+     object in both themes. --c-brand-ink is the brand as a mark that must read on the canvas (a current tab's
+     underline, a code chip); --c-brand-line is a control's edge when hovered. Glass: the panel that holds what you copy. */
+  --c-brand: oklch(80% .145 212); --c-brand-hi: oklch(91% .11 205); --c-brand-lo: oklch(70% .16 220);
+  --c-brand-edge: oklch(54% .12 218); --c-brand-glow: oklch(84% .17 210); --c-on-brand: oklch(19% .05 225);
+  --c-brand-ink: oklch(50% .12 222); --c-brand-line: color-mix(in oklab, var(--c-brand-edge) 55%, var(--c-line-2));
   --glass-bg: linear-gradient(180deg, oklch(100% 0 0), oklch(98.4% .002 260));
   --glass-rim: inset 0 1px 0 oklch(100% 0 0), inset 0 0 0 1px oklch(18.5% .006 265 / .09);
   --glass-shadow: 0 1px 2px oklch(20% .01 265 / .06), 0 18px 40px -22px oklch(20% .01 265 / .28), 0 24px 60px -40px color-mix(in oklab, var(--c-brand-glow) 40%, transparent);
@@ -109,6 +113,7 @@
   --c-primary: oklch(96.5% .003 260); --c-on-primary: oklch(14% .005 260); --c-primary-hover: oklch(86% .004 260);
   --c-fill: oklch(100% 0 0 / .06); --c-fill-2: oklch(100% 0 0 / .1);
   --c-signal: oklch(84% .2 152); --c-focus: oklch(72% .15 252);
+  --c-brand-ink: var(--c-brand-hi); --c-brand-line: color-mix(in oklab, var(--c-brand) 42%, transparent);
   --c-warm: #F5A524; --c-warm-soft: #2A2113; --c-danger: #FF8A75; --c-on-danger: #0B0C12;
   --s-inv: #4BF0A8; --s-db: #C9E05A; --s-think: #BFA8FF; --s-ecmd: #3FE0F5; --s-dcmd: #8CB6FF; --s-recipe: #FF7FB2;
   --shadow-1: 0 1px 2px oklch(0% 0 0 / .5);
@@ -128,6 +133,7 @@
   --c-primary: oklch(96.5% .003 260); --c-on-primary: oklch(14% .005 260); --c-primary-hover: oklch(86% .004 260);
   --c-fill: oklch(100% 0 0 / .06); --c-fill-2: oklch(100% 0 0 / .1);
   --c-signal: oklch(84% .2 152); --c-focus: oklch(72% .15 252);
+  --c-brand-ink: var(--c-brand-hi); --c-brand-line: color-mix(in oklab, var(--c-brand) 42%, transparent);
   --c-warm: #F5A524; --c-warm-soft: #2A2113; --c-danger: #FF8A75; --c-on-danger: #0B0C12;
   --s-inv: #4BF0A8; --s-db: #C9E05A; --s-think: #BFA8FF; --s-ecmd: #3FE0F5; --s-dcmd: #8CB6FF; --s-recipe: #FF7FB2;
   --shadow-1: 0 1px 2px oklch(0% 0 0 / .5);
@@ -139,8 +145,8 @@
   --glass-shadow: 0 1px 2px oklch(0% 0 0 / .5), 0 24px 48px -18px oklch(0% 0 0 / .9), 0 30px 80px -34px color-mix(in oklab, var(--c-brand-glow) 22%, transparent);
 }
 /* The stage: the homepage and /install are dark in both themes, over the view from orbit (components/stage). It is the
-   dark set above on a black canvas, plus the brand green: the main action is a lit green object, the header carries a
-   small green light, and /install has a green pool of light under its message. Brand green (--c-brand*) is light and
+   dark set above on a black canvas, plus the brand cyan: the main action is a lit cyan object, the header carries a
+   small cyan light, and /install has a cyan pool of light under its message. Brand cyan (--c-brand*) is light and
    material; the confirmed state (--c-signal, the LED, a tick and words) stays separate and appears only once
    something has actually happened. Focus is the system blue. Decided by the homepage track, 24 Nov 2026 (revised the
    same day: minimalism means fewer words and elements, not less identity). */
@@ -153,6 +159,7 @@
   --c-primary: var(--c-brand); --c-on-primary: var(--c-on-brand); --c-primary-hover: var(--c-brand-hi);
   --c-fill: oklch(100% 0 0 / .06); --c-fill-2: oklch(100% 0 0 / .1);
   --c-signal: oklch(84% .2 152); --c-focus: oklch(72% .15 252);
+  --c-brand-ink: var(--c-brand-hi); --c-brand-line: color-mix(in oklab, var(--c-brand) 42%, transparent);
   --c-warm: #F5A524; --c-warm-soft: #2A2113; --c-danger: #FF8A75; --c-on-danger: #0B0C12;
   --s-inv: #4BF0A8; --s-db: #C9E05A; --s-think: #BFA8FF; --s-ecmd: #3FE0F5; --s-dcmd: #8CB6FF; --s-recipe: #FF7FB2;
   --shadow-1: 0 1px 2px oklch(0% 0 0 / .5);
@@ -171,7 +178,7 @@
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --c-danger: oklch(75.7% .183 31.4); --c-warm: oklch(78.2% .189 72.3);
     --s-inv: oklch(85.3% .256 160.1); --s-db: oklch(86.4% .227 118.1); --s-think: oklch(78.4% .134 295.6);
     --s-ecmd: oklch(83.5% .169 208.1); --s-dcmd: oklch(77.5% .124 261.1); --s-recipe: oklch(75.6% .208 356.6); } }
-  :root { --c-brand: oklch(77% .22 151); --c-brand-hi: oklch(88% .2 149); --c-brand-lo: oklch(65% .2 154); --c-brand-glow: oklch(82% .24 149); }
+  :root { --c-brand: oklch(81% .18 212); --c-brand-hi: oklch(92% .14 205); --c-brand-lo: oklch(71% .19 220); --c-brand-glow: oklch(85% .22 210); }
   :root[data-theme="dark"], :root:has(.home, .quiet) { --c-warm: oklch(78.2% .189 72.3);
     --s-inv: oklch(85.3% .256 160.1); --s-db: oklch(86.4% .227 118.1); --s-think: oklch(78.4% .134 295.6);
     --s-ecmd: oklch(83.5% .169 208.1); --s-dcmd: oklch(77.5% .124 261.1); --s-recipe: oklch(75.6% .208 356.6); }

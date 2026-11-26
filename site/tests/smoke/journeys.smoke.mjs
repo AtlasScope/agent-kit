@@ -59,8 +59,11 @@ for (const size of SIZES) {
     await page.waitForURL(/\/install$/);
     await page.locator(".inst__note", { hasText: "Message copied" }).waitFor();
     assert.equal(await clipboard(page), INSTALL_MESSAGE, "Install copies the message to paste into an agent");
-    assert.equal((await page.locator(".inst__done .inst__big").innerText()).trim(), "Copied", "the panel says Copied");
+    assert.equal((await page.locator(".inst h1").innerText()).trim(), "Copied", "the panel says Copied");
     assert.equal(await page.locator(".inst__say").count(), 0, "the message is not shown");
+    // It is one tap away, exactly as copied.
+    await page.getByRole("button", { name: "See the message" }).click();
+    assert.equal((await page.locator(".inst__peekmsg").innerText()).trim(), INSTALL_MESSAGE, "See the message shows the exact message");
     assert.ok(await page.locator(".inst__agent", { hasText: "Claude Code" }).isVisible(), "a link opens the agent");
     await page.getByRole("button", { name: /Copy the message/ }).click();
     assert.equal(await clipboard(page), INSTALL_MESSAGE, "the install page copies the same message");
@@ -68,11 +71,13 @@ for (const size of SIZES) {
     await page.locator(".inst__manual > summary").click();
     for (const agent of ["claude", "any"].map((id) => AGENTS.find((a) => a.id === id))) {
       await page.getByRole("tab", { name: agent.label }).click();
-      const copy = page.getByRole("tabpanel").getByRole("button", { name: /^Copy/ });
+      const copy = page.locator("#inst-cmd").getByRole("button", { name: /^Copy/ });
       await copy.click();
       assert.equal(await clipboard(page), agent.steps.join("\n"), `${agent.label} tab copies every step`);
     }
-    await page.locator(".inst__more a", { hasText: "Prompts" }).click();
+    // Explore opens a drawer that goes straight to each part of the site.
+    await page.getByRole("button", { name: "Explore Agent Kit" }).click();
+    await page.getByRole("dialog", { name: "Explore Agent Kit" }).getByRole("link", { name: /^Prompts/ }).click();
     await page.waitForURL(/\/prompts$/);
     assert.deepEqual(errors, []);
     await ctx.close();

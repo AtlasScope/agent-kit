@@ -3,7 +3,7 @@
    Grammar: hairlines instead of shadows, one row per prompt, no colour for categories. Raw pixel values
    below are optical sizes for icons and hairline offsets; spacing and type come from tokens. */
 
-@media (hover: hover) and (pointer: fine) { a.card:hover, .hub__way:hover { border-color: var(--c-edge); } }
+@media (hover: hover) and (pointer: fine) { a.card:hover, .hub__way:hover { border-color: var(--c-brand-line); box-shadow: 0 10px 28px -18px color-mix(in oklab, var(--c-brand-glow) 45%, transparent); } }
 
 /* ---------- Index and area pages ---------- */
 .lib { gap: var(--space-10); grid-template-columns: minmax(0, 1fr); }
@@ -25,6 +25,7 @@
 .rail__a { position: relative; display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 var(--space-2); border-radius: var(--radius-sm); color: var(--c-fg-3); font: var(--weight-medium) var(--type-sm)/1 var(--font-body); text-decoration: none; white-space: nowrap; transition: color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out); }
 .rail__n { font: var(--weight-regular) var(--type-micro)/1 var(--font-mono); color: var(--c-fg-3); }
 .rail__a[aria-current] { color: var(--c-fg); background: var(--c-fill); }
+.rail__a[aria-current]::after { content: ""; position: absolute; left: var(--space-2); right: var(--space-2); bottom: -9px; height: 2px; border-radius: 2px; background: var(--c-brand-ink); }
 @media (hover: hover) and (pointer: fine) { .rail__a:hover { color: var(--c-fg); } }
 @media (pointer: coarse) { .rail__a { min-height: 44px; } }
 /* Jump targets clear the header and the rail. */
@@ -87,7 +88,7 @@
 .sibs__list { display: grid; margin: 0; padding: 0; list-style: none; }
 .sibs__a { position: relative; display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); min-height: 36px; padding: 8px var(--space-3); border-radius: var(--radius-sm); color: var(--c-fg-3); font: var(--weight-medium) var(--type-sm)/1.3 var(--font-body); text-decoration: none; }
 .sibs__n { font: var(--weight-regular) var(--type-micro)/1 var(--font-mono); color: var(--c-fg-3); }
-.sibs__a[aria-current] { color: var(--c-fg); background: var(--c-fill); }
+.sibs__a[aria-current] { color: var(--c-fg); background: var(--c-fill); box-shadow: inset 2px 0 0 var(--c-brand-ink); }
 @media (hover: hover) and (pointer: fine) { .sibs__a:not([aria-current]):hover { color: var(--c-fg); } }
 @media (pointer: coarse) { .sibs__a { min-height: 44px; align-items: center; } }
 .sibs__h { margin: 0 0 var(--space-2); padding-inline: var(--space-3); color: var(--c-fg-3); font-size: var(--type-xs); }

@@ -2,17 +2,17 @@
 import Link from "next/link";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { INSTALL_MESSAGE, type Agent } from "@/lib/site";
-import { AccountOffer, Ext } from "./AccountOffer";
+import { InstallPaths, Ext, type Place } from "./InstallPaths";
 import { AgentMark } from "./AgentMark";
 import { HANDOFF_EVENT } from "./stage/HomeHero";
 import { AGENT_KEY, COPIED_KEY, FALLBACK, FRESH_MS, OPEN_URL, OS_SCRIPT, SHOWN, commandFor, lastAgent, markOS, readHandoff } from "./install-choice";
 
-// The install page. One message to paste into any agent's chat (INSTALL_MESSAGE) is the centrepiece: the agent reads
-// the steps for itself, so nobody picks a tool or opens a terminal. The message itself is never on show: the panel
-// says Copied and offers to open an agent and, under it, to a visitor with no account, a reason to make one (AccountOffer). Only when
-// the browser blocks copying does the message appear, selected, to copy by hand. Under the panel one status line says
-// what actually happened (copied, or blocked). Everything else waits behind two closed
-// rows: the per-agent commands ("Or run it yourself") and what gets installed, kit by kit.
+// The install page: a short welcome. It confirms the install message was copied (INSTALL_MESSAGE, copied by the
+// homepage's Install button) and offers Claude Code, Codex and Cursor; on a direct visit its first line is the Copy key
+// instead. Then two ways on, side by side: a free account, or a drawer that introduces the site (InstallPaths). The
+// message, copying it again, the per-agent terminal commands and the kit list stay available in one quiet row and two
+// closed rows at the foot. The message opens selected when the browser blocks copying. Nothing here says the kits are
+// installed: copying is all this page has done.
 //
 // It shares the homepage's view from orbit (components/stage/Stage.tsx), seen from further away, and that stage plays
 // the arrival from the homepage's Install button. By then the message is on the clipboard (readHandoff,
@@ -63,14 +63,18 @@ const selectText = (el: Element | null) => {
   try { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s?.removeAllRanges(); s?.addRange(r); } catch {}
 };
 
-export function InstallPage({ kits, skills, prompts, picks, kitLines, account, children }: { kits: number; skills: number; prompts: number; picks: string[]; kitLines: KitLine[]; account: boolean; children: React.ReactNode }) {
+export function InstallPage({ places, kits, skills, kitLines, account, children }: { places: Place[]; kits: number; skills: number; kitLines: KitLine[]; account: boolean; children: React.ReactNode }) {
+  // Whether the message is unfolded, and which agent the visitor opened (it opens in a new tab; this page stays, and
+  // says so, and the account path comes forward).
+  const [peek, setPeek] = useState(false);
+  const [opened, setOpened] = useState("");
   const [agent, setAgent] = useState<Agent>(SHOWN[0]);
   // The by-hand command's copied state, and the message's, each with its own button.
   const [copied, setCopied] = useState(false);
   const [said1, setSaid1] = useState(false);
   // The browser refused to copy: the message shows, selected, to copy by hand. It is shown at no other time.
   const [blocked, setBlocked] = useState(false);
-  // A copy has succeeded on this visit. Unlike said1 it doesn't lapse, so the account offer under the panel stays put.
+  // A copy has succeeded on this visit. Unlike said1 it doesn't lapse, so the line under the panel stays put.
   const [everCopied, setEverCopied] = useState(false);
   useEffect(() => { if (said1) setEverCopied(true); }, [said1]);
   // Once an agent's command has been copied this visit, its light stays softly lit (it never says the clipboard
@@ -148,58 +152,47 @@ export function InstallPage({ kits, skills, prompts, picks, kitLines, account, c
     catch { setSaid1(false); setBlocked(true); show("blocked"); }
   };
   const many = agent.steps.length > 1;
-  // The agents with a site to open; the visitor's own is the lit one.
+  // The agents with a site to open.
   const openable = SHOWN.filter((a) => OPEN_URL[a.id]);
-  const lead = openable.find((a) => a.id === agent.id) ?? openable[0];
   // The message's status line answers the message; the command's answers inside the disclosure, next to it.
   const msgNote = note && (note.kind === "message" || note.kind === "blocked") ? note : null;
   const cmdNote = note && (note.kind === "copied" || note.kind === "failed") ? note : null;
 
   return (
-    <main ref={root} className="quiet inst" data-agent={agent.id} data-picked={picked || undefined} data-arrived={arrived || undefined} suppressHydrationWarning>
+    <main ref={root} className="quiet inst" data-said={said1 || undefined} data-agent={agent.id} data-picked={picked || undefined} data-arrived={arrived || undefined} suppressHydrationWarning>
       <script dangerouslySetInnerHTML={{ __html: AGENT_SCRIPT + OS_SCRIPT }} />
       <div className="inst__in">
         <div className="inst__main">
-          <h1 ref={h1} tabIndex={-1}>Install Agent Kit</h1>
-          <p className="inst__lede">Paste one message into your agent. It installs {kits} kits and {skills} skills.</p>
-
-          {/* The panel the homepage's Install button travels to. It never shows the message. Arriving from the homepage
-              the message is already copied, so the panel opens on Copied (data-got marks it before the first paint, so
-              nothing flashes from one state to the other) and offers to open an agent. Visited directly, it is only
-              the Copy key until Copy is pressed. A copy that truly succeeded runs one light round the rim and swells a
-              bloom under it (both remounted per copy). Screen readers hear the same through the status below. If the
-              browser blocked copying, the message shows here, selected, and Copy tries again. */}
+          <div className="inst__deck">
           <section className={`inst__msg${said1 ? " is-copied" : ""}`} data-blocked={blocked || undefined} aria-labelledby="inst-msg-h">
             <span className="inst__rim" aria-hidden="true" />
             {trace > 0 && <><span className="inst__trace" key={`t${trace}`} aria-hidden="true" /><span className="inst__bloom" key={`b${trace}`} aria-hidden="true" /></>}
-            <h2 id="inst-msg-h" className="sr">Paste into your agent</h2>
             {blocked && <pre className="inst__say" ref={msg}>{INSTALL_MESSAGE}</pre>}
-            <div className="inst__done">
-              <div className="inst__got">
-                <p className="inst__big"><span className="inst__tick"><Check /></span>Copied</p>
-                <p className="inst__sub">Paste it into your agent<Keys /> and press return.</p>
-              </div>
-              <div className="inst__open">
-                <span className="inst__label">Open your agent</span>
-                <div className="inst__agents">
-                  {openable.map((a) => (
-                    <a key={a.id} className={`inst__agent${a.id === lead?.id ? " inst__agent--lead" : ""}`} href={OPEN_URL[a.id]} target="_blank" rel="noopener noreferrer">
-                      <AgentMark id={a.id} /><span>{a.label}</span><Ext />
-                    </a>
-                  ))}
-                  <button type="button" className="inst__again" onClick={copyMessage} aria-label="Copied. Copy the message again">Copy again</button>
-                </div>
-              </div>
-            </div>
-            <div className="inst__bar inst__idle">
-              <span className="inst__label" aria-hidden="true"><i className="led" />{blocked ? "Copy it yourself" : "Ready to copy"}</span>
+            {/* The panel's heading is the page's: Copied after a copy, Install Agent Kit on a direct visit (CSS shows one,
+                from data-got before paint and data-said after). It takes focus on arrival from the homepage. */}
+            <div className="inst__head">
+              <span className="inst__tick" aria-hidden="true"><Check /></span>
+              <h1 ref={h1} tabIndex={-1} id="inst-msg-h"><span className="inst__h-got">Copied</span><span className="inst__h-new">Install Agent Kit</span></h1>
               <button type="button" className="inst__copy inst__copy--main" onClick={copyMessage} aria-label="Copy the message"><CopyIcon />{blocked ? "Copy" : "Copy install message"}</button>
             </div>
+            <p className="inst__lede">One message installs {kits} kits and {skills} skills. Copy it, then paste it into your agent.</p>
+            {/* Three equal choices, each lit in its own colour. They open in a new tab, so this page stays. */}
+            <div className="inst__agents" role="group" aria-label="Open your agent">
+              {openable.map((a) => (
+                <a key={a.id} className="inst__agent" data-a-light={a.id} href={OPEN_URL[a.id]} target="_blank" rel="noopener noreferrer" onClick={() => setOpened(a.label)}>
+                  <AgentMark id={a.id} /><span>{a.label}</span><Ext /><span className="sr"> (opens in a new tab)</span>
+                </a>
+              ))}
+            </div>
+            <p className="inst__opened" aria-live="polite">{opened && <>{opened} opens in a new tab. Paste the message there.</>}</p>
+            <div className="inst__peek" id="inst-peek" hidden={!peek || blocked}>
+              <p className="inst__peekmsg" translate="no">{INSTALL_MESSAGE}</p>
+            </div>
           </section>
+          <div className="inst__ground" aria-hidden="true"><span className="inst__grid" /><span className="inst__pool" /><span className="inst__horizon" /></div>
+          </div>
 
-          {/* The status: a success is said inside the composer, so here it is only announced; a blocked copy needs
-              the visitor to act, so it shows in place of the idle line (one grid cell, so nothing below moves). */}
-          <div className="inst__stat">
+          {/* What Copy did, for screen readers; a blocked copy also shows here, since the visitor has to act. */}
           <div className="inst__status" role="status">
             {msgNote && (
               <p className={`inst__note${msgNote.kind === "blocked" ? " is-warn" : " sr"}`} key={msgNote.n}>
@@ -209,11 +202,15 @@ export function InstallPage({ kits, skills, prompts, picks, kitLines, account, c
               </p>
             )}
           </div>
-          <p className="inst__how" aria-hidden={msgNote?.kind === "blocked" ? true : undefined}>Works in Claude Code, Codex, Cursor and other coding agents.</p>
-          </div>
-          {/* Not now takes the offer away; focus moves on to the next thing on the page rather than to the top. */}
-          {account && <AccountOffer copied={everCopied} prompts={prompts} picks={picks} onDone={() => root.current?.querySelector<HTMLElement>(".inst__manual > summary")?.focus({ preventScroll: true })} />}
           <p className="inst__phone">Agent Kit installs on a computer. Send yourself this page, or paste the message into your agent there.</p>
+
+          <InstallPaths account={account} places={places} nudge={Boolean(opened)} />
+
+          {/* Recovery, kept quiet: the message again, the per-agent terminal commands, and what gets installed. */}
+          <div className="inst__quietrow">
+            {!blocked && <button type="button" className="inst__quiet" aria-expanded={peek} aria-controls="inst-peek" onClick={() => setPeek((v) => !v)}>{peek ? "Hide the message" : "See the message"}</button>}
+            <button type="button" className="inst__quiet inst__again--copy" onClick={copyMessage} aria-label="Copied. Copy the message again">Copy it again</button>
+          </div>
 
           <details className="inst__manual" id="manual" open={open} onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}>
             <summary>
@@ -298,12 +295,6 @@ export function InstallPage({ kits, skills, prompts, picks, kitLines, account, c
             </div>
           </details>
 
-          <nav className="inst__more" aria-label="After installing">
-            <Link href="/start">New to coding agents?</Link>
-            <Link href="/kits">Kits</Link>
-            <Link href="/prompts">Prompts</Link>
-            <Link href="/skills">Skills</Link>
-          </nav>
         </div>
       </div>
 
