@@ -97,7 +97,7 @@ const sceneIsLight = () => V.mode === 'context' && !!shared('light');
   STUDIO.add({
     id: 'button', name: 'Button',
     title: () => P.noun,
-    defaults: Object.assign({}, DEFAULTS, { menuOpen: false }),
+    defaults: Object.assign({}, DEFAULTS, { menuOpen: false }, BUILT.includes('palette') && !P.measured ? { swatch: LINK_SW } : {}),
     today: P.today, measured: !!P.measured,
     groups: STEPS,
     looks: LOOKS,

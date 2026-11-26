@@ -294,7 +294,7 @@ const STEPS = [
     rg('isz', 'Icon size', 0.9, 1.7, 0.05, 'em', 'Smaller at the left, bigger at the right.', { show: hasIcon }),
   ] },
 
-  { id: 'split', t: `Choosing a ${NOUN}`, why: `Whether the button also lets people pick a ${NOUN_H}. Depends on the shape and the words.`, dep: ['shape', 'content'], ctl: [
+  { id: 'split', t: `Choosing ${/^[aeiou]/i.test(NOUN) ? 'an' : 'a'} ${NOUN}`, why: `Whether the button also lets people pick ${/^[aeiou]/i.test(NOUN) ? 'an' : 'a'} ${NOUN_H}. Depends on the shape and the words.`, dep: ['shape', 'content'], ctl: [
     ch('split', 'Layout', [
       o('none', 'Just the button', 'One action, no choice.'),
       o('menu', 'Button with a menu arrow', `An arrow beside it opens a list of ${NOUN}s.`),

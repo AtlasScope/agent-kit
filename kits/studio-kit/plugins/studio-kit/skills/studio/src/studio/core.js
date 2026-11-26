@@ -22,6 +22,7 @@
      still(s, opt)       returns HTML for a drawing that does nothing when clicked and has no element ids: used for
                          tiles, looks, compare and states. opt: { tile: controlKey } | { look: true } | { compare: true }
                          | { state: 'hover' }. The same drawing code as live(), given a different state.
+     ground              true when its drawings bring their own background, so tiles do not show the stage background behind them
      tile(c)             null to list a control's options as words, or { tall?, wide? } to draw each as a tile
      states              [[id, 'Plain name']] the states the States view shows (optional)
      scene(s)            { vars: {...} } this module's part in the shared example page (optional)

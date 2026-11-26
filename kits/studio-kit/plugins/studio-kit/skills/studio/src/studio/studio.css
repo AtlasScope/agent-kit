@@ -126,7 +126,7 @@ select:hover{border-color:var(--line2)}
 .tile:focus-visible,.look:focus-visible{outline:2px solid #5b9dff;outline-offset:2px}
 .tile[aria-pressed=true],.look[aria-pressed=true]{box-shadow:inset 0 0 0 2px var(--fg)}
 .tiles .chip.ghost{justify-content:center}
-.art{position:relative;display:grid;place-items:center;height:78px;overflow:hidden;pointer-events:none;background:#0a0c0c;contain:paint}
+.art{position:relative;display:grid;place-items:center;place-content:center;height:78px;overflow:hidden;pointer-events:none;background:#0a0c0c;contain:paint}
 .art.big{height:116px}
 .art-in{display:grid;place-items:center;width:max-content;max-width:none;transform:scale(.6);flex:none}
 .tile.wide .art{height:96px}

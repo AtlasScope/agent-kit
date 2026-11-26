@@ -17,7 +17,7 @@ function candidate(c, op) {
 function art(m, s, opt, cls = '') {
   let inner;
   try { inner = m.still(s, opt); } catch (e) { report(m.id + ' drawing: ' + e.message); inner = ''; }
-  return `<span class="art bgd ${cls}" ${bgAttr()}><span class="art-in" style="${varsCss(m.vars(s))}">${inner}</span></span>`;
+  return `<span class="art ${m.ground ? '' : 'bgd'} ${cls}" ${m.ground ? '' : bgAttr()}><span class="art-in" style="${varsCss(m.vars(s))}">${inner}</span></span>`;
 }
 function lookState(m, look) {
   const s = Object.assign(fresh(m.id), look.patch), now = ST[m.id];
@@ -113,7 +113,7 @@ function looksHTML() {
     return `<div class="look" role="button" tabindex="0" data-look="${esc(l.id)}" aria-pressed="${sameLook(m.id, s, now)}">${art(m, s, { look: true }, 'big')}`
       + `<span class="tn">${esc(l.n)}${dot(m.id + '.look:' + l.id)}</span><small>${esc(l.d)}</small></div>`;
   };
-  return `<h2>Looks</h2><p class="why">Whole ${esc(m.title())} looks to start from. Pick one and it is yours to change, piece by piece. Nothing is lost: Undo brings back what you had.</p>`
+  return `<h2>Looks</h2><p class="why">Finished looks for your ${esc(m.title())}. Pick one and it is yours to change, piece by piece. Nothing is lost: Undo brings back what you had.</p>`
     + `<div class="looks">${[base, ...m.looks].map(card).join('')}</div>`
     + (m.looks.length > 1 ? '<div class="prow"><button class="chip" data-act="surprise">Surprise me</button><span class="rhint">Picks a look you have not tried.</span></div>' : '');
 }
@@ -272,7 +272,7 @@ function specLines(m) {
       const raw = String(op.v);
       const showRaw = typeof op.v === 'string' && raw && raw.toLowerCase() !== op.n.toLowerCase() && c.k !== 'sub' && c.k !== 'label';
       parts.push((c.label.toLowerCase() === g.t.toLowerCase() ? '' : c.label + ': ') + op.n
-        + (showRaw ? ` (${raw})` : '') + (r ? `, ${fmt(s[c.k], r)}` : '') + (same ? ' [unchanged]' : '')
+        + (showRaw ? ` (${raw})` : '') + (r && !op.n.includes(fmt(s[c.k], r)) ? `, ${fmt(s[c.k], r)}` : '') + (same ? ' [unchanged]' : '')
         + (avail(op, s) ? '' : ' [will not show with these choices]'));
     }
     if (parts.length) out.push(`${g.t}: ${parts.join('; ')}`);
