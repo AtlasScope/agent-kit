@@ -176,9 +176,8 @@ export function InstallPage({ places, kits, skills, kitLines, account, children 
             <div className="inst__head">
               <span className="inst__tick" aria-hidden="true"><Check /></span>
               <h1 ref={h1} tabIndex={-1} id="inst-msg-h"><span className="inst__h-got">Copied</span><span className="inst__h-new">Install Agent Kit</span></h1>
-              <button type="button" className="inst__copy inst__copy--main" onClick={copyMessage} aria-label="Copy the message"><CopyIcon />{blocked ? "Copy" : "Copy install message"}</button>
+              <button type="button" className="inst__copy inst__copy--main" onClick={copyMessage} aria-label="Copy the message"><CopyIcon />Copy</button>
             </div>
-            <p className="inst__lede">One message installs {kits} kits and {skills} skills. Copy it, then paste it into your agent.</p>
             {/* Three equal choices, each lit in its own colour. They open in a new tab, so this page stays. */}
             <div className="inst__agents" role="group" aria-label="Open your agent">
               {openable.map((a) => (
@@ -205,7 +204,6 @@ export function InstallPage({ places, kits, skills, kitLines, account, children 
               </p>
             )}
           </div>
-          <p className="inst__phone">Agent Kit installs on a computer. Send yourself this page, or paste the message into your agent there.</p>
 
           <InstallPaths account={account} places={places} nudge={Boolean(opened)} />
 

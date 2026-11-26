@@ -29,6 +29,14 @@ const ICONS: Record<string, React.ReactNode> = {
   start: <path {...stroke} d="M3 9.5 12 5l9 4.5-9 4.5zM7 11.5v4c1.5 1.3 3.2 2 5 2s3.5-.7 5-2v-4M21 9.5V14" />,
 };
 
+// The light under the pointer on hover, as on the homepage's button (HomeHero.tsx).
+const aim = (e: React.PointerEvent<HTMLElement>) => {
+  if (e.pointerType !== "mouse") return;
+  const r = e.currentTarget.getBoundingClientRect();
+  e.currentTarget.style.setProperty("--mx", `${e.clientX - r.left}px`);
+  e.currentTarget.style.setProperty("--my", `${e.clientY - r.top}px`);
+};
+
 export type Place = { href: string; title: string; line: string; icon: string };
 
 export function InstallPaths({ account, places, nudge }: { account: boolean; places: Place[]; nudge?: boolean }) {
@@ -72,15 +80,16 @@ export function InstallPaths({ account, places, nudge }: { account: boolean; pla
           </Link>
         </>
       )}
-      <button type="button" className="inst__row inst__row--explore" aria-haspopup="dialog" onClick={() => drawer.current?.showModal()}>
-        <span className="inst__rowt">Explore Agent Kit</span>
-        <Arrow />
+      {/* The homepage's Install button, the same object and the same hover light (stage.css, .launch__go). */}
+      <button type="button" className="launch__go inst__explore" aria-haspopup="dialog" onClick={() => drawer.current?.showModal()} onPointerMove={aim}>
+        <span className="launch__fx" aria-hidden="true" />
+        <span className="launch__label"><svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round"><circle cx="12" cy="12" r="8.5" /><path d="m15.5 8.5-2 5-5 2 2-5z" /></svg>Explore Agent Kit</span>
       </button>
 
       <dialog ref={drawer} className="inst__drawer" aria-labelledby="drawer-h" onClick={backdrop} onCancel={cancel}>
         <div className="inst__drawerin">
           <div className="inst__drawerhead">
-            <h2 id="drawer-h">Explore Agent Kit</h2>
+            <h2 id="drawer-h" tabIndex={-1} autoFocus>Explore Agent Kit</h2>
             <button type="button" className="inst__close" onClick={close} aria-label="Close"><Close /></button>
           </div>
           <button type="button" className="inst__dsearch" onClick={search}>
