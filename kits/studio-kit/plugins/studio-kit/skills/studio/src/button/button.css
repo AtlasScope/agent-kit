@@ -223,3 +223,4 @@
 .toast.top{top:12px;bottom:auto;transform:translateY(-140%)}.toast.top.in{transform:none}
 .toast b{display:block;font-size:14px}.toast span.s{font-size:12px;color:#9aa5a1}
 .toast .dot{width:24px;height:24px;border-radius:50%;background:var(--ac);display:grid;place-items:center;color:#06210f;flex:none}
+.pv{--ic-knock:var(--ac)}

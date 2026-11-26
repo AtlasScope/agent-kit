@@ -75,3 +75,4 @@
 .scene.has-icons .sc-search{color:var(--sc-fg2)}
 .scene:not(.sc-heroonly)>.sc-hero,.scene:not(.sc-heroonly)>.sc-grid,.scene:not(.sc-heroonly)>.sc-code{margin-inline:var(--sc-hero-m,0)}
 .scene:not(.sc-heroonly)>.sc-grid,.scene:not(.sc-heroonly)>.sc-code{max-width:var(--sc-maxw,none)}
+.scene{--ic-knock:var(--sc-bg)}
