@@ -65,7 +65,7 @@ const COLUMN = +P.column || 440;
 
 const STUDIO = {
   mods: [], by: {},
-  add(m) { if (!m || !m.id || this.by[m.id]) return; this.mods.push(m); this.by[m.id] = m; },
+  add(m) { if (!m || !m.id || this.by[m.id] || !BUILT.includes(m.id)) return; this.mods.push(m); this.by[m.id] = m; }, // the page carries every module; only the ones this session names take part
   has(id) { return !!this.by[id]; },
 };
 

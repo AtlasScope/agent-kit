@@ -4,7 +4,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
-import { build } from "../scripts/lib/build.mjs";
+import { build, compile, APP_FILE } from "../scripts/lib/build.mjs";
 import { checkHtml, dimProblems, extensionProblems } from "../scripts/lib/check.mjs";
 
 const withMore = (html, more, css = "") => html
@@ -14,6 +14,13 @@ const RIM = "dims:[{id:'rimLight',module:'button',t:'Rim light',options:[['none'
 
 test("a fresh page with every studio passes its own check", () => {
   assert.deepEqual(checkHtml(build({ modules: ["button", "palette", "type"] })), []);
+});
+
+test("the prebuilt studio is current with src/, and a session is that page with its own studios named", () => {
+  assert.equal(fs.readFileSync(APP_FILE, "utf8"), compile(), "app/studio.html is stale: run node scripts/lib/build.mjs");
+  const html = build({ modules: ["palette", "type"] });
+  assert.match(html, /<meta name="studio-modules" content="palette,type">/);
+  assert.deepEqual(checkHtml(html), []);
 });
 
 test("a new category with CSS for its choices passes; the page's rules are the checker's", () => {

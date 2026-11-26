@@ -9,7 +9,7 @@ const hexLum = (hex) => {
   const n = parseInt(m[1], 16);
   return ((n >> 16 & 255) * 0.299 + (n >> 8 & 255) * 0.587 + (n & 255) * 0.114) / 255;
 };
-const lightBg = () => ['light', 'paper'].includes(V.bg) || (V.bg === 'page' && hexLum(P.pageBg) > 0.55) || sceneIsLight();
+const lightBg = () => ['light', 'paper'].includes(V.bg) || (V.bg === 'page' && hexLum(pageColour()) > 0.55) || sceneIsLight();
 const autoDark = (s) => s.tc === 'dark' || (s.tc === 'auto' && btnColour(s).L > 0.7);
 const RADIUS = { pill: '999px', blob: '999px', circle: '999px', leaf: '999px', sharp: '5px' };
 

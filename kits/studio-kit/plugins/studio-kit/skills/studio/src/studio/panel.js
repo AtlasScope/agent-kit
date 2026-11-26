@@ -110,11 +110,11 @@ function askHTML() {
   if (NAV.review) return '';
   const w = askWhere(), p = UI.pending;
   const waiting = p && p.sent && Date.now() - p.at < 15 * 60e3;
-  return `<div class="ask" id="askbox"><label for="ask">Want something different?</label>`
-    + `<p>Ask for a new effect, a different direction, or a whole new thing to change${w.ctl ? ` in ${esc(w.name)} <button class="addc" data-act="askwide">ask about the whole page instead</button>` : ''}. The agent adds it to this page; everything you picked and pinned stays.</p>`
-    + `<div class="askrow"><input id="ask" type="text" maxlength="400" value="${esc(UI.ask.text)}" placeholder="calmer · more like brushed metal · something for a white page"><button class="go" data-act="ask">${STATUS.live ? 'Send' : 'Copy request'}</button></div>`
-    + '<div class="quick"><button class="chip sm" data-quick="like">More like this</button><button class="chip sm" data-quick="different">Something completely different</button><button class="chip sm" data-quick="what">What else could change?</button></div>'
-    + (waiting ? `<p class="wait"><span class="spin"></span> Waiting for the agent to add to ${esc(p.name)}. Keep going; new choices arrive with a green dot.</p>` : '') + '</div>';
+  return `<div class="ask" id="askbox"><label for="ask"><svg class="spark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.5 2.5M15.2 15.2l2.5 2.5M6.3 17.7l2.5-2.5M15.2 8.8l2.5-2.5"/></svg>Want to see something different?</label>`
+    + `<p>A new effect, another direction, or a whole new thing to change${w.ctl ? ` in ${esc(w.name)} <button class="addc" data-act="askwide">or about the whole page</button>` : ''}. The agent adds it here; your picks and pins stay.</p>`
+    + `<div class="askrow"><input id="ask" type="text" maxlength="400" value="${esc(UI.ask.text)}" placeholder="Describe what you want to explore…"><button class="go q" data-act="ask">${STATUS.live ? 'Ask agent →' : 'Copy request'}</button></div>`
+    + '<div class="quick"><button class="chip sm" data-quick="like">More like this</button><button class="chip sm" data-quick="different">Something different</button><button class="chip sm" data-quick="what">What else could change?</button></div>'
+    + (waiting ? `<p class="wait"><span class="spin"></span> Waiting for the agent to add to ${esc(p.name)}. Keep going; new choices arrive marked with a dot.</p>` : '') + '</div>';
 }
 
 /* ---- Looks, a category, Review ---- */

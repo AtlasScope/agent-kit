@@ -57,7 +57,8 @@ node kits/studio-kit/plugins/studio-kit/skills/studio/scripts/studio.mjs new <di
 | Path | What |
 |---|---|
 | `skills/studio/SKILL.md` | The command: what it does, the rules that hold every time |
-| `skills/studio/src/` | The page: shared workspace code and one folder per studio |
+| `skills/studio/app/studio.html` | The studio itself, prebuilt; each session copies it and fills in its project |
+| `skills/studio/src/` | The source it is compiled from: shared workspace code and one folder per studio |
 | `skills/studio/scripts/` | `studio.mjs`, which builds, serves and updates the page |
 | `skills/studio/agents/openai.yaml` | Codex display name and invocation policy |
 

@@ -280,6 +280,7 @@
   RL.forEach((r) => { if (r.value) today['r_' + r.id] = r.value; });
   today.pair = DEFAULTS.pair;
   const measured = RL.some((r) => r.value);
+  if (!measured && !(PP.today && PP.today.side)) DEFAULTS.side = 'light'; // a project with no colours yet starts on a plain light page
 
   const fix = (s) => {
     if (s.side !== 'light') s.side = 'dark';
@@ -330,10 +331,17 @@
       + `<span class="pl-st"><i style="background:${R.ok}"></i><span style="color:${R.ok}">Saved</span><i style="background:${R.warn}"></i><span style="color:${R.warn}">Needs a look</span><i style="background:${R.bad}"></i><span style="color:${R.bad}">Failed</span></span></div>`
       + '</div></div>';
   };
+  /** A look at a glance: one theme's page with the project's headline and its main action. */
+  const swatchCard = (R, side) => {
+    const f = shared('fonts'), ff = f ? `font-family:${esc(f.display)};` : '';
+    const label = (STUDIO.has('button') ? ST.button.label : '') || (P.labels && P.labels[0] && two(P.labels[0])[0]) || 'Get started';
+    return `<div class="pl-card2" style="${f ? `font-family:${esc(f.body)};` : ''}background:${R.page};color:${R.text};box-shadow:inset 0 0 0 1px ${R.line}"><span class="pl-sd" style="color:${R.text3}">${sideName(side)}</span>`
+      + `<b style="${ff}">${esc(CX.headline || P.name)}</b><span class="pl-go" style="background:${R.fill};color:${R['on-fill']}">${esc(label)}</span></div>`;
+  };
   const label2 = (side, own) => `${sideName(side)}${own ? '' : ', matched'}`;
   const still = (s, opt = {}) => {
     const R = slots(s), t = twin(s);
-    if (opt.look) return t ? `<div class="pl-strips">${strip(R)}${strip(t[1])}</div>` : strip(R);
+    if (opt.look) return `<div class="pl-lk">${strip(R)}<div class="pl-cards">${swatchCard(R, s.side)}${t ? swatchCard(t[1], t[0]) : ''}</div></div>`;
     if (opt.tile === 'pair') return t ? `<div class="pl-twins">${mini(R)}${mini(t[1])}</div>` : mini(R);
     if (opt.tile === 'stSet' || opt.tile === 'stC') return statusArt(R);
     if (opt.tile === 'textk') return wordsArt(R);

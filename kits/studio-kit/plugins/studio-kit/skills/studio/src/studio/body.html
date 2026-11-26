@@ -6,7 +6,7 @@
  <div class="acts">
   <button class="ib" id="undo" aria-label="Undo" title="Undo (Ctrl+Z)" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
   <button class="ib" id="redo" aria-label="Redo" title="Redo (Ctrl+Shift+Z)" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg></button>
-  <button class="go brandgo" id="review" aria-pressed="false">Review</button>
+  <button class="go brandgo" id="review" aria-pressed="false">Review <span aria-hidden="true">→</span></button>
  </div>
 </header>
 <main class="work" id="work">
@@ -28,6 +28,7 @@
     <div class="toast" id="toast"><span class="dot"><svg width="14" height="14"><use href="#i-check"/></svg></span><div><b id="toasth">Done</b><span class="s"></span></div><span id="toastbtn" style="margin-left:auto"></span></div>
    </div></div>
   </div>
+  <div class="pacts" id="pacts"><button class="tb" data-mode="context">In a page <span aria-hidden="true">→</span></button><button class="tb" id="pin2" data-act="pin">+ Pin</button></div>
   <div class="board" id="board" hidden></div>
   <div class="stbar" id="stbar">
    <div class="seg" id="devices" role="radiogroup" aria-label="Screen width"></div>

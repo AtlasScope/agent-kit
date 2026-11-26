@@ -33,7 +33,7 @@ Build only the studios asked for. "The checkout button" is `button`. "Our colour
 
 1. **Read the project.** For each studio asked for, find what exists: the component and its siblings, shared classes and tokens, the page background, fonts, the real words (headline, a paragraph, link names, field labels, list rows), what happens after pressing, and how the design system builds these today. No existing design means `measured:false` and the clean start, which is made to look good as it is.
 
-2. **Make the studio.** `node <skill>/scripts/studio.mjs new <primary checkout>/.artifacts/design/<slug> --modules button,palette,type` (list only the ones wanted). The primary checkout is the parent of `git rev-parse --path-format=absolute --git-common-dir`, never a worktree. Make sure `.artifacts/` is ignored by git. Outside a repository use a `studio/<slug>` folder in the user's documents. Then fill only the `PROJECT` block at the top of its `index.html`:
+2. **Make the studio.** The studio is already built: `app/studio.html` ships with the plugin. `new` copies it and names the studios it shows; you only describe the project. `node <skill>/scripts/studio.mjs new <primary checkout>/.artifacts/design/<slug> --modules button,palette,type` (list only the ones wanted). The primary checkout is the parent of `git rev-parse --path-format=absolute --git-common-dir`, never a worktree. Make sure `.artifacts/` is ignored by git. Outside a repository use a `studio/<slug>` folder in the user's documents. Then fill only the `PROJECT` block at the top of its `index.html`:
    - `id`: a steady id such as `acme/checkout-button`. `name`: the project. `noun`: what the button is called ("install button").
    - `measured`: true when `today` holds found values. The first look is then "Today", and today's choice comes first in every list with a Today tag.
    - `brand`: `[plain name, oklch hue, chroma, lightness]` of today's button colour, converted from hex.
@@ -123,7 +123,7 @@ A remote machine's local server is out of the user's reach. Steps 1 to 3 are the
 
 ## Changing the skill itself
 
-The engine is built from `src/` by `scripts/lib/build.mjs`. Never edit a built `index.html` below the `MORE` block; edit `src/`, then run `refresh` on any open studio.
+The engine is compiled from `src/` into the prebuilt `app/studio.html` by `node scripts/lib/build.mjs` (a test fails if it is stale). Never edit a built `index.html` below the `MORE` block; edit `src/`, compile, then run `refresh` on any open studio.
 
 - `src/studio/`: the shell every studio shares. `core.js` opens with the contract a studio module meets. `controls.js`, `state.js` (picks, history, pins, saving), `scene.js` and `scene.css` (the example page and the properties modules paint it with), `frame.js` (the stage and its views), `panel.js` (navigator, tiles, Looks, Review, the proposal), `connection.js`, `events.js`, `boot.js`, `colour.mjs` (Palette Builder's colour maths, kept identical to its `palette.mjs`).
 - `src/<name>/`: one studio. `files.json` names its CSS and JS and its place in the tab order; nothing else needs to know it exists. A new studio is a new folder that meets the contract: a representative drawing, finished looks, the few decisions that matter, plain names, real warnings.

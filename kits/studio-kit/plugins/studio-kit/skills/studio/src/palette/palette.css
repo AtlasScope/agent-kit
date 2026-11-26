@@ -128,3 +128,13 @@
 .pl-pair .pl-scene h4{font-size:17px}
 .ba:has(.pl-two){grid-template-columns:minmax(0,1fr)}
 @media (max-width:899px){.pl-pair .pl-sh{display:none}.pl-pair .pl-sb{padding-top:10px}.pl-pair .pl-scene h4{font-size:15px}.pl-pair .pl-acts{margin-top:8px}}
+/* a look: the strip, then each theme with the project's own headline and action */
+.pl-lk{display:flex;flex-direction:column;gap:10px;width:100%;min-width:260px}
+.pl-lk .pl-strip-big{height:40px;min-width:0}
+.pl-cards{display:flex;gap:8px}
+.pl-card2{font-family:var(--dfont);flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:10px 12px 12px;border-radius:8px;text-align:left}
+.pl-card2 .pl-sd{font-size:11px;font-weight:500;line-height:1.2}
+.pl-card2 b{max-width:100%;font-size:14px;line-height:1.2;font-weight:650;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-card2 .pl-go{min-height:0;padding:5px 10px;border-radius:6px;font-size:11.5px;font-weight:600;line-height:1.2;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.art:has(.pl-lk){height:auto;padding:14px;place-content:stretch}
+.art:has(.pl-lk)>.art-in{width:100%;transform:none!important}

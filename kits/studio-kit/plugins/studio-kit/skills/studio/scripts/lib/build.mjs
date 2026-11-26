@@ -75,8 +75,31 @@ export function modulesOf(html) {
   return m && m[1] ? m[1].split(",") : ["button"];
 }
 
+/* The page ships prebuilt: app/studio.html holds the whole studio, every module included. A session copies it, names the
+   studios it shows (a meta tag the page reads) and fills in its own project; nothing is compiled per session. compile()
+   makes app/studio.html from src/ (`node scripts/lib/build.mjs`); build() is what a session gets. */
+export const APP_FILE = fileURLToPath(new URL("../../app/studio.html", import.meta.url));
+const newest = (dir) => fs.readdirSync(dir, { withFileTypes: true }).reduce((t, d) => Math.max(t, d.isDirectory() ? newest(path.join(dir, d.name)) : fs.statSync(path.join(dir, d.name)).mtimeMs), 0);
+/** The prebuilt studio; recompiled only when src/ is newer, which happens while the skill itself is being edited. */
+function appHtml() {
+  if (fs.existsSync(APP_FILE) && newest(SRC) <= fs.statSync(APP_FILE).mtimeMs) return fs.readFileSync(APP_FILE, "utf8");
+  return compile();
+}
+/** A session's page: the prebuilt studio showing the chosen modules, with the session's own parts in place. */
 export function build({ modules: wanted, keep = {} } = {}) {
-  const all = modules(), ids = pickModules(wanted);
+  const ids = pickModules(wanted);
+  let html = appHtml().replace(/<meta name="studio-modules" content="[a-z0-9,-]*">/, `<meta name="studio-modules" content="${ids.join(",")}">`);
+  for (const [name, marks] of Object.entries(REGIONS)) {
+    if (keep[name] == null) continue;
+    const part = grab(html, marks);
+    if (part == null) throw new Error("The prebuilt studio is missing " + marks[0]);
+    html = html.replace(part, () => keep[name]);
+  }
+  return html;
+}
+
+export function compile({ modules: wanted, keep = {} } = {}) {
+  const all = modules(), shown = pickModules(wanted), ids = Object.keys(all).sort((a, b) => all[a].order - all[b].order);
   const icons = read("studio/icons.svg");
   const iconsAt = icons.indexOf(REGIONS.icons[0]);
   const parts = {
@@ -96,7 +119,7 @@ export function build({ modules: wanted, keep = {} } = {}) {
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="studio-modules" content="${ids.join(",")}">
+<meta name="studio-modules" content="${shown.join(",")}">
 <meta name="studio-available" content="${Object.entries(all).map(([id, m]) => id + ":" + m.name.replace(/[,:"<>&]/g, "")).join(",")}">
 <title>Studio</title>
 ${id.icon}
@@ -137,4 +160,11 @@ export function rebuild(html, add = []) {
     keep[name] = part;
   }
   return build({ modules: [...modulesOf(html), ...add], keep });
+}
+
+// `node scripts/lib/build.mjs` writes the prebuilt studio.
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  fs.mkdirSync(path.dirname(APP_FILE), { recursive: true });
+  fs.writeFileSync(APP_FILE, compile());
+  console.log("WROTE " + path.relative(process.cwd(), APP_FILE));
 }

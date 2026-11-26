@@ -1,7 +1,7 @@
 /* ===== Frame: the stage the preview sits on: its views, device, background, Less motion, pins and hold ===== */
 
 const BGS = [
-  ...(P.pageBg ? [['page', 'Your page']] : []),
+  ['page', P.pageBg || (P.palette && P.palette.roles) ? 'Your page' : 'Plain page'],
   ['studio', 'Quiet dark'], ['black', 'Black'], ['light', 'Light grey'], ['cool', 'Colourful'], ['warm', 'Warm colours'], ['aurora', 'Night sky'],
   ['sunset', 'Sunset'], ['paper', 'Paper'], ['grid', 'Grid'], ['checker', 'Checker'],
   ...(Array.isArray(MO.bg) ? MO.bg : []).filter(Array.isArray).map((e) => [String(e[0]), String(e[1] || e[0])]),
@@ -9,8 +9,11 @@ const BGS = [
 const MODES = [['alone', 'Choices'], ['context', 'In a page'], ['compare', 'Compare'], ['states', 'States']];
 const modeNow = () => (V.mode === 'states' && !AM().states ? 'alone' : V.mode);
 const baseName = (m) => (m.measured ? 'Today' : 'Starting point');
-const bgLight = () => ['light', 'paper'].includes(V.bg) || (V.bg === 'page' && COLOUR.HEX.test(P.pageBg) && COLOUR.lum(P.pageBg) > 0.3);
-const bgAttr = () => `data-bg="${esc(V.bg)}"${V.bg === 'page' ? ` style="background:${esc(P.pageBg)}"` : ''}`;
+/** The project's own page: the palette being chosen when there is one, else the project's page colour, else a plain
+    light page for a project that has no design yet. Designs are judged where they will live, never on the studio's black. */
+const pageColour = () => { const r = shared('roles'); return (r && r.page) || (COLOUR.HEX.test(P.pageBg) ? P.pageBg : '#F4F6F9'); };
+const bgLight = () => ['light', 'paper'].includes(V.bg) || (V.bg === 'page' && COLOUR.lum(pageColour()) > 0.3);
+const bgAttr = () => `data-bg="${esc(V.bg)}"${V.bg === 'page' ? ` style="background:${esc(pageColour())}"` : ''}`;
 
 /** Width of the column the preview is laid out in: a phone's screen, or the project's content column. */
 function frameVars() {
@@ -25,7 +28,7 @@ function applyVars() {
 function stageState() {
   const d = $('device'), m = AM();
   d.dataset.bg = V.bg;
-  d.style.background = V.bg === 'page' ? P.pageBg : '';
+  d.style.background = V.bg === 'page' ? pageColour() : '';
   $('stage').classList.toggle('rm', V.rm === true);
   $('pcol').classList.toggle('tall', modeNow() === 'alone' && !!(m.tall && m.tall()));
 }
@@ -144,6 +147,8 @@ function renderStageBar() {
   $('pin').disabled = full || isBase || PINS.some((p) => p.mod === m.id && sameLook(m.id, p.s, AS()));
   $('pin').title = full ? 'Three are pinned. Unpin one in Compare to pin another.' : isBase ? `This is ${baseName(m).toLowerCase()}; Compare always shows it` : 'Keep this version to compare with later ones';
   $('pin').textContent = PINS.some((p) => p.mod === m.id && sameLook(m.id, p.s, AS())) ? 'Pinned' : 'Pin';
+  $('pin2').disabled = $('pin').disabled; $('pin2').title = $('pin').title;
+  $('pin2').textContent = $('pin').textContent === 'Pinned' ? 'Pinned' : '+ Pin';
 }
 function setMode(k) {
   V.mode = k;
