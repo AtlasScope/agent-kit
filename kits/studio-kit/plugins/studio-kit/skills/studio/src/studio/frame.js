@@ -63,7 +63,6 @@ function statesHTML() {
 }
 function stageHint() {
   const mode = modeNow();
-  if (PEEK) return 'Trying it on · click to keep it';
   if (HOLDING) return 'Showing ' + baseName(AM()).toLowerCase();
   if (mode === 'context') return CX.real ? 'Your page, simplified' : 'A representative page with your words. Not your live page.';
   return mode === 'alone' && NAV.mod === 'button' && !UI.tried ? 'Press it to try it' : '';
@@ -151,23 +150,9 @@ function previewExtras(s) {
     const i = rs.querySelector('.art-in');
     if (i && i.offsetWidth > $('stage').clientWidth * 0.5) rs.hidden = true;
   }
-  tt.hidden = !(alone && !PEEK && (changedKeys(m.id).length || HOLDING));
+  tt.hidden = !(alone && (changedKeys(m.id).length || HOLDING));
   if (!tt.hidden && !HOLDING) { tt.innerHTML = art(m, DEFS[m.id], { compare: true }) + `<span class="rl">${esc(baseName(m))} · hold to see it</span>`; fitArt(tt); tt.title = 'Hold to see ' + baseName(m).toLowerCase() + ' in the preview; click to compare side by side'; }
   $('vmenu').hidden = $('stbar').hidden && $('zoom').hidden;
-}
-/* ---- trying a choice on: pointing at a card shows it in the preview; moving away puts yours back ---- */
-let PEEK = null;
-function peekOn(mid, s) {
-  if (modeNow() !== 'alone' || (HOLDING && !PEEK)) return;
-  if (!PEEK) { PEEK = { mod: mid, s: clone(ST[mid]) }; HOLDING = true; } // HOLDING keeps a tried-on state from being saved
-  setState(mid, s);
-  renderStage();
-}
-function peekOff() {
-  if (!PEEK) return;
-  setState(PEEK.mod, PEEK.s);
-  PEEK = null; HOLDING = false;
-  renderStage();
 }
 
 function seen(kind, v) { if (!UI.seen[kind].includes(v)) UI.seen[kind].push(v); }

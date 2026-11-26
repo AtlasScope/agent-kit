@@ -109,15 +109,13 @@ function askWhere() {
 function askHTML() {
   if (NAV.review) return '';
   const m = AM(), w = askWhere(), p = UI.pending, cat = NAV.cat[m.id], g = m.groups.find((x) => x.id === cat), s = AS();
-  const items = g ? g.ctl.filter((c) => shown(c, s) && !isFine(c) && c.more !== false && (c.t === 'chips' || c.t === 'swatches')).map((c) => ({ id: c.id, what: c.label.toLowerCase() + (c.t === 'swatches' ? 's' : ' choices') })) : [{ id: '@looks', what: 'ideas' }];
+  const items = g ? g.ctl.filter((c) => shown(c, s) && !isFine(c) && c.more !== false && (c.t === 'swatches' || (c.t === 'chips' && c.opts.length > 3))).map((c) => ({ id: c.id, what: c.label.toLowerCase() + (c.t === 'swatches' ? 's' : ' choices') })) : [{ id: '@looks', what: 'ideas' }];
   const live = p && Date.now() - p.at < 15 * 60e3;
   const status = !live ? '' : p.sent
     ? `<p class="wait"><span class="spin"></span> The agent is adding to ${esc(p.name)}. New ones arrive here marked New; your picks stay.</p>`
     : `<p class="wait">Your request for ${esc(p.name)} is waiting for the agent. Say “check the studio” in the chat to have it look now.</p>`;
-  return `<div class="ask" id="askbox"><label for="ask"><svg class="spark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.5 2.5M15.2 15.2l2.5 2.5M6.3 17.7l2.5-2.5M15.2 8.8l2.5-2.5"/></svg>Want more options?</label>`
-    + `<p>The agent designs new ones for this project and adds them here. Your picks stay.</p>`
-    + `<div class="quick">${items.map((x) => `<button class="go q morego" data-moreask="${esc(x.id)}">More ${esc(x.what)} <span aria-hidden="true">→</span></button>`).join('')}<button class="chip" data-quick="different">Something different</button><button class="chip" data-quick="what">What else could change?</button></div>`
-    + `<div class="askrow"><input id="ask" type="text" maxlength="400" value="${esc(UI.ask.text)}" placeholder="Or describe what you want${w.ctl ? ' for ' + esc(w.name) : ''}…"><button class="go q" data-act="ask">${STATUS.live ? 'Ask agent →' : 'Copy request'}</button></div>`
+  return `<div class="ask" id="askbox"><div class="quick"><label for="ask"><svg class="spark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.5 2.5M15.2 15.2l2.5 2.5M6.3 17.7l2.5-2.5M15.2 8.8l2.5-2.5"/></svg>Want more options?</label>${items.map((x) => `<button class="go q morego" data-moreask="${esc(x.id)}">More ${esc(x.what)} <span aria-hidden="true">→</span></button>`).join('')}<button class="chip" data-quick="different">Something different</button><button class="chip" data-quick="what">What else could change?</button></div>`
+    + `<div class="askrow"><input id="ask" type="text" maxlength="400" value="${esc(UI.ask.text)}" placeholder="Or describe what you want${w.ctl ? ' for ' + esc(w.name) : ''}, and the agent adds it here…"><button class="go q" data-act="ask">${STATUS.live ? 'Ask agent →' : 'Copy request'}</button></div>`
     + status + '</div>';
 }
 
@@ -290,7 +288,7 @@ function renderPanel() {
   const navCat = ae && $('nav').contains(ae) ? ae.dataset.cat : null;
   const cat = NAV.cat[m.id], g = m.groups.find((x) => x.id === cat);
   let html;
-  try { html = NAV.review ? reviewHTML() : (g ? groupHTML(g) : looksHTML()) + askHTML(); } catch (e) { report('panel: ' + e.message); html = '<p class="why">This page could not be drawn. The agent has been told.</p>'; }
+  try { html = NAV.review ? reviewHTML() : g ? askHTML() + groupHTML(g) : looksHTML() + askHTML(); } catch (e) { report('panel: ' + e.message); html = '<p class="why">This page could not be drawn. The agent has been told.</p>'; }
   host.innerHTML = html;
   fitArt(host);
   $('ptune').innerHTML = tuneHTML();

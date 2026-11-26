@@ -213,7 +213,7 @@
   const values = (s) => {
     const out = {};
     RL.forEach((r) => {
-      const v = s['r_' + r.id], R = rolesOn(s, PROJECT_ROLES.length ? r.side : s.side);
+      const v = s['r_' + r.id], R = rolesOn(s, BOTH ? r.side : s.side); // one theme follows Light or dark; two keep each side's own
       out[r.id] = typeof v === 'string' && C.HEX.test(v) ? v.toUpperCase() : R[r.slot] || R.text;
     });
     return out;
@@ -228,7 +228,7 @@
   /** The other theme, when there is one: [side, its colours, whether it is the project's own or a matched proposal]. */
   const twin = (s) => (twinOn(s) ? [otherSide(s), slots(s, otherSide(s)), BOTH] : null);
   /** A role as Palette Builder's helpers expect it; the thirteen stand-in roles sit on whichever side the palette is. */
-  const roleFor = (s) => (r) => (PROJECT_ROLES.length ? r : Object.assign({}, r, { side: s.side === 'light' ? 'light' : 'dark' }));
+  const roleFor = (s) => (r) => (BOTH ? r : Object.assign({}, r, { side: s.side === 'light' ? 'light' : 'dark' }));
 
   /* ---- what the project has today ---- */
   const fromHexes = (h) => {

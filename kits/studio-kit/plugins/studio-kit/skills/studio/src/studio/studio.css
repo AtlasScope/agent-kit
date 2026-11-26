@@ -520,3 +520,10 @@ details.fine[open]>.ctl:not(:last-child){border-bottom:0}
 @keyframes go-breathe{0%,100%{opacity:.55}50%{opacity:1}}
 @keyframes go-drift{0%{transform:translateX(-30%)}50%{transform:translateX(160%)}100%{transform:translateX(-30%)}}
 @media (prefers-reduced-motion:reduce){.go:not(.q):not(.sm)::before,.go:not(.q):not(.sm)::after{animation:none}}
+/* asking for more: a compact strip right above the choices */
+.ask{margin:0 0 20px;padding:12px 14px}
+.ask .quick{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 10px}
+.ask .quick label{margin:0 6px 0 0;font-size:14px}
+.ask .askrow input{padding:8px 12px;font-size:13.5px}
+.ask .askrow .go{padding:8px 14px;font-size:13.5px}
+.looks+.ask,.lrow.ideas~.ask{margin-top:20px}

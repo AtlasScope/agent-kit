@@ -530,6 +530,13 @@ details.fine[open]>.ctl:not(:last-child){border-bottom:0}
 @keyframes go-breathe{0%,100%{opacity:.55}50%{opacity:1}}
 @keyframes go-drift{0%{transform:translateX(-30%)}50%{transform:translateX(160%)}100%{transform:translateX(-30%)}}
 @media (prefers-reduced-motion:reduce){.go:not(.q):not(.sm)::before,.go:not(.q):not(.sm)::after{animation:none}}
+/* asking for more: a compact strip right above the choices */
+.ask{margin:0 0 20px;padding:12px 14px}
+.ask .quick{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 10px}
+.ask .quick label{margin:0 6px 0 0;font-size:14px}
+.ask .askrow input{padding:8px 12px;font-size:13.5px}
+.ask .askrow .go{padding:8px 14px;font-size:13.5px}
+.looks+.ask,.lrow.ideas~.ask{margin-top:20px}
 
 /* ===== the example page ("In a page"). Every colour and type value is a custom property a studio may set; see scene.js ===== */
 .scene{--sc-bg:transparent;--sc-surface:rgba(255,255,255,.055);--sc-line:rgba(255,255,255,.12);--sc-control:rgba(255,255,255,.3);--sc-fg:#f3f5f4;--sc-fg2:#b4bdba;--sc-fg3:#8b9592;--sc-accent:#8ab4ff;--sc-fill:#f3f5f4;--sc-on-fill:#0b0e0d;--sc-ok:#4ade80;--sc-warn:#f5b94a;--sc-bad:#f87171;
@@ -2435,7 +2442,7 @@ const sceneIsLight = () => V.mode === 'context' && !!shared('light');
   const values = (s) => {
     const out = {};
     RL.forEach((r) => {
-      const v = s['r_' + r.id], R = rolesOn(s, PROJECT_ROLES.length ? r.side : s.side);
+      const v = s['r_' + r.id], R = rolesOn(s, BOTH ? r.side : s.side); // one theme follows Light or dark; two keep each side's own
       out[r.id] = typeof v === 'string' && C.HEX.test(v) ? v.toUpperCase() : R[r.slot] || R.text;
     });
     return out;
@@ -2450,7 +2457,7 @@ const sceneIsLight = () => V.mode === 'context' && !!shared('light');
   /** The other theme, when there is one: [side, its colours, whether it is the project's own or a matched proposal]. */
   const twin = (s) => (twinOn(s) ? [otherSide(s), slots(s, otherSide(s)), BOTH] : null);
   /** A role as Palette Builder's helpers expect it; the thirteen stand-in roles sit on whichever side the palette is. */
-  const roleFor = (s) => (r) => (PROJECT_ROLES.length ? r : Object.assign({}, r, { side: s.side === 'light' ? 'light' : 'dark' }));
+  const roleFor = (s) => (r) => (BOTH ? r : Object.assign({}, r, { side: s.side === 'light' ? 'light' : 'dark' }));
 
   /* ---- what the project has today ---- */
   const fromHexes = (h) => {
@@ -3552,7 +3559,6 @@ function statesHTML() {
 }
 function stageHint() {
   const mode = modeNow();
-  if (PEEK) return 'Trying it on · click to keep it';
   if (HOLDING) return 'Showing ' + baseName(AM()).toLowerCase();
   if (mode === 'context') return CX.real ? 'Your page, simplified' : 'A representative page with your words. Not your live page.';
   return mode === 'alone' && NAV.mod === 'button' && !UI.tried ? 'Press it to try it' : '';
@@ -3640,23 +3646,9 @@ function previewExtras(s) {
     const i = rs.querySelector('.art-in');
     if (i && i.offsetWidth > $('stage').clientWidth * 0.5) rs.hidden = true;
   }
-  tt.hidden = !(alone && !PEEK && (changedKeys(m.id).length || HOLDING));
+  tt.hidden = !(alone && (changedKeys(m.id).length || HOLDING));
   if (!tt.hidden && !HOLDING) { tt.innerHTML = art(m, DEFS[m.id], { compare: true }) + `<span class="rl">${esc(baseName(m))} · hold to see it</span>`; fitArt(tt); tt.title = 'Hold to see ' + baseName(m).toLowerCase() + ' in the preview; click to compare side by side'; }
   $('vmenu').hidden = $('stbar').hidden && $('zoom').hidden;
-}
-/* ---- trying a choice on: pointing at a card shows it in the preview; moving away puts yours back ---- */
-let PEEK = null;
-function peekOn(mid, s) {
-  if (modeNow() !== 'alone' || (HOLDING && !PEEK)) return;
-  if (!PEEK) { PEEK = { mod: mid, s: clone(ST[mid]) }; HOLDING = true; } // HOLDING keeps a tried-on state from being saved
-  setState(mid, s);
-  renderStage();
-}
-function peekOff() {
-  if (!PEEK) return;
-  setState(PEEK.mod, PEEK.s);
-  PEEK = null; HOLDING = false;
-  renderStage();
 }
 
 function seen(kind, v) { if (!UI.seen[kind].includes(v)) UI.seen[kind].push(v); }
@@ -3859,15 +3851,13 @@ function askWhere() {
 function askHTML() {
   if (NAV.review) return '';
   const m = AM(), w = askWhere(), p = UI.pending, cat = NAV.cat[m.id], g = m.groups.find((x) => x.id === cat), s = AS();
-  const items = g ? g.ctl.filter((c) => shown(c, s) && !isFine(c) && c.more !== false && (c.t === 'chips' || c.t === 'swatches')).map((c) => ({ id: c.id, what: c.label.toLowerCase() + (c.t === 'swatches' ? 's' : ' choices') })) : [{ id: '@looks', what: 'ideas' }];
+  const items = g ? g.ctl.filter((c) => shown(c, s) && !isFine(c) && c.more !== false && (c.t === 'swatches' || (c.t === 'chips' && c.opts.length > 3))).map((c) => ({ id: c.id, what: c.label.toLowerCase() + (c.t === 'swatches' ? 's' : ' choices') })) : [{ id: '@looks', what: 'ideas' }];
   const live = p && Date.now() - p.at < 15 * 60e3;
   const status = !live ? '' : p.sent
     ? `<p class="wait"><span class="spin"></span> The agent is adding to ${esc(p.name)}. New ones arrive here marked New; your picks stay.</p>`
     : `<p class="wait">Your request for ${esc(p.name)} is waiting for the agent. Say “check the studio” in the chat to have it look now.</p>`;
-  return `<div class="ask" id="askbox"><label for="ask"><svg class="spark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.5 2.5M15.2 15.2l2.5 2.5M6.3 17.7l2.5-2.5M15.2 8.8l2.5-2.5"/></svg>Want more options?</label>`
-    + `<p>The agent designs new ones for this project and adds them here. Your picks stay.</p>`
-    + `<div class="quick">${items.map((x) => `<button class="go q morego" data-moreask="${esc(x.id)}">More ${esc(x.what)} <span aria-hidden="true">→</span></button>`).join('')}<button class="chip" data-quick="different">Something different</button><button class="chip" data-quick="what">What else could change?</button></div>`
-    + `<div class="askrow"><input id="ask" type="text" maxlength="400" value="${esc(UI.ask.text)}" placeholder="Or describe what you want${w.ctl ? ' for ' + esc(w.name) : ''}…"><button class="go q" data-act="ask">${STATUS.live ? 'Ask agent →' : 'Copy request'}</button></div>`
+  return `<div class="ask" id="askbox"><div class="quick"><label for="ask"><svg class="spark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.5 2.5M15.2 15.2l2.5 2.5M6.3 17.7l2.5-2.5M15.2 8.8l2.5-2.5"/></svg>Want more options?</label>${items.map((x) => `<button class="go q morego" data-moreask="${esc(x.id)}">More ${esc(x.what)} <span aria-hidden="true">→</span></button>`).join('')}<button class="chip" data-quick="different">Something different</button><button class="chip" data-quick="what">What else could change?</button></div>`
+    + `<div class="askrow"><input id="ask" type="text" maxlength="400" value="${esc(UI.ask.text)}" placeholder="Or describe what you want${w.ctl ? ' for ' + esc(w.name) : ''}, and the agent adds it here…"><button class="go q" data-act="ask">${STATUS.live ? 'Ask agent →' : 'Copy request'}</button></div>`
     + status + '</div>';
 }
 
@@ -4040,7 +4030,7 @@ function renderPanel() {
   const navCat = ae && $('nav').contains(ae) ? ae.dataset.cat : null;
   const cat = NAV.cat[m.id], g = m.groups.find((x) => x.id === cat);
   let html;
-  try { html = NAV.review ? reviewHTML() : (g ? groupHTML(g) : looksHTML()) + askHTML(); } catch (e) { report('panel: ' + e.message); html = '<p class="why">This page could not be drawn. The agent has been told.</p>'; }
+  try { html = NAV.review ? reviewHTML() : g ? askHTML() + groupHTML(g) : looksHTML() + askHTML(); } catch (e) { report('panel: ' + e.message); html = '<p class="why">This page could not be drawn. The agent has been told.</p>'; }
   host.innerHTML = html;
   fitArt(host);
   $('ptune').innerHTML = tuneHTML();
@@ -4369,23 +4359,6 @@ function feel(el, on) {
   if (t && t.on && b) b.classList.toggle('sx-' + t.on, on);
 }
 panel.addEventListener('pointerover', (e) => { const b = e.target.closest('.tile'); if (b && e.pointerType === 'mouse') feel(b, true); });
-/* Try-on: the card under the pointer is drawn in the big preview; a click keeps it, leaving puts yours back. */
-let peekTimer = 0;
-const peekState = (el) => {
-  const m = AM();
-  if (el.dataset.look) return el.dataset.look === '@base' ? fresh(m.id) : lookState(m, m.looks.find((l) => l.id === el.dataset.look));
-  const c = CT[el.dataset.c];
-  return c && c.mid === m.id ? candidate(c, c.opts[+el.dataset.o]) : null;
-};
-panel.addEventListener('pointerover', (e) => {
-  if (e.pointerType !== 'mouse') return;
-  const el = e.target.closest('.tile[data-c], .look[data-look]');
-  clearTimeout(peekTimer);
-  if (!el) { peekTimer = setTimeout(peekOff, 140); return; }
-  peekTimer = setTimeout(() => { const s = peekState(el); if (s) peekOn(NAV.mod, s); }, 70);
-});
-panel.addEventListener('pointerleave', () => { clearTimeout(peekTimer); peekTimer = setTimeout(peekOff, 140); });
-panel.addEventListener('pointerdown', () => { clearTimeout(peekTimer); peekOff(); }, true); // the real state comes back before a pick
 panel.addEventListener('pointerout', (e) => { const b = e.target.closest('.tile'); if (b && !b.contains(e.relatedTarget)) feel(b, false); });
 panel.addEventListener('focusin', (e) => { const b = e.target.closest('.tile'); if (b && b.matches(':focus-visible')) feel(b, true); });
 panel.addEventListener('focusout', (e) => { const b = e.target.closest('.tile'); if (b) feel(b, false); });
