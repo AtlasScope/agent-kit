@@ -86,17 +86,18 @@ for (const size of SIZES) {
     await ctx.close();
   });
 
-  test(`${size.name}: signed in, the account path becomes Your collections, with nothing swapping on load`, async () => {
+  test(`${size.name}: signed in, the account path becomes Your collections, also after a reload`, async () => {
     const { page, ctx } = await open(size);
     await offer(page).waitFor();
     // Clerk sets __client_uat to a timestamp when another tab signs in; coming back to this tab re-reads it.
     await page.evaluate(() => { document.cookie = "__client_uat=1764000000; path=/"; dispatchEvent(new Event("focus")); });
     await page.getByRole("link", { name: "Your collections" }).waitFor();
     assert.equal(await offer(page).isVisible(), false);
-    // On a fresh load the before-paint hint picks the signed-in version from the first frame.
-    await page.reload({ waitUntil: "domcontentloaded" });
+    // After a reload it reads the cookie again. (On the live site the layout's before-paint hint, html[data-auth], picks
+    // the signed-in version from the first frame; this sample-data server has no Clerk keys, so that hint is off here.)
+    await page.reload({ waitUntil: "networkidle" });
+    await page.getByRole("link", { name: "Your collections" }).waitFor();
     assert.equal(await offer(page).isVisible(), false);
-    assert.equal(await page.getByRole("link", { name: "Your collections" }).isVisible(), true);
     await ctx.close();
   });
 }
@@ -107,9 +108,11 @@ test("the sign-in page: a way on without an account, back where the visitor came
   assert.equal(res.status(), 200);
   assert.equal(await page.getByRole("heading", { level: 1 }).innerText(), "Make Agent Kit yours");
   assert.equal(await page.getByRole("link", { name: "Continue without an account" }).getAttribute("href"), "/install");
-  // A link to another site, or a loop back to sign-in, falls back to the library.
-  await page.goto(base + "/account/fixture/sign-in?redirect_url=%2F%2Fevil.example", { waitUntil: "networkidle" });
-  assert.equal(await page.getByRole("link", { name: "Continue without an account" }).getAttribute("href"), "/prompts");
+  // Another site (however it is spelled), a loop back to sign-in, or a page that needs an account falls back to the library.
+  for (const bad of ["%2F%2Fevil.example", "%2F%5Cevil.example", "https%3A%2F%2Fevil.example%2F", "%2Faccount", "%2Fsign-in"]) {
+    await page.goto(base + `/account/fixture/sign-in?redirect_url=${bad}`, { waitUntil: "networkidle" });
+    assert.equal(await page.getByRole("link", { name: "Continue without an account" }).getAttribute("href"), "/prompts", bad);
+  }
   await ctx.close();
 });
 

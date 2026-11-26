@@ -18,9 +18,17 @@ export function SignInShell({ back, children }: { back: string; children: React.
   );
 }
 
-// Where "Continue without an account" goes: back where they came from (Clerk's redirect_url), if it is a page on this
-// site, else the library.
+// Where "Continue without an account" goes: back where they came from (Clerk's redirect_url), if that is a page on this
+// site that works without an account; else the library. The value is resolved as a browser would (so "/\\host" or an
+// encoded scheme can't reach another site), must stay on this origin, and may not be sign-in or the account pages, which
+// would only lead back here.
+const BASE = "https://atlasscope.invalid";
 export const backFrom = (url?: string | string[]) => {
   const u = Array.isArray(url) ? url[0] : url;
-  return u && u.startsWith("/") && !u.startsWith("//") && !u.startsWith("/sign-in") ? u : "/prompts";
+  if (!u || !u.startsWith("/") || u.includes("\\")) return "/prompts";
+  try {
+    const r = new URL(u, BASE);
+    if (r.origin !== BASE || /^\/(sign-in|account)(\/|$)/.test(r.pathname)) return "/prompts";
+    return r.pathname + r.search + r.hash;
+  } catch { return "/prompts"; }
 };
