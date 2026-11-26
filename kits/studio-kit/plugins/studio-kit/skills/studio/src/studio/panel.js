@@ -1,6 +1,6 @@
 /* ===== Panel: the studio tabs, the navigator, Looks, a category's choices drawn as tiles, Review and the proposal ===== */
 
-const MAX_SHOWN = 12; // longer lists show this many plus the current one, then "Show N more"
+const MAX_SHOWN = 16; // longer lists show this many plus the current one, then "Show N more"
 const fmt = (v, c) => (c.step < 0.01 ? (+v).toFixed(3) : c.step < 1 ? (+v).toFixed(2) : Math.round(v)) + (c.unit || '');
 const isNew = (key) => UI.fresh.includes(key);
 const dot = (key) => (isNew(key) ? '<span class="nw" aria-label="new"></span>' : '');
@@ -24,6 +24,16 @@ function lookState(m, look) {
   m.keep.forEach((k) => { if (!(k in look.patch)) s[k] = now[k]; });
   if (m.fix) m.fix(s);
   return s;
+}
+
+/** Scales each drawing to fit its frame: as large as reads well, smaller only when it would not fit. */
+function fitArt(root) {
+  root.querySelectorAll('.art').forEach((a) => {
+    const i = a.firstElementChild, w = i && i.offsetWidth, h = i && i.offsetHeight;
+    if (!w || !h) return;
+    const k = Math.min(a.classList.contains('big') ? 0.9 : 0.72, (a.clientWidth - 14) / w, (a.clientHeight - 10) / h);
+    i.style.transform = `scale(${Math.max(0.2, k).toFixed(3)})`;
+  });
 }
 
 /* ---- one control ---- */
@@ -103,9 +113,9 @@ function looksHTML() {
     return `<div class="look" role="button" tabindex="0" data-look="${esc(l.id)}" aria-pressed="${sameLook(m.id, s, now)}">${art(m, s, { look: true }, 'big')}`
       + `<span class="tn">${esc(l.n)}${dot(m.id + '.look:' + l.id)}</span><small>${esc(l.d)}</small></div>`;
   };
-  return `<h2>Looks</h2><p class="why">Whole ${esc(m.title())} looks to start from. Pick one and it is yours to change, piece by piece, from the list on the left. Nothing is lost: Undo brings back what you had.</p>`
+  return `<h2>Looks</h2><p class="why">Whole ${esc(m.title())} looks to start from. Pick one and it is yours to change, piece by piece. Nothing is lost: Undo brings back what you had.</p>`
     + `<div class="looks">${[base, ...m.looks].map(card).join('')}</div>`
-    + (m.looks.length > 1 ? '<div class="row"><button class="chip" data-act="surprise">Surprise me</button><span class="rhint">Picks a look you have not tried.</span></div>' : '');
+    + (m.looks.length > 1 ? '<div class="prow"><button class="chip" data-act="surprise">Surprise me</button><span class="rhint">Picks a look you have not tried.</span></div>' : '');
 }
 function groupHTML(g) {
   const s = AS();
@@ -152,7 +162,7 @@ function reviewHTML() {
     + `<p class="desc">${SCOPE ? esc(SCOPES.find((x) => x[0] === SCOPE)[2]) : 'Choose one, so the agent knows whether to touch one place or the shared styles.'}</p></div>`
     + `<p class="checked">${esc(checkedLine())}</p>`
     + `<details class="fine" data-fine="review"${UI.fine.review ? ' open' : ''}><summary>The exact proposal the agent receives</summary><pre class="spec">${esc(specText())}</pre></details>`
-    + `<div class="row"><button class="chip sm" data-act="export">Save to a file</button><button class="chip sm" data-act="import">Open a saved file</button>${any ? '<button class="chip sm" data-act="resetall">Put everything back</button>' : ''}<input type="file" id="importfile" accept="application/json,.json" hidden></div>`;
+    + `<div class="prow"><button class="chip sm" data-act="export">Save to a file</button><button class="chip sm" data-act="import">Open a saved file</button>${any ? '<button class="chip sm" data-act="resetall">Put everything back</button>' : ''}<input type="file" id="importfile" accept="application/json,.json" hidden></div>`;
 }
 
 function tabsHTML() {
@@ -203,6 +213,7 @@ function renderPanel() {
   let html;
   try { html = NAV.review ? reviewHTML() : (g ? groupHTML(g) : looksHTML()) + askHTML(); } catch (e) { report('panel: ' + e.message); html = '<p class="why">This page could not be drawn. The agent has been told.</p>'; }
   host.innerHTML = html;
+  fitArt(host);
   $('nav').innerHTML = navHTML();
   $('nav').hidden = NAV.review;
   $('scol').classList.toggle('reviewing', NAV.review);

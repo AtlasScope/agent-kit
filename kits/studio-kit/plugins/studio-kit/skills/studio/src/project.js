@@ -1,5 +1,6 @@
 /* REPLACE: what the studio knows about the project. Fill this in; the engine below it is built from the skill and stays as it is. */
 const PROJECT={
+  id:'',                               // a steady id for this studio, e.g. 'acme/checkout-button'; saved choices are kept under it
   name:'Your project',                 // shown in the title and the spec
   noun:'main button',                  // what is being designed: 'install button', 'checkout button'
   measured:false,                      // true when the values in `today` were measured from the project
@@ -18,5 +19,9 @@ const PROJECT={
   specRules:'Honour reduced motion.',  // sentence after "Build the ... to this spec."
   afterNote:'',                        // one plain sentence about what happens after pressing, e.g. 'The prompt is never shown.'
   dropSteps:[],                        // step ids to leave out: 'motion','split','confirm','menu'
-  today:{}                             // measured values keyed like DEFAULTS in the engine (shape, h, rr, material, label, wt, font, case, hover, press ...)
+  today:{},                            // measured values keyed like DEFAULTS in the engine (shape, h, rr, material, label, wt, font, case, hover, press ...)
+  sources:{},                          // optional, per key in today: how it was found when not measured in the running page, e.g. {h:'read from the stylesheet'}
+  context:{},                          // the project's own words for the example page: {eyebrow, headline, body, links:[], secondary, field, placeholder, hint, rows:[[title, detail, tag]], code}
+  palette:{},                          // for the Palette studio; see references/palette.md
+  type:{}                              // for the Typography studio; see references/type.md
 };

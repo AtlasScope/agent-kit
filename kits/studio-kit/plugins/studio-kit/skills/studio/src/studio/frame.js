@@ -34,7 +34,7 @@ function stageState() {
 function compareHTML() {
   const m = AM(), mid = m.id, now = AS();
   const pins = PINS.filter((p) => p.mod === mid);
-  const col = (name, s, key, extra = '') => `<figure class="cmp${key === 'now' ? ' now' : ''}"><div class="cmp-art" style="${varsCss(m.vars(s))}">${m.still(s, { compare: true })}</div>`
+  const col = (name, s, key, extra = '') => `<figure class="cmp${key === 'now' ? ' cur' : ''}"><div class="cmp-art" style="${varsCss(m.vars(s))}">${m.still(s, { compare: true })}</div>`
     + `<figcaption><b>${esc(name)}</b>${key !== 'now' && !sameLook(mid, s, now) ? `<button class="mini" data-use="${esc(key)}">Use this</button>` : ''}${extra}</figcaption></figure>`;
   return col(baseName(m), DEFS[mid], 'base')
     + pins.map((p) => col(p.name, p.s, p.id, `<button class="mini q" data-unpin="${esc(p.id)}" aria-label="Remove ${esc(p.name)}">Remove</button>`)).join('')

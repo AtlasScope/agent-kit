@@ -1,7 +1,7 @@
 /* ===== the example page ("In a page"). Every colour and type value is a custom property a studio may set; see scene.js ===== */
 .scene{--sc-bg:transparent;--sc-surface:rgba(255,255,255,.055);--sc-line:rgba(255,255,255,.12);--sc-control:rgba(255,255,255,.3);--sc-fg:#f3f5f4;--sc-fg2:#b4bdba;--sc-fg3:#8b9592;--sc-accent:#8ab4ff;--sc-fill:#f3f5f4;--sc-on-fill:#0b0e0d;--sc-ok:#4ade80;--sc-warn:#f5b94a;--sc-bad:#f87171;
  --sc-display:var(--font);--sc-body:var(--font);--sc-mono:var(--mono);--sc-size:16px;--sc-ratio:1.25;--sc-lh:1.55;--sc-hlh:1.1;--sc-htrack:-.02;--sc-hweight:600;--sc-bweight:400;--sc-hcase:none;--sc-measure:58;--sc-num:normal;
- min-height:100%;box-sizing:border-box;padding:0 clamp(16px,5%,56px) 40px;background:var(--sc-bg);color:var(--sc-fg);font:var(--sc-bweight) var(--sc-size)/var(--sc-lh) var(--sc-body);font-variant-numeric:var(--sc-num);text-align:left;container-type:inline-size}
+ min-height:100%;box-sizing:border-box;padding:0 clamp(16px,5%,56px) 40px;background:var(--sc-bg);color:var(--sc-fg);font:var(--sc-bweight) var(--sc-size)/var(--sc-lh) var(--sc-body);font-variant-numeric:var(--sc-num);text-align:left;justify-self:stretch;container-type:inline-size}
 .scene.light{--sc-surface:rgba(0,0,0,.035);--sc-line:rgba(0,0,0,.12);--sc-control:rgba(0,0,0,.34);--sc-fg:#14181a;--sc-fg2:#4a5356;--sc-fg3:#6a7477;--sc-accent:#1d5fd1;--sc-fill:#14181a;--sc-on-fill:#fff;--sc-ok:#15803d;--sc-warn:#a16207;--sc-bad:#b42318}
 .scene *{box-sizing:border-box}
 .sc-top{display:flex;align-items:center;gap:20px;padding:16px 0;border-bottom:1px solid var(--sc-line);font-size:calc(var(--sc-size)*.875)}
@@ -29,7 +29,7 @@
 .sc-list{list-style:none;padding:4px 16px}
 .sc-list li{display:flex;align-items:baseline;gap:10px;padding:11px 0;border-top:1px solid var(--sc-line)}
 .sc-list li:first-child{border-top:0}
-.sc-rt{flex:1;min-width:0;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sc-rm{font-size:calc(var(--sc-size)*.8);color:var(--sc-fg3);white-space:nowrap}
-.sc-badge{font-size:calc(var(--sc-size)*.72);font-weight:600;padding:1px 7px;border-radius:999px;color:var(--sc-accent);box-shadow:inset 0 0 0 1px color-mix(in oklch,var(--sc-accent) 50%,transparent)}
+.sc-rt{flex:none;max-width:45%;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc-rm{flex:1;min-width:0;font-size:calc(var(--sc-size)*.8);color:var(--sc-fg3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc-badge{flex:none;white-space:nowrap;font-size:calc(var(--sc-size)*.72);font-weight:600;padding:1px 7px;border-radius:999px;color:var(--sc-accent);box-shadow:inset 0 0 0 1px color-mix(in oklch,var(--sc-accent) 50%,transparent)}
 .sc-code{margin:16px 0 0;padding:12px 14px;border-radius:12px;background:var(--sc-surface);box-shadow:inset 0 0 0 1px var(--sc-line);font:calc(var(--sc-size)*.85)/1.5 var(--sc-mono);color:var(--sc-fg2);white-space:pre-wrap;overflow:hidden}

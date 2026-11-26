@@ -33,7 +33,7 @@ const sceneIsLight = () => V.mode === 'context' && !!shared('light');
   const TILES = {
     shape: {}, h: {}, material: {}, cmode: {}, tc: {}, font: {}, case: {}, wt: {}, icon: {}, iconpos: {}, tile: {},
     idle: { moves: true }, idle2: { moves: true }, iconfx: { moves: true },
-    hover: { state: 'hover' }, press: { state: 'active' }, focus: { state: 'focus' },
+    hover: { on: 'hover' }, press: { on: 'active' }, focus: { state: 'focus' },
     split: { full: true, wide: true }, divider: { full: true, wide: true },
   };
 
@@ -120,6 +120,7 @@ const sceneIsLight = () => V.mode === 'context' && !!shared('light');
     swatch: (s, w) => { Object.assign(s, { swatch: w[0], H: w[1], C: w[2], L: w[3] }); },
     swatchColour: (s, w) => { const k = w[0] === LINK_SW ? (shared('accent') || { H: w[1], C: w[2], L: w[3] }) : { H: w[1], C: w[2], L: w[3] }; return k.C === 0 && k.L > 0.9 ? '#f6f8f7' : `oklch(${k.L} ${k.C} ${k.H})`; },
     colourOf: btnColour,
+    summary: (s) => nameIn('button', 'material', s),
     notes: () => specNotes(),
     system: () => P.system || P.rules || [],
     warn,

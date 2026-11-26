@@ -10,7 +10,7 @@
              --sc-lh --sc-hlh (line heights)  --sc-htrack (em)  --sc-hweight --sc-bweight  --sc-hcase  --sc-measure (ch)
              --sc-num (font-variant-numeric) */
 
-const CX = Object.assign({ eyebrow: '', headline: '', body: '', links: [], secondary: '', field: '', hint: '', rows: [], code: '', real: false }, P.context || {});
+const CX = Object.assign({ eyebrow: '', headline: '', body: '', links: [], secondary: '', field: '', hint: '', placeholder: '', rows: [], code: '', real: false }, P.context || {});
 
 function sceneHTML() {
   const links = (CX.links.length ? CX.links : ['Docs', 'Pricing', 'Changelog']).slice(0, 4);
@@ -28,7 +28,7 @@ function sceneHTML() {
   <div class="sc-cta">${action}<span class="sc-link">${esc(CX.secondary || (P.secondary && P.secondary[0]) || 'See how it works')} →</span></div>
  </div>
  <div class="sc-grid">
-  <div class="sc-card"><span class="sc-label">${esc(CX.field || 'Email')}</span><span class="sc-field">name@example.com</span><span class="sc-hint">${esc(CX.hint || 'Used only to sign you in.')}</span>
+  <div class="sc-card"><span class="sc-label">${esc(CX.field || 'Email')}</span><span class="sc-field">${esc(CX.placeholder || (CX.field ? '' : 'name@example.com')) || '&nbsp;'}</span><span class="sc-hint">${esc(CX.hint || 'Used only to sign you in.')}</span>
    <span class="sc-status"><i class="ok"></i>Saved <i class="warn"></i>Needs a look <i class="bad"></i>Failed</span></div>
   <ul class="sc-list">${rows.map(row).join('')}</ul>
  </div>

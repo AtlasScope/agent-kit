@@ -74,6 +74,15 @@ function describe(el, hovering) {
   const d = c && c.t === 'chips' && $('d_' + c.id);
   if (d) d.innerHTML = descHTML(c, hovering ? c.opts[+el.dataset.o] : optOf(c, ST[c.mid][c.k]), ST[c.mid]);
 }
+/* A hover or press choice shows what it does while its tile is pointed at or focused. */
+function feel(el, on) {
+  const c = CT[el.dataset.c], m = c && STUDIO.by[c.mid], t = m && m.tile && m.tile(c), b = el.querySelector('.art .pv');
+  if (t && t.on && b) b.classList.toggle('sx-' + t.on, on);
+}
+panel.addEventListener('pointerover', (e) => { const b = e.target.closest('.tile'); if (b && e.pointerType === 'mouse') feel(b, true); });
+panel.addEventListener('pointerout', (e) => { const b = e.target.closest('.tile'); if (b && !b.contains(e.relatedTarget)) feel(b, false); });
+panel.addEventListener('focusin', (e) => { const b = e.target.closest('.tile'); if (b && b.matches(':focus-visible')) feel(b, true); });
+panel.addEventListener('focusout', (e) => { const b = e.target.closest('.tile'); if (b) feel(b, false); });
 panel.addEventListener('pointerover', (e) => { const b = e.target.closest('[data-o]'); if (b && e.pointerType === 'mouse') describe(b, true); });
 panel.addEventListener('pointerout', (e) => { const b = e.target.closest('[data-o]'); if (b && e.pointerType === 'mouse' && !b.contains(e.relatedTarget)) describe(b, false); });
 panel.addEventListener('focusin', (e) => { const b = e.target.closest('[data-o]'); if (b) describe(b, true); });
@@ -188,3 +197,4 @@ addEventListener('resize', () => {
   renderStage();
 });
 new ResizeObserver(() => layoutDevice()).observe($('stage'));
+new ResizeObserver(() => fitArt($('panel'))).observe($('panel'));

@@ -22,6 +22,46 @@ $('proj').textContent = P.name;
   document.head.appendChild(st);
 })();
 
+/* An address ending #palette or #button/material opens straight there. */
+function fromHash() {
+  const [hm, hc] = decodeURIComponent(location.hash.slice(1)).split('/');
+  if (!STUDIO.has(hm)) return false;
+  NAV.mod = hm; NAV.review = false;
+  if (hc === 'looks' || STUDIO.by[hm].groups.some((g) => g.id === hc)) NAV.cat[hm] = hc;
+  history.replaceState(null, '', location.pathname + location.search);
+  return true;
+}
+addEventListener('hashchange', () => { if (fromHash()) { redrawAll(); save(); } });
+if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', () => fitArt($('panel')));
+
+/* For the agent, from the browser console or a browser tool: draws every tiled choice of every studio and reports the
+   ones that draw exactly like another choice of the same control. A choice nobody can tell apart is a dead option. */
+function studioCheck() {
+  const PROPS = ['backgroundColor', 'backgroundImage', 'color', 'borderTopColor', 'borderTopWidth', 'borderTopStyle', 'borderTopLeftRadius', 'borderTopRightRadius', 'boxShadow', 'fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'letterSpacing', 'lineHeight', 'textTransform', 'fontVariantNumeric', 'width', 'height', 'paddingLeft', 'opacity', 'transform', 'translate', 'scale', 'rotate', 'filter', 'backdropFilter', 'animationName', 'animationDuration', 'outlineColor', 'outlineStyle', 'display', 'flexDirection', 'gap', 'content', 'clipPath'];
+  const box = document.createElement('div');
+  box.style.cssText = 'position:fixed;left:-9999px;top:0;width:600px';
+  document.body.appendChild(box);
+  const print = () => [box, ...box.querySelectorAll('*')].map((el) => [null, '::before', '::after'].map((ps) => { const c = getComputedStyle(el, ps); return ps && c.content === 'none' ? '' : PROPS.map((p) => c[p]).join('|'); }).join('~') + '#' + el.textContent.length + el.childElementCount + (el.getAttribute('href') || '')).join('\n');
+  const out = { controls: 0, lookAlike: [], listedAsWords: [] };
+  for (const c of Object.values(CT)) {
+    if (c.t !== 'chips' || !shown(c, ST[c.mid])) continue; // a control that is hidden right now is not judged
+    const m = STUDIO.by[c.mid], t = m.tile && m.tile(c);
+    if (!t) { out.listedAsWords.push(c.mid + '.' + c.k); continue; }
+    out.controls++;
+    const seen = {};
+    for (const op of c.opts) {
+      if (!avail(op, ST[c.mid])) continue;
+      const s = candidate(c, op);
+      box.innerHTML = `<div style="${varsCss(m.vars(s))}">${m.still(s, { tile: c.k })}</div>`;
+      if (t.on) box.querySelectorAll('.pv').forEach((b) => b.classList.add('sx-' + t.on));
+      const f = print();
+      if (seen[f]) out.lookAlike.push(`${c.mid}.${c.k}: “${op.n}” draws the same as “${seen[f]}”`); else seen[f] = op.n;
+    }
+  }
+  box.remove();
+  return out;
+}
+
 (async () => {
   let local = null, server = null;
   try { local = JSON.parse(localStorage.getItem(SKEY) || localStorage.getItem(OLD_KEY) || 'null'); } catch {}
@@ -44,13 +84,7 @@ $('proj').textContent = P.name;
   seen('bg', V.bg);
   seen('mode', V.mode);
 
-  /* An address ending #palette or #button/material opens straight there. */
-  const [hm, hc] = decodeURIComponent(location.hash.slice(1)).split('/');
-  if (STUDIO.has(hm)) {
-    NAV.mod = hm; NAV.review = false;
-    if (hc === 'looks' || STUDIO.by[hm].groups.some((g) => g.id === hc)) NAV.cat[hm] = hc;
-    history.replaceState(null, '', location.pathname + location.search);
-  }
+  fromHash();
 
   /* Choices the agent added since the last visit get a green dot, and the page opens where they are. */
   const all = addedKeys();
