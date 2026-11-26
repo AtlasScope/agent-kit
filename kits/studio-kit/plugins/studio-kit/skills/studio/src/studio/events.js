@@ -130,6 +130,8 @@ const ACTIONS = {
   export: exportFile,
   import: () => $('importfile').click(),
   resetall: resetAll,
+  next: () => { const n = nextStep(); go(n.mod, n.cat); },
+  prev: () => { const p = prevStep(); if (p) go(p.mod, p.cat); },
   pin: () => pinNow(),
 };
 /** A module's own control setting one value directly: data-mset="module|key" with data-val. The key must already

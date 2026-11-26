@@ -1,7 +1,7 @@
 /* ===== Panel: the studio tabs, the navigator, Looks, a category's choices drawn as tiles, Review and the proposal ===== */
 
 const MAX_SHOWN = 9; // longer lists show this many plus the current one, then "Show N more"
-const WIDE = () => innerWidth >= 900; // fine adjustments sit in the preview card on wider screens, under the choices on a phone
+const WIDE = () => false; // fine adjustments sit inside the step, under its choices, on every screen
 const fmt = (v, c) => (c.step < 0.01 ? (+v).toFixed(3) : c.step < 1 ? (+v).toFixed(2) : Math.round(v)) + (c.unit || '');
 const isNew = (key) => UI.fresh.includes(key);
 const dot = (key) => (isNew(key) ? '<span class="nw" aria-label="new"></span>' : '');
@@ -72,7 +72,7 @@ function choicesHTML(c, s) {
     + `<div class="${tile ? 'tiles' + (tile.wide ? ' wide' : '') : 'chips'}" role="group" aria-labelledby="l_${c.id}">${vis.map(one).join('')}`
     + (hidden > 0 ? `<button class="chip ghost" data-expand="${c.id}">Show ${hidden} more</button>` : '')
     + (c.replay ? '<button class="chip ghost" data-act="replay">Replay</button>' : '') + '</div>'
-    + (tile ? '' : `<p class="desc" id="d_${c.id}">${descHTML(c, optOf(c, s[c.k]), s)}</p>`) + '</div>';
+    + `<p class="desc" id="d_${c.id}">${descHTML(c, optOf(c, s[c.k]), s)}</p></div>`;
 }
 function swatchDesc(c, s) {
   const w = c.sw.find((x) => x[0] === s[c.k]) || c.sw[0];
@@ -209,20 +209,43 @@ function tabsHTML() {
   return STUDIO.mods.map(tab).join('')
     + (rest.length ? `<select id="addmod" aria-label="Add a studio"><option value="">+ Add</option>${rest.map(([id, n]) => `<option value="${esc(id)}">${esc(n)}</option>`).join('')}</select>` : '');
 }
+/** The steps of the open studio, in order: Looks, then every category that applies to the current design. */
+function steps(m = AM()) {
+  const s = ST[m.id];
+  return [{ id: 'looks', n: 'Looks' }, ...m.groups.filter((g) => !(g.na && g.na(s))).map((g) => ({ id: g.id, n: g.short || g.t, g }))];
+}
+/** Where Next goes from here: the next step, the next studio's first step, then Review. */
+function nextStep() {
+  const m = AM(), list = steps(m), i = list.findIndex((x) => x.id === NAV.cat[m.id]);
+  if (i >= 0 && i < list.length - 1) return { mod: m.id, cat: list[i + 1].id, n: list[i + 1].n };
+  const k = STUDIO.mods.indexOf(m);
+  if (k < STUDIO.mods.length - 1) { const nm = STUDIO.mods[k + 1]; return { mod: nm.id, cat: 'looks', n: nm.name }; }
+  return { mod: m.id, cat: 'review', n: 'Review' };
+}
+function prevStep() {
+  const m = AM(), list = steps(m), i = list.findIndex((x) => x.id === NAV.cat[m.id]);
+  if (i > 0) return { mod: m.id, cat: list[i - 1].id };
+  const k = STUDIO.mods.indexOf(m);
+  if (k > 0) { const pm = STUDIO.mods[k - 1], pl = steps(pm); return { mod: pm.id, cat: pl[pl.length - 1].id }; }
+  return null;
+}
 function navHTML() {
-  const m = AM(), cur = NAV.review ? '' : NAV.cat[m.id], s = AS(), changed = new Set(changedKeys(m.id));
-  const item = (id, name, mark = '') => `<button data-cat="${id}" aria-current="${cur === id ? 'page' : 'false'}"><span>${esc(name)}</span>${mark}</button>`;
-  let h = item('looks', 'Looks', m.looks.some((l) => isNew(m.id + '.look:' + l.id)) ? '<i class="nw"></i>' : ''), sec = '';
-  for (const g of m.groups) {
-    if (g.sec && g.sec !== sec) { sec = g.sec; h += `<span class="sec">${esc(sec)}</span>`; }
-    const fresh = g.ctl.some((c) => UI.fresh.some((f) => f.startsWith(m.id + '.' + c.k + ':')));
-    const off = g.na && g.na(s);
-    h += item(g.id, g.short || g.t, fresh ? '<i class="nw"></i>' : !off && g.ctl.some((c) => changed.has(c.k)) ? '<i class="ch"></i>' : '');
-  }
-  return h;
+  const m = AM(), cur = NAV.review ? '' : NAV.cat[m.id], changed = new Set(changedKeys(m.id));
+  const item = (st, i) => {
+    const fresh = st.id === 'looks' ? m.looks.some((l) => isNew(m.id + '.look:' + l.id)) : st.g.ctl.some((c) => UI.fresh.some((f) => f.startsWith(m.id + '.' + c.k + ':')));
+    const mark = fresh ? '<i class="nw"></i>' : st.g && st.g.ctl.some((c) => changed.has(c.k)) ? '<i class="ch" title="Changed"></i>' : '';
+    return `<button data-cat="${st.id}" aria-current="${cur === st.id ? 'step' : 'false'}"><b class="num">${i + 1}</b><span>${esc(st.n)}</span>${mark}</button>`;
+  };
+  const list = steps(m);
+  return list.map(item).join('') + `<button data-cat="review" aria-current="${NAV.review ? 'step' : 'false'}"><b class="num">${list.length + 1}</b><span>Review</span></button>`;
 }
 function footHTML() {
-  if (!NAV.review) return '';
+  if (!NAV.review) {
+    const list = steps(), i = list.findIndex((x) => x.id === NAV.cat[NAV.mod]), nx = nextStep(), pv = prevStep();
+    return (pv ? '<button class="go q" data-act="prev">Back</button>' : '<span></span>')
+      + `<span class="count">Step ${i + 1} of ${list.length + 1}${STUDIO.mods.length > 1 ? ' · ' + esc(AM().name) : ''}</span>`
+      + `<button class="go" data-act="next">Next: ${esc(nx.n)}</button>`;
+  }
   return `<button class="go q" data-act="back">Back</button><span class="count"></span><button class="go q" data-act="copy">Copy</button><button class="go" data-act="send">${STATUS.live ? 'Send to chat' : 'Copy for chat'}</button>`;
 }
 

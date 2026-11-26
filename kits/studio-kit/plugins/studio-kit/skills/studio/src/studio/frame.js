@@ -147,8 +147,6 @@ function renderStageBar() {
   $('pin').disabled = full || isBase || PINS.some((p) => p.mod === m.id && sameLook(m.id, p.s, AS()));
   $('pin').title = full ? 'Three are pinned. Unpin one in Compare to pin another.' : isBase ? `This is ${baseName(m).toLowerCase()}; Compare always shows it` : 'Keep this version to compare with later ones';
   $('pin').textContent = PINS.some((p) => p.mod === m.id && sameLook(m.id, p.s, AS())) ? 'Pinned' : 'Pin';
-  $('pin2').disabled = $('pin').disabled; $('pin2').title = $('pin').title;
-  $('pin2').textContent = $('pin').textContent === 'Pinned' ? 'Pinned' : '+ Pin';
 }
 function setMode(k) {
   V.mode = k;

@@ -67,30 +67,31 @@ select:hover{border-color:var(--line2)}
 .ib:hover{background:var(--s2)}
 .ib:disabled{opacity:.28;cursor:default;background:none}
 /* the workspace: a page head, one row of categories, the catalogue, and a compact preview beside it */
-.work{max-width:1480px;margin:0 auto;padding:28px 32px 72px;display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,368px);grid-template-areas:"head head" "nav nav" "scol pcol";column-gap:28px;align-items:start}
-.head{grid-area:head;display:flex;align-items:flex-end;justify-content:space-between;gap:16px 24px;flex-wrap:wrap;margin-bottom:20px}
+.work{max-width:1560px;margin:0 auto;padding:20px 28px 40px;display:grid;grid-template-columns:minmax(380px,5fr) minmax(0,6fr);grid-template-areas:"pcol head" "pcol nav" "pcol scol";column-gap:32px;align-items:start}
+.head{grid-area:head;margin:4px 0 14px}
 .htx{min-width:0;flex:1 1 420px}
 .crumb{margin:0 0 6px;font-size:13px;color:var(--mut)}
-.head h2{margin:0;font-size:30px;line-height:1.1;letter-spacing:-.025em;font-weight:650;text-wrap:balance}
-.hwhy{margin:8px 0 0;color:var(--mut);font-size:15px;max-width:64ch}
+.head h2{margin:0;font-size:26px;line-height:1.15;letter-spacing:-.025em;font-weight:650;text-wrap:balance}
+.hwhy{margin:6px 0 0;color:var(--mut);font-size:14.5px;max-width:62ch}
 .hacts{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.work:not(.wide) #pin{display:none}
-.nav{grid-area:nav;display:flex;align-items:stretch;gap:2px 22px;border-bottom:1px solid var(--line);margin-bottom:24px;overflow-x:auto;scrollbar-width:none}
+.nav{grid-area:nav;display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px;padding-bottom:16px;border-bottom:1px solid var(--line)}
 .nav .sec{flex:none;align-self:center;width:1px;height:14px;background:var(--line2);margin:0 2px;font-size:0;overflow:hidden}
-.nav button{all:unset;cursor:pointer;flex:none;display:inline-flex;align-items:center;padding:10px 0 12px;margin-bottom:-1px;border-bottom:2px solid transparent;font-size:14.5px;font-weight:500;color:var(--mut);white-space:nowrap;transition:color .15s,border-color .15s}
-.nav button:hover{color:var(--fg)}
-.nav button:focus-visible{outline:2px solid var(--c-focus);outline-offset:2px;border-radius:4px}
-.nav button[aria-current=page]{color:var(--c-brand-hi);border-bottom-color:var(--c-brand)}
-.nav .ch{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--mut);margin-left:7px}
+.nav button{all:unset;cursor:pointer;flex:none;display:inline-flex;align-items:center;gap:8px;padding:5px 12px 5px 5px;border-radius:999px;font-size:13.5px;font-weight:500;color:var(--mut);white-space:nowrap;box-shadow:inset 0 0 0 1px var(--line);transition:color .15s,background .15s,box-shadow .15s}
+.nav .num{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--s2);font:600 11.5px/1 var(--font);color:var(--c-fg-2)}
+.nav button:hover{color:var(--fg);box-shadow:inset 0 0 0 1px var(--c-brand-line)}
+.nav button:focus-visible{outline:2px solid var(--c-focus);outline-offset:2px}
+.nav button[aria-current=step]{color:var(--c-brand-hi);background:color-mix(in oklab,var(--c-brand) 12%,transparent);box-shadow:inset 0 0 0 1px var(--c-brand-line)}
+.nav button[aria-current=step] .num{background:var(--c-brand);color:var(--c-on-brand)}
+.nav .ch{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--mut);margin-left:-2px}
 .nw{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--c-brand-glow);box-shadow:0 0 8px var(--c-brand-glow);margin-left:7px;flex:none}
 .scol{grid-area:scol;min-width:0;scroll-margin-top:calc(var(--hdr) + 12px)}
 /* the preview card: the selected design at its real size, and the fine adjustments for what is open */
-.pcol{grid-area:pcol;position:sticky;top:calc(var(--hdr) + 16px);min-width:0;display:flex;flex-direction:column;border-radius:18px;background:var(--glass-bg);box-shadow:var(--glass-rim),var(--glass-shadow);overflow:hidden;max-height:calc(100dvh - var(--hdr) - 32px)}
+.pcol{grid-area:pcol;position:sticky;top:calc(var(--hdr) + 16px);min-width:0;display:flex;flex-direction:column;height:calc(100dvh - var(--hdr) - 36px);min-height:460px;border-radius:18px;background:var(--glass-bg);box-shadow:var(--glass-rim),var(--glass-shadow);overflow:hidden}
+.pcol>.hacts{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line)}
 .phead{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line)}
 .phead b{font-size:14px;font-weight:600}
 .devhint{font-size:12px;color:var(--mut);white-space:nowrap}
-.stage{position:relative;flex:none;height:230px;margin:12px 12px 0;border-radius:12px;overflow:hidden;background:var(--c-sunken);box-shadow:inset 0 0 0 1px var(--line)}
-.pcol.tall .stage{height:360px}
+.stage{position:relative;flex:1 1 auto;min-height:240px;margin:12px 12px 0;border-radius:12px;overflow:hidden;background:var(--c-sunken);box-shadow:inset 0 0 0 1px var(--line)}
 .dwrap{position:absolute}
 .device{position:absolute;left:0;top:0;transform-origin:0 0;overflow:hidden;contain:layout paint;background:#060808}
 .canvas{width:100%;height:100%;display:grid;place-items:center;overflow:hidden auto;scrollbar-width:thin}
@@ -107,9 +108,7 @@ select:hover{border-color:var(--line2)}
 .bgd[data-bg=checker]{background:conic-gradient(#1a1d1c 25%,#2a2e2d 0 50%,#1a1d1c 0 75%,#2a2e2d 0) 0 0/24px 24px}
 .bgd[data-bg=grid]{background:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px) 0 0/24px 24px,linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px) 0 0/24px 24px,#060808}
 .tryhint{position:absolute;z-index:3;right:10px;bottom:8px;font-size:11.5px;font-weight:500;color:var(--c-fg-2);background:oklch(0% 0 0 / .6);padding:4px 9px;border-radius:8px;pointer-events:none;white-space:nowrap;max-width:calc(100% - 20px);overflow:hidden;text-overflow:ellipsis}
-.pacts{display:flex;justify-content:space-between;gap:8px;padding:12px}
-.work.wide .pacts{display:none}
-.stbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border-top:1px solid var(--line)}
+.stbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px}
 .ptune{padding:4px 16px 14px;border-top:1px solid var(--line);overflow:auto}
 .ptune:empty{display:none}
 .ptune h3{margin:12px 0 2px;font-size:13.5px;font-weight:600}
@@ -131,7 +130,8 @@ select:hover{border-color:var(--line2)}
 /* a view that needs the whole workspace: the page in context, the shortlist side by side, every state */
 .work.wide{grid-template-columns:minmax(0,1fr);grid-template-areas:"head" "pcol"}
 .work.wide .nav,.work.wide .scol{display:none}
-.work.wide .pcol{position:static;max-height:none;background:none;border:0;border-radius:0;overflow:visible}
+.work.wide .pcol{position:static;height:auto;min-height:0;max-height:none;background:none;box-shadow:none;border-radius:0;overflow:visible}
+.work.wide .pcol>.hacts{padding:0 0 14px;border:0}
 .work.wide .phead,.work.wide .ptune{display:none}
 .work.wide .stage{margin:0;height:calc(100dvh - var(--hdr) - 230px);min-height:460px;border-radius:16px;box-shadow:inset 0 0 0 1px var(--line)}
 .work.wide .stbar{border-top:0;padding:12px 0 0}
@@ -192,28 +192,28 @@ select:hover{border-color:var(--line2)}
 .now{font-size:12px;font-weight:500;margin-left:auto;color:var(--mut)}
 .now+.sel{margin-left:0}
 /* tiles: every choice drawn with the real thing, large enough to judge */
-.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:14px}
-.tiles.wide{grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr))}
-.looks{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:16px}
-.tile,.look{cursor:pointer;position:relative;display:flex;flex-direction:column;min-width:0;border-radius:14px;background:var(--s1);box-shadow:inset 0 0 0 1px var(--line);overflow:hidden;transition:box-shadow .15s,transform .1s}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,168px),1fr));gap:10px}
+.tiles.wide{grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr))}
+.looks{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr));gap:12px}
+.tile,.look{cursor:pointer;position:relative;display:flex;flex-direction:column;min-width:0;border-radius:12px;background:var(--s1);border:1px solid var(--line);overflow:hidden;transition:border-color .15s,box-shadow .15s,transform .1s}
 .tile>.art,.look>.art{border-bottom:1px solid var(--line)}
-.tile:hover,.look:hover{box-shadow:inset 0 0 0 1px var(--c-brand-line)}
+.tile:hover,.look:hover{border-color:var(--c-brand-line)}
 .tile:active,.look:active{transform:scale(.99)}
 .tile:focus-visible,.look:focus-visible{outline:2px solid var(--c-focus);outline-offset:2px}
-.tile[aria-pressed=true],.look[aria-pressed=true]{box-shadow:inset 0 0 0 1.5px var(--c-brand)}
-.tile[aria-pressed=true]::after,.look[aria-pressed=true]::after{content:"";position:absolute;z-index:3;top:10px;right:10px;width:20px;height:20px;border-radius:50%;background:var(--c-brand) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23052430' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/12px no-repeat;box-shadow:0 0 0 2px oklch(0% 0 0 / .35)}
-.tiles .chip.ghost{justify-content:center;min-height:56px;border-radius:15px;box-shadow:inset 0 0 0 1px var(--line)}
-.art{position:relative;display:grid;place-items:center;place-content:center;height:136px;overflow:hidden;pointer-events:none;background:var(--c-sunken);contain:paint}
-.art.big{height:184px}
-.tile.wide .art{height:150px}
+.tile[aria-pressed=true],.look[aria-pressed=true]{border-color:var(--c-brand);box-shadow:0 0 0 .5px var(--c-brand)}
+.tile[aria-pressed=true]::after,.look[aria-pressed=true]::after{content:"";position:absolute;z-index:3;top:8px;right:8px;width:20px;height:20px;border-radius:50%;background:var(--c-brand) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23052430' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/12px no-repeat;box-shadow:0 0 0 2px oklch(0% 0 0 / .35)}
+.tiles .chip.ghost{justify-content:center;min-height:56px;border-radius:12px;box-shadow:inset 0 0 0 1px var(--line)}
+.art{position:relative;display:grid;place-items:center;place-content:center;height:96px;overflow:hidden;pointer-events:none;background:var(--c-sunken);contain:paint}
+.art.big{height:136px}
+.tile.wide .art{height:120px}
 .art-in{display:grid;place-items:center;width:max-content;max-width:none;flex:none;transform-origin:50% 50%}
 .art .scale,.art .play{position:absolute;bottom:6px;z-index:2;font:600 10.5px/1.5 var(--font);color:var(--c-fg-2);background:oklch(0% 0 0 / .55);padding:1px 6px;border-radius:6px;letter-spacing:.01em}
 .art .scale{right:8px}
 .art .play{left:8px}
 .tile:hover .play,.tile:focus-visible .play,.tile[aria-pressed=true] .play{display:none}
-.tn{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 8px;padding:12px 14px 0;font-size:14.5px;font-weight:600;line-height:1.3;color:var(--fg)}
+.tn{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 8px;padding:10px 12px 11px;font-size:14.5px;font-weight:600;line-height:1.3;color:var(--fg)}
+.tiles .td{display:none}
 .td{padding:3px 14px 14px;font-size:13px;line-height:1.45;color:var(--mut)}
-.tn:last-child{padding-bottom:13px}
 .look .tn{font-size:15px}
 .look small{padding:3px 14px 14px;font-size:13px;line-height:1.45;color:var(--mut)}
 .sel{font-size:12px;font-weight:500;margin-left:auto;color:var(--c-brand-hi)}
@@ -224,7 +224,7 @@ select:hover{border-color:var(--line2)}
 .cmp .cmp-art *,.cmp .cmp-art *::before,.cmp .cmp-art *::after{animation-play-state:paused!important}
 .cmp:hover .cmp-art *,.cmp:hover .cmp-art *::before,.cmp:hover .cmp-art *::after{animation-play-state:running!important}
 .sx-disabled{opacity:.45!important;filter:saturate(.5);cursor:not-allowed}
-.desc{font-size:13px;line-height:1.45;color:var(--mut);margin:9px 2px 0;min-height:2.9em}
+.desc{font-size:13.5px;line-height:1.45;color:var(--mut);margin:10px 2px 0;min-height:2.9em}
 .desc b{color:var(--fg);font-weight:600}
 .desc em{font-style:normal;color:var(--amb)}
 input[type=range]{width:100%;accent-color:var(--c-brand);margin:2px 0}
@@ -255,9 +255,9 @@ details.fine .ctl+.ctl{border-top:0}
 .quick{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
 .quick .chip{background:transparent}
 .ask .wait{margin:10px 0 0;color:var(--fg)}
-.pfoot{position:sticky;bottom:env(safe-area-inset-bottom,0px);z-index:5;display:flex;align-items:center;gap:10px;padding:14px 0 18px;margin-top:4px;background:linear-gradient(to bottom,transparent,var(--bg) 35%)}
+.pfoot{position:sticky;bottom:env(safe-area-inset-bottom,0px);z-index:5;display:flex;align-items:center;gap:10px;padding:16px 0 18px;margin-top:8px;background:linear-gradient(to bottom,transparent,var(--bg) 30%)}
 .pfoot:empty{display:none}
-.pfoot .count{flex:1}
+.pfoot .count{flex:1;text-align:center;font-size:13px;color:var(--mut)}
 /* the one main action: AtlasScope's lit cyan key, as on the site (.btn--brand) */
 .go{all:unset;--lift:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:22px;padding:10px 20px;border-radius:999px;font-weight:600;font-size:14px;letter-spacing:-.01em;color:var(--c-on-brand);
  background:radial-gradient(130% 110% at 50% -40%,oklch(100% 0 0 / calc(.16 + .06 * var(--lift))),transparent 64%),linear-gradient(180deg,color-mix(in oklab,var(--c-brand),var(--c-brand-hi) 34%),color-mix(in oklab,var(--c-brand),var(--c-brand-lo) 30%));
@@ -304,7 +304,7 @@ details.fine .ctl+.ctl{border-top:0}
 .stage.rm .agents .pv,.stage.rm .lnk{opacity:1}
 /* the studio itself when the computer asks for less motion; the preview follows the Less motion switch */
 @media (prefers-reduced-motion:reduce){.bar *,.scol *,.stbar *,.msg{transition:none!important}.spin{animation:none}.scol .art *,.scol .art *::before,.scol .art *::after{animation:none!important}}
-@media (max-width:1100px){.work{padding:22px 20px 64px;column-gap:20px;grid-template-columns:minmax(0,1fr) minmax(280px,320px)}.tiles{grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr))}}
+@media (max-width:1100px){.work{padding:16px 20px 32px;column-gap:20px;grid-template-columns:minmax(320px,1fr) minmax(0,1.15fr)}}
 @media (max-width:899px){
  .bar{position:static;height:auto;min-height:56px;padding:8px 14px 0;flex-wrap:wrap;gap:4px 10px;background:var(--bg)}
  .bar .ttl{flex:1 1 auto}
@@ -325,20 +325,23 @@ details.fine .ctl+.ctl{border-top:0}
  .hacts{width:100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
  #pin{order:1}#hold{order:2}
  .hacts>*{flex:none}
- .pcol{position:sticky;top:0;z-index:30;max-height:none;margin:0 -14px 12px;border-radius:0 0 16px 16px;border-width:0 0 1px;box-shadow:0 12px 24px -16px #000}
+ .pcol{position:sticky;top:0;z-index:30;height:auto;min-height:0;max-height:none;margin:0 -14px 12px;border-radius:0 0 16px 16px;border-width:0 0 1px;box-shadow:0 12px 24px -16px #000}
  .phead{padding:9px 14px}
- .stage{height:132px}
+ .stage{flex:none;height:150px;min-height:0}
+ .pcol>.hacts{padding:8px 10px;overflow-x:auto;scrollbar-width:none}
+ .pcol>.hacts>*{flex:none}
+ #hold{display:none}
  .pcol.tall .stage{height:220px}
  .pcol .stbar,.pcol .ptune{display:none}
  .stage{margin:10px 10px 0}
  .pacts{padding:10px}
  .tryhint{display:none}
- .nav{margin:0 -14px 18px;padding:0 14px;gap:2px 18px}
+ .nav{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -14px 16px;padding:0 14px 12px}
  .ctl{padding-bottom:22px}
  .lbl{font-size:15px}
- .tiles,.tiles.wide{grid-template-columns:repeat(auto-fill,minmax(min(100%,150px),1fr));gap:10px}
+ .tiles,.tiles.wide{grid-template-columns:repeat(auto-fill,minmax(min(100%,140px),1fr));gap:8px}
  .looks{grid-template-columns:repeat(auto-fill,minmax(min(100%,160px),1fr));gap:10px}
- .art{height:96px}.art.big{height:128px}.tile.wide .art{height:110px}
+ .art{height:84px}.art.big{height:120px}.tile.wide .art{height:100px}
  .tn{padding:10px 11px 0;font-size:13.5px}.td,.look small{padding:2px 11px 11px;font-size:12px}
  .work.wide{grid-template-areas:"head" "pcol"}
  .work.wide .pcol{position:static;margin:0;box-shadow:none}
@@ -353,6 +356,7 @@ details.fine .ctl+.ctl{border-top:0}
 }
 @media (max-width:720px){.aslogo--full{display:none}.aslogo--mark{display:block}}
 @media (max-width:899px){.work.wide.reviewing{grid-template-columns:minmax(0,1fr);grid-template-areas:"head" "scol"}}
+.tiles .sel{display:none}
 
 /* ===== the example page ("In a page"). Every colour and type value is a custom property a studio may set; see scene.js ===== */
 .scene{--sc-bg:transparent;--sc-surface:rgba(255,255,255,.055);--sc-line:rgba(255,255,255,.12);--sc-control:rgba(255,255,255,.3);--sc-fg:#f3f5f4;--sc-fg2:#b4bdba;--sc-fg3:#8b9592;--sc-accent:#8ab4ff;--sc-fill:#f3f5f4;--sc-on-fill:#0b0e0d;--sc-ok:#4ade80;--sc-warn:#f5b94a;--sc-bad:#f87171;
@@ -848,21 +852,22 @@ details.fine .ctl+.ctl{border-top:0}
  <div class="acts">
   <button class="ib" id="undo" aria-label="Undo" title="Undo (Ctrl+Z)" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
   <button class="ib" id="redo" aria-label="Redo" title="Redo (Ctrl+Shift+Z)" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg></button>
-  <button class="go brandgo" id="review" aria-pressed="false">Review <span aria-hidden="true">→</span></button>
+  <button class="go q brandgo" id="review" aria-pressed="false">Review <span aria-hidden="true">→</span></button>
  </div>
 </header>
 <main class="work" id="work">
  <div class="head" id="head">
   <div class="htx"><p class="crumb" id="crumb"></p><h2 id="htitle"></h2><p class="hwhy" id="hwhy"></p></div>
-  <div class="hacts" id="hacts">
-   <div class="seg" id="modes" role="radiogroup" aria-label="View"></div>
-   <button class="tb" id="hold" title="Hold down to see what you started from, let go to come back">Hold for today</button>
-   <button class="tb" id="pin">Pin</button>
-  </div>
  </div>
  <nav class="nav" id="nav" aria-label="What to change"></nav>
  <section class="scol" id="scol" aria-label="Choices"><div class="panel" id="panel"></div><div class="pfoot" id="pfoot"></div></section>
  <aside class="pcol" id="pcol" aria-label="Preview">
+  <div class="hacts" id="hacts">
+   <div class="seg" id="modes" role="radiogroup" aria-label="View"></div>
+   <span class="grow"></span>
+   <button class="tb" id="hold" title="Hold down to see what you started from, let go to come back">Hold for today</button>
+   <button class="tb" id="pin">Pin</button>
+  </div>
   <div class="phead"><b id="ptitle">Your design</b><span class="devhint" id="devhint"></span></div>
   <div class="stage" id="stage"><span class="tryhint" id="tryhint"></span>
    <div class="dwrap" id="dwrap"><div class="device bgd" id="device"><div class="canvas" id="canvas"></div>
@@ -870,7 +875,6 @@ details.fine .ctl+.ctl{border-top:0}
     <div class="toast" id="toast"><span class="dot"><svg width="14" height="14"><use href="#i-check"/></svg></span><div><b id="toasth">Done</b><span class="s"></span></div><span id="toastbtn" style="margin-left:auto"></span></div>
    </div></div>
   </div>
-  <div class="pacts" id="pacts"><button class="tb" data-mode="context">In a page <span aria-hidden="true">→</span></button><button class="tb" id="pin2" data-act="pin">+ Pin</button></div>
   <div class="board" id="board" hidden></div>
   <div class="stbar" id="stbar">
    <div class="seg" id="devices" role="radiogroup" aria-label="Screen width"></div>
@@ -3420,8 +3424,6 @@ function renderStageBar() {
   $('pin').disabled = full || isBase || PINS.some((p) => p.mod === m.id && sameLook(m.id, p.s, AS()));
   $('pin').title = full ? 'Three are pinned. Unpin one in Compare to pin another.' : isBase ? `This is ${baseName(m).toLowerCase()}; Compare always shows it` : 'Keep this version to compare with later ones';
   $('pin').textContent = PINS.some((p) => p.mod === m.id && sameLook(m.id, p.s, AS())) ? 'Pinned' : 'Pin';
-  $('pin2').disabled = $('pin').disabled; $('pin2').title = $('pin').title;
-  $('pin2').textContent = $('pin').textContent === 'Pinned' ? 'Pinned' : '+ Pin';
 }
 function setMode(k) {
   V.mode = k;
@@ -3496,7 +3498,7 @@ function holdOff() {
 /* ===== Panel: the studio tabs, the navigator, Looks, a category's choices drawn as tiles, Review and the proposal ===== */
 
 const MAX_SHOWN = 9; // longer lists show this many plus the current one, then "Show N more"
-const WIDE = () => innerWidth >= 900; // fine adjustments sit in the preview card on wider screens, under the choices on a phone
+const WIDE = () => false; // fine adjustments sit inside the step, under its choices, on every screen
 const fmt = (v, c) => (c.step < 0.01 ? (+v).toFixed(3) : c.step < 1 ? (+v).toFixed(2) : Math.round(v)) + (c.unit || '');
 const isNew = (key) => UI.fresh.includes(key);
 const dot = (key) => (isNew(key) ? '<span class="nw" aria-label="new"></span>' : '');
@@ -3567,7 +3569,7 @@ function choicesHTML(c, s) {
     + `<div class="${tile ? 'tiles' + (tile.wide ? ' wide' : '') : 'chips'}" role="group" aria-labelledby="l_${c.id}">${vis.map(one).join('')}`
     + (hidden > 0 ? `<button class="chip ghost" data-expand="${c.id}">Show ${hidden} more</button>` : '')
     + (c.replay ? '<button class="chip ghost" data-act="replay">Replay</button>' : '') + '</div>'
-    + (tile ? '' : `<p class="desc" id="d_${c.id}">${descHTML(c, optOf(c, s[c.k]), s)}</p>`) + '</div>';
+    + `<p class="desc" id="d_${c.id}">${descHTML(c, optOf(c, s[c.k]), s)}</p></div>`;
 }
 function swatchDesc(c, s) {
   const w = c.sw.find((x) => x[0] === s[c.k]) || c.sw[0];
@@ -3704,20 +3706,43 @@ function tabsHTML() {
   return STUDIO.mods.map(tab).join('')
     + (rest.length ? `<select id="addmod" aria-label="Add a studio"><option value="">+ Add</option>${rest.map(([id, n]) => `<option value="${esc(id)}">${esc(n)}</option>`).join('')}</select>` : '');
 }
+/** The steps of the open studio, in order: Looks, then every category that applies to the current design. */
+function steps(m = AM()) {
+  const s = ST[m.id];
+  return [{ id: 'looks', n: 'Looks' }, ...m.groups.filter((g) => !(g.na && g.na(s))).map((g) => ({ id: g.id, n: g.short || g.t, g }))];
+}
+/** Where Next goes from here: the next step, the next studio's first step, then Review. */
+function nextStep() {
+  const m = AM(), list = steps(m), i = list.findIndex((x) => x.id === NAV.cat[m.id]);
+  if (i >= 0 && i < list.length - 1) return { mod: m.id, cat: list[i + 1].id, n: list[i + 1].n };
+  const k = STUDIO.mods.indexOf(m);
+  if (k < STUDIO.mods.length - 1) { const nm = STUDIO.mods[k + 1]; return { mod: nm.id, cat: 'looks', n: nm.name }; }
+  return { mod: m.id, cat: 'review', n: 'Review' };
+}
+function prevStep() {
+  const m = AM(), list = steps(m), i = list.findIndex((x) => x.id === NAV.cat[m.id]);
+  if (i > 0) return { mod: m.id, cat: list[i - 1].id };
+  const k = STUDIO.mods.indexOf(m);
+  if (k > 0) { const pm = STUDIO.mods[k - 1], pl = steps(pm); return { mod: pm.id, cat: pl[pl.length - 1].id }; }
+  return null;
+}
 function navHTML() {
-  const m = AM(), cur = NAV.review ? '' : NAV.cat[m.id], s = AS(), changed = new Set(changedKeys(m.id));
-  const item = (id, name, mark = '') => `<button data-cat="${id}" aria-current="${cur === id ? 'page' : 'false'}"><span>${esc(name)}</span>${mark}</button>`;
-  let h = item('looks', 'Looks', m.looks.some((l) => isNew(m.id + '.look:' + l.id)) ? '<i class="nw"></i>' : ''), sec = '';
-  for (const g of m.groups) {
-    if (g.sec && g.sec !== sec) { sec = g.sec; h += `<span class="sec">${esc(sec)}</span>`; }
-    const fresh = g.ctl.some((c) => UI.fresh.some((f) => f.startsWith(m.id + '.' + c.k + ':')));
-    const off = g.na && g.na(s);
-    h += item(g.id, g.short || g.t, fresh ? '<i class="nw"></i>' : !off && g.ctl.some((c) => changed.has(c.k)) ? '<i class="ch"></i>' : '');
-  }
-  return h;
+  const m = AM(), cur = NAV.review ? '' : NAV.cat[m.id], changed = new Set(changedKeys(m.id));
+  const item = (st, i) => {
+    const fresh = st.id === 'looks' ? m.looks.some((l) => isNew(m.id + '.look:' + l.id)) : st.g.ctl.some((c) => UI.fresh.some((f) => f.startsWith(m.id + '.' + c.k + ':')));
+    const mark = fresh ? '<i class="nw"></i>' : st.g && st.g.ctl.some((c) => changed.has(c.k)) ? '<i class="ch" title="Changed"></i>' : '';
+    return `<button data-cat="${st.id}" aria-current="${cur === st.id ? 'step' : 'false'}"><b class="num">${i + 1}</b><span>${esc(st.n)}</span>${mark}</button>`;
+  };
+  const list = steps(m);
+  return list.map(item).join('') + `<button data-cat="review" aria-current="${NAV.review ? 'step' : 'false'}"><b class="num">${list.length + 1}</b><span>Review</span></button>`;
 }
 function footHTML() {
-  if (!NAV.review) return '';
+  if (!NAV.review) {
+    const list = steps(), i = list.findIndex((x) => x.id === NAV.cat[NAV.mod]), nx = nextStep(), pv = prevStep();
+    return (pv ? '<button class="go q" data-act="prev">Back</button>' : '<span></span>')
+      + `<span class="count">Step ${i + 1} of ${list.length + 1}${STUDIO.mods.length > 1 ? ' · ' + esc(AM().name) : ''}</span>`
+      + `<button class="go" data-act="next">Next: ${esc(nx.n)}</button>`;
+  }
   return `<button class="go q" data-act="back">Back</button><span class="count"></span><button class="go q" data-act="copy">Copy</button><button class="go" data-act="send">${STATUS.live ? 'Send to chat' : 'Copy for chat'}</button>`;
 }
 
@@ -4113,6 +4138,8 @@ const ACTIONS = {
   export: exportFile,
   import: () => $('importfile').click(),
   resetall: resetAll,
+  next: () => { const n = nextStep(); go(n.mod, n.cat); },
+  prev: () => { const p = prevStep(); if (p) go(p.mod, p.cat); },
   pin: () => pinNow(),
 };
 /** A module's own control setting one value directly: data-mset="module|key" with data-val. The key must already
