@@ -188,7 +188,6 @@ document.addEventListener('click', (e) => {
   if ((el = at('[data-goctl]'))) return goControl(el.dataset.goctl);
   if ((el = at('[data-scope]'))) { SCOPE = el.dataset.scope; renderPanel(); return save(); }
   if ((el = at('[data-cat]'))) return go(null, el.dataset.cat);
-  if ((el = at('[data-jump]'))) { const [mod, cat] = el.dataset.jump.split('|'); return go(mod, cat); }
   if ((el = at('[data-mod]'))) return go(el.dataset.mod, NAV.cat[el.dataset.mod]);
   if ((el = at('[data-mode]'))) return setMode(el.dataset.mode);
   if ((el = at('[data-dev]'))) return setDevice(el.dataset.dev);
@@ -234,6 +233,7 @@ $('pin').onclick = pinNow;
 $('tabs').addEventListener('change', (e) => { if (e.target.id === 'addmod' && e.target.value) { sendModule(e.target.value); e.target.value = ''; } });
 $('msgx').onclick = () => $('msg').classList.remove('show');
 $('theme').onclick = () => setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
+$('stage').addEventListener('pointerdown', () => { if (!UI.tried) { UI.tried = true; $('tryhint').hidden = true; } });
 $('zoom').onclick = () => { UI.zoom = UI.zoom === false; layoutDevice(); };
 const segKeys = (id, keys, cur, set, attr) => $(id).addEventListener('keydown', (e) => {
   if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;

@@ -51,18 +51,7 @@ function descHTML(c, op, s) {
     + (op.today && !op.n.startsWith('Today') ? ' This is what the project uses now.' : '')
     + (avail(op, s) ? '' : ' <em>It will not show with the current choices.</em>');
 }
-const moreLink = () => ''; // asking for more lives in its own box under the choices (moreBox)
-/** One clear offer at the end of a step: the agent designs more of any of its choices, sent with one click.
-    While a request is out it says honestly whether the agent has it or it is waiting for the agent to look. */
-function moreBox(items) {
-  const p = UI.pending, mine = p && Date.now() - p.at < 15 * 60e3 && items.find((x) => x.id === p.key);
-  if (!items.length) return '';
-  if (mine) return `<div class="morebox busy"><div class="mtx"><b>${p.sent ? 'The agent is designing more' : 'Your request is waiting for the agent'}</b>`
-    + `<span>${p.sent ? `New ${esc(mine.what)} arrive here on their own, marked New. Keep going; nothing you picked is lost.` : 'It is saved and will be picked up when the agent next looks. Say “check the studio” in the chat to have it look now.'}</span></div>${p.sent ? '<span class="spin"></span>' : ''}</div>`;
-  return `<div class="morebox"><div class="mtx"><b>Want to see more options?</b><span>The agent designs new choices for this project and adds them here. Your picks stay as they are.</span></div>`
-    + `<div class="mbtns">${items.map((x) => `<button class="go q morego" data-moreask="${esc(x.id)}">More ${esc(x.what)} <span aria-hidden="true">→</span></button>`).join('')}</div></div>`;
-}
-const moreStep = (ctls) => moreBox(ctls.filter((c) => c.more !== false && (c.t === 'chips' || c.t === 'swatches')).map((c) => ({ id: c.id, what: c.label.toLowerCase() + (c.t === 'swatches' ? 's' : ' choices') })));
+const moreLink = () => ''; // asking the agent for more lives in one box at the end of each step (askHTML)
 function choicesHTML(c, s) {
   const m = STUDIO.by[c.mid], tile = m.tile ? m.tile(c) : null;
   const isOn = (op) => sameValue(s[c.k], op.v);
@@ -81,7 +70,7 @@ function choicesHTML(c, s) {
   const g = m.groups.find((x) => x.id === c.sid), same = g && g.t.toLowerCase() === c.label.toLowerCase(); // the heading already says it
   return `<div class="ctl" data-ctl="${c.id}"><div class="lrow"><span class="lbl${same ? ' sr' : ''}" id="l_${c.id}">${esc(c.label)}</span>${moreLink(c)}</div>`
     + `<div class="${tile ? 'tiles' + (tile.wide ? ' wide' : '') : 'chips'}" role="group" aria-labelledby="l_${c.id}">${vis.map(one).join('')}`
-    + (hidden > 0 ? `<button class="chip ghost" data-expand="${c.id}">Show ${hidden} more</button>` : '')
+    + (hidden > 0 ? `<button class="chip ghost" data-expand="${c.id}">Show all ${can.length} ${esc(c.label.toLowerCase())}${tile ? ' choices' : ''}</button>` : '')
     + (c.replay ? '<button class="chip ghost" data-act="replay">Replay</button>' : '') + '</div>'
     + `<p class="desc" id="d_${c.id}">${descHTML(c, optOf(c, s[c.k]), s)}</p></div>`;
 }
@@ -119,13 +108,17 @@ function askWhere() {
 }
 function askHTML() {
   if (NAV.review) return '';
-  const w = askWhere(), p = UI.pending;
-  const waiting = p && p.sent && Date.now() - p.at < 15 * 60e3;
-  return `<div class="ask" id="askbox"><label for="ask"><svg class="spark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.5 2.5M15.2 15.2l2.5 2.5M6.3 17.7l2.5-2.5M15.2 8.8l2.5-2.5"/></svg>Want to see something different?</label>`
-    + `<p>A new effect, another direction, or a whole new thing to change${w.ctl ? ` in ${esc(w.name)} <button class="addc" data-act="askwide">or about the whole page</button>` : ''}. The agent adds it here; your picks and pins stay.</p>`
-    + `<div class="askrow"><input id="ask" type="text" maxlength="400" value="${esc(UI.ask.text)}" placeholder="Describe what you want to explore…"><button class="go q" data-act="ask">${STATUS.live ? 'Ask agent →' : 'Copy request'}</button></div>`
-    + '<div class="quick"><button class="chip sm" data-quick="like">More like this</button><button class="chip sm" data-quick="different">Something different</button><button class="chip sm" data-quick="what">What else could change?</button></div>'
-    + (waiting ? `<p class="wait"><span class="spin"></span> Waiting for the agent to add to ${esc(p.name)}. Keep going; new choices arrive marked with a dot.</p>` : '') + '</div>';
+  const m = AM(), w = askWhere(), p = UI.pending, cat = NAV.cat[m.id], g = m.groups.find((x) => x.id === cat), s = AS();
+  const items = g ? g.ctl.filter((c) => shown(c, s) && !isFine(c) && c.more !== false && (c.t === 'chips' || c.t === 'swatches')).map((c) => ({ id: c.id, what: c.label.toLowerCase() + (c.t === 'swatches' ? 's' : ' choices') })) : [{ id: '@looks', what: 'ideas' }];
+  const live = p && Date.now() - p.at < 15 * 60e3;
+  const status = !live ? '' : p.sent
+    ? `<p class="wait"><span class="spin"></span> The agent is adding to ${esc(p.name)}. New ones arrive here marked New; your picks stay.</p>`
+    : `<p class="wait">Your request for ${esc(p.name)} is waiting for the agent. Say “check the studio” in the chat to have it look now.</p>`;
+  return `<div class="ask" id="askbox"><label for="ask"><svg class="spark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.5 2.5M15.2 15.2l2.5 2.5M6.3 17.7l2.5-2.5M15.2 8.8l2.5-2.5"/></svg>Want more options?</label>`
+    + `<p>The agent designs new ones for this project and adds them here. Your picks stay.</p>`
+    + `<div class="quick">${items.map((x) => `<button class="go q morego" data-moreask="${esc(x.id)}">More ${esc(x.what)} <span aria-hidden="true">→</span></button>`).join('')}<button class="chip" data-quick="different">Something different</button><button class="chip" data-quick="what">What else could change?</button></div>`
+    + `<div class="askrow"><input id="ask" type="text" maxlength="400" value="${esc(UI.ask.text)}" placeholder="Or describe what you want${w.ctl ? ' for ' + esc(w.name) : ''}…"><button class="go q" data-act="ask">${STATUS.live ? 'Ask agent →' : 'Copy request'}</button></div>`
+    + status + '</div>';
 }
 
 /* ---- Looks, a category, Review ---- */
@@ -138,7 +131,7 @@ function looksHTML() {
       + `<span class="tn">${esc(l.n)}${feature ? '<span class="now">Recommended</span>' : ''}<span class="sel">Selected</span>${dot(m.id + '.look:' + l.id)}</span><small>${esc(l.d)}</small></div>`;
   };
   return `<div class="looks start">${card(base, true)}</div>`
-    + (m.looks.length ? `<div class="lrow ideas"><span class="lbl">Or start from an idea</span>${m.looks.length > 1 ? '<button class="addc" data-act="surprise">Surprise me</button>' : ''}</div><div class="looks">${m.looks.map((l) => card(l)).join('')}</div>${moreBox([{ id: '@looks', what: 'ideas' }])}` : '');
+    + (m.looks.length ? `<div class="lrow ideas"><span class="lbl">Or start from an idea</span>${m.looks.length > 1 ? '<button class="addc" data-act="surprise">Surprise me</button>' : ''}</div><div class="looks">${m.looks.map((l) => card(l)).join('')}</div>` : '');
 }
 function groupHTML(g) {
   const s = AS();
@@ -147,8 +140,9 @@ function groupHTML(g) {
   const main = vis.filter((c) => !isFine(c)), fine = na ? [] : vis.filter(isFine);
   const body = na ? `<div class="na">${esc(na)}</div>`
     : main.map((c) => ctlHTML(c, s)).join('')
-      + (fine.length ? `<details class="fine" data-fine="${g.id}"${(UI.fine[NAV.mod + '.' + g.id] ?? main.some((c) => c.t === 'swatches')) ? ' open' : ''}><summary><b>Fine-tune</b><span>${esc(list([...new Set(fine.map((c) => c.label))]))}</span></summary>${fine.map((c) => ctlHTML(c, s)).join('')}</details>` : '')
-      + moreStep(main);
+      + (fine.length && fine.length <= 3 ? `<div class="tune"><p class="tuneh">Adjust</p>${fine.map((c) => ctlHTML(c, s)).join('')}</div>` : '')
+      + (fine.length > 3 ? `<details class="fine" data-fine="${g.id}"${(UI.fine[NAV.mod + '.' + g.id] ?? main.some((c) => c.t === 'swatches')) ? ' open' : ''}><summary><b>Fine-tune</b><span>${esc(list([...new Set(fine.map((c) => c.label))]))}</span></summary>${fine.map((c) => ctlHTML(c, s)).join('')}</details>` : '')
+
   return `${note ? `<div class="note">${note}</div>` : ''}${body}`;
 }
 /** The fine adjustments of the open category, in the preview card under the design they change (wider screens). */
@@ -256,16 +250,6 @@ function prevStep() {
   if (k > 0) { const pm = STUDIO.mods[k - 1], pl = steps(pm); return { mod: pm.id, cat: pl[pl.length - 1].id }; }
   return null;
 }
-/** Every change in the workspace, by step, so Review is never a surprise. */
-function changeList() {
-  const out = [];
-  for (const m of STUDIO.mods) {
-    const ch = new Set(changedKeys(m.id));
-    if (!ch.size) continue;
-    for (const g of m.groups) if (g.ctl.some((c) => ch.has(c.k))) out.push({ mod: m.id, cat: g.id, n: (STUDIO.mods.length > 1 ? m.name + ' · ' : '') + (g.short || g.t) });
-  }
-  return out;
-}
 function navHTML() {
   const m = AM(), cur = NAV.review ? '' : NAV.cat[m.id], changed = new Set(changedKeys(m.id)), list = steps(m);
   const pill = (st, i) => {
@@ -275,12 +259,8 @@ function navHTML() {
     return `<button class="${st.extra ? 'xp' : ''}${done && st.extra ? ' changed' : ''}" data-cat="${st.id}" aria-current="${cur === st.id ? 'step' : 'false'}"${done ? ' title="Changed"' : ''}>${lead}<span>${esc(st.n)}</span>${fresh ? '<i class="tag">New</i>' : ''}</button>`;
   };
   const main = list.filter((x) => !x.extra), extra = list.filter((x) => x.extra);
-  const all = changeList(), mine = all.filter((c) => c.mod === m.id), others = all.length - mine.length;
-  const name = (c) => (STUDIO.mods.length > 1 ? c.n.split(' · ').slice(1).join(' · ') : c.n);
-  return `<p class="rec">Work through 1 to ${main.length} in order; the extras are optional polish.</p><div class="srow"><button class="start" data-cat="looks" aria-current="${cur === 'looks' ? 'step' : 'false'}"><span>Start</span></button>${main.map(pill).join('')}</div>`
-    + (extra.length ? `<div class="srow x"><span class="xsep">Extras</span>${extra.map(pill).join('')}</div>` : '')
-    + (all.length ? `<p class="chg">${mine.length ? `Changed here: ${mine.map((c) => `<button data-jump="${c.mod}|${c.cat}">${esc(name(c))}</button>`).join('')}` : 'Nothing changed here yet.'}`
-      + (others ? ` <button class="more" data-cat="review">${others} more in other studios</button>` : '') + '</p>' : '');
+  return `<div class="srow"><button class="start" data-cat="looks" aria-current="${cur === 'looks' ? 'step' : 'false'}"><span>Start</span></button>${main.map(pill).join('')}</div>`
+    + (extra.length ? `<div class="srow x"><span class="xsep">Extras <i>(optional)</i></span>${extra.map(pill).join('')}</div>` : '');
 }
 function footHTML() {
   if (!NAV.review) return ''; // Next lives at the top of every step

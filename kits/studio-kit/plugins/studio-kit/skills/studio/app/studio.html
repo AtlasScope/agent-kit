@@ -490,6 +490,20 @@ details.fine[open]>.ctl:not(:last-child){border-bottom:0}
 .work.wide,.work.reviewing{grid-template-rows:none}
 @media (max-width:899px){.work{grid-template-rows:none}}
 .head .hwhy{line-height:1.45;min-height:2.9em} /* one or two lines of explanation take the same room */
+/* ---- the audit: less above the choices, sliders in view, one place to ask ---- */
+.crumb{display:none}
+.nav .xsep i{font-style:normal;font-weight:400;color:var(--c-fg-4)}
+.tune{margin-top:18px;padding:12px 14px 4px;border-radius:12px;background:var(--s1);border:1px solid var(--line)}
+.tune .tuneh{margin:0 0 2px;font-size:13px;font-weight:600;color:var(--c-fg-3)}
+.tune .ctl{padding:8px 0 10px}
+.ask .quick{margin:10px 0 12px}
+.ask .quick .morego{padding:8px 14px;font-size:13.5px}
+.ask .wait{font-size:13px;color:var(--c-fg-2)}
+/* the pointed card's sentence, on the card */
+.tiles .tile:hover .td,.tiles .tile:focus-visible .td{display:block;position:absolute;z-index:3;top:0;left:0;right:0;margin:0;padding:7px 10px;font-size:12px;line-height:1.35;color:var(--c-fg-2);background:color-mix(in oklab,var(--c-surface) 92%,transparent);border-bottom:1px solid var(--line)}
+.tiles .tile[aria-pressed=true]:hover::after{display:none}
+.tiles .tile:hover .td,.tiles .tile:focus-visible .td{padding:3px 9px;font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:1240px){.pcol>.hacts{gap:6px;padding:8px 10px}.pcol>.hacts .seg button{padding:5px 7px;font-size:12.5px}.pcol>.hacts .tb{padding:6px 9px;font-size:12.5px}}
 
 /* ===== the example page ("In a page"). Every colour and type value is a custom property a studio may set; see scene.js ===== */
 .scene{--sc-bg:transparent;--sc-surface:rgba(255,255,255,.055);--sc-line:rgba(255,255,255,.12);--sc-control:rgba(255,255,255,.3);--sc-fg:#f3f5f4;--sc-fg2:#b4bdba;--sc-fg3:#8b9592;--sc-accent:#8ab4ff;--sc-fill:#f3f5f4;--sc-on-fill:#0b0e0d;--sc-ok:#4ade80;--sc-warn:#f5b94a;--sc-bad:#f87171;
@@ -1000,7 +1014,7 @@ details.fine[open]>.ctl:not(:last-child){border-bottom:0}
   <div class="hacts" id="hacts">
    <div class="seg" id="modes" role="radiogroup" aria-label="View"></div>
    <span class="grow"></span>
-   <button class="tb" id="pin">Pin</button>
+   <button class="tb" id="pin">Shortlist</button>
    <details class="vmenu" id="vmenu"><summary class="tb">View</summary><div class="vpop">
     <button class="tb" id="zoom" title="Switch between the design enlarged to fill the preview and its real size">Show actual size</button>
     <div class="stbar" id="stbar">
@@ -1558,7 +1572,7 @@ const STEPS = [
       ], { replay: true }),
     ] },
 
-  { id: 'interact', extra: 1, t: 'Hover, press and keyboard', why: 'How it reacts to a mouse, a finger or the keyboard. Depends on the material and movement.', dep: ['material', 'motion'],
+  { id: 'interact', extra: 1, t: 'Hover and press', short: 'Hover & press', why: 'How it reacts to a mouse, a finger or the keyboard. Depends on the material and movement.', dep: ['material', 'motion'],
     note: () => (TOUCH ? '<span>This device has no hover. Hover choices show with a mouse or trackpad; the description says what each does.</span>' : ''),
     ctl: [
       ch('hover', 'When the pointer is over it', [
@@ -3425,7 +3439,7 @@ const BGS = [
   ['sunset', 'Sunset'], ['paper', 'Paper'], ['grid', 'Grid'], ['checker', 'Checker'],
   ...(Array.isArray(MO.bg) ? MO.bg : []).filter(Array.isArray).map((e) => [String(e[0]), String(e[1] || e[0])]),
 ];
-const MODES = [['alone', 'Choices'], ['context', 'In a page'], ['compare', 'Compare'], ['states', 'States']];
+const MODES = [['alone', 'Up close'], ['context', 'In a page'], ['compare', 'Compare'], ['states', 'States']];
 const modeNow = () => (V.mode === 'states' && !AM().states ? 'alone' : V.mode);
 const baseName = (m) => (m.measured ? 'Today' : 'Starting point');
 /** The project's own page: the palette being chosen when there is one, else the project's page colour, else a plain
@@ -3471,9 +3485,9 @@ function compareHTML() {
     + `<figcaption class="cmp-foot"><p>${esc(sum(s))}</p>${key !== 'now' && !sameLook(mid, s, now) ? `<button class="mini" data-use="${esc(key)}">Use this</button>` : key !== 'now' ? '<span>In use now</span>' : ''}${extra}</figcaption></figure>`;
   const nowPinned = pins.some((p) => sameLook(mid, p.s, now)) || sameLook(mid, DEFS[mid], now);
   return card(baseName(m), m.measured ? 'Measured' : 'Starting point', DEFS[mid], 'base')
-    + pins.map((p) => card(p.name, 'Pinned', p.s, p.id, `<button class="mini q" data-unpin="${esc(p.id)}" aria-label="Unpin ${esc(p.name)}">Unpin</button>`)).join('')
-    + (nowPinned ? '' : card('Now', 'Not pinned', now, 'now', '<button class="mini q" data-act="pin">Pin</button>'))
-    + (pins.length ? '' : `<p class="cmp-tip">Press <b>Pin</b> on a version you like, keep exploring, and it waits here beside ${esc(baseName(m).toLowerCase())}. Up to three.</p>`);
+    + pins.map((p) => card(p.name, 'Shortlisted', p.s, p.id, `<button class="mini q" data-unpin="${esc(p.id)}" aria-label="Remove ${esc(p.name)} from the shortlist">Remove</button>`)).join('')
+    + (nowPinned ? '' : card('Now', 'Not shortlisted', now, 'now', '<button class="mini q" data-act="pin">Shortlist</button>'))
+    + (pins.length ? '' : `<p class="cmp-tip">Press <b>Shortlist</b> on a version you like, keep exploring, and it waits here beside ${esc(baseName(m).toLowerCase())}. Up to three.</p>`);
 }
 function statesHTML() {
   const m = AM(), s = AS();
@@ -3485,7 +3499,7 @@ function stageHint() {
   if (PEEK) return 'Trying it on · click to keep it';
   if (HOLDING) return 'Showing ' + baseName(AM()).toLowerCase();
   if (mode === 'context') return CX.real ? 'Your page, simplified' : 'A representative page with your words. Not your live page.';
-  return mode === 'alone' && NAV.mod === 'button' ? 'Press it to try it' : '';
+  return mode === 'alone' && NAV.mod === 'button' && !UI.tried ? 'Press it to try it' : '';
 }
 function renderStage() {
   const m = AM(), cv = $('canvas'), mode = modeNow(), board = $('board'), work = $('work');
@@ -3557,7 +3571,7 @@ function layoutDevice() {
   d.style.transform = s !== 1 ? `scale(${s})` : '';
   d.classList.toggle('framed', framed);
   Object.assign($('dwrap').style, { width: w * s + 'px', height: h * s + 'px', left: Math.round((w0 - w * s) / 2) + 'px', top: Math.round((h0 - h * s) / 2) + 'px' });
-  $('devhint').textContent = hint;
+  $('devhint').textContent = mode === 'alone' && !AM().ground ? '' : hint; // the Actual size card says it better
   previewExtras(s);
 }
 /** Beside an enlarged design: the same design at its real size; and, once something has changed, a small Today to
@@ -3605,8 +3619,8 @@ function renderStageBar() {
   const full = PINS.length >= 3;
   const isBase = sameLook(m.id, AS(), DEFS[m.id]);
   $('pin').disabled = full || isBase || PINS.some((p) => p.mod === m.id && sameLook(m.id, p.s, AS()));
-  $('pin').title = full ? 'Three are pinned. Unpin one in Compare to pin another.' : isBase ? `This is ${baseName(m).toLowerCase()}; Compare always shows it` : 'Keep this version to compare with later ones';
-  $('pin').textContent = PINS.some((p) => p.mod === m.id && sameLook(m.id, p.s, AS())) ? 'Pinned' : 'Pin';
+  $('pin').title = full ? 'Three are shortlisted. Remove one in Compare to add another.' : isBase ? `This is ${baseName(m).toLowerCase()}; Compare always shows it` : 'Keep this version to compare with later ones';
+  $('pin').textContent = PINS.some((p) => p.mod === m.id && sameLook(m.id, p.s, AS())) ? 'Shortlisted' : 'Shortlist';
 }
 function setMode(k) {
   V.mode = k;
@@ -3636,14 +3650,14 @@ function pinNow() {
   const m = AM(), s = AS();
   if (sameLook(m.id, s, DEFS[m.id])) return msg(`This is ${esc(baseName(m).toLowerCase())}, which Compare always shows. Change something first, then pin it.`);
   const twin = PINS.find((p) => p.mod === m.id && sameLook(m.id, s, p.s));
-  if (twin) return msg(`Already pinned as ${esc(twin.name)}.`);
-  if (PINS.length >= 3) return msg('Three versions are pinned already. Remove one in Compare first.', 'warn');
+  if (twin) return msg(`Already shortlisted as ${esc(twin.name)}.`);
+  if (PINS.length >= 3) return msg('Three versions are shortlisted already. Remove one in Compare first.', 'warn');
   const letter = ['A', 'B', 'C'].find((l) => !PINS.some((p) => p.name.startsWith(l + ' ·') || p.name === l));
   const what = m.summary ? m.summary(s) : (() => { const c = m.groups[0] && m.groups[0].ctl.find((x) => x.t === 'chips'); const op = c && optOf(c, s[c.k]); return op ? op.n : ''; })();
   PINS.push({ id: 'p' + Date.now().toString(36), name: letter + (what ? ' · ' + what : ''), mod: m.id, s: clone(s) });
   renderStageBar(); save();
   if (modeNow() === 'compare') renderStage();
-  else msg(`Pinned as ${esc(PINS[PINS.length - 1].name)}. <button class="chip sm" data-mode="compare">Compare</button>`, 'ok');
+  else msg(`Shortlisted as ${esc(PINS[PINS.length - 1].name)}. <button class="chip sm" data-mode="compare">Compare</button>`, 'ok');
 }
 function usePinned(key) {
   const mid = NAV.mod, p = PINS.find((x) => x.id === key);
@@ -3731,18 +3745,7 @@ function descHTML(c, op, s) {
     + (op.today && !op.n.startsWith('Today') ? ' This is what the project uses now.' : '')
     + (avail(op, s) ? '' : ' <em>It will not show with the current choices.</em>');
 }
-const moreLink = () => ''; // asking for more lives in its own box under the choices (moreBox)
-/** One clear offer at the end of a step: the agent designs more of any of its choices, sent with one click.
-    While a request is out it says honestly whether the agent has it or it is waiting for the agent to look. */
-function moreBox(items) {
-  const p = UI.pending, mine = p && Date.now() - p.at < 15 * 60e3 && items.find((x) => x.id === p.key);
-  if (!items.length) return '';
-  if (mine) return `<div class="morebox busy"><div class="mtx"><b>${p.sent ? 'The agent is designing more' : 'Your request is waiting for the agent'}</b>`
-    + `<span>${p.sent ? `New ${esc(mine.what)} arrive here on their own, marked New. Keep going; nothing you picked is lost.` : 'It is saved and will be picked up when the agent next looks. Say “check the studio” in the chat to have it look now.'}</span></div>${p.sent ? '<span class="spin"></span>' : ''}</div>`;
-  return `<div class="morebox"><div class="mtx"><b>Want to see more options?</b><span>The agent designs new choices for this project and adds them here. Your picks stay as they are.</span></div>`
-    + `<div class="mbtns">${items.map((x) => `<button class="go q morego" data-moreask="${esc(x.id)}">More ${esc(x.what)} <span aria-hidden="true">→</span></button>`).join('')}</div></div>`;
-}
-const moreStep = (ctls) => moreBox(ctls.filter((c) => c.more !== false && (c.t === 'chips' || c.t === 'swatches')).map((c) => ({ id: c.id, what: c.label.toLowerCase() + (c.t === 'swatches' ? 's' : ' choices') })));
+const moreLink = () => ''; // asking the agent for more lives in one box at the end of each step (askHTML)
 function choicesHTML(c, s) {
   const m = STUDIO.by[c.mid], tile = m.tile ? m.tile(c) : null;
   const isOn = (op) => sameValue(s[c.k], op.v);
@@ -3761,7 +3764,7 @@ function choicesHTML(c, s) {
   const g = m.groups.find((x) => x.id === c.sid), same = g && g.t.toLowerCase() === c.label.toLowerCase(); // the heading already says it
   return `<div class="ctl" data-ctl="${c.id}"><div class="lrow"><span class="lbl${same ? ' sr' : ''}" id="l_${c.id}">${esc(c.label)}</span>${moreLink(c)}</div>`
     + `<div class="${tile ? 'tiles' + (tile.wide ? ' wide' : '') : 'chips'}" role="group" aria-labelledby="l_${c.id}">${vis.map(one).join('')}`
-    + (hidden > 0 ? `<button class="chip ghost" data-expand="${c.id}">Show ${hidden} more</button>` : '')
+    + (hidden > 0 ? `<button class="chip ghost" data-expand="${c.id}">Show all ${can.length} ${esc(c.label.toLowerCase())}${tile ? ' choices' : ''}</button>` : '')
     + (c.replay ? '<button class="chip ghost" data-act="replay">Replay</button>' : '') + '</div>'
     + `<p class="desc" id="d_${c.id}">${descHTML(c, optOf(c, s[c.k]), s)}</p></div>`;
 }
@@ -3799,13 +3802,17 @@ function askWhere() {
 }
 function askHTML() {
   if (NAV.review) return '';
-  const w = askWhere(), p = UI.pending;
-  const waiting = p && p.sent && Date.now() - p.at < 15 * 60e3;
-  return `<div class="ask" id="askbox"><label for="ask"><svg class="spark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.5 2.5M15.2 15.2l2.5 2.5M6.3 17.7l2.5-2.5M15.2 8.8l2.5-2.5"/></svg>Want to see something different?</label>`
-    + `<p>A new effect, another direction, or a whole new thing to change${w.ctl ? ` in ${esc(w.name)} <button class="addc" data-act="askwide">or about the whole page</button>` : ''}. The agent adds it here; your picks and pins stay.</p>`
-    + `<div class="askrow"><input id="ask" type="text" maxlength="400" value="${esc(UI.ask.text)}" placeholder="Describe what you want to explore…"><button class="go q" data-act="ask">${STATUS.live ? 'Ask agent →' : 'Copy request'}</button></div>`
-    + '<div class="quick"><button class="chip sm" data-quick="like">More like this</button><button class="chip sm" data-quick="different">Something different</button><button class="chip sm" data-quick="what">What else could change?</button></div>'
-    + (waiting ? `<p class="wait"><span class="spin"></span> Waiting for the agent to add to ${esc(p.name)}. Keep going; new choices arrive marked with a dot.</p>` : '') + '</div>';
+  const m = AM(), w = askWhere(), p = UI.pending, cat = NAV.cat[m.id], g = m.groups.find((x) => x.id === cat), s = AS();
+  const items = g ? g.ctl.filter((c) => shown(c, s) && !isFine(c) && c.more !== false && (c.t === 'chips' || c.t === 'swatches')).map((c) => ({ id: c.id, what: c.label.toLowerCase() + (c.t === 'swatches' ? 's' : ' choices') })) : [{ id: '@looks', what: 'ideas' }];
+  const live = p && Date.now() - p.at < 15 * 60e3;
+  const status = !live ? '' : p.sent
+    ? `<p class="wait"><span class="spin"></span> The agent is adding to ${esc(p.name)}. New ones arrive here marked New; your picks stay.</p>`
+    : `<p class="wait">Your request for ${esc(p.name)} is waiting for the agent. Say “check the studio” in the chat to have it look now.</p>`;
+  return `<div class="ask" id="askbox"><label for="ask"><svg class="spark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.5 2.5M15.2 15.2l2.5 2.5M6.3 17.7l2.5-2.5M15.2 8.8l2.5-2.5"/></svg>Want more options?</label>`
+    + `<p>The agent designs new ones for this project and adds them here. Your picks stay.</p>`
+    + `<div class="quick">${items.map((x) => `<button class="go q morego" data-moreask="${esc(x.id)}">More ${esc(x.what)} <span aria-hidden="true">→</span></button>`).join('')}<button class="chip" data-quick="different">Something different</button><button class="chip" data-quick="what">What else could change?</button></div>`
+    + `<div class="askrow"><input id="ask" type="text" maxlength="400" value="${esc(UI.ask.text)}" placeholder="Or describe what you want${w.ctl ? ' for ' + esc(w.name) : ''}…"><button class="go q" data-act="ask">${STATUS.live ? 'Ask agent →' : 'Copy request'}</button></div>`
+    + status + '</div>';
 }
 
 /* ---- Looks, a category, Review ---- */
@@ -3818,7 +3825,7 @@ function looksHTML() {
       + `<span class="tn">${esc(l.n)}${feature ? '<span class="now">Recommended</span>' : ''}<span class="sel">Selected</span>${dot(m.id + '.look:' + l.id)}</span><small>${esc(l.d)}</small></div>`;
   };
   return `<div class="looks start">${card(base, true)}</div>`
-    + (m.looks.length ? `<div class="lrow ideas"><span class="lbl">Or start from an idea</span>${m.looks.length > 1 ? '<button class="addc" data-act="surprise">Surprise me</button>' : ''}</div><div class="looks">${m.looks.map((l) => card(l)).join('')}</div>${moreBox([{ id: '@looks', what: 'ideas' }])}` : '');
+    + (m.looks.length ? `<div class="lrow ideas"><span class="lbl">Or start from an idea</span>${m.looks.length > 1 ? '<button class="addc" data-act="surprise">Surprise me</button>' : ''}</div><div class="looks">${m.looks.map((l) => card(l)).join('')}</div>` : '');
 }
 function groupHTML(g) {
   const s = AS();
@@ -3827,8 +3834,9 @@ function groupHTML(g) {
   const main = vis.filter((c) => !isFine(c)), fine = na ? [] : vis.filter(isFine);
   const body = na ? `<div class="na">${esc(na)}</div>`
     : main.map((c) => ctlHTML(c, s)).join('')
-      + (fine.length ? `<details class="fine" data-fine="${g.id}"${(UI.fine[NAV.mod + '.' + g.id] ?? main.some((c) => c.t === 'swatches')) ? ' open' : ''}><summary><b>Fine-tune</b><span>${esc(list([...new Set(fine.map((c) => c.label))]))}</span></summary>${fine.map((c) => ctlHTML(c, s)).join('')}</details>` : '')
-      + moreStep(main);
+      + (fine.length && fine.length <= 3 ? `<div class="tune"><p class="tuneh">Adjust</p>${fine.map((c) => ctlHTML(c, s)).join('')}</div>` : '')
+      + (fine.length > 3 ? `<details class="fine" data-fine="${g.id}"${(UI.fine[NAV.mod + '.' + g.id] ?? main.some((c) => c.t === 'swatches')) ? ' open' : ''}><summary><b>Fine-tune</b><span>${esc(list([...new Set(fine.map((c) => c.label))]))}</span></summary>${fine.map((c) => ctlHTML(c, s)).join('')}</details>` : '')
+
   return `${note ? `<div class="note">${note}</div>` : ''}${body}`;
 }
 /** The fine adjustments of the open category, in the preview card under the design they change (wider screens). */
@@ -3936,16 +3944,6 @@ function prevStep() {
   if (k > 0) { const pm = STUDIO.mods[k - 1], pl = steps(pm); return { mod: pm.id, cat: pl[pl.length - 1].id }; }
   return null;
 }
-/** Every change in the workspace, by step, so Review is never a surprise. */
-function changeList() {
-  const out = [];
-  for (const m of STUDIO.mods) {
-    const ch = new Set(changedKeys(m.id));
-    if (!ch.size) continue;
-    for (const g of m.groups) if (g.ctl.some((c) => ch.has(c.k))) out.push({ mod: m.id, cat: g.id, n: (STUDIO.mods.length > 1 ? m.name + ' · ' : '') + (g.short || g.t) });
-  }
-  return out;
-}
 function navHTML() {
   const m = AM(), cur = NAV.review ? '' : NAV.cat[m.id], changed = new Set(changedKeys(m.id)), list = steps(m);
   const pill = (st, i) => {
@@ -3955,12 +3953,8 @@ function navHTML() {
     return `<button class="${st.extra ? 'xp' : ''}${done && st.extra ? ' changed' : ''}" data-cat="${st.id}" aria-current="${cur === st.id ? 'step' : 'false'}"${done ? ' title="Changed"' : ''}>${lead}<span>${esc(st.n)}</span>${fresh ? '<i class="tag">New</i>' : ''}</button>`;
   };
   const main = list.filter((x) => !x.extra), extra = list.filter((x) => x.extra);
-  const all = changeList(), mine = all.filter((c) => c.mod === m.id), others = all.length - mine.length;
-  const name = (c) => (STUDIO.mods.length > 1 ? c.n.split(' · ').slice(1).join(' · ') : c.n);
-  return `<p class="rec">Work through 1 to ${main.length} in order; the extras are optional polish.</p><div class="srow"><button class="start" data-cat="looks" aria-current="${cur === 'looks' ? 'step' : 'false'}"><span>Start</span></button>${main.map(pill).join('')}</div>`
-    + (extra.length ? `<div class="srow x"><span class="xsep">Extras</span>${extra.map(pill).join('')}</div>` : '')
-    + (all.length ? `<p class="chg">${mine.length ? `Changed here: ${mine.map((c) => `<button data-jump="${c.mod}|${c.cat}">${esc(name(c))}</button>`).join('')}` : 'Nothing changed here yet.'}`
-      + (others ? ` <button class="more" data-cat="review">${others} more in other studios</button>` : '') + '</p>' : '');
+  return `<div class="srow"><button class="start" data-cat="looks" aria-current="${cur === 'looks' ? 'step' : 'false'}"><span>Start</span></button>${main.map(pill).join('')}</div>`
+    + (extra.length ? `<div class="srow x"><span class="xsep">Extras <i>(optional)</i></span>${extra.map(pill).join('')}</div>` : '');
 }
 function footHTML() {
   if (!NAV.review) return ''; // Next lives at the top of every step
@@ -4098,7 +4092,7 @@ let pageVersion = SERVED_VERSION; // the version of index.html this page was bui
 function conn() {
   const c = $('conn'), t = c.querySelector('span');
   c.className = 'conn' + (STATUS.live && STATUS.listening ? ' on' : '');
-  t.textContent = STATUS.live ? (STATUS.listening ? 'Agent listening' : STATUS.queued ? `${STATUS.queued} waiting for the agent` : 'Connected') : STATUS.cloud ? 'Saved on this page' : LIVE ? 'Not connected · buttons copy text' : 'Offline · buttons copy text';
+  t.textContent = STATUS.live ? (STATUS.listening ? 'Agent listening' : STATUS.queued ? `${STATUS.queued} waiting for the agent` : 'Agent connected') : STATUS.cloud ? 'Saved on this page' : LIVE ? 'Not connected · buttons copy text' : 'Offline · buttons copy text';
   c.title = STATUS.live ? (STATUS.listening ? 'What you send reaches the agent now.' : 'What you send is kept, and reaches the agent when it next listens. Say “check the studio” in the chat if it seems to have stopped.')
     : STATUS.cloud ? 'Your choices and requests are saved on this page, where the agent can read them. Buttons also copy a message for you to paste in the chat.'
     : 'Everything on this page still works. Buttons copy a message for you to paste in the chat.';
@@ -4424,7 +4418,6 @@ document.addEventListener('click', (e) => {
   if ((el = at('[data-goctl]'))) return goControl(el.dataset.goctl);
   if ((el = at('[data-scope]'))) { SCOPE = el.dataset.scope; renderPanel(); return save(); }
   if ((el = at('[data-cat]'))) return go(null, el.dataset.cat);
-  if ((el = at('[data-jump]'))) { const [mod, cat] = el.dataset.jump.split('|'); return go(mod, cat); }
   if ((el = at('[data-mod]'))) return go(el.dataset.mod, NAV.cat[el.dataset.mod]);
   if ((el = at('[data-mode]'))) return setMode(el.dataset.mode);
   if ((el = at('[data-dev]'))) return setDevice(el.dataset.dev);
@@ -4470,6 +4463,7 @@ $('pin').onclick = pinNow;
 $('tabs').addEventListener('change', (e) => { if (e.target.id === 'addmod' && e.target.value) { sendModule(e.target.value); e.target.value = ''; } });
 $('msgx').onclick = () => $('msg').classList.remove('show');
 $('theme').onclick = () => setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
+$('stage').addEventListener('pointerdown', () => { if (!UI.tried) { UI.tried = true; $('tryhint').hidden = true; } });
 $('zoom').onclick = () => { UI.zoom = UI.zoom === false; layoutDevice(); };
 const segKeys = (id, keys, cur, set, attr) => $(id).addEventListener('keydown', (e) => {
   if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;

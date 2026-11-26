@@ -208,7 +208,7 @@ const STEPS = [
       ], { replay: true }),
     ] },
 
-  { id: 'interact', extra: 1, t: 'Hover, press and keyboard', why: 'How it reacts to a mouse, a finger or the keyboard. Depends on the material and movement.', dep: ['material', 'motion'],
+  { id: 'interact', extra: 1, t: 'Hover and press', short: 'Hover & press', why: 'How it reacts to a mouse, a finger or the keyboard. Depends on the material and movement.', dep: ['material', 'motion'],
     note: () => (TOUCH ? '<span>This device has no hover. Hover choices show with a mouse or trackpad; the description says what each does.</span>' : ''),
     ctl: [
       ch('hover', 'When the pointer is over it', [

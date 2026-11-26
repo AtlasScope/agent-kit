@@ -480,3 +480,17 @@ details.fine[open]>.ctl:not(:last-child){border-bottom:0}
 .work.wide,.work.reviewing{grid-template-rows:none}
 @media (max-width:899px){.work{grid-template-rows:none}}
 .head .hwhy{line-height:1.45;min-height:2.9em} /* one or two lines of explanation take the same room */
+/* ---- the audit: less above the choices, sliders in view, one place to ask ---- */
+.crumb{display:none}
+.nav .xsep i{font-style:normal;font-weight:400;color:var(--c-fg-4)}
+.tune{margin-top:18px;padding:12px 14px 4px;border-radius:12px;background:var(--s1);border:1px solid var(--line)}
+.tune .tuneh{margin:0 0 2px;font-size:13px;font-weight:600;color:var(--c-fg-3)}
+.tune .ctl{padding:8px 0 10px}
+.ask .quick{margin:10px 0 12px}
+.ask .quick .morego{padding:8px 14px;font-size:13.5px}
+.ask .wait{font-size:13px;color:var(--c-fg-2)}
+/* the pointed card's sentence, on the card */
+.tiles .tile:hover .td,.tiles .tile:focus-visible .td{display:block;position:absolute;z-index:3;top:0;left:0;right:0;margin:0;padding:7px 10px;font-size:12px;line-height:1.35;color:var(--c-fg-2);background:color-mix(in oklab,var(--c-surface) 92%,transparent);border-bottom:1px solid var(--line)}
+.tiles .tile[aria-pressed=true]:hover::after{display:none}
+.tiles .tile:hover .td,.tiles .tile:focus-visible .td{padding:3px 9px;font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:1240px){.pcol>.hacts{gap:6px;padding:8px 10px}.pcol>.hacts .seg button{padding:5px 7px;font-size:12.5px}.pcol>.hacts .tb{padding:6px 9px;font-size:12.5px}}

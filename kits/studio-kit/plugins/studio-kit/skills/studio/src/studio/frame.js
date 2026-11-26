@@ -6,7 +6,7 @@ const BGS = [
   ['sunset', 'Sunset'], ['paper', 'Paper'], ['grid', 'Grid'], ['checker', 'Checker'],
   ...(Array.isArray(MO.bg) ? MO.bg : []).filter(Array.isArray).map((e) => [String(e[0]), String(e[1] || e[0])]),
 ];
-const MODES = [['alone', 'Choices'], ['context', 'In a page'], ['compare', 'Compare'], ['states', 'States']];
+const MODES = [['alone', 'Up close'], ['context', 'In a page'], ['compare', 'Compare'], ['states', 'States']];
 const modeNow = () => (V.mode === 'states' && !AM().states ? 'alone' : V.mode);
 const baseName = (m) => (m.measured ? 'Today' : 'Starting point');
 /** The project's own page: the palette being chosen when there is one, else the project's page colour, else a plain
@@ -52,9 +52,9 @@ function compareHTML() {
     + `<figcaption class="cmp-foot"><p>${esc(sum(s))}</p>${key !== 'now' && !sameLook(mid, s, now) ? `<button class="mini" data-use="${esc(key)}">Use this</button>` : key !== 'now' ? '<span>In use now</span>' : ''}${extra}</figcaption></figure>`;
   const nowPinned = pins.some((p) => sameLook(mid, p.s, now)) || sameLook(mid, DEFS[mid], now);
   return card(baseName(m), m.measured ? 'Measured' : 'Starting point', DEFS[mid], 'base')
-    + pins.map((p) => card(p.name, 'Pinned', p.s, p.id, `<button class="mini q" data-unpin="${esc(p.id)}" aria-label="Unpin ${esc(p.name)}">Unpin</button>`)).join('')
-    + (nowPinned ? '' : card('Now', 'Not pinned', now, 'now', '<button class="mini q" data-act="pin">Pin</button>'))
-    + (pins.length ? '' : `<p class="cmp-tip">Press <b>Pin</b> on a version you like, keep exploring, and it waits here beside ${esc(baseName(m).toLowerCase())}. Up to three.</p>`);
+    + pins.map((p) => card(p.name, 'Shortlisted', p.s, p.id, `<button class="mini q" data-unpin="${esc(p.id)}" aria-label="Remove ${esc(p.name)} from the shortlist">Remove</button>`)).join('')
+    + (nowPinned ? '' : card('Now', 'Not shortlisted', now, 'now', '<button class="mini q" data-act="pin">Shortlist</button>'))
+    + (pins.length ? '' : `<p class="cmp-tip">Press <b>Shortlist</b> on a version you like, keep exploring, and it waits here beside ${esc(baseName(m).toLowerCase())}. Up to three.</p>`);
 }
 function statesHTML() {
   const m = AM(), s = AS();
@@ -66,7 +66,7 @@ function stageHint() {
   if (PEEK) return 'Trying it on · click to keep it';
   if (HOLDING) return 'Showing ' + baseName(AM()).toLowerCase();
   if (mode === 'context') return CX.real ? 'Your page, simplified' : 'A representative page with your words. Not your live page.';
-  return mode === 'alone' && NAV.mod === 'button' ? 'Press it to try it' : '';
+  return mode === 'alone' && NAV.mod === 'button' && !UI.tried ? 'Press it to try it' : '';
 }
 function renderStage() {
   const m = AM(), cv = $('canvas'), mode = modeNow(), board = $('board'), work = $('work');
@@ -138,7 +138,7 @@ function layoutDevice() {
   d.style.transform = s !== 1 ? `scale(${s})` : '';
   d.classList.toggle('framed', framed);
   Object.assign($('dwrap').style, { width: w * s + 'px', height: h * s + 'px', left: Math.round((w0 - w * s) / 2) + 'px', top: Math.round((h0 - h * s) / 2) + 'px' });
-  $('devhint').textContent = hint;
+  $('devhint').textContent = mode === 'alone' && !AM().ground ? '' : hint; // the Actual size card says it better
   previewExtras(s);
 }
 /** Beside an enlarged design: the same design at its real size; and, once something has changed, a small Today to
@@ -186,8 +186,8 @@ function renderStageBar() {
   const full = PINS.length >= 3;
   const isBase = sameLook(m.id, AS(), DEFS[m.id]);
   $('pin').disabled = full || isBase || PINS.some((p) => p.mod === m.id && sameLook(m.id, p.s, AS()));
-  $('pin').title = full ? 'Three are pinned. Unpin one in Compare to pin another.' : isBase ? `This is ${baseName(m).toLowerCase()}; Compare always shows it` : 'Keep this version to compare with later ones';
-  $('pin').textContent = PINS.some((p) => p.mod === m.id && sameLook(m.id, p.s, AS())) ? 'Pinned' : 'Pin';
+  $('pin').title = full ? 'Three are shortlisted. Remove one in Compare to add another.' : isBase ? `This is ${baseName(m).toLowerCase()}; Compare always shows it` : 'Keep this version to compare with later ones';
+  $('pin').textContent = PINS.some((p) => p.mod === m.id && sameLook(m.id, p.s, AS())) ? 'Shortlisted' : 'Shortlist';
 }
 function setMode(k) {
   V.mode = k;
@@ -217,14 +217,14 @@ function pinNow() {
   const m = AM(), s = AS();
   if (sameLook(m.id, s, DEFS[m.id])) return msg(`This is ${esc(baseName(m).toLowerCase())}, which Compare always shows. Change something first, then pin it.`);
   const twin = PINS.find((p) => p.mod === m.id && sameLook(m.id, s, p.s));
-  if (twin) return msg(`Already pinned as ${esc(twin.name)}.`);
-  if (PINS.length >= 3) return msg('Three versions are pinned already. Remove one in Compare first.', 'warn');
+  if (twin) return msg(`Already shortlisted as ${esc(twin.name)}.`);
+  if (PINS.length >= 3) return msg('Three versions are shortlisted already. Remove one in Compare first.', 'warn');
   const letter = ['A', 'B', 'C'].find((l) => !PINS.some((p) => p.name.startsWith(l + ' ·') || p.name === l));
   const what = m.summary ? m.summary(s) : (() => { const c = m.groups[0] && m.groups[0].ctl.find((x) => x.t === 'chips'); const op = c && optOf(c, s[c.k]); return op ? op.n : ''; })();
   PINS.push({ id: 'p' + Date.now().toString(36), name: letter + (what ? ' · ' + what : ''), mod: m.id, s: clone(s) });
   renderStageBar(); save();
   if (modeNow() === 'compare') renderStage();
-  else msg(`Pinned as ${esc(PINS[PINS.length - 1].name)}. <button class="chip sm" data-mode="compare">Compare</button>`, 'ok');
+  else msg(`Shortlisted as ${esc(PINS[PINS.length - 1].name)}. <button class="chip sm" data-mode="compare">Compare</button>`, 'ok');
 }
 function usePinned(key) {
   const mid = NAV.mod, p = PINS.find((x) => x.id === key);
