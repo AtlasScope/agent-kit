@@ -7,7 +7,7 @@
  --c-line:oklch(100% 0 0 / .1);--c-line-2:oklch(100% 0 0 / .18);--c-fill:oklch(100% 0 0 / .06);--c-fill-2:oklch(100% 0 0 / .1);
  --c-signal:oklch(84% .2 152);--c-focus:oklch(72% .15 252);--c-warm:#F5A524;
  --c-brand:oklch(80% .145 212);--c-brand-hi:oklch(91% .11 205);--c-brand-lo:oklch(70% .16 220);--c-brand-edge:oklch(54% .12 218);--c-brand-glow:oklch(84% .17 210);--c-on-brand:oklch(19% .05 225);
- --c-brand-line:color-mix(in oklab,var(--c-brand) 42%,transparent);--c-brand-ink:var(--c-brand-hi);--c-bar:oklch(16% .006 260);
+ --c-brand-line:color-mix(in oklab,var(--c-brand) 42%,transparent);--c-brand-ink:var(--c-brand-hi);--c-seg-on:var(--c-raised-2);--c-bar:oklch(16% .006 260);
  --glass-bg:linear-gradient(180deg,oklch(25% .008 255),oklch(22% .007 255));
  --glass-rim:inset 0 1px 0 oklch(100% 0 0 / .1),inset 0 0 0 1px oklch(100% 0 0 / .06);
  --glass-shadow:0 1px 2px oklch(0% 0 0 / .3),0 20px 44px -22px oklch(0% 0 0 / .6);
@@ -19,14 +19,18 @@
  --dfont:"Geist",ui-sans-serif,-apple-system,"SF Pro Text",system-ui,sans-serif;--dmono:"Geist Mono",ui-monospace,"SF Mono",Menlo,monospace;
  --ease:cubic-bezier(.2,.8,.2,1);--spring:cubic-bezier(.34,1.56,.64,1)}
 :root[data-theme=light]{color-scheme:light;
- --c-canvas:oklch(97% .002 260);--c-surface:#fff;--c-raised:oklch(95.5% .003 260);--c-raised-2:oklch(92.5% .004 260);--c-sunken:oklch(94.2% .003 260);
- --c-fg:oklch(18.5% .006 265);--c-fg-2:oklch(38% .008 265);--c-fg-3:oklch(47% .008 265);--c-fg-4:oklch(60% .006 265);
- --c-line:oklch(18.5% .006 265 / .1);--c-line-2:oklch(18.5% .006 265 / .18);--c-fill:oklch(18.5% .006 265 / .055);--c-fill-2:oklch(18.5% .006 265 / .09);
- --c-signal:oklch(55% .13 155);--c-focus:oklch(55% .19 258);--c-warm:#B45309;--okd:#fff;
- --c-brand-ink:oklch(50% .12 222);--c-brand-line:color-mix(in oklab,var(--c-brand-edge) 55%,var(--c-line-2));--c-bar:oklch(99.2% .001 260);
- --glass-bg:linear-gradient(180deg,#fff,oklch(98.6% .002 260));--glass-rim:inset 0 0 0 1px oklch(18.5% .006 265 / .09);
- --glass-shadow:0 1px 2px oklch(20% .01 265 / .06),0 18px 40px -22px oklch(20% .01 265 / .22);
- --shadow-3:0 2px 4px oklch(20% .01 265 / .06),0 12px 32px -8px oklch(20% .01 265 / .18)}
+ /* Light is a soft cool grey, not white. Each tone has one job, and white is kept for the user's own page:
+    canvas (the room) < panels (the preview, card labels) < controls (buttons, chips, the chosen tab), with wells
+    (inputs, tracks, the mat behind a design) one step below the canvas. A design on a white page then reads as the
+    brightest thing on screen; a design on a dark page stands out just as clearly. */
+ --c-canvas:oklch(93% .005 255);--c-surface:oklch(97% .003 255);--c-raised:oklch(99.2% .002 255);--c-raised-2:oklch(95.6% .004 255);--c-sunken:oklch(90.5% .006 255);
+ --c-fg:oklch(19% .008 262);--c-fg-2:oklch(35% .01 262);--c-fg-3:oklch(45% .01 262);--c-fg-4:oklch(57% .008 262);
+ --c-line:oklch(30% .015 260 / .13);--c-line-2:oklch(30% .015 260 / .22);--c-fill:oklch(30% .015 260 / .06);--c-fill-2:oklch(30% .015 260 / .1);
+ --c-signal:oklch(52% .13 155);--c-focus:oklch(55% .19 258);--c-warm:#B45309;--okd:#fff;
+ --c-brand-ink:oklch(48% .12 222);--c-brand-line:color-mix(in oklab,var(--c-brand-edge) 60%,var(--c-line-2));--c-bar:var(--c-canvas);--c-seg-on:var(--c-raised);
+ --glass-bg:var(--c-surface);--glass-rim:inset 0 0 0 1px var(--c-line);
+ --glass-shadow:0 1px 2px oklch(25% .02 260 / .06),0 12px 30px -18px oklch(25% .02 260 / .2);
+ --shadow-3:0 2px 4px oklch(25% .02 260 / .06),0 12px 32px -8px oklch(25% .02 260 / .18)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg) radial-gradient(1100px 360px at 50% -240px,color-mix(in oklab,var(--c-brand-glow) 9%,transparent),transparent 72%) no-repeat;color:var(--fg);font:15px/1.5 var(--font);letter-spacing:-.003em;-webkit-font-smoothing:antialiased}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:41;background:var(--bg)}
@@ -95,7 +99,7 @@ select:hover{border-color:var(--line2)}
 .phead{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line)}
 .phead b{font-size:14px;font-weight:600}
 .devhint{font-size:12px;color:var(--mut);white-space:nowrap}
-.stage{position:relative;flex:1 1 auto;min-height:240px;margin:12px 12px 0;border-radius:12px;overflow:hidden;background:var(--c-sunken);box-shadow:inset 0 0 0 1px var(--line)}
+.stage{position:relative;flex:1 1 auto;min-height:240px;margin:12px 12px 0;border-radius:12px;overflow:hidden;background:var(--c-sunken);border:1px solid var(--line-2)}
 .dwrap{position:absolute}
 .device{position:absolute;left:0;top:0;transform-origin:0 0;overflow:hidden;contain:layout paint;background:#060808}
 .canvas{width:100%;height:100%;display:grid;place-items:center;overflow:hidden auto;scrollbar-width:thin}
@@ -121,7 +125,7 @@ select:hover{border-color:var(--line2)}
 .seg{display:inline-flex;padding:3px;border-radius:11px;background:var(--c-sunken);border:1px solid var(--line);max-width:100%;overflow-x:auto;scrollbar-width:none}
 .seg button{all:unset;cursor:pointer;flex:none;padding:5px 12px;border-radius:8px;font-size:13px;font-weight:500;color:var(--mut);white-space:nowrap;transition:background .15s,color .15s}
 .seg button:hover{color:var(--fg)}
-.seg button[aria-checked=true]{background:var(--c-raised-2);color:var(--fg);box-shadow:inset 0 1px 0 oklch(100% 0 0 / .08),0 0 0 1px var(--c-line-2),0 1px 2px oklch(0% 0 0 / .5)}
+.seg button[aria-checked=true]{background:var(--c-seg-on);color:var(--fg);box-shadow:inset 0 1px 0 oklch(100% 0 0 / .08),0 0 0 1px var(--c-line-2),0 1px 2px oklch(0% 0 0 / .5)}
 .seg button:focus-visible{outline:2px solid var(--c-focus);outline-offset:1px}
 .tb{all:unset;cursor:pointer;padding:6px 12px;border-radius:9px;font-size:13px;font-weight:500;color:var(--fg);background:var(--s2);border:1px solid var(--line);white-space:nowrap;user-select:none;-webkit-user-select:none;touch-action:none;transition:background .15s,opacity .15s}
 .tb:hover{background:var(--s3);border-color:var(--c-brand-line)}
