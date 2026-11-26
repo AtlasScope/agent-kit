@@ -423,6 +423,34 @@ details.fine .ctl+.ctl{border-top:0}
 .tthumb .scale{display:none}
 .nav .chg .more{margin-left:10px;color:var(--c-fg-3)}
 .nav .chg .more::before{content:none!important}
+/* asking for more: a clear offer under every set of choices, sent with one click */
+.morebox{display:flex;align-items:center;gap:14px;margin-top:14px;padding:14px 16px;border-radius:12px;background:var(--s1);border:1px dashed var(--line-2)}
+.morebox .mtx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.morebox b{font-size:14px;font-weight:600}
+.morebox span{font-size:13px;line-height:1.4;color:var(--mut)}
+.morebox .morego{flex:none;padding:10px 16px;font-size:14px}
+.morebox:hover{border-color:var(--c-brand-line)}
+.morebox.busy{border-style:solid;border-color:var(--c-brand-line)}
+.morebox .spin{color:var(--c-brand-ink)}
+@media (max-width:899px){.morebox{flex-direction:column;align-items:stretch}.morebox .morego{justify-content:center}}
+.tn .nw{width:auto;height:auto;margin-left:6px;background:none;box-shadow:none;font-size:11px;font-weight:600;color:var(--c-brand-ink)}.tn .nw::after{content:"New"}
+/* ---- steps as pills: the main steps numbered on one row, the extras quieter on the next ---- */
+.nav{flex-direction:column;align-items:stretch;gap:8px;padding-bottom:14px;margin-bottom:20px;border-bottom:1px solid var(--line)}
+.nav .srow{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.nav button{gap:8px;padding:5px 13px 5px 5px;margin:0;border:0;border-radius:999px;background:var(--s1);box-shadow:inset 0 0 0 1px var(--line);font-size:13.5px;font-weight:500;color:var(--c-fg-2)}
+.nav button:hover{color:var(--fg);box-shadow:inset 0 0 0 1px var(--c-brand-line);border:0}
+.nav .num{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--s2);box-shadow:inset 0 0 0 1px var(--line);font:600 11.5px/1 var(--font);color:var(--c-fg-3)}
+.nav .num.done{color:var(--c-brand-ink);background:color-mix(in oklab,var(--c-brand) 16%,var(--s1));box-shadow:none}
+.nav .start{padding:5px 14px}
+.nav .start span{font-weight:600}
+.nav button[aria-current=step]{color:var(--fg);background:color-mix(in oklab,var(--c-brand) 13%,var(--s1));box-shadow:inset 0 0 0 1.5px var(--c-brand);border:0}
+.nav button[aria-current=step] .num{background:var(--c-brand);color:var(--c-on-brand);box-shadow:none}
+.nav .srow.x{gap:5px}
+.nav .xsep{margin:0 4px 0 2px;padding:0;border:0;font-size:12.5px;font-weight:500;color:var(--c-fg-4)}
+.nav .xp{padding:4px 11px;font-size:12.5px;background:transparent}
+.nav .xp.changed::after{content:"";width:5px;height:5px;border-radius:50%;background:var(--c-brand-ink)}
+.nav .chg{padding:4px 0 0}
+@media (max-width:899px){.nav .srow{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.nav .srow>*{flex:none}}
 
 /* ===== the example page ("In a page"). Every colour and type value is a custom property a studio may set; see scene.js ===== */
 .scene{--sc-bg:transparent;--sc-surface:rgba(255,255,255,.055);--sc-line:rgba(255,255,255,.12);--sc-control:rgba(255,255,255,.3);--sc-fg:#f3f5f4;--sc-fg2:#b4bdba;--sc-fg3:#8b9592;--sc-accent:#8ab4ff;--sc-fill:#f3f5f4;--sc-on-fill:#0b0e0d;--sc-ok:#4ade80;--sc-warn:#f5b94a;--sc-bad:#f87171;
@@ -3665,7 +3693,14 @@ function descHTML(c, op, s) {
     + (op.today && !op.n.startsWith('Today') ? ' This is what the project uses now.' : '')
     + (avail(op, s) ? '' : ' <em>It will not show with the current choices.</em>');
 }
-const moreLink = (c) => (c.more !== false ? `<button class="addc" data-more="${c.id}">Ask for more</button>` : '');
+const moreLink = () => ''; // asking for more lives in its own box under the choices (moreBox)
+/** Under a set of choices: one clear offer to have the agent design more of them, sent with one click. */
+function moreBox(id, what) {
+  const p = UI.pending, busy = p && p.key === id && Date.now() - p.at < 15 * 60e3;
+  return `<div class="morebox${busy ? ' busy' : ''}"><div class="mtx"><b>${busy ? 'The agent is designing more' : 'Want to see more options?'}</b>`
+    + `<span>${busy ? `New ${esc(what)} arrive here on their own, marked New. Keep going; nothing you picked is lost.` : `The agent designs new ${esc(what)} for this project and adds them here. Your picks stay as they are.`}</span></div>`
+    + (busy ? '<span class="spin"></span>' : `<button class="go q morego" data-moreask="${esc(id)}">More ${esc(what)} <span aria-hidden="true">→</span></button>`) + '</div>';
+}
 function choicesHTML(c, s) {
   const m = STUDIO.by[c.mid], tile = m.tile ? m.tile(c) : null;
   const isOn = (op) => sameValue(s[c.k], op.v);
@@ -3686,7 +3721,7 @@ function choicesHTML(c, s) {
     + `<div class="${tile ? 'tiles' + (tile.wide ? ' wide' : '') : 'chips'}" role="group" aria-labelledby="l_${c.id}">${vis.map(one).join('')}`
     + (hidden > 0 ? `<button class="chip ghost" data-expand="${c.id}">Show ${hidden} more</button>` : '')
     + (c.replay ? '<button class="chip ghost" data-act="replay">Replay</button>' : '') + '</div>'
-    + `<p class="desc" id="d_${c.id}">${descHTML(c, optOf(c, s[c.k]), s)}</p></div>`;
+    + `<p class="desc" id="d_${c.id}">${descHTML(c, optOf(c, s[c.k]), s)}</p>${c.more !== false ? moreBox(c.id, c.label.toLowerCase() + ' choices') : ''}</div>`;
 }
 function swatchDesc(c, s) {
   const w = c.sw.find((x) => x[0] === s[c.k]) || c.sw[0];
@@ -3706,7 +3741,7 @@ function ctlHTML(c, s) {
     const m = STUDIO.by[c.mid];
     const one = (w) => `<button data-c="${c.id}" data-sw="${esc(w[0])}" aria-pressed="${s[c.k] === w[0]}" aria-label="${esc(w[0])}" title="${esc(w[0])}" style="background:${m.swatchColour ? m.swatchColour(s, w) : `oklch(${w[3]} ${w[2]} ${w[1]})`}">${dot(freshKey(c, w[0]))}</button>`;
     return `<div class="ctl" data-ctl="${c.id}"><div class="lrow"><span class="lbl" id="l_${c.id}">${esc(c.label)}</span>${moreLink(c)}</div>`
-      + `<div class="sw" role="group" aria-labelledby="l_${c.id}">${c.sw.map(one).join('')}</div><p class="desc" id="d_${c.id}">${swatchDesc(c, s)}</p></div>`;
+      + `<div class="sw" role="group" aria-labelledby="l_${c.id}">${c.sw.map(one).join('')}</div><p class="desc" id="d_${c.id}">${swatchDesc(c, s)}</p>${c.more !== false ? moreBox(c.id, c.label.toLowerCase() + ' choices') : ''}</div>`;
   }
   return '';
 }
@@ -3741,7 +3776,7 @@ function looksHTML() {
       + `<span class="tn">${esc(l.n)}${feature ? '<span class="now">Recommended</span>' : ''}<span class="sel">Selected</span>${dot(m.id + '.look:' + l.id)}</span><small>${esc(l.d)}</small></div>`;
   };
   return `<div class="looks start">${card(base, true)}</div>`
-    + (m.looks.length ? `<div class="lrow ideas"><span class="lbl">Or start from an idea</span>${m.looks.length > 1 ? '<button class="addc" data-act="surprise">Surprise me</button>' : ''}</div><div class="looks">${m.looks.map((l) => card(l)).join('')}</div>` : '');
+    + (m.looks.length ? `<div class="lrow ideas"><span class="lbl">Or start from an idea</span>${m.looks.length > 1 ? '<button class="addc" data-act="surprise">Surprise me</button>' : ''}</div><div class="looks">${m.looks.map((l) => card(l)).join('')}</div>${moreBox('@looks', 'ideas')}` : '');
 }
 function groupHTML(g) {
   const s = AS();
@@ -3870,16 +3905,17 @@ function changeList() {
 }
 function navHTML() {
   const m = AM(), cur = NAV.review ? '' : NAV.cat[m.id], changed = new Set(changedKeys(m.id)), list = steps(m);
-  const item = (st, i) => {
+  const pill = (st, i) => {
     const fresh = st.g.ctl.some((c) => UI.fresh.some((f) => f.startsWith(m.id + '.' + c.k + ':')));
-    const mark = fresh ? '<i class="tag">New</i>' : st.g.ctl.some((c) => changed.has(c.k)) ? '<i class="done" title="Changed">✓</i>' : '';
-    return (st.extra && (i === 0 || !list[i - 1].extra) ? '<span class="xsep">Extras</span>' : '')
-      + `<button data-cat="${st.id}" aria-current="${cur === st.id ? 'step' : 'false'}"><b class="num">${i + 1}</b><span>${esc(st.n)}</span>${mark}</button>`;
+    const done = st.g.ctl.some((c) => changed.has(c.k));
+    const lead = st.extra ? '' : `<b class="num${done ? ' done' : ''}" aria-hidden="true">${done ? '✓' : i + 1}</b>`;
+    return `<button class="${st.extra ? 'xp' : ''}${done && st.extra ? ' changed' : ''}" data-cat="${st.id}" aria-current="${cur === st.id ? 'step' : 'false'}"${done ? ' title="Changed"' : ''}>${lead}<span>${esc(st.n)}</span>${fresh ? '<i class="tag">New</i>' : ''}</button>`;
   };
-  const start = `<button class="start" data-cat="looks" aria-current="${cur === 'looks' ? 'step' : 'false'}"><span>Start</span></button>`;
+  const main = list.filter((x) => !x.extra), extra = list.filter((x) => x.extra);
   const all = changeList(), mine = all.filter((c) => c.mod === m.id), others = all.length - mine.length;
   const name = (c) => (STUDIO.mods.length > 1 ? c.n.split(' · ').slice(1).join(' · ') : c.n);
-  return start + list.map(item).join('')
+  return `<div class="srow"><button class="start" data-cat="looks" aria-current="${cur === 'looks' ? 'step' : 'false'}"><span>Start</span></button>${main.map(pill).join('')}</div>`
+    + (extra.length ? `<div class="srow x"><span class="xsep">Extras</span>${extra.map(pill).join('')}</div>` : '')
     + (all.length ? `<p class="chg">${mine.length ? `Changed here: ${mine.map((c) => `<button data-jump="${c.mod}|${c.cat}">${esc(name(c))}</button>`).join('')}` : 'Nothing changed here yet.'}`
       + (others ? ` <button class="more" data-cat="review">${others} more in other studios</button>` : '') + '</p>' : '');
 }
@@ -4046,7 +4082,7 @@ async function cloudSend(item) {
     return true;
   } catch { return false; }
 }
-addEventListener('error', (e) => report((e.message || 'error') + (e.lineno ? ' (line ' + e.lineno + ')' : '')));
+addEventListener('error', (e) => { if (/ResizeObserver loop/.test(e.message || '')) return; report((e.message || 'error') + (e.lineno ? ' (line ' + e.lineno + ')' : '')); }); // the browser's harmless layout notice is not a page error
 
 function onStatus(st) {
   STATUS = { live: true, listening: !!st.listening, queued: +st.queued || 0 };
@@ -4105,10 +4141,10 @@ async function deliver(payload, words, okMsg, after) {
   return sent;
 }
 
-const INTENTS = { like: 'More choices in the spirit of the current one.', different: 'Something completely different from everything here.', what: 'What else could change here that the studio does not offer yet? Add it.' };
-async function sendAsk(intent) {
+const INTENTS = { more: 'More choices for this, clearly different from the ones already here and suited to this project.', like: 'More choices in the spirit of the current one.', different: 'Something completely different from everything here.', what: 'What else could change here that the studio does not offer yet? Add it.' };
+async function sendAsk(intent, key = null) {
   const m = AM(), w = askWhere(), c = w.ctl, s = AS();
-  const wish = (($('ask') || {}).value || '').trim().slice(0, 400);
+  const wish = key ? '' : (($('ask') || {}).value || '').trim().slice(0, 400); // the one-click offer sends just the request
   if (!intent && !wish) return msg('Say what you would like first, or use one of the three buttons underneath.', 'warn');
   const curName = c ? nameIn(m.id, c.k, s) : '';
   const payload = {
@@ -4121,8 +4157,8 @@ async function sendAsk(intent) {
   };
   const words = `Studio (${P.name}, ${m.title()}): add choices to ${c ? `“${c.label}” under ${w.group.t}` : w.group ? w.group.t : `the ${m.name} looks`}. `
     + (intent ? INTENTS[intent] + ' ' : '') + (wish ? 'What I want: ' + wish + (/[.!?]$/.test(wish) ? '' : '.') : '') + (c ? ` Current choice: ${curName}.` : '');
-  const sent = await deliver(payload, words, `Asked the agent to add to ${esc(w.name)}. New choices arrive here on their own, marked with a green dot.`, 'When it is done this page updates and keeps your choices.');
-  UI.pending = { name: w.name, at: Date.now(), sent };
+  const sent = await deliver(payload, words, `Asked the agent to add to ${esc(w.name)}. New choices arrive here on their own, marked New.`, 'When it is done this page updates and keeps your choices.');
+  UI.pending = { name: w.name, at: Date.now(), sent, key };
   UI.ask = { target: null, text: '' };
   renderPanel();
   save(true);
@@ -4333,6 +4369,7 @@ document.addEventListener('click', (e) => {
     if (box) { box.focus({ preventScroll: true }); $('askbox').scrollIntoView({ block: 'center', behavior: RM_OS ? 'auto' : 'smooth' }); }
     return;
   }
+  if ((el = at('[data-moreask]'))) { const k = el.dataset.moreask; UI.ask.target = k === '@looks' ? null : k; return sendAsk('more', k); }
   if ((el = at('[data-quick]'))) return sendAsk(el.dataset.quick);
   if ((el = at('[data-goctl]'))) return goControl(el.dataset.goctl);
   if ((el = at('[data-scope]'))) { SCOPE = el.dataset.scope; renderPanel(); return save(); }
@@ -4492,7 +4529,7 @@ function studioCheck() {
 
   fromHash();
 
-  /* Choices the agent added since the last visit get a green dot, and the page opens where they are. */
+  /* Choices the agent added since the last visit are marked New, and the page opens where they are. */
   const all = addedKeys();
   const added = had ? all.filter((k) => !UI.known.includes(k)) : [];
   UI.fresh = [...new Set(UI.fresh.concat(added))].filter((k) => all.includes(k));
@@ -4513,8 +4550,8 @@ function studioCheck() {
       added.forEach((k) => { const [m2, k2] = k.split(':')[0].split('.'); ctlsFor(m2, k2).forEach((x) => { UI.expanded[x.id] = true; }); });
     }
     const newCats = [...new Set(added.map((k) => ctlsFor(...k.split(':')[0].split('.'))[0]).filter((c) => c && STUDIO.by[c.mid].groups.find((g) => g.id === c.sid && g.dim)).map((c) => STUDIO.by[c.mid].groups.find((g) => g.id === c.sid).t))];
-    msg(newCats.length ? `Something new to change: <b>${esc(list(newCats))}</b>, with its choices drawn and marked with a green dot. Everything you picked and pinned is still here.`
-      : `${added.length} new choice${added.length > 1 ? 's' : ''} added${UI.pending ? ' to ' + esc(UI.pending.name) : ''}, marked with a green dot. Everything you picked is still selected.`, 'ok');
+    msg(newCats.length ? `Something new to change: <b>${esc(list(newCats))}</b>, with its choices drawn and marked New. Everything you picked and pinned is still here.`
+      : `${added.length} new choice${added.length > 1 ? 's' : ''} added${UI.pending ? ' to ' + esc(UI.pending.name) : ''}, marked New. Everything you picked is still selected.`, 'ok');
     UI.pending = null;
   } else if (!(UI.pending && UI.pending.sent && Date.now() - UI.pending.at < 15 * 60e3)) UI.pending = null;
 

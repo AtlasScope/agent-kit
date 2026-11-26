@@ -68,7 +68,7 @@ Build only the studios asked for. "The checkout button" is `button`. "Our colour
 MORE: {"id":"r1","module":"button","step":"material","stepName":"Material","control":"material","controlName":"Material","wish":"brushed metal, like a laptop","intent":"","current":"satin","existing":["solid","satin",...],"pinned":["A · Clear glass"]}
 ```
 
-`control` is null when the request is about a whole group, and `step` is `looks` when it is about finished looks. `intent` is `like` (more in the spirit of the current one), `different` (unlike everything there) or `what` (what else could change that the studio does not offer). Run `state` for the other picks.
+`control` is null when the request is about a whole group, and `step` is `looks` when it is about finished looks. `intent` is `more` (the one-click "More … choices" under a set of options: add 2 to 4 clearly new ones that suit the project), `like` (more in the spirit of the current one), `different` (unlike everything there) or `what` (what else could change that the studio does not offer). Run `state` for the other picks.
 
 Add 2 to 4 choices that fit, look clearly different from everything in `existing` and from each other, and work with the current picks. Edit only the studio's `index.html`:
 

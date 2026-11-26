@@ -86,7 +86,7 @@ function studioCheck() {
 
   fromHash();
 
-  /* Choices the agent added since the last visit get a green dot, and the page opens where they are. */
+  /* Choices the agent added since the last visit are marked New, and the page opens where they are. */
   const all = addedKeys();
   const added = had ? all.filter((k) => !UI.known.includes(k)) : [];
   UI.fresh = [...new Set(UI.fresh.concat(added))].filter((k) => all.includes(k));
@@ -107,8 +107,8 @@ function studioCheck() {
       added.forEach((k) => { const [m2, k2] = k.split(':')[0].split('.'); ctlsFor(m2, k2).forEach((x) => { UI.expanded[x.id] = true; }); });
     }
     const newCats = [...new Set(added.map((k) => ctlsFor(...k.split(':')[0].split('.'))[0]).filter((c) => c && STUDIO.by[c.mid].groups.find((g) => g.id === c.sid && g.dim)).map((c) => STUDIO.by[c.mid].groups.find((g) => g.id === c.sid).t))];
-    msg(newCats.length ? `Something new to change: <b>${esc(list(newCats))}</b>, with its choices drawn and marked with a green dot. Everything you picked and pinned is still here.`
-      : `${added.length} new choice${added.length > 1 ? 's' : ''} added${UI.pending ? ' to ' + esc(UI.pending.name) : ''}, marked with a green dot. Everything you picked is still selected.`, 'ok');
+    msg(newCats.length ? `Something new to change: <b>${esc(list(newCats))}</b>, with its choices drawn and marked New. Everything you picked and pinned is still here.`
+      : `${added.length} new choice${added.length > 1 ? 's' : ''} added${UI.pending ? ' to ' + esc(UI.pending.name) : ''}, marked New. Everything you picked is still selected.`, 'ok');
     UI.pending = null;
   } else if (!(UI.pending && UI.pending.sent && Date.now() - UI.pending.at < 15 * 60e3)) UI.pending = null;
 

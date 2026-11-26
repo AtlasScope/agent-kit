@@ -40,7 +40,7 @@ async function cloudSend(item) {
     return true;
   } catch { return false; }
 }
-addEventListener('error', (e) => report((e.message || 'error') + (e.lineno ? ' (line ' + e.lineno + ')' : '')));
+addEventListener('error', (e) => { if (/ResizeObserver loop/.test(e.message || '')) return; report((e.message || 'error') + (e.lineno ? ' (line ' + e.lineno + ')' : '')); }); // the browser's harmless layout notice is not a page error
 
 function onStatus(st) {
   STATUS = { live: true, listening: !!st.listening, queued: +st.queued || 0 };
@@ -99,10 +99,10 @@ async function deliver(payload, words, okMsg, after) {
   return sent;
 }
 
-const INTENTS = { like: 'More choices in the spirit of the current one.', different: 'Something completely different from everything here.', what: 'What else could change here that the studio does not offer yet? Add it.' };
-async function sendAsk(intent) {
+const INTENTS = { more: 'More choices for this, clearly different from the ones already here and suited to this project.', like: 'More choices in the spirit of the current one.', different: 'Something completely different from everything here.', what: 'What else could change here that the studio does not offer yet? Add it.' };
+async function sendAsk(intent, key = null) {
   const m = AM(), w = askWhere(), c = w.ctl, s = AS();
-  const wish = (($('ask') || {}).value || '').trim().slice(0, 400);
+  const wish = key ? '' : (($('ask') || {}).value || '').trim().slice(0, 400); // the one-click offer sends just the request
   if (!intent && !wish) return msg('Say what you would like first, or use one of the three buttons underneath.', 'warn');
   const curName = c ? nameIn(m.id, c.k, s) : '';
   const payload = {
@@ -115,8 +115,8 @@ async function sendAsk(intent) {
   };
   const words = `Studio (${P.name}, ${m.title()}): add choices to ${c ? `“${c.label}” under ${w.group.t}` : w.group ? w.group.t : `the ${m.name} looks`}. `
     + (intent ? INTENTS[intent] + ' ' : '') + (wish ? 'What I want: ' + wish + (/[.!?]$/.test(wish) ? '' : '.') : '') + (c ? ` Current choice: ${curName}.` : '');
-  const sent = await deliver(payload, words, `Asked the agent to add to ${esc(w.name)}. New choices arrive here on their own, marked with a green dot.`, 'When it is done this page updates and keeps your choices.');
-  UI.pending = { name: w.name, at: Date.now(), sent };
+  const sent = await deliver(payload, words, `Asked the agent to add to ${esc(w.name)}. New choices arrive here on their own, marked New.`, 'When it is done this page updates and keeps your choices.');
+  UI.pending = { name: w.name, at: Date.now(), sent, key };
   UI.ask = { target: null, text: '' };
   renderPanel();
   save(true);

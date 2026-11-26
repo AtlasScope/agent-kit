@@ -51,7 +51,14 @@ function descHTML(c, op, s) {
     + (op.today && !op.n.startsWith('Today') ? ' This is what the project uses now.' : '')
     + (avail(op, s) ? '' : ' <em>It will not show with the current choices.</em>');
 }
-const moreLink = (c) => (c.more !== false ? `<button class="addc" data-more="${c.id}">Ask for more</button>` : '');
+const moreLink = () => ''; // asking for more lives in its own box under the choices (moreBox)
+/** Under a set of choices: one clear offer to have the agent design more of them, sent with one click. */
+function moreBox(id, what) {
+  const p = UI.pending, busy = p && p.key === id && Date.now() - p.at < 15 * 60e3;
+  return `<div class="morebox${busy ? ' busy' : ''}"><div class="mtx"><b>${busy ? 'The agent is designing more' : 'Want to see more options?'}</b>`
+    + `<span>${busy ? `New ${esc(what)} arrive here on their own, marked New. Keep going; nothing you picked is lost.` : `The agent designs new ${esc(what)} for this project and adds them here. Your picks stay as they are.`}</span></div>`
+    + (busy ? '<span class="spin"></span>' : `<button class="go q morego" data-moreask="${esc(id)}">More ${esc(what)} <span aria-hidden="true">→</span></button>`) + '</div>';
+}
 function choicesHTML(c, s) {
   const m = STUDIO.by[c.mid], tile = m.tile ? m.tile(c) : null;
   const isOn = (op) => sameValue(s[c.k], op.v);
@@ -72,7 +79,7 @@ function choicesHTML(c, s) {
     + `<div class="${tile ? 'tiles' + (tile.wide ? ' wide' : '') : 'chips'}" role="group" aria-labelledby="l_${c.id}">${vis.map(one).join('')}`
     + (hidden > 0 ? `<button class="chip ghost" data-expand="${c.id}">Show ${hidden} more</button>` : '')
     + (c.replay ? '<button class="chip ghost" data-act="replay">Replay</button>' : '') + '</div>'
-    + `<p class="desc" id="d_${c.id}">${descHTML(c, optOf(c, s[c.k]), s)}</p></div>`;
+    + `<p class="desc" id="d_${c.id}">${descHTML(c, optOf(c, s[c.k]), s)}</p>${c.more !== false ? moreBox(c.id, c.label.toLowerCase() + ' choices') : ''}</div>`;
 }
 function swatchDesc(c, s) {
   const w = c.sw.find((x) => x[0] === s[c.k]) || c.sw[0];
@@ -92,7 +99,7 @@ function ctlHTML(c, s) {
     const m = STUDIO.by[c.mid];
     const one = (w) => `<button data-c="${c.id}" data-sw="${esc(w[0])}" aria-pressed="${s[c.k] === w[0]}" aria-label="${esc(w[0])}" title="${esc(w[0])}" style="background:${m.swatchColour ? m.swatchColour(s, w) : `oklch(${w[3]} ${w[2]} ${w[1]})`}">${dot(freshKey(c, w[0]))}</button>`;
     return `<div class="ctl" data-ctl="${c.id}"><div class="lrow"><span class="lbl" id="l_${c.id}">${esc(c.label)}</span>${moreLink(c)}</div>`
-      + `<div class="sw" role="group" aria-labelledby="l_${c.id}">${c.sw.map(one).join('')}</div><p class="desc" id="d_${c.id}">${swatchDesc(c, s)}</p></div>`;
+      + `<div class="sw" role="group" aria-labelledby="l_${c.id}">${c.sw.map(one).join('')}</div><p class="desc" id="d_${c.id}">${swatchDesc(c, s)}</p>${c.more !== false ? moreBox(c.id, c.label.toLowerCase() + ' choices') : ''}</div>`;
   }
   return '';
 }
@@ -127,7 +134,7 @@ function looksHTML() {
       + `<span class="tn">${esc(l.n)}${feature ? '<span class="now">Recommended</span>' : ''}<span class="sel">Selected</span>${dot(m.id + '.look:' + l.id)}</span><small>${esc(l.d)}</small></div>`;
   };
   return `<div class="looks start">${card(base, true)}</div>`
-    + (m.looks.length ? `<div class="lrow ideas"><span class="lbl">Or start from an idea</span>${m.looks.length > 1 ? '<button class="addc" data-act="surprise">Surprise me</button>' : ''}</div><div class="looks">${m.looks.map((l) => card(l)).join('')}</div>` : '');
+    + (m.looks.length ? `<div class="lrow ideas"><span class="lbl">Or start from an idea</span>${m.looks.length > 1 ? '<button class="addc" data-act="surprise">Surprise me</button>' : ''}</div><div class="looks">${m.looks.map((l) => card(l)).join('')}</div>${moreBox('@looks', 'ideas')}` : '');
 }
 function groupHTML(g) {
   const s = AS();
@@ -256,16 +263,17 @@ function changeList() {
 }
 function navHTML() {
   const m = AM(), cur = NAV.review ? '' : NAV.cat[m.id], changed = new Set(changedKeys(m.id)), list = steps(m);
-  const item = (st, i) => {
+  const pill = (st, i) => {
     const fresh = st.g.ctl.some((c) => UI.fresh.some((f) => f.startsWith(m.id + '.' + c.k + ':')));
-    const mark = fresh ? '<i class="tag">New</i>' : st.g.ctl.some((c) => changed.has(c.k)) ? '<i class="done" title="Changed">✓</i>' : '';
-    return (st.extra && (i === 0 || !list[i - 1].extra) ? '<span class="xsep">Extras</span>' : '')
-      + `<button data-cat="${st.id}" aria-current="${cur === st.id ? 'step' : 'false'}"><b class="num">${i + 1}</b><span>${esc(st.n)}</span>${mark}</button>`;
+    const done = st.g.ctl.some((c) => changed.has(c.k));
+    const lead = st.extra ? '' : `<b class="num${done ? ' done' : ''}" aria-hidden="true">${done ? '✓' : i + 1}</b>`;
+    return `<button class="${st.extra ? 'xp' : ''}${done && st.extra ? ' changed' : ''}" data-cat="${st.id}" aria-current="${cur === st.id ? 'step' : 'false'}"${done ? ' title="Changed"' : ''}>${lead}<span>${esc(st.n)}</span>${fresh ? '<i class="tag">New</i>' : ''}</button>`;
   };
-  const start = `<button class="start" data-cat="looks" aria-current="${cur === 'looks' ? 'step' : 'false'}"><span>Start</span></button>`;
+  const main = list.filter((x) => !x.extra), extra = list.filter((x) => x.extra);
   const all = changeList(), mine = all.filter((c) => c.mod === m.id), others = all.length - mine.length;
   const name = (c) => (STUDIO.mods.length > 1 ? c.n.split(' · ').slice(1).join(' · ') : c.n);
-  return start + list.map(item).join('')
+  return `<div class="srow"><button class="start" data-cat="looks" aria-current="${cur === 'looks' ? 'step' : 'false'}"><span>Start</span></button>${main.map(pill).join('')}</div>`
+    + (extra.length ? `<div class="srow x"><span class="xsep">Extras</span>${extra.map(pill).join('')}</div>` : '')
     + (all.length ? `<p class="chg">${mine.length ? `Changed here: ${mine.map((c) => `<button data-jump="${c.mod}|${c.cat}">${esc(name(c))}</button>`).join('')}` : 'Nothing changed here yet.'}`
       + (others ? ` <button class="more" data-cat="review">${others} more in other studios</button>` : '') + '</p>' : '');
 }
