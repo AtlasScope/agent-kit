@@ -61,6 +61,9 @@ for (const size of SIZES) {
     assert.equal(await clipboard(page), INSTALL_MESSAGE, "Install copies the message to paste into an agent");
     assert.equal((await page.locator(".inst__done .inst__big").innerText()).trim(), "Copied", "the panel says Copied");
     assert.equal(await page.locator(".inst__say").count(), 0, "the message is not shown");
+    // It is one tap away, exactly as copied.
+    await page.locator(".inst__peek > summary").click();
+    assert.equal((await page.locator(".inst__peekmsg").innerText()).trim(), INSTALL_MESSAGE, "See the message shows the exact message");
     assert.ok(await page.locator(".inst__agent", { hasText: "Claude Code" }).isVisible(), "a link opens the agent");
     await page.getByRole("button", { name: /Copy the message/ }).click();
     assert.equal(await clipboard(page), INSTALL_MESSAGE, "the install page copies the same message");
@@ -72,8 +75,9 @@ for (const size of SIZES) {
       await copy.click();
       assert.equal(await clipboard(page), agent.steps.join("\n"), `${agent.label} tab copies every step`);
     }
-    await page.locator(".inst__more a", { hasText: "Prompts" }).click();
-    await page.waitForURL(/\/prompts$/);
+    // What to ask first leads to the kit it uses.
+    await page.locator(".inst__card", { hasText: "/design" }).click();
+    await page.waitForURL(/\/kits\/design-kit$/);
     assert.deepEqual(errors, []);
     await ctx.close();
   });

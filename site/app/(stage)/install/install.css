@@ -27,21 +27,21 @@
     radial-gradient(42% 30% at 50% 46%, color-mix(in oklab, var(--c-brand-glow) 20%, transparent), transparent 70%),
     radial-gradient(60% 46% at 50% 50%, color-mix(in oklab, var(--c-brand-glow) 9%, transparent), color-mix(in oklab, oklch(70% .12 250) 5%, transparent) 55%, transparent 78%); }
 
-.inst__in { width: min(680px, 100% - 2 * max(var(--gutter), env(safe-area-inset-left))); margin-inline: auto; padding-block: clamp(40px, 9svh, 110px) 96px; }
+.inst__in { width: min(680px, 100% - 2 * max(var(--gutter), env(safe-area-inset-left))); margin-inline: auto; padding-block: clamp(28px, 6.5svh, 96px) 96px; }
 .inst__main { display: grid; gap: 0; min-width: 0; }
 
-.inst h1 { margin: 0; text-align: center; font: 600 clamp(2.125rem, 1.8vw + 1.5rem, 3rem)/1.05 var(--font-body); letter-spacing: -0.04em; color: #fff; text-wrap: balance; }
+.inst h1 { margin: 0; text-align: center; font: 600 clamp(2rem, 1.4vw + 1.45rem, 2.75rem)/1.05 var(--font-body); letter-spacing: -0.04em; color: #fff; text-wrap: balance; }
 /* The heading takes focus on arrival from the homepage, so keyboard and screen reader users start at the top. It is not
    a control, so it shows no ring (the global focus style adds an outline and a glow; both are removed here only). */
 .inst h1:focus, .inst h1:focus-visible { outline: none; box-shadow: none; }
-.inst__lede { margin: 12px auto 0; max-width: 30em; text-align: center; color: oklch(100% 0 0 / .66); font-size: 1.0625rem; line-height: 1.5; letter-spacing: -0.008em; text-wrap: balance; }
+.inst__lede { margin: 10px auto 0; max-width: 30em; text-align: center; color: oklch(100% 0 0 / .66); font-size: 1.0625rem; line-height: 1.5; letter-spacing: -0.008em; text-wrap: balance; }
 
 /* Small labels: the composer's, the terminal's and the kit list's. */
 .inst__label { display: inline-flex; align-items: center; gap: 9px; margin: 0; font: 500 0.8125rem/1.2 var(--font-body); letter-spacing: -0.003em; color: var(--t3); }
 
 /* The composer. Dark glass in layers: a faint lift at the top, an inner highlight, a hairline edge brighter above
    than below, a deep soft shadow onto the floor, and a green underglow where it meets the pool of light. */
-.inst__msg { position: relative; isolation: isolate; margin-top: clamp(28px, 4.4svh, 40px); border-radius: 22px;
+.inst__msg { position: relative; isolation: isolate; margin-top: clamp(22px, 3.6svh, 36px); border-radius: 22px;
   background: linear-gradient(180deg, oklch(22% .008 250 / .78), oklch(13% .006 250 / .82) 60%, oklch(11% .008 200 / .86));
   -webkit-backdrop-filter: blur(24px) saturate(1.3); backdrop-filter: blur(24px) saturate(1.3);
   box-shadow: inset 0 1px 0 oklch(100% 0 0 / .1), inset 0 0 0 1px oklch(100% 0 0 / .045),
@@ -106,79 +106,125 @@
 .inst__done { display: none; }
 .inst[data-got] .inst__msg:not([data-blocked]) .inst__done, .inst__msg.is-copied:not([data-blocked]) .inst__done { display: block; }
 .inst[data-got] .inst__msg:not([data-blocked]) .inst__idle, .inst__msg.is-copied:not([data-blocked]) .inst__idle { display: none; }
-.inst__got { padding: 26px 26px 6px; }
+.inst__got { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: 14px; padding: 20px 16px 4px 22px; }
 .stage[data-shift="install"] .inst__got { animation: step-in 420ms var(--ease-out) 560ms both; }
-.inst__big { display: flex; align-items: center; gap: 12px; margin: 0; font: 600 1.75rem/1.15 var(--font-body); letter-spacing: -0.03em; color: #fff; text-wrap: balance; }
-.inst__tick { display: inline-grid; place-items: center; flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--c-signal); color: #04141b; }
+.inst__big { margin: 0; font: 600 1.375rem/1.15 var(--font-body); letter-spacing: -0.025em; color: #fff; }
+.inst__tick { display: inline-grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--c-signal); color: #04141b;
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--c-signal) 16%, transparent), 0 0 18px -2px color-mix(in oklab, var(--c-brand-glow) 70%, transparent); }
 .inst__tick .i { width: 18px; height: 18px; stroke-width: 2.6; animation: tick-in 420ms var(--ease-out) both; }
-.inst__sub { margin: 8px 0 0; font-size: 1rem; line-height: 1.5; color: var(--t2); text-wrap: pretty; }
+.inst__sub { margin: 3px 0 0; font-size: .9375rem; line-height: 1.45; color: var(--t2); text-wrap: pretty; }
 .inst__sub .inst__keys { color: var(--t2); }
+.inst__again--top { display: inline-flex; align-items: center; gap: 6px; align-self: start; }
+.inst__again--top .i { width: 14px; height: 14px; }
 /* After a copy: open an agent. The visitor's own is the lit key; the others are glass. */
-.inst__open { display: grid; gap: 10px; padding: 16px 18px 18px 26px; }
+.inst__open { display: grid; gap: 9px; padding: 14px 18px 18px 72px; }
 .inst__agents { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .inst__agent { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border: 1px solid var(--line-2); border-radius: 12px; background: var(--panel-2);
   color: var(--t1); font: 550 0.875rem/1 var(--font-body); text-decoration: none; -webkit-tap-highlight-color: transparent;
-  transition: background-color var(--dur-base) var(--ease-out), transform 220ms var(--ease-out); }
+  transition: background-color var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out), transform 220ms var(--ease-out); }
 .inst__agent .i { width: 16px; height: 16px; }
 .inst__ext { width: 13px; height: 13px; opacity: .7; }
 .inst__agent:active { transform: translateY(calc(1px * var(--travel))) scale(.97); transition-duration: 70ms; }
 .inst__agent--lead { border: 0; color: var(--c-on-brand); font-weight: 600;
   background: radial-gradient(120% 100% at 50% -30%, oklch(100% 0 0 / .16), transparent 62%), linear-gradient(180deg, var(--satin-1), var(--satin-2));
   box-shadow: inset 0 1px 0 oklch(100% 0 0 / .32), inset 0 0 0 1px oklch(100% 0 0 / .06), 0 0 0 1px var(--c-brand-edge), 0 6px 18px -8px color-mix(in oklab, var(--c-brand-glow) 55%, transparent); }
-.inst__again { min-height: 40px; padding: 0 10px; border: 0; background: none; color: var(--t2); font: 500 0.875rem/1 var(--font-body); cursor: pointer; -webkit-tap-highlight-color: transparent; }
-@media (hover: hover) and (pointer: fine) { .inst__agent:not(.inst__agent--lead):hover { background: oklch(100% 0 0 / .14); } .inst__agent--lead:hover { filter: brightness(1.04); } .inst__again:hover { color: var(--t1); text-decoration: underline; text-underline-offset: .25em; } }
+.inst__again { min-height: 40px; padding: 0 10px; border: 0; border-radius: 10px; background: none; color: var(--t2); font: 500 0.875rem/1 var(--font-body); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+@media (hover: hover) and (pointer: fine) { .inst__agent:not(.inst__agent--lead):hover { background: oklch(100% 0 0 / .12); box-shadow: 0 0 0 1px color-mix(in oklab, var(--c-brand) 35%, transparent); } .inst__agent--lead:hover { filter: brightness(1.05); } .inst__again:hover { color: var(--t1); background: oklch(100% 0 0 / .06); } }
 @media (pointer: coarse) { .inst__agent, .inst__again { min-height: 44px; } }
-/* The account offer (components/AccountOffer.tsx): once, after a copy, to a visitor with no account. It sits under the
-   status line so Copied and the agent buttons stay first. A solid panel, not glass (the composer is the one payload),
-   with a white hairline lit along its top edge. Its one big key is white, so it never competes with the lit cyan agent
-   key above; Sign in and Not now are quiet text. A small Starred list shows what a star keeps, its stars lighting
-   one after another as it arrives. */
-.inst__acct { position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 272px); grid-template-areas: "say list" "do list"; column-gap: 24px; row-gap: 22px; align-items: start;
-  margin-top: 36px; padding: 28px 28px 26px; border-radius: 22px;
-  background: radial-gradient(70% 90% at 100% 0%, oklch(100% 0 0 / .05), transparent 70%), linear-gradient(180deg, oklch(18% .008 230 / .92), oklch(12% .006 240 / .94));
-  box-shadow: inset 0 1px 0 oklch(100% 0 0 / .12), inset 0 0 0 1px oklch(100% 0 0 / .07), 0 1px 2px oklch(0% 0 0 / .5), 0 24px 48px -20px oklch(0% 0 0 / .9);
-  animation: acct-in 560ms var(--ease-out) 320ms both; }
-.stage[data-shift="install"] .inst__acct { animation-delay: 1150ms; }
+
+/* The message, folded: one quiet row at the foot of the panel. Open, it reads as the message you will send, a chat
+   bubble on the right, selectable in one go. */
+.inst__peek { border-top: 1px solid oklch(100% 0 0 / .07); }
+.inst__peek > summary { display: flex; align-items: center; gap: 6px; min-height: 42px; padding: 0 22px; list-style: none; cursor: pointer; color: var(--t3); font-size: .8125rem; -webkit-tap-highlight-color: transparent; border-radius: 0 0 22px 22px; }
+.inst__peek > summary::-webkit-details-marker { display: none; }
+.inst__peek > summary .i { width: 14px; height: 14px; transition: rotate var(--dur-base) var(--ease-out); }
+.inst__peek[open] > summary .i { rotate: 90deg; }
+.inst__peekmsg { margin: 0 18px 18px auto; max-width: min(92%, 34em); padding: 12px 16px; border-radius: 18px 18px 6px 18px; font-size: .9375rem; line-height: 1.55; color: oklch(96% .01 220); overflow-wrap: anywhere;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--c-brand) 18%, oklch(22% .01 230)), color-mix(in oklab, var(--c-brand) 10%, oklch(17% .01 230)));
+  box-shadow: inset 0 1px 0 oklch(100% 0 0 / .1), inset 0 0 0 1px color-mix(in oklab, var(--c-brand) 22%, transparent);
+  -webkit-user-select: all; user-select: all; animation: inst-open var(--dur-slow) var(--ease-out); }
+.inst__peekmsg::selection { background: color-mix(in oklab, var(--c-brand) 40%, transparent); }
+@media (hover: hover) and (pointer: fine) { .inst__peek > summary:hover { color: var(--t1); } }
+
+/* The account offer (components/AccountOffer.tsx), to anyone not signed in. A solid panel, not glass (the install
+   panel is the one payload), with a hairline lit cyan along its top edge: what an account keeps, three real things it
+   does, and one white key that never competes with the lit agent key above. Sign in and Not now are quiet. */
+html[data-auth] .inst__acct, .inst[data-no-offer] .inst__acct { display: none; }
+.inst__acct { position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "say do" "perks perks"; column-gap: 24px; row-gap: 18px; align-items: center;
+  margin-top: 28px; padding: 22px 22px 20px 24px; border-radius: 20px;
+  background: radial-gradient(60% 120% at 100% 0%, color-mix(in oklab, var(--c-brand) 7%, transparent), transparent 70%), linear-gradient(180deg, oklch(17% .008 230 / .9), oklch(12% .006 240 / .92));
+  box-shadow: inset 0 1px 0 oklch(100% 0 0 / .1), inset 0 0 0 1px oklch(100% 0 0 / .07), 0 1px 2px oklch(0% 0 0 / .5), 0 24px 48px -24px oklch(0% 0 0 / .9); }
+.inst__acct::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(90deg, transparent 8%, oklch(100% 0 0 / .45) 36%, color-mix(in oklab, var(--c-brand-hi) 75%, transparent) 60%, transparent 92%) top / 100% 1px no-repeat; }
+.stage[data-shift="install"] .inst__acct { animation: acct-in 560ms var(--ease-out) 900ms both; }
 @keyframes acct-in { from { opacity: 0; transform: translateY(calc(10px * var(--travel))); } }
-.inst__acct-rim { position: absolute; inset: 0; z-index: -1; border-radius: inherit; padding: 1px; pointer-events: none;
-  background: linear-gradient(90deg, transparent 6%, oklch(100% 0 0 / .55) 38%, color-mix(in oklab, var(--c-brand-hi) 70%, transparent) 62%, transparent 94%) top / 100% 1px no-repeat; }
 .inst__acct-say { grid-area: say; }
-.inst__acct h2 { margin: 0; font: 600 clamp(1.5rem, 1vw + 1.1rem, 1.75rem)/1.1 var(--font-body); letter-spacing: -0.035em; color: #fff; text-wrap: balance; }
-.inst__acct p { margin: 10px 0 0; max-width: 30em; font-size: 1rem; line-height: 1.5; color: var(--t2); text-wrap: pretty; }
-/* What a star keeps: a few real prompts, starred. Decorative, so hidden from screen readers. */
-.inst__acct-list { grid-area: list; display: grid; grid-template-columns: minmax(0, 1fr); align-self: center; overflow: hidden; padding: 4px 0; border: 1px solid var(--line); border-radius: 14px; background: oklch(100% 0 0 / .025); }
-.inst__acct-head, .inst__acct-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px 9px 14px; font-size: 0.78125rem; line-height: 1.3; }
-.inst__acct-head { gap: 8px; color: var(--t1); font-weight: 550; }
-.inst__acct-head .i { width: 14px; height: 14px; color: #fff; }
-.inst__acct-row { justify-content: space-between; border-top: 1px solid var(--line); color: var(--t2); }
-.inst__acct-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.inst__acct-row .i { flex: none; width: 15px; height: 15px; color: var(--c-brand-hi); filter: drop-shadow(0 0 6px color-mix(in oklab, var(--c-brand-glow) 60%, transparent));
-  animation: star-on 480ms var(--ease-out) both; animation-delay: calc(820ms + var(--i) * 140ms); }
-.stage[data-shift="install"] .inst__acct-row .i { animation-delay: calc(1650ms + var(--i) * 140ms); }
-@keyframes star-on { 0% { opacity: .35; transform: scale(.7); color: var(--t3); filter: none; } 60% { transform: scale(1.18); } }
-.inst__acct-do { grid-area: do; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.inst__acct h2 { margin: 0; font: 600 1.25rem/1.2 var(--font-body); letter-spacing: -0.025em; color: #fff; text-wrap: balance; }
+.inst__acct p { margin: 6px 0 0; max-width: 32em; font-size: .9375rem; line-height: 1.5; color: var(--t2); text-wrap: pretty; }
+.inst__acct-perks { grid-area: perks; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 16px 0 0; list-style: none; border-top: 1px solid var(--line); }
+.inst__acct-perks li { display: flex; align-items: flex-start; gap: 9px; font-size: .8125rem; line-height: 1.45; color: var(--t3); text-wrap: pretty; }
+.inst__acct-perks .i { flex: none; width: 16px; height: 16px; margin-top: 1px; color: var(--c-brand-hi); }
+.inst__acct-perks b { color: var(--t1); font-weight: 550; }
+.inst__acct-do { grid-area: do; display: grid; justify-items: center; gap: 2px; }
 /* The one big key: white satin, dark ink. */
-.inst__join { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 50px; padding: 0 24px; border-radius: 14px; color: oklch(17% .03 230); font: 600 1rem/1 var(--font-body); letter-spacing: -0.01em; text-decoration: none; -webkit-tap-highlight-color: transparent;
+.inst__join { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 46px; padding: 0 22px; border-radius: 13px; color: oklch(17% .03 230); font: 600 .9375rem/1 var(--font-body); letter-spacing: -0.01em; text-decoration: none; white-space: nowrap; -webkit-tap-highlight-color: transparent;
   background: radial-gradient(120% 100% at 50% -30%, #fff, transparent 70%), linear-gradient(180deg, oklch(99% .004 220), oklch(90% .02 215));
   box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 oklch(80% .03 220), 0 0 0 1px oklch(100% 0 0 / .4), 0 10px 28px -12px color-mix(in oklab, var(--c-brand-glow) 55%, transparent);
   transition: box-shadow var(--dur-base) var(--ease-out), transform 220ms var(--ease-out), filter var(--dur-base) var(--ease-out); }
 .inst__join .inst__ext { opacity: .55; }
 .inst__join:active { transform: translateY(calc(1px * var(--travel))) scale(.97); transition-duration: 70ms; }
 .inst__acct-alt { display: inline-flex; align-items: center; gap: 2px; }
-.inst__acct-alt a.inst__again { display: inline-flex; align-items: center; gap: 6px; color: var(--t1); text-decoration: none; }
+.inst__acct-alt .inst__again { min-height: 36px; font-size: .8125rem; }
+.inst__acct-alt a.inst__again { display: inline-flex; align-items: center; gap: 5px; color: var(--t1); text-decoration: none; }
 @media (hover: hover) and (pointer: fine) {
   .inst__join:hover { filter: brightness(1.03); box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 oklch(80% .03 220), 0 0 0 1px oklch(100% 0 0 / .55), 0 14px 34px -12px color-mix(in oklab, var(--c-brand-glow) 75%, transparent); }
-  .inst__acct-alt a.inst__again:hover { text-decoration: underline; text-underline-offset: .25em; }
 }
 /* After they come back signed in: one line, where the offer was. */
-.inst__welcome { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 28px 0 0; font-size: var(--type-sm); line-height: 1.5; color: var(--t2); text-align: center; animation: inst-note var(--dur-base) var(--ease-out); }
+.inst__welcome { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 24px 0 0; font-size: var(--type-sm); line-height: 1.5; color: var(--t2); text-align: center; animation: inst-note var(--dur-base) var(--ease-out); }
 .inst__welcome-star .i { width: 15px; height: 15px; color: var(--c-brand-hi); }
 .inst__welcome a { color: var(--t1); text-decoration: underline; text-decoration-color: var(--line-2); text-underline-offset: .2em; }
+
+/* Then ask your agent: one real request per kit, as cards on the floor, and the library's search under them. Cards are
+   solid and quiet; hovered, their edge takes the cyan light. */
+.inst__try { margin-top: 40px; }
+.inst__tryhead { text-align: center; }
+.inst__try h2 { margin: 0; font: 600 1.25rem/1.2 var(--font-body); letter-spacing: -0.025em; color: #fff; }
+.inst__try h2:focus { outline: none; }
+.inst__tryhead p { margin: 6px auto 0; max-width: 34em; font-size: .875rem; line-height: 1.5; color: var(--t3); text-wrap: balance; }
+.inst__cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 18px 0 0; padding: 0; list-style: none; }
+.inst__card { display: grid; grid-template-rows: 1fr auto; gap: 14px; height: 100%; padding: 14px 15px 12px; border-radius: 16px; color: inherit; text-decoration: none;
+  background: linear-gradient(180deg, oklch(16% .006 240 / .88), oklch(12% .005 240 / .9)); box-shadow: inset 0 1px 0 oklch(100% 0 0 / .07), inset 0 0 0 1px oklch(100% 0 0 / .08);
+  transition: box-shadow var(--dur-base) var(--ease-out), transform 220ms var(--ease-out); -webkit-tap-highlight-color: transparent; }
+.inst__ask { font-size: .9375rem; line-height: 1.45; color: var(--t1); text-wrap: pretty; }
+.inst__ask code { padding: 1px 6px; border-radius: 6px; font: 500 .8125rem/1.4 var(--font-mono); color: var(--c-brand-hi); background: color-mix(in oklab, var(--c-brand) 12%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--c-brand) 22%, transparent); }
+.inst__cardfoot { display: flex; justify-content: space-between; gap: 8px; font-size: .75rem; color: var(--t3); }
+.inst__cardfoot span:first-child { font-family: var(--font-mono); }
+.inst__card:active { transform: scale(.985); transition-duration: 70ms; }
+.inst__find { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 18px; margin-top: 16px; }
+.inst__find > a { display: inline-flex; align-items: center; min-height: 36px; color: var(--t2); font-size: .875rem; text-decoration: none; }
+.inst__search { display: inline-flex; align-items: center; gap: 10px; min-height: 42px; padding: 0 8px 0 14px; border: 0; border-radius: 12px; cursor: pointer; color: var(--t2); font: 400 .875rem/1 var(--font-body);
+  background: oklch(100% 0 0 / .05); box-shadow: inset 0 0 0 1px var(--line-2); transition: box-shadow var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out); }
+.inst__search .i { width: 16px; height: 16px; color: var(--t3); }
+.inst__search kbd { margin-left: 18px; }
+@media (hover: hover) and (pointer: fine) {
+  .inst__card:hover { box-shadow: inset 0 1px 0 oklch(100% 0 0 / .1), inset 0 0 0 1px color-mix(in oklab, var(--c-brand) 45%, transparent), 0 0 0 1px color-mix(in oklab, var(--c-brand) 12%, transparent), 0 10px 30px -14px color-mix(in oklab, var(--c-brand-glow) 50%, transparent); }
+  .inst__search:hover { color: var(--t1); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--c-brand) 45%, transparent), 0 0 18px -8px var(--c-brand-glow); }
+  .inst__find > a:hover { color: #fff; text-decoration: underline; text-decoration-color: var(--line-2); text-underline-offset: .25em; }
+}
+@media (pointer: coarse) { .inst__find > a { min-height: 44px; } .inst__search { min-height: 44px; } .inst__search kbd { display: none; } }
 @media (max-width: 640px) {
-  .inst__acct { grid-template-columns: minmax(0, 1fr); grid-template-areas: "say" "list" "do"; row-gap: 18px; margin-top: 28px; padding: 22px 18px 18px; border-radius: 20px; }
-  .inst__acct-list .inst__acct-row:nth-child(n + 4) { display: none; }
-  .inst__acct-do { display: grid; justify-items: center; gap: 4px; }
+  .inst__got { grid-template-columns: auto minmax(0, 1fr); padding: 18px 14px 2px 18px; }
+  .inst__again--top { grid-column: 1 / -1; justify-self: start; margin: 6px 0 0 44px; padding-inline: 6px; }
+  .inst__open { padding: 12px 14px 16px 18px; }
+  .inst__agents { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .inst__agent { justify-content: center; }
+  .inst__peek > summary { padding-inline: 18px; }
+  .inst__acct { grid-template-columns: minmax(0, 1fr); grid-template-areas: "say" "perks" "do"; row-gap: 16px; margin-top: 24px; padding: 20px 18px 16px; }
+  .inst__acct-perks { grid-template-columns: minmax(0, 1fr); gap: 10px; }
   .inst__join { width: 100%; }
+  .inst__cards { grid-template-columns: minmax(0, 1fr); }
+  .inst__card { grid-template-rows: auto auto; }
+  .inst__search { width: 100%; }
 }
 
 /* The status line under the message: what Copy did, in words, in place. Before any copy it says where the message works. */
@@ -208,7 +254,7 @@ html:not([data-os="mac"], [data-os="linux"]) .inst__keys [data-os="other"], html
 @media (hover: none) and (pointer: coarse) { .inst__phone { display: block; } }
 
 /* The by-hand commands, closed until asked for. The summary is a full-width row with a chevron that turns. */
-:is(.inst__manual, .inst__fold) { margin-top: 48px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+:is(.inst__manual, .inst__fold) { margin-top: 40px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 :is(.inst__manual, .inst__fold) > summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 16px; row-gap: 4px; padding: 18px 0; cursor: pointer; list-style: none; -webkit-tap-highlight-color: transparent; }
 :is(.inst__manual, .inst__fold) > summary::-webkit-details-marker { display: none; }
 .inst__or { grid-column: 1; margin: 0; font: 550 1rem/1.3 var(--font-body); letter-spacing: -0.005em; color: var(--t1); text-transform: none; }
@@ -254,8 +300,6 @@ html:not([data-os="mac"], [data-os="linux"]) .inst__keys [data-os="other"], html
 .inst__next li > span { display: grid; place-items: center; width: 22px; height: 22px; border: 1px solid var(--line-2); border-radius: 50%; font: 500 11px/1 var(--font-mono); color: var(--t2); }
 .inst__next p { margin: 0; padding-top: 1px; font-size: var(--type-sm); line-height: 1.55; color: var(--t2); text-wrap: pretty; }
 
-.inst__more { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 22px; margin-top: 28px; }
-.inst__more a { display: inline-flex; align-items: center; min-height: 36px; color: var(--t1); font-size: var(--type-sm); text-decoration: none; }
 
 /* What it installs: the five kits as a hairline list, each a link to its kit page. */
 .inst__kitnote { margin: 0; font-size: 0.75rem; line-height: 1.5; color: var(--t3); }
@@ -277,7 +321,6 @@ html:not([data-os="mac"], [data-os="linux"]) .inst__keys [data-os="other"], html
   .inst__msg.is-copied .inst__copy--main:hover { background: rgba(255,255,255,.14); }
   .inst__tabs button:hover, :is(.inst__manual, .inst__fold) > summary:hover .inst__or { color: #fff; }
   :is(.inst__manual, .inst__fold) > summary:hover .inst__chev { color: var(--t1); }
-  .inst__more a:hover { color: #fff; text-decoration: underline; text-decoration-color: var(--line-2); text-underline-offset: .25em; }
   .inst__kits li > a:hover .inst__kitname { text-decoration: underline; text-decoration-color: var(--line-2); text-underline-offset: .25em; }
   .inst__by a:hover { color: var(--t1); }
 }
@@ -289,7 +332,6 @@ html:not([data-os="mac"], [data-os="linux"]) .inst__keys [data-os="other"], html
 @media (pointer: coarse) {
   .inst__tabs button, .inst__copy { min-height: 44px; }
   .inst__tested button { padding-block: 12px; }
-  .inst__more a { min-height: 44px; }
   .inst__by { line-height: 2.2; }
 }
 @media (max-width: 720px) {
@@ -312,7 +354,7 @@ html:not([data-os="mac"], [data-os="linux"]) .inst__keys [data-os="other"], html
   .inst__in { width: min(800px, 100% - 2 * var(--gutter)); padding-top: clamp(56px, 12svh, 220px); }
   .inst h1 { font-size: 3.75rem; }
   .inst pre.inst__say { font-size: 1.0625rem; }
-  .inst__how, .inst__note, .inst__next p, .inst__more a { font-size: 1rem; }
+  .inst__how, .inst__note, .inst__next p { font-size: 1rem; }
   .inst__kitline { font-size: 0.9375rem; }
 }
 
@@ -320,6 +362,6 @@ html:not([data-os="mac"], [data-os="linux"]) .inst__keys [data-os="other"], html
    as the green rim, the tick and the words, without the light running round. */
 @media (prefers-reduced-motion: reduce) {
   .inst__trace, .inst__bloom { animation: none; opacity: 0; }
-  .inst__next-step, .inst__got, .inst__acct, .inst__acct-row .i, .inst__welcome, .inst__tick .i { animation: none; }
+  .inst__next-step, .inst__got, .inst__acct, .inst__welcome, .inst__tick .i, .inst__peekmsg { animation: none; }
   .inst__msg.is-copied .inst__copy--main .i { animation: none; }
 }
