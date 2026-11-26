@@ -46,9 +46,9 @@ test("the account offer is for anyone signed out, until Not now, and welcomes th
   assert.equal(at({}), "offer");
   assert.equal(at({ saved: "shown:0" }), "offer", "a reload offers it again");
   assert.equal(at({ signedIn: true }), null, "never to someone signed in");
-  // Offered on this page load, then signed in elsewhere: a welcome in its place.
+  // Offered this session, then signed in (here or in another tab): a welcome in its place, also after the return trip.
   assert.equal(at({ saved: "shown:1", signedIn: true }), "welcome");
-  assert.equal(at({ saved: "shown:0", signedIn: true }), null, "no welcome on a later load");
+  assert.equal(at({ saved: "shown:0", signedIn: true }), "welcome", "back from sign-in is a new page load");
   // Not now holds for the session.
   assert.equal(at({ saved: "later" }), null);
   assert.equal(at({ saved: "later", signedIn: true }), null);

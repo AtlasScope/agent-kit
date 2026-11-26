@@ -39,18 +39,19 @@ for (const size of SIZES) {
     const { page, ctx, errors } = await open(size);
     // Offered before a copy too: an account is optional, and the offer never blocks the install.
     await offer(page).waitFor();
-    assert.equal(await page.getByRole("heading", { name: "Keep what you find useful" }).count(), 1);
+    assert.equal(await page.getByRole("heading", { name: "Keep what works" }).count(), 1);
+    // It is the panel's own foot, not a box under it.
+    assert.equal(await page.locator(".inst__msg .inst__acct").count(), 1);
     await copy(page);
     // Copied and the agent buttons come first.
     await page.locator(".inst__agents").waitFor();
     const agents = await page.locator(".inst__agents").boundingBox(), acct = await offer(page).boundingBox();
     assert.ok(acct.y > agents.y + agents.height, "the offer sits below the agent buttons");
-    // One big button, a smaller Sign in, both to sign-in in a new tab that comes back to Collections.
+    // One big button and a smaller Sign in, both to sign-in, which comes back here.
     const join = page.getByRole("link", { name: /^Create a free account/ });
     const signIn = offer(page).getByRole("link", { name: /^Sign in/ });
     for (const l of [join, signIn]) {
-      assert.equal(await l.getAttribute("href"), "/sign-in?redirect_url=%2Faccount");
-      assert.equal(await l.getAttribute("target"), "_blank");
+      assert.equal(await l.getAttribute("href"), "/sign-in?redirect_url=%2Finstall");
     }
     const big = await join.boundingBox(), small = await signIn.boundingBox();
     assert.ok(big.height >= 44 && big.width > small.width * 2, "Create a free account is the big one");
@@ -58,7 +59,7 @@ for (const size of SIZES) {
     if (size.name === "desktop") assert.ok(big.y + big.height <= size.viewport.height, "Create a free account is in view");
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth) <= 1, "no sideways scroll");
     // It names only what an account really does: stars, collections and shared collections.
-    assert.match(await offer(page).innerText(), /Star any of the \d+ prompts and \d+ skills[\s\S]*Collections[\s\S]*Share/);
+    assert.match(await offer(page).innerText(), /prompts and skills you star, in collections[\s\S]*Installing and browsing stay free/);
     assert.deepEqual(errors, []);
     await ctx.close();
   });
@@ -68,7 +69,7 @@ for (const size of SIZES) {
     await offer(page).waitFor();
     await offer(page).getByRole("button", { name: "Not now" }).click();
     assert.equal(await offer(page).count(), 0);
-    assert.equal(await page.evaluate(() => document.activeElement?.id), "inst-try-h", "focus moves on, not to the top");
+    assert.equal(await page.evaluate(() => document.activeElement?.matches(".inst__search")), true, "focus moves on, not to the top");
     await copy(page);
     await page.waitForTimeout(400);
     assert.equal(await offer(page).count(), 0, "copying doesn't bring it back");
@@ -96,6 +97,20 @@ for (const size of SIZES) {
     await ctx.close();
   });
 }
+
+test("a star pressed signed out goes to sign-in and, back here, shows that same prompt so it can be kept", async () => {
+  const { page, ctx } = await open(SIZES[0]);
+  await page.getByRole("tab", { name: "Improve a page" }).click();
+  const star = page.locator(".inst__tryacts .star");
+  assert.match(await star.getAttribute("href"), /^\/sign-in\?redirect_url=/);
+  // Sign-in isn't set up on the sample-data server, so stop at the link and come back as sign-in would.
+  await star.evaluate((e) => e.addEventListener("click", (ev) => ev.preventDefault(), { once: true }));
+  await star.click();
+  assert.match(await page.evaluate(() => localStorage.getItem("agent-kit:intent")), /"kind":"prompt"/);
+  await page.reload({ waitUntil: "networkidle" });
+  assert.equal(await page.getByRole("tab", { name: "Improve a page" }).getAttribute("aria-selected"), "true");
+  await ctx.close();
+});
 
 test("reduced motion: the offer arrives without animating", async () => {
   const { page, ctx } = await open(SIZES[0], { reducedMotion: "reduce" });

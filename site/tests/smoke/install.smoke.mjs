@@ -46,7 +46,7 @@ for (const size of SIZES) {
     await page.getByRole("button", { name: "Copy the message" }).click();
     assert.equal(await clip(page), INSTALL_MESSAGE);
     await page.locator(".inst__note", { hasText: "Message copied" }).waitFor();
-    assert.equal((await page.locator(".inst__done .inst__big").innerText()).trim(), "Copied");
+    assert.match(await page.locator(".inst__done").innerText(), /^Copied\./);
     assert.equal(await page.locator(".inst__agent").count(), 3, "Claude Code, Codex and Cursor can be opened");
     assert.equal(await page.getByText(INSTALL_MESSAGE).isVisible(), false, "still folded after copying");
 
@@ -56,7 +56,7 @@ for (const size of SIZES) {
     for (const id of ["claude", "codex", "cursor", "any"]) {
       const a = AGENTS.find((x) => x.id === id);
       await page.getByRole("tab", { name: a.label }).click();
-      await page.getByRole("tabpanel").getByRole("button", { name: /^Copy/ }).click();
+      await page.locator("#inst-cmd").getByRole("button", { name: /^Copy/ }).click();
       assert.equal(await clip(page), a.steps.join("\n"), `${a.label} copies every step exactly`);
     }
     await page.locator(".inst__note", { hasText: "Install command copied" }).waitFor();
@@ -78,7 +78,7 @@ for (const size of SIZES) {
     await page.locator(".inst__note", { hasText: "Message copied" }).waitFor();
     assert.equal(await page.locator(".inst[data-arrived]").count(), 1);
     // The panel opens on Copied, with the message never shown, and the bar has no green dot after the name.
-    assert.ok(await page.locator(".inst__done .inst__big").isVisible());
+    assert.ok(await page.locator(".inst__done").isVisible());
     assert.equal(await page.locator(".inst__say").count(), 0);
     assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".wordmark__name"), "::after").display), "none");
     // A full load (here, or a reload) never blanks the column: the settle plays only on an in-site navigation.

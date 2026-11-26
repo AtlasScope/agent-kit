@@ -9,12 +9,12 @@ export const signedIn = (cookie: string) => SIGNED_IN_RE.test(cookie);
 export const SIGNED_IN_HINT = `try{if(${SIGNED_IN_RE}.test(document.cookie))document.documentElement.setAttribute("data-auth","")}catch(e){}`;
 
 // The install page's account offer (components/AccountOffer.tsx). OFFER_KEY in sessionStorage holds "later" after
-// Not now, which holds for the browser session, or "shown:<page load>" once it has been offered on that page load, so a
-// visitor who signs in elsewhere and comes back to this tab gets a short welcome in its place.
+// Not now, which holds for the browser session, or "shown:<page load>" once it has been offered. A visitor offered it
+// this session who is now signed in (back from sign-in, or signed in from another tab) gets a short welcome instead.
 export const OFFER_KEY = "agent-kit:account-offer";
 export type Offer = "offer" | "welcome" | null;
 export function accountOffer({ signedIn, saved, view }: { signedIn: boolean; saved: string | null; view: string }): Offer {
   if (saved === "later") return null;
-  if (signedIn) return saved === `shown:${view}` ? "welcome" : null;
+  if (signedIn) return saved?.startsWith("shown:") ? "welcome" : null;
   return "offer";
 }

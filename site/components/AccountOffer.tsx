@@ -5,20 +5,16 @@ import { OFFER_KEY, accountOffer, signedIn } from "@/lib/auth-hint";
 import { signInHref } from "./AuthNav";
 import { StarIcon } from "./StarIcon";
 
-// The install page's account offer, between the install panel and what to try first. The kits put skills into the
-// agent; the library stays on the site, so the reason to sign up is to keep what you find there: a star (Starred, on
-// /account), named collections, and a shared collection that installs its skills with one command. It is offered to
-// anyone not signed in, before or after a copy (accountOffer, lib/auth-hint.ts); Not now hides it for the browser
-// session. Both buttons open sign-in in a new tab, so the install panel stays put; Clerk's form signs in or creates an
-// account from the same page. When the visitor comes back signed in, the offer becomes one line saying where their
-// stars go.
+// The install page's account offer: the foot of the install panel itself, under "Then try one". The kits put skills
+// into the agent; the library stays on the site, so the reason to sign up is to keep what you find there: a star
+// (Starred, on /account), named collections, and sharing. It is offered to anyone not signed in, before or after a
+// copy (accountOffer, lib/auth-hint.ts); Not now hides it for the browser session. Both links go to sign-in and come
+// back to /install (Clerk's form signs in or creates an account from the same page), where a star pressed on the way
+// finishes (lib/intent.ts) and the offer becomes one line saying where stars go.
 // The new-tab mark, shared with the agent buttons on the install page.
 export const Ext = () => <svg className="inst__ext" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>;
-const NEW_TAB = <><Ext /><span className="sr"> (opens in a new tab)</span></>;
-const Folder = () => <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2.2h7a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z" /></svg>;
-const Share = () => <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" /><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" /></svg>;
 
-export function AccountOffer({ prompts, skills, onDone }: { prompts: number; skills: number; onDone?: () => void }) {
+export function AccountOffer({ onDone }: { onDone?: () => void }) {
   const [signed, setSigned] = useState<boolean | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
   const [view, setView] = useState("");
@@ -55,29 +51,25 @@ export function AccountOffer({ prompts, skills, onDone }: { prompts: number; ski
   if (offer === "welcome") return (
     <p className="inst__welcome" role="status">
       <span className="inst__welcome-star" aria-hidden="true"><StarIcon on /></span>
-      <span>You’re signed in. Star a prompt or skill and it shows up in <Link href="/account">Collections</Link>.</span>
+      <span>You’re signed in. Star a prompt or skill and it waits for you in <Link href="/account">Collections</Link>.</span>
     </p>
   );
   if (offer !== "offer") return null;
-  const href = signInHref("/account");
+  const href = signInHref("/install");
   return (
-    <section className="inst__acct" aria-labelledby="inst-acct-h">
+    <div className="inst__acct" role="region" aria-labelledby="inst-acct-h">
+      <span className="inst__acct-mark" aria-hidden="true"><StarIcon on /></span>
       <div className="inst__acct-say">
-        <h2 id="inst-acct-h">Keep what you find useful</h2>
-        <p>A free account saves prompts and skills from the library, so they are there the next time you need them.</p>
+        <h2 id="inst-acct-h">Keep what works</h2>
+        <p>A free account keeps the prompts and skills you star, in collections you can return to and share. Installing and browsing stay free without one.</p>
       </div>
-      <ul className="inst__acct-perks">
-        <li><StarIcon on={false} /><span><b>Star</b> any of the {prompts} prompts and {skills} skills</span></li>
-        <li><Folder /><span><b>Collections</b> group them by project or job</span></li>
-        <li><Share /><span><b>Share</b> a collection; its skills install with one command</span></li>
-      </ul>
       <div className="inst__acct-do">
-        <Link className="inst__join" href={href} target="_blank" rel="noopener noreferrer">Create a free account{NEW_TAB}</Link>
+        <Link className="inst__join" href={href}>Create a free account</Link>
         <span className="inst__acct-alt">
-          <Link className="inst__again" href={href} target="_blank" rel="noopener noreferrer">Sign in{NEW_TAB}</Link>
+          <Link className="inst__again" href={href}>Sign in</Link>
           <button type="button" className="inst__again" onClick={notNow}>Not now</button>
         </span>
       </div>
-    </section>
+    </div>
   );
 }
