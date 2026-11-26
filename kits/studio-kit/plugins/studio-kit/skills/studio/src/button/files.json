@@ -1,0 +1,1 @@
+{ "name": "Button", "order": 10, "css": ["button.css"], "js": ["catalogue.js", "preview.js", "module.js"] }

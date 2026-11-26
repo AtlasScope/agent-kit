@@ -1,16 +1,36 @@
 'use strict';
 /* ===== Studio core =====
-   A studio page is built from the general studio files (src/studio) and one kind's files (src/button).
-   The kind provides, before studio/controls.js runs:
-     DEFAULTS    starting values for every key the kind's steps use
-     STEPS       [{id, t, why, dep, ctl:[controls], note?(S), na?(S)}]; controls come from ch(), rg(), {t:'text'}, {t:'swatches'}
-     SHORT       short step names for the step bar, by step id
-     SW          colour swatches [name, hue, chroma, lightness, sentence]
-     PRESETS     [[name, {key: value}]]; the first is the measured or simple start
-     fixDefaults(DEF), fixState(S), specNotes()
-   and, after studio/state.js:
-     previewVars(), renderPreview(), resetPreview(), replayPreview(), onPick(control, option), afterPick(control),
-     onStepChange(), previewTall() */
+   A studio page is the shared shell (src/studio) plus one or more modules (src/button, src/palette, src/type ...).
+   The shell owns the page: navigation, the preview stage, tiles, compare, history, saving, Review and the link to the
+   agent. A module owns one subject. It registers itself once with STUDIO.add({...}):
+
+     id, name            'palette', 'Palette'
+     title()             what is being designed, in the person's words: 'install button', 'colours'
+     defaults            { key: value } for every key its controls use. Flat, JSON-safe values only.
+     today               { key: value } measured from the project (may be empty), laid over defaults as the baseline
+     groups              [{ id, t, sec, why, ctl: [controls], note?(s), na?(s) }]
+                         sec is the heading it sits under in the navigator: 'Appearance', 'Content', 'Interaction', 'Behaviour'.
+                         Controls come from ch(), rg(), { t: 'text' } and { t: 'swatches', sw: [[name, H, C, L, sentence]] }.
+                         Every option has a plain name and one plain sentence. A control or option may carry
+                         show(s) / when(s) so it only appears when it applies.
+     looks               [{ id, n, d, patch }] finished looks for the Looks page; each patch is laid over the baseline
+     keep                keys a look never resets (the person's words, for example)
+     fix(s)              makes a state valid (optional)
+     pick(s, c, op)      runs after a choice is laid on s, to bring coupled values with it (optional)
+     vars(s)             { '--css-var': value } set on whatever element holds a drawing of this module
+     live(el, s)         draws the working preview into el and wires it up
+     still(s, opt)       returns HTML for a drawing that does nothing when clicked and has no element ids: used for
+                         tiles, looks, compare and states. opt: { tile: controlKey } | { look: true } | { compare: true }
+                         | { state: 'hover' }. The same drawing code as live(), given a different state.
+     tile(c)             null to list a control's options as words, or { tall?, wide? } to draw each as a tile
+     states              [[id, 'Plain name']] the states the States view shows (optional)
+     scene(s)            { vars: {...} } this module's part in the shared example page (optional)
+     share(s)            foundation values other modules may follow, e.g. { accent: { H, C, L }, fonts: { body } } (optional)
+     notes(s)            extra lines for the proposal (optional)
+     warn(s)             [{ t: 'plain sentence', k?: controlKey }] real problems to look at before sending (optional)
+
+   Modules other than button wrap themselves in a block so their names stay their own, and read their part of the
+   project from P[id] (for example P.palette). State is only ever read from the `s` a function is given. */
 
 if (typeof PROJECT === 'undefined') {
   document.body.insertAdjacentHTML('afterbegin', '<p style="margin:24px;font:15px system-ui;color:#f3f5f4">The project settings at the top of this file have a mistake, so the studio cannot start. Ask the agent to fix it.</p>');
@@ -22,13 +42,29 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&':
 /** 'text' or ['text', 'why'] -> ['text', 'why'] */
 const two = (x) => (Array.isArray(x) ? [String(x[0]), String(x[1] || '')] : [String(x), '']);
 const list = (a) => (a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]);
+const clone = (x) => JSON.parse(JSON.stringify(x));
+const cap = (s) => String(s).charAt(0).toUpperCase() + String(s).slice(1);
+/** { '--a': 1 } -> '--a:1;' for a style attribute */
+const varsCss = (v) => Object.entries(v || {}).map(([k, x]) => `${k}:${String(x).replace(/"/g, "'")}`).join(';');
 
 const P = Object.assign({
-  name: 'Your project', noun: 'main button', measured: false, startName: '', brand: ['Blue', 255, 0.17, 0.64],
+  id: '', name: 'Your project', noun: 'main button', measured: false, startName: '', brand: ['Blue', 255, 0.17, 0.64],
   pageBg: '', column: 0, font: '', fontCss: '', labels: ['Get started'], subs: [], action: {}, choices: {}, secondary: [],
-  system: [], specRules: 'Honour reduced motion.', afterNote: '', dropSteps: [], today: {},
+  system: [], specRules: 'Honour reduced motion.', afterNote: '', dropSteps: [], today: {}, sources: {},
+  context: {}, palette: {}, type: {},
 }, PROJECT);
 const COLUMN = +P.column || 440;
+
+const STUDIO = {
+  mods: [], by: {},
+  add(m) { if (!m || !m.id || this.by[m.id]) return; this.mods.push(m); this.by[m.id] = m; },
+  has(id) { return !!this.by[id]; },
+};
+
+/* The studios this page was built with, and every studio the skill has (for the "Add a studio" menu). */
+const metaList = (n) => ((document.querySelector(`meta[name="${n}"]`) || {}).content || "").split(",").filter(Boolean);
+const BUILT = metaList("studio-modules").length ? metaList("studio-modules") : ["button"];
+const AVAILABLE = metaList("studio-available").map((x) => x.split(":"));
 
 /* Choices the agent added. A broken MORE block leaves MORE undefined; the studio still runs without them. */
 const MORE_OK = typeof MORE === 'object' && MORE !== null;

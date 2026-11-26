@@ -9,24 +9,24 @@ const hexLum = (hex) => {
   const n = parseInt(m[1], 16);
   return ((n >> 16 & 255) * 0.299 + (n >> 8 & 255) * 0.587 + (n & 255) * 0.114) / 255;
 };
-const lightBg = () => ['light', 'paper'].includes(S.bg) || (S.bg === 'page' && hexLum(P.pageBg) > 0.55);
-const autoDark = (s) => s.tc === 'dark' || (s.tc === 'auto' && s.L > 0.7);
+const lightBg = () => ['light', 'paper'].includes(V.bg) || (V.bg === 'page' && hexLum(P.pageBg) > 0.55) || sceneIsLight();
+const autoDark = (s) => s.tc === 'dark' || (s.tc === 'auto' && btnColour(s).L > 0.7);
 const RADIUS = { pill: '999px', blob: '999px', circle: '999px', leaf: '999px', sharp: '5px' };
 
 /** CSS custom properties the button styles read. */
 function previewVars() {
-  const s = S;
+  const s = S, k = btnColour(s);
   const r = s.shape === 'squircle' ? Math.round(s.h * 0.36) + 'px' : RADIUS[s.shape] || s.rr + 'px';
   return {
-    '--h': s.h + 'px', '--r': r, '--pad': s.pad, '--H': s.H, '--H2': s.H2, '--C': s.C, '--L': s.L,
-    '--on': autoDark(s) ? `oklch(.2 .05 ${s.H})` : '#fff', '--glassfg': lightBg() ? '#0b0e0d' : '#fff',
+    '--h': s.h + 'px', '--r': r, '--pad': s.pad, '--H': k.H, '--H2': s.H2, '--C': k.C, '--L': k.L,
+    '--on': autoDark(s) ? `oklch(.2 .05 ${k.H})` : '#fff', '--glassfg': lightBg() ? '#0b0e0d' : '#fff',
     '--blur': s.blur, '--fa': s.fa, '--tint': s.tint, '--rim': s.rim, '--depth': s.depth, '--gloss': s.gloss, '--spd': s.spd,
-    '--wt': s.wt, '--fs': s.fs, '--trk': s.trk, '--isz': s.isz + 'em', '--bf': FONTS[s.font] || FONTS.ui,
+    '--wt': s.wt, '--fs': s.fs, '--trk': s.trk, '--isz': s.isz + 'em', '--bf': btnFont(s),
     '--mr': s.menuR + 'px', '--gap': s.gap + 'px',
   };
 }
 const previewTall = () => !!S.menuOpen && hasMenu(S) && S.menuStyle !== 'sheet';
-const onMenuStep = () => STEPS[cur] && STEPS[cur].id === 'menu' && hasMenu(S);
+const onMenuStep = () => NAV.mod === 'button' && !NAV.review && NAV.cat.button === 'menu' && hasMenu(S);
 
 /* ---- markup ---- */
 const svg = (id) => `<svg aria-hidden="true"><use href="#i-${id}"/></svg>`;
@@ -88,10 +88,9 @@ const LAYOUTS = {
 };
 
 let ENTRANCE = false; // true while replaying the entrance
-function renderPreview() {
-  const s = S, m = $('mount');
-  m.style.cssText = Object.entries(Object.assign(previewVars(), frameVars())).map(([k, v]) => k + ':' + v).join(';');
-  stageState();
+/** The markup for the button and whatever sits with it, from S. */
+function previewHTML() {
+  const s = S;
   const rc = `row ${s.divider === 'line' ? 'dl' : s.divider === 'none' ? 'dn' : ''}`;
   const ag = pickedChoice();
   const chip = (id) => `<span class="chipa"${id ? ` id="${id}"` : ''}><i style="background:${esc(ag[1])}">${esc(ag[2])}</i>${esc(ag[0])}${chev}</span>`;
@@ -100,6 +99,14 @@ function renderPreview() {
     try { html = MJ.split[s.split]({ S, AG, mainBtn, part, quiet, cls, fx: layers, esc, svg }); } catch (e) { report('split ' + s.split + ': ' + e.message); html = mainBtn(); }
   } else if (!AG.length && usesChoice(s)) html = mainBtn();
   else html = (LAYOUTS[s.split] || LAYOUTS.none)(rc, chip);
+  return html;
+}
+function renderPreview() {
+  const s = S, m = $('mount');
+  if (!m) return;
+  m.style.cssText = Object.entries(Object.assign(previewVars(), frameVars())).map(([k, v]) => k + ':' + v).join(';');
+  stageState();
+  const html = previewHTML();
   m.className = 'unit' + (ENTRANCE && s.entrance !== 'none' ? ' e-' + s.entrance : '');
   m.innerHTML = html;
   wire();
@@ -107,7 +114,7 @@ function renderPreview() {
 function replayPreview() {
   ENTRANCE = true;
   renderPreview();
-  later(() => { ENTRANCE = false; $('mount').className = 'unit'; }, 1200);
+  later(() => { ENTRANCE = false; const m = $('mount'); if (m) m.className = 'unit'; }, 1200);
 }
 
 /* ---- after pressing ---- */
@@ -212,7 +219,7 @@ function wire() {
     const stopHold = () => { clearTimeout(holdTimer); b.classList.remove('holding'); };
     b.onclick = (e) => {
       if (e.target.closest('#tog2') || b.matches('.copied,.prog,.busy')) return;
-      if (S.press === 'ripple' && !S.rm) {
+      if (S.press === 'ripple' && !V.rm) {
         const r = b.getBoundingClientRect(), d = Math.max(r.width, r.height) * 2, u = document.createElement('span');
         u.className = 'rip';
         u.style.cssText = `width:${d}px;height:${d}px;left:${e.clientX - r.left - d / 2}px;top:${e.clientY - r.top - d / 2}px`;
@@ -229,7 +236,7 @@ function wire() {
       const r = b.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
       b.style.setProperty('--mx', x + 'px');
       b.style.setProperty('--my', y + 'px');
-      if (S.rm || e.pointerType !== 'mouse') return;
+      if (V.rm || e.pointerType !== 'mouse') return;
       if (S.hover === 'tilt') b.style.transform = `perspective(400px) rotateX(${-(y / r.height - 0.5) * 18}deg) rotateY(${(x / r.width - 0.5) * 18}deg)`;
       if (S.hover === 'magnet') b.style.transform = `translate(${(x - r.width / 2) * 0.16}px,${(y - r.height / 2) * 0.28}px)`;
     };
@@ -244,6 +251,7 @@ function wire() {
     b.onclick = (e) => {
       e.stopPropagation();
       const i = +b.dataset.ag;
+      commit('button');
       if (i < AG.length) S.agent = i;
       if (S.split !== 'expand' && !onMenuStep()) S.menuOpen = false;
       renderPreview(); renderPanel(); save();

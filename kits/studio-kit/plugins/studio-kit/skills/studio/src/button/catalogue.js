@@ -75,7 +75,7 @@ const hasMenu = (s) => ['menu', 'inline'].includes(s.split);
 const sayDone = `“${ACT.done}”`;
 
 const STEPS = [
-  { id: 'shape', t: 'Shape and size', why: 'Everything else is drawn inside this, so it comes first.', dep: [], ctl: [
+  { id: 'shape', t: 'Shape and size', why: 'The outline everything else is drawn inside.', dep: [], ctl: [
     ch('shape', 'Shape', [
       o('pill', 'Pill', 'Fully rounded ends. Friendly and familiar.'),
       o('squircle', 'Smooth corners', 'Rounded like an app icon, softer than a rectangle.'),
@@ -135,7 +135,7 @@ const STEPS = [
   { id: 'colour', t: 'Colour', why: 'Pick a colour, then adjust it. The words turn dark or white on their own so they stay readable.', dep: ['material'],
     note: (s) => (FIXED_COLOUR.includes(s.material) ? `<span>${esc(nameOf('material'))} keeps its own colours. The colour here only shows in glows, rings and the movement layers.</span>` : ''),
     ctl: [
-      { k: 'swatch', t: 'swatches', label: 'Colour' },
+      { k: 'swatch', t: 'swatches', label: 'Colour', sw: SW },
       ch('cmode', 'Colour style', [
         o('solid', 'One colour', 'The same colour all over.'),
         o('duo', 'Two colours', 'Fades from one colour into a second.'),
@@ -153,7 +153,7 @@ const STEPS = [
     ] },
 
   { id: 'motion', t: 'Movement', why: 'What the button does while nobody is touching it. Most buttons stay still; movement pulls the eye, so use it for the one thing that matters.', dep: ['material', 'shape'],
-    note: (s) => (s.rm ? `<span>Less motion is on, so the preview stays still.${RM_OS ? ' Your device asks for less motion.' : ''}</span><button class="chip sm" data-set="rm">Show movement</button>` : ''),
+    note: () => (V.rm ? `<span>Less motion is on, so the preview stays still.${RM_OS ? ' Your device asks for less motion.' : ''}</span><button class="chip sm" data-set="rm">Show movement</button>` : ''),
     ctl: [
       ch('idle', 'Main movement', [
         o('none', 'Still', 'No movement. The calm choice.'),
@@ -345,8 +345,8 @@ const STEPS = [
     ], { show: () => !!ACT.nextLine || (ACT.nextSteps || []).length > 0 }),
   ] },
 
-  { id: 'menu', t: `The ${NOUN} list`, why: `How the list of ${NOUN_H}s looks when it opens. It stays open while you are on this step.`, dep: ['split', 'material'],
-    na: (s) => (hasMenu(s) ? '' : 'Not needed with this layout. Press Next to go on.'),
+  { id: 'menu', t: `The ${NOUN} list`, why: `How the list of ${NOUN_H}s looks when it opens. It stays open while you are here.`, dep: ['split', 'material'],
+    na: (s) => (hasMenu(s) ? '' : 'Only needed when the button opens a list. Pick a layout with a list under Choosing first.'),
     ctl: [
       ch('menuStyle', 'Style', [
         o('glass', 'Glass', 'See-through, and blurs what is behind it.'),

@@ -117,7 +117,9 @@ export function serve(dir) {
     "POST /api/state": (req, res, body) => { writeJSON(stateFile, body); json(res, 200, { saved: true }); },
     "POST /api/send": (req, res, v) => {
       const str = (x, n) => (x == null ? null : String(x).slice(0, n));
-      if (v.kind === "more") push({ kind: "more", step: str(v.step, 60) || "", stepName: str(v.stepName, 120) || "", control: str(v.control, 60), controlName: str(v.controlName, 120), wish: str(v.wish, 400) || "", current: str(v.current, 200), existing: v.existing });
+      const id = str(v.id, 24);
+      if (v.kind === "more") push({ kind: "more", id, module: str(v.module, 40) || "button", intent: ["like", "different", "what"].includes(v.intent) ? v.intent : "", pinned: Array.isArray(v.pinned) ? v.pinned.slice(0, 3).map((x) => str(x, 60)) : [], step: str(v.step, 60) || "", stepName: str(v.stepName, 120) || "", control: str(v.control, 60), controlName: str(v.controlName, 120), wish: str(v.wish, 400) || "", current: str(v.current, 200), existing: JSON.stringify(v.existing || []).length < 8000 ? v.existing : [] });
+      else if (v.kind === "module") push({ kind: "module", id, module: String(v.module || "").replace(/[^a-z0-9-]/g, "").slice(0, 40) });
       else if (v.kind === "spec") push({ kind: "spec", text: str(v.text, 20000) || "" });
       else if (v.kind === "error") push({ kind: "error", message: str(v.message, 500) || "" });
       else return json(res, 400, { error: "kind" });
@@ -154,11 +156,16 @@ export function serve(dir) {
     refresh();
     let rel;
     try { rel = decodeURIComponent(url.pathname).replace(/^\/+/, "") || "index.html"; } catch { return json(res, 400, { error: "path" }); }
-    if (rel === "index.html") { res.writeHead(200, { "content-type": TYPES[".html"], "cache-control": "no-store" }); return res.end(page()); }
+    if (rel === "index.html") { res.writeHead(200, { "content-type": TYPES[".html"], "cache-control": "no-store", "referrer-policy": "no-referrer", "x-content-type-options": "nosniff" }); return res.end(page()); }
+    // Only ordinary files inside the studio folder: no dot files or folders, nothing reached through a link.
+    if (rel.split(/[\/]/).some((seg) => seg.startsWith(".") || seg === "")) return json(res, 404, {});
     const abs = path.resolve(dir, rel);
-    if (!abs.startsWith(dir + path.sep) || abs === meta || abs.startsWith(meta + path.sep) || !fs.existsSync(abs) || !fs.statSync(abs).isFile()) return json(res, 404, {});
-    res.writeHead(200, { "content-type": TYPES[path.extname(abs).toLowerCase()] || "application/octet-stream" });
-    fs.createReadStream(abs).pipe(res);
+    let real = "";
+    try { real = fs.realpathSync(abs); } catch { return json(res, 404, {}); }
+    const root = fs.realpathSync(dir);
+    if (!real.startsWith(root + path.sep) || !TYPES[path.extname(real).toLowerCase()] || !fs.statSync(real).isFile()) return json(res, 404, {});
+    res.writeHead(200, { "content-type": TYPES[path.extname(real).toLowerCase()], "x-content-type-options": "nosniff" });
+    fs.createReadStream(real).pipe(res);
   }
 
   const server = http.createServer((req, res) => {

@@ -1,8 +1,10 @@
 ---
-name: button-studio
-description: Use when Austin wants to design, restyle or choose a look for a button, call to action, split button or menu in any project ("I want to edit these buttons", "make the install button pop", "show me button options"). Builds a live studio page (served from this computer, or published as a private claude.ai page in a cloud session), one step on screen at a time (shape, material, colour, movement, hover and press, words and icon, choosing an option, after press, review), with a device preview at real size, every choice with a plain name and a one-line explanation. Starts from the project's measured buttons, or a clean generic start when there are none. Each category has "Add more choices": the request reaches the agent, which adds options to the page, and the page reloads keeping every pick. Ends with "Send to chat". Never changes the application until he says to build it.
+name: studio
+description: Use only when the user explicitly invokes /studio or $studio. Opens a live design studio page for a button, a colour palette, typography, or several together: finished looks and every option drawn for real, compare, undo, ask for more, then a proposal sent to chat. Never changes the application until the user approves. Ordinary design requests must not activate it.
+disable-model-invocation: true
 metadata:
-  short-description: Live step-by-step studio for choosing a button's look
+  short-description: Live studio for choosing how buttons, colours and type look
+  author: AtlasScope/agent-kit
 ---
 
 # Button studio

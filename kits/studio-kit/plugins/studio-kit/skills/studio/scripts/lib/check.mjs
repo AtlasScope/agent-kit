@@ -42,8 +42,11 @@ export function checkHtml(html) {
     if (onButton.length) problems.push(`${onButton.join(", ")} sets transition on the button, which stops the other hover and press effects from easing. Set it only under :active or :hover, or leave it out.`);
   }
 
-  for (const [key, list] of Object.entries(M)) {
-    if (!Array.isArray(list)) { problems.push(`MORE.${key} should be a list.`); continue; }
+  for (const [fullKey, list] of Object.entries(M)) {
+    // 'palette.scheme' is a key of the palette studio; a bare key, or 'button.material', is the button's.
+    const dotted = fullKey.includes("."), mod = dotted ? fullKey.split(".")[0] : "button";
+    const key = dotted ? fullKey.slice(mod.length + 1) : fullKey;
+    if (!Array.isArray(list)) { problems.push(`MORE.${fullKey} should be a list.`); continue; }
     for (const e of list) {
       if (!Array.isArray(e)) { problems.push(`MORE.${key}: each choice is a list like [value, 'Name', 'Sentence'].`); continue; }
       if (key === "swatch") {
@@ -52,7 +55,9 @@ export function checkHtml(html) {
         continue;
       }
       const [v, name, sentence] = e;
-      if (!name || !sentence) problems.push(`MORE.${key} '${v}' needs a plain name and a short sentence.`);
+      if (!name || !sentence) problems.push(`MORE.${fullKey} '${v}' needs a plain name and a short sentence.`);
+      if (key === "look") { if (!e[3] || typeof e[3].set !== "object") problems.push(`MORE.${fullKey} '${v}' needs {set:{...}}: the values that make the look.`); continue; }
+      if (mod !== "button") continue;
       const sel = NEEDS_CSS[key];
       if (sel && !hasClass(css, sel(v))) problems.push(`MORE.${key} '${v}' needs CSS for ${sel(v)} in <style id="more-css">.`);
       if (key === "shape" && !hasClass(css, `.sh-${v}`) && !(e[3] && e[3].set)) problems.push(`MORE.shape '${v}' needs CSS for .sh-${v} or a set:{rr:...}.`);

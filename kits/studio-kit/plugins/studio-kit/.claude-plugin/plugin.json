@@ -1,0 +1,12 @@
+{
+  "name": "studio-kit",
+  "description": "One command, /studio, that opens a live design studio on your computer: see finished looks and every option drawn for real, for a button, a colour palette or typography, in one workspace. Compare, fine-tune, undo, ask the agent for more, then send a proposal to chat. Nothing in your application changes until you approve it. Runs only when you call it.",
+  "version": "0.1.0",
+  "author": {
+    "name": "AtlasScope"
+  },
+  "homepage": "https://github.com/AtlasScope/agent-kit/tree/main/kits/studio-kit",
+  "repository": "https://github.com/AtlasScope/agent-kit",
+  "license": "MIT",
+  "skills": "./skills/"
+}
