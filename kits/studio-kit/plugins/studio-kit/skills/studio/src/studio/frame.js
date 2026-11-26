@@ -2,7 +2,7 @@
 
 const BGS = [
   ['page', P.pageBg || (P.palette && P.palette.roles) ? 'Your page' : 'Plain page'],
-  ['studio', 'Quiet dark'], ['black', 'Black'], ['light', 'Light grey'], ['cool', 'Colourful'], ['warm', 'Warm colours'], ['aurora', 'Night sky'],
+  ['studio', 'Quiet dark'], ['black', 'Black'], ['white', 'White'], ['light', 'Light grey'], ['cool', 'Colourful'], ['warm', 'Warm colours'], ['aurora', 'Night sky'],
   ['sunset', 'Sunset'], ['paper', 'Paper'], ['grid', 'Grid'], ['checker', 'Checker'],
   ...(Array.isArray(MO.bg) ? MO.bg : []).filter(Array.isArray).map((e) => [String(e[0]), String(e[1] || e[0])]),
 ];
@@ -166,6 +166,9 @@ function renderStageBar() {
   $('bgsel').hidden = m.ground && modeNow() === 'alone';
   $('stbar').hidden = m.ground && modeNow() === 'alone'; // a palette or a type specimen brings its own ground and does not move
   $('bgsel').value = V.bg;
+  const dots = [['page', P.pageBg || (P.palette && P.palette.roles) ? 'Your page' : 'Your palette’s page', pageColour()], ['black', 'Black', '#000'], ['white', 'White', '#fff']];
+  $('bgdots').innerHTML = dots.map(([v, n, c]) => `<button data-bgq="${v}" aria-pressed="${V.bg === v}" title="${esc(n)}" aria-label="Background: ${esc(n)}" style="background:${esc(c)}"></button>`).join('');
+  $('bgdots').hidden = $('bgsel').hidden;
   $('rmtog').setAttribute('aria-pressed', String(V.rm));
   $('hold').textContent = 'Hold to see ' + baseName(m).toLowerCase();
   $('hold').disabled = !changedKeys(m.id).length;

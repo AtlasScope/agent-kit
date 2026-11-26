@@ -554,6 +554,13 @@ details.fine[open]>.ctl:not(:last-child){border-bottom:0}
 .rv li s .rvsw{opacity:.6}
 .rvmore{margin-top:8px}
 .msg .chip{margin:0 2px}
+.bgd[data-bg=white]{background:#fff}
+/* quick backgrounds: the page, black, white */
+.bgdots{position:absolute;z-index:4;top:10px;right:10px;display:flex;gap:6px;align-items:center;padding:5px 7px;border-radius:999px;background:color-mix(in oklab,var(--c-surface) 85%,transparent);box-shadow:0 0 0 1px var(--line)}
+.devhint{right:auto;left:12px} /* the background dots take the top right */
+.bgdots button{all:unset;cursor:pointer;width:18px;height:18px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--line-2),0 0 0 1px var(--line)}
+.bgdots button[aria-pressed=true]{box-shadow:inset 0 0 0 1px var(--line-2),0 0 0 2px var(--bg),0 0 0 3.5px var(--c-brand)}
+.bgdots button:focus-visible{outline:2px solid var(--c-focus);outline-offset:3px}
 
 /* ===== the example page ("In a page"). Every colour and type value is a custom property a studio may set; see scene.js ===== */
 .scene{--sc-bg:transparent;--sc-surface:rgba(255,255,255,.055);--sc-line:rgba(255,255,255,.12);--sc-control:rgba(255,255,255,.3);--sc-fg:#f3f5f4;--sc-fg2:#b4bdba;--sc-fg3:#8b9592;--sc-accent:#8ab4ff;--sc-fill:#f3f5f4;--sc-on-fill:#0b0e0d;--sc-ok:#4ade80;--sc-warn:#f5b94a;--sc-bad:#f87171;
@@ -1091,7 +1098,7 @@ details.fine[open]>.ctl:not(:last-child){border-bottom:0}
    </div></details>
   </div>
   <b id="ptitle" hidden>Your design</b>
-  <div class="stage" id="stage"><span class="tryhint" id="tryhint"></span><span class="devhint" id="devhint"></span><button class="tthumb" id="tthumb" hidden></button><button id="hold" hidden></button><div class="realsz" id="realsz" hidden></div>
+  <div class="stage" id="stage"><span class="tryhint" id="tryhint"></span><span class="devhint" id="devhint"></span><div class="bgdots" id="bgdots" role="group" aria-label="Background"></div><button class="tthumb" id="tthumb" hidden></button><button id="hold" hidden></button><div class="realsz" id="realsz" hidden></div>
    <div class="dwrap" id="dwrap"><div class="device bgd" id="device"><div class="canvas" id="canvas"></div>
     <div class="overlay" id="ov"><div class="chk"><svg width="28" height="28"><use href="#i-check"/></svg></div><h4 id="ovh">Done</h4><small id="ovs"></small><div id="ovbtns" style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:230px"></div></div>
     <div class="toast" id="toast"><span class="dot"><svg width="14" height="14"><use href="#i-check"/></svg></span><div><b id="toasth">Done</b><span class="s"></span></div><span id="toastbtn" style="margin-left:auto"></span></div>
@@ -2527,7 +2534,6 @@ const sceneIsLight = () => V.mode === 'context' && !!shared('light');
   today.pair = DEFAULTS.pair;
   today.theme = DEFAULTS.pair === 'both' ? 'both' : today.side || DEFAULTS.side;
   const measured = RL.some((r) => r.value);
-  if (!measured && !(PP.today && PP.today.side)) DEFAULTS.side = 'light'; // a project with no colours yet starts on a plain light page
 
   const fix = (s) => {
     if (s.side !== 'light') s.side = 'dark';
@@ -3296,7 +3302,8 @@ const fresh = (id) => clone(DEFS[id]);
 function setState(id, s) { ST[id] = s; if (id === 'button') S = s; }
 setState('button', ST.button || {});
 
-const V = { device: VIEW, bg: 'page', rm: RM_OS, mode: 'alone' }; // how the preview is shown
+/* a project with no page colour of its own starts on black, whichever theme the studio is in */
+const V = { device: VIEW, bg: (P.pageBg || (P.palette && P.palette.measured) || (P.palette && P.palette.roles) ? 'page' : 'black'), rm: RM_OS, mode: 'alone' }; // how the preview is shown
 const NAV = { mod: STUDIO.mods[0].id, cat: {}, review: false }; // cat[module] is a group id, or 'looks'
 STUDIO.mods.forEach((m) => { NAV.cat[m.id] = 'looks'; });
 const AM = () => STUDIO.by[NAV.mod];
@@ -3527,7 +3534,7 @@ function paintScene() {
 
 const BGS = [
   ['page', P.pageBg || (P.palette && P.palette.roles) ? 'Your page' : 'Plain page'],
-  ['studio', 'Quiet dark'], ['black', 'Black'], ['light', 'Light grey'], ['cool', 'Colourful'], ['warm', 'Warm colours'], ['aurora', 'Night sky'],
+  ['studio', 'Quiet dark'], ['black', 'Black'], ['white', 'White'], ['light', 'Light grey'], ['cool', 'Colourful'], ['warm', 'Warm colours'], ['aurora', 'Night sky'],
   ['sunset', 'Sunset'], ['paper', 'Paper'], ['grid', 'Grid'], ['checker', 'Checker'],
   ...(Array.isArray(MO.bg) ? MO.bg : []).filter(Array.isArray).map((e) => [String(e[0]), String(e[1] || e[0])]),
 ];
@@ -3691,6 +3698,9 @@ function renderStageBar() {
   $('bgsel').hidden = m.ground && modeNow() === 'alone';
   $('stbar').hidden = m.ground && modeNow() === 'alone'; // a palette or a type specimen brings its own ground and does not move
   $('bgsel').value = V.bg;
+  const dots = [['page', P.pageBg || (P.palette && P.palette.roles) ? 'Your page' : 'Your palette’s page', pageColour()], ['black', 'Black', '#000'], ['white', 'White', '#fff']];
+  $('bgdots').innerHTML = dots.map(([v, n, c]) => `<button data-bgq="${v}" aria-pressed="${V.bg === v}" title="${esc(n)}" aria-label="Background: ${esc(n)}" style="background:${esc(c)}"></button>`).join('');
+  $('bgdots').hidden = $('bgsel').hidden;
   $('rmtog').setAttribute('aria-pressed', String(V.rm));
   $('hold').textContent = 'Hold to see ' + baseName(m).toLowerCase();
   $('hold').disabled = !changedKeys(m.id).length;
@@ -4511,6 +4521,7 @@ document.addEventListener('click', (e) => {
     if (box) { box.focus({ preventScroll: true }); $('askbox').scrollIntoView({ block: 'center', behavior: RM_OS ? 'auto' : 'smooth' }); }
     return;
   }
+  if ((el = at('[data-bgq]'))) return setBg(el.dataset.bgq);
   if ((el = at('[data-moreask]'))) { const k = el.dataset.moreask; UI.ask.target = k === '@looks' ? null : k; return sendAsk('more', k); }
   if ((el = at('[data-quick]'))) return sendAsk(el.dataset.quick);
   if ((el = at('[data-goctl]'))) return goControl(el.dataset.goctl);
@@ -4672,7 +4683,7 @@ function studioCheck() {
 
   if (!DEV[V.device] || UI.devAt !== VIEW) V.device = VIEW; // a new device, or a different one: start on the one in hand
   UI.devAt = VIEW;
-  if (!BGS.some((b) => b[0] === V.bg)) V.bg = 'page';
+  if (!BGS.some((b) => b[0] === V.bg)) V.bg = (P.pageBg || (P.palette && P.palette.measured) || (P.palette && P.palette.roles) ? 'page' : 'black');
   seen('dev', V.device);
   seen('bg', V.bg);
   seen('mode', V.mode);

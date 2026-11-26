@@ -169,6 +169,7 @@ document.addEventListener('click', (e) => {
     if (box) { box.focus({ preventScroll: true }); $('askbox').scrollIntoView({ block: 'center', behavior: RM_OS ? 'auto' : 'smooth' }); }
     return;
   }
+  if ((el = at('[data-bgq]'))) return setBg(el.dataset.bgq);
   if ((el = at('[data-moreask]'))) { const k = el.dataset.moreask; UI.ask.target = k === '@looks' ? null : k; return sendAsk('more', k); }
   if ((el = at('[data-quick]'))) return sendAsk(el.dataset.quick);
   if ((el = at('[data-goctl]'))) return goControl(el.dataset.goctl);

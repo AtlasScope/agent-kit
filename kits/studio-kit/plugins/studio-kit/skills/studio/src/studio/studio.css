@@ -544,3 +544,10 @@ details.fine[open]>.ctl:not(:last-child){border-bottom:0}
 .rv li s .rvsw{opacity:.6}
 .rvmore{margin-top:8px}
 .msg .chip{margin:0 2px}
+.bgd[data-bg=white]{background:#fff}
+/* quick backgrounds: the page, black, white */
+.bgdots{position:absolute;z-index:4;top:10px;right:10px;display:flex;gap:6px;align-items:center;padding:5px 7px;border-radius:999px;background:color-mix(in oklab,var(--c-surface) 85%,transparent);box-shadow:0 0 0 1px var(--line)}
+.devhint{right:auto;left:12px} /* the background dots take the top right */
+.bgdots button{all:unset;cursor:pointer;width:18px;height:18px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--line-2),0 0 0 1px var(--line)}
+.bgdots button[aria-pressed=true]{box-shadow:inset 0 0 0 1px var(--line-2),0 0 0 2px var(--bg),0 0 0 3.5px var(--c-brand)}
+.bgdots button:focus-visible{outline:2px solid var(--c-focus);outline-offset:3px}

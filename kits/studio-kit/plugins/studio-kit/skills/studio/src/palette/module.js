@@ -275,7 +275,6 @@
   today.pair = DEFAULTS.pair;
   today.theme = DEFAULTS.pair === 'both' ? 'both' : today.side || DEFAULTS.side;
   const measured = RL.some((r) => r.value);
-  if (!measured && !(PP.today && PP.today.side)) DEFAULTS.side = 'light'; // a project with no colours yet starts on a plain light page
 
   const fix = (s) => {
     if (s.side !== 'light') s.side = 'dark';

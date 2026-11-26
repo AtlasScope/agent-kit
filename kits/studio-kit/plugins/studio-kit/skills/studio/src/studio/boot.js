@@ -79,7 +79,7 @@ function studioCheck() {
 
   if (!DEV[V.device] || UI.devAt !== VIEW) V.device = VIEW; // a new device, or a different one: start on the one in hand
   UI.devAt = VIEW;
-  if (!BGS.some((b) => b[0] === V.bg)) V.bg = 'page';
+  if (!BGS.some((b) => b[0] === V.bg)) V.bg = (P.pageBg || (P.palette && P.palette.measured) || (P.palette && P.palette.roles) ? 'page' : 'black');
   seen('dev', V.device);
   seen('bg', V.bg);
   seen('mode', V.mode);

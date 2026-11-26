@@ -14,7 +14,8 @@ const fresh = (id) => clone(DEFS[id]);
 function setState(id, s) { ST[id] = s; if (id === 'button') S = s; }
 setState('button', ST.button || {});
 
-const V = { device: VIEW, bg: 'page', rm: RM_OS, mode: 'alone' }; // how the preview is shown
+/* a project with no page colour of its own starts on black, whichever theme the studio is in */
+const V = { device: VIEW, bg: (P.pageBg || (P.palette && P.palette.measured) || (P.palette && P.palette.roles) ? 'page' : 'black'), rm: RM_OS, mode: 'alone' }; // how the preview is shown
 const NAV = { mod: STUDIO.mods[0].id, cat: {}, review: false }; // cat[module] is a group id, or 'looks'
 STUDIO.mods.forEach((m) => { NAV.cat[m.id] = 'looks'; });
 const AM = () => STUDIO.by[NAV.mod];
