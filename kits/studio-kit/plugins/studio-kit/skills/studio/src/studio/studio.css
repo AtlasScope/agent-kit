@@ -494,3 +494,29 @@ details.fine[open]>.ctl:not(:last-child){border-bottom:0}
 .tiles .tile[aria-pressed=true]:hover::after{display:none}
 .tiles .tile:hover .td,.tiles .tile:focus-visible .td{padding:3px 9px;font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:1240px){.pcol>.hacts{gap:6px;padding:8px 10px}.pcol>.hacts .seg button{padding:5px 7px;font-size:12.5px}.pcol>.hacts .tb{padding:6px 9px;font-size:12.5px}}
+/* ---- the main action (Next, Send) as AtlasScope's homepage Install, in a pill: cyan words and glow on dark glass,
+   a ring of green, white and blue light that turns and breathes, one soft light drifting inside. Hover charges it:
+   the ring and glow brighten, the glass fills with cyan and the words go almost white. A press sinks it. ---- */
+@property --go-ring{syntax:"<angle>";inherits:false;initial-value:0deg}
+@property --go-charge{syntax:"<number>";inherits:true;initial-value:0}
+.go:not(.q):not(.sm){--ac:oklch(82% .3 212);--ach:oklch(92% .3 212);--go-charge:0;position:relative;isolation:isolate;overflow:hidden;filter:none;
+ color:color-mix(in oklch,var(--ach),#fff calc(var(--go-charge) * 85%));
+ background:color-mix(in oklch,var(--ac) calc(8% + 22% * var(--go-charge)),oklch(13% .02 230));
+ text-shadow:0 0 calc(8px + 4px * var(--go-charge)) var(--ac),0 1px calc(5px * var(--go-charge)) oklch(20% .08 220 / calc(.6 * var(--go-charge)));
+ box-shadow:0 0 calc(10px + 20px * var(--go-charge)) calc(-2px + 2px * var(--go-charge)) var(--ac),0 0 calc(56px * var(--go-charge)) -10px var(--ac),inset 0 0 calc(10px + 14px * var(--go-charge)) -5px var(--ac);
+ transform:translateY(calc(-1px * var(--go-charge))) scale(calc(1 - .04 * var(--go-press, 0)));
+ transition:--go-charge .42s var(--ease-out),transform .26s var(--ease-out)}
+.go:not(.q):not(.sm)::before{content:"";position:absolute;inset:0;z-index:1;border-radius:inherit;padding:2px;pointer-events:none;
+ background:conic-gradient(from var(--go-ring),oklch(84% .24 150),#fff,oklch(70% .2 250),oklch(84% .24 150),#fff,oklch(70% .2 250),oklch(84% .24 150));
+ -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);
+ filter:brightness(calc(1 + .15 * var(--go-charge))) saturate(calc(1 + .35 * var(--go-charge)));
+ animation:go-ring 7s linear infinite,go-breathe 3.6s ease-in-out infinite}
+.go:not(.q):not(.sm)::after{content:"";position:absolute;z-index:-1;top:-20%;left:0;width:45%;height:140%;border-radius:50%;background:var(--ac);filter:blur(12px);pointer-events:none;
+ opacity:calc(.26 + .16 * var(--go-charge));animation:go-drift 5s linear infinite}
+@media (hover:hover) and (pointer:fine){.go:not(.q):not(.sm):hover{--go-charge:1;filter:none}}
+.go:not(.q):not(.sm):focus-visible{--go-charge:.6;outline:2px solid var(--c-focus);outline-offset:3px}
+.go:not(.q):not(.sm):active{--go-press:1;--go-charge:1.2;transition-duration:70ms}
+@keyframes go-ring{to{--go-ring:360deg}}
+@keyframes go-breathe{0%,100%{opacity:.55}50%{opacity:1}}
+@keyframes go-drift{0%{transform:translateX(-30%)}50%{transform:translateX(160%)}100%{transform:translateX(-30%)}}
+@media (prefers-reduced-motion:reduce){.go:not(.q):not(.sm)::before,.go:not(.q):not(.sm)::after{animation:none}}
