@@ -378,6 +378,51 @@ details.fine .ctl+.ctl{border-top:0}
 @media (max-width:899px){.work.wide.reviewing{grid-template-columns:minmax(0,1fr);grid-template-areas:"head" "scol"}}
 .tiles .sel{display:none}
 .ib svg.sun,.ib svg.moon{display:none}[data-theme=light] .ib svg.moon,[data-theme=dark] .ib svg.sun{display:block}
+/* ---- steps as tabs: Start, the main steps, then the extras ---- */
+.nav{gap:0 2px;padding-bottom:0;margin-bottom:20px;border-bottom:1px solid var(--line)}
+.nav button{gap:7px;padding:10px 10px 11px;margin-bottom:-1px;border-radius:0;box-shadow:none;border-bottom:2px solid transparent;background:none}
+.nav button:hover{box-shadow:none;color:var(--fg);border-bottom-color:var(--line-2)}
+.nav .num{width:auto;height:auto;background:none;font:600 12px/1 var(--font);color:var(--c-fg-4)}
+.nav button[aria-current=step]{background:none;box-shadow:none;color:var(--fg);border-bottom-color:var(--c-brand)}
+.nav button[aria-current=step] .num{background:none;color:var(--c-brand-ink)}
+.nav .start span{font-weight:600}
+.nav .xsep{align-self:center;margin:0 6px 0 10px;padding-left:12px;border-left:1px solid var(--line-2);font-size:12.5px;color:var(--c-fg-4)}
+.nav .done{font-style:normal;font-size:12px;color:var(--c-fg-3)}
+.nav .tag{font-style:normal;font-size:11px;font-weight:600;color:var(--c-brand-ink)}
+.nav .chg{flex-basis:100%;margin:0;padding:8px 0 10px;font-size:12.5px;color:var(--c-fg-3)}
+.nav .chg button{all:unset;cursor:pointer;color:var(--fg);margin-left:6px;border-bottom:1px solid var(--line-2)}
+.nav .chg button:hover{border-bottom-color:var(--c-brand)}
+.nav .chg button+button::before{content:"·";margin-right:6px;color:var(--c-fg-4)}
+/* Next stays in reach while the choices scroll */
+.head{position:sticky;top:var(--hdr);z-index:6;background:var(--bg);padding-top:6px;margin-top:-2px}
+.hstep .skip{all:unset;cursor:pointer;font-size:13px;color:var(--c-fg-3);margin-right:6px;border-bottom:1px solid var(--line-2)}
+.hstep .skip:hover{color:var(--fg)}
+/* ---- one toolbar above the preview; the rarely used settings live in View ---- */
+.vmenu{position:relative}
+.vmenu>summary{list-style:none;display:inline-block}
+.vmenu>summary::-webkit-details-marker{display:none}
+.vmenu[open]>summary{border-color:var(--c-brand-line)}
+.vpop{position:absolute;right:0;top:calc(100% + 6px);z-index:20;display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-width:250px;padding:12px;border-radius:12px;background:var(--c-surface);border:1px solid var(--line-2);box-shadow:var(--shadow-3)}
+.vpop .stbar{padding:0;border:0;gap:8px}
+/* ---- on the preview: the scale, a small Today to compare with, and the design at its real size ---- */
+.devhint{position:absolute;z-index:3;top:10px;right:12px;font-size:11.5px;font-weight:500;color:var(--c-fg-2);background:color-mix(in oklab,var(--c-surface) 82%,transparent);padding:3px 8px;border-radius:7px;pointer-events:none}
+.devhint:empty{display:none}
+.tthumb{all:unset;position:absolute;z-index:3;top:10px;left:10px;width:164px;height:92px;border-radius:10px;overflow:hidden;cursor:pointer;border:1px solid var(--line-2);box-shadow:0 4px 14px -6px oklch(0% 0 0 / .35)}
+.tthumb .art{height:100%}
+.tthumb:hover{border-color:var(--c-brand-line)}
+.tthumb:focus-visible{outline:2px solid var(--c-focus);outline-offset:2px}
+.realsz{position:absolute;z-index:3;left:10px;bottom:10px;border-radius:10px;overflow:hidden;border:1px solid var(--line-2);pointer-events:none;box-shadow:0 4px 14px -6px oklch(0% 0 0 / .35)}
+.realsz .art{height:auto;padding:14px 18px 26px}
+.tthumb .rl,.realsz .rl{position:absolute;z-index:2;left:6px;bottom:5px;font-size:10.5px;font-weight:600;color:var(--c-fg-2);background:color-mix(in oklab,var(--c-surface) 85%,transparent);padding:1px 6px;border-radius:5px}
+.tiles .art .scale,.looks .art .scale{display:none}
+/* ---- Start: today first and large, ideas after ---- */
+.looks.start{grid-template-columns:minmax(0,1fr)}
+.look.feature .art.big{height:190px}
+.lrow.ideas{margin:24px 0 10px}
+@media (max-width:899px){.head{position:static}.tthumb,.realsz,.nav .chg{display:none!important}.nav .xsep{margin:0 4px}.nav{padding-bottom:0}}
+.tthumb .scale{display:none}
+.nav .chg .more{margin-left:10px;color:var(--c-fg-3)}
+.nav .chg .more::before{content:none!important}
 
 /* ===== the example page ("In a page"). Every colour and type value is a custom property a studio may set; see scene.js ===== */
 .scene{--sc-bg:transparent;--sc-surface:rgba(255,255,255,.055);--sc-line:rgba(255,255,255,.12);--sc-control:rgba(255,255,255,.3);--sc-fg:#f3f5f4;--sc-fg2:#b4bdba;--sc-fg3:#8b9592;--sc-accent:#8ab4ff;--sc-fill:#f3f5f4;--sc-on-fill:#0b0e0d;--sc-ok:#4ade80;--sc-warn:#f5b94a;--sc-bad:#f87171;
@@ -888,22 +933,25 @@ details.fine .ctl+.ctl{border-top:0}
   <div class="hacts" id="hacts">
    <div class="seg" id="modes" role="radiogroup" aria-label="View"></div>
    <span class="grow"></span>
-   <button class="tb" id="hold" title="Hold down to see what you started from, let go to come back">Hold for today</button>
+   <button class="tb" id="hold" title="Hold down to see what you started from, let go to come back">Hold to see today</button>
    <button class="tb" id="pin">Pin</button>
+   <details class="vmenu" id="vmenu"><summary class="tb">View</summary><div class="vpop">
+    <button class="tb" id="zoom" title="Switch between the design enlarged to fill the preview and its real size">Show actual size</button>
+    <div class="stbar" id="stbar">
+     <div class="seg" id="devices" role="radiogroup" aria-label="Screen width"></div>
+     <select id="bgsel" aria-label="Background"></select>
+     <button class="tog" id="rmtog" aria-pressed="false"><i></i>Less motion</button>
+    </div>
+   </div></details>
   </div>
-  <div class="phead"><b id="ptitle">Your design</b><span class="devhint" id="devhint"></span><button class="tb sm" id="zoom" title="Switch between the design enlarged to fill the preview and its real size">Actual size</button></div>
-  <div class="stage" id="stage"><span class="tryhint" id="tryhint"></span>
+  <b id="ptitle" hidden>Your design</b>
+  <div class="stage" id="stage"><span class="tryhint" id="tryhint"></span><span class="devhint" id="devhint"></span><button class="tthumb" id="tthumb" data-mode="compare" hidden></button><div class="realsz" id="realsz" hidden></div>
    <div class="dwrap" id="dwrap"><div class="device bgd" id="device"><div class="canvas" id="canvas"></div>
     <div class="overlay" id="ov"><div class="chk"><svg width="28" height="28"><use href="#i-check"/></svg></div><h4 id="ovh">Done</h4><small id="ovs"></small><div id="ovbtns" style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:230px"></div></div>
     <div class="toast" id="toast"><span class="dot"><svg width="14" height="14"><use href="#i-check"/></svg></span><div><b id="toasth">Done</b><span class="s"></span></div><span id="toastbtn" style="margin-left:auto"></span></div>
    </div></div>
   </div>
   <div class="board" id="board" hidden></div>
-  <div class="stbar" id="stbar">
-   <div class="seg" id="devices" role="radiogroup" aria-label="Screen width"></div>
-   <select id="bgsel" aria-label="Background"></select>
-   <button class="tog" id="rmtog" aria-pressed="false"><i></i>Less motion</button>
-  </div>
   <div class="ptune" id="ptune"></div>
  </aside>
 </main>
@@ -1388,7 +1436,7 @@ const STEPS = [
       ], { more: false, show: (s) => isMat(['solid', 'satin', 'gel', 'slab'])(s) && s.cmode !== 'rainbow' }),
     ] },
 
-  { id: 'motion', t: 'Movement', why: 'What the button does while nobody is touching it. Most buttons stay still; movement pulls the eye, so use it for the one thing that matters.', dep: ['material', 'shape'],
+  { id: 'motion', extra: 2, t: 'Movement', why: 'What the button does while nobody is touching it. Most buttons stay still; movement pulls the eye, so use it for the one thing that matters.', dep: ['material', 'shape'],
     note: () => (V.rm ? `<span>Less motion is on, so the preview stays still.${RM_OS ? ' Your device asks for less motion.' : ''}</span><button class="chip sm" data-set="rm">Show movement</button>` : ''),
     ctl: [
       ch('idle', 'Main movement', [
@@ -1444,7 +1492,7 @@ const STEPS = [
       ], { replay: true }),
     ] },
 
-  { id: 'interact', t: 'Hover, press and keyboard', why: 'How it reacts to a mouse, a finger or the keyboard. Depends on the material and movement.', dep: ['material', 'motion'],
+  { id: 'interact', extra: 1, t: 'Hover, press and keyboard', why: 'How it reacts to a mouse, a finger or the keyboard. Depends on the material and movement.', dep: ['material', 'motion'],
     note: () => (TOUCH ? '<span>This device has no hover. Hover choices show with a mouse or trackpad; the description says what each does.</span>' : ''),
     ctl: [
       ch('hover', 'When the pointer is over it', [
@@ -1530,7 +1578,7 @@ const STEPS = [
     rg('isz', 'Icon size', 0.9, 1.7, 0.05, 'em', 'Smaller at the left, bigger at the right.', { show: hasIcon }),
   ] },
 
-  { id: 'split', t: `Choosing ${/^[aeiou]/i.test(NOUN) ? 'an' : 'a'} ${NOUN}`, why: `Whether the button also lets people pick ${/^[aeiou]/i.test(NOUN) ? 'an' : 'a'} ${NOUN_H}. Depends on the shape and the words.`, dep: ['shape', 'content'], ctl: [
+  { id: 'split', extra: 4, t: `Choosing ${/^[aeiou]/i.test(NOUN) ? 'an' : 'a'} ${NOUN}`, why: `Whether the button also lets people pick ${/^[aeiou]/i.test(NOUN) ? 'an' : 'a'} ${NOUN_H}. Depends on the shape and the words.`, dep: ['shape', 'content'], ctl: [
     ch('split', 'Layout', [
       o('none', 'Just the button', 'One action, no choice.'),
       o('menu', 'Button with a menu arrow', `An arrow beside it opens a list of ${NOUN}s.`),
@@ -1556,7 +1604,7 @@ const STEPS = [
     ], { show: (s) => ['menu', 'agent', 'pair', 'segmented'].includes(s.split) }),
   ] },
 
-  { id: 'confirm', t: 'After you press', why: `What people see once it has worked.${P.afterNote ? ' ' + esc(P.afterNote) : ''}`, dep: ['material', 'split', 'content'], ctl: [
+  { id: 'confirm', extra: 3, t: 'After you press', why: `What people see once it has worked.${P.afterNote ? ' ' + esc(P.afterNote) : ''}`, dep: ['material', 'split', 'content'], ctl: [
     ch('confirm', 'What happens', [
       o('swap', `Says ${sayDone}`, `The words change to ${sayDone} with a tick, then change back.`),
       o('burst', 'Confetti', `Says ${sayDone} with a little burst of dots.`),
@@ -1581,7 +1629,7 @@ const STEPS = [
     ], { show: () => !!ACT.nextLine || (ACT.nextSteps || []).length > 0 }),
   ] },
 
-  { id: 'menu', t: `The ${NOUN} list`, why: `How the list of ${NOUN_H}s looks when it opens. It stays open while you are here.`, dep: ['split', 'material'],
+  { id: 'menu', extra: 5, t: `The ${NOUN} list`, why: `How the list of ${NOUN_H}s looks when it opens. It stays open while you are here.`, dep: ['split', 'material'],
     na: (s) => (hasMenu(s) ? '' : 'Only needed when the button opens a list. Pick a layout with a list under Choosing first.'),
     ctl: [
       ch('menuStyle', 'Style', [
@@ -2239,12 +2287,12 @@ const sceneIsLight = () => V.mode === 'context' && !!shared('light');
       ch('fill', 'Button colour', [o('accent', 'Accent colour', 'The same colour as links and highlights.'), o('ink', 'Black or white', 'The colour of the words: white on dark, near black on light.'), o('own', 'Its own colour', 'A second colour, just for the main button.'), o('soft', 'Soft wash', 'A pale wash of the accent with coloured words.')]),
       ch('fillHue', 'Its colour', hueOpts(), { show: (s) => s.fill === 'own' }),
     ] },
-    { id: 'status', t: 'Status colours', sec: 'Colour', why: 'Colours that say something worked, needs a look, or went wrong.', ctl: [
+    { id: 'status', extra: 1, t: 'Status colours', sec: 'Colour', why: 'Colours that say something worked, needs a look, or went wrong.', ctl: [
       ch('stSet', 'Which colours', SETS.map(([v, n, d, set]) => Object.assign(o(v, n, d), { set }))),
       ch('stC', 'How strong', [o(0.06, 'Quiet', 'Muted. They inform without alarming.'), o(0.13, 'Standard', 'Clear and familiar.'), o(0.2, 'Bright', 'Strong colour that grabs attention.')]),
       rg('stC', 'How strong', 0.02, 0.26, 0.01, '', ''),
     ] },
-    { id: 'words', t: 'Words', sec: 'Words', why: 'How strongly the words stand out from the background. Every level stays readable.', ctl: [
+    { id: 'words', extra: 2, t: 'Words', sec: 'Words', why: 'How strongly the words stand out from the background. Every level stays readable.', ctl: [
       ch('textk', 'Strength', [o(0, 'Softer', 'Gentler words. Calm, a little less sharp.'), o(0.5, 'Balanced', 'Clear without glare.'), o(1, 'Crisp', 'Words as dark or as bright as they go.')]),
       rg('textk', 'Strength', 0, 1, 0.01, '', 'Left is softer, right is crisper.'),
     ] },
@@ -2479,11 +2527,11 @@ const sceneIsLight = () => V.mode === 'context' && !!shared('light');
 
   /* Every direction control is a way of proposing role values: the proposal names the roles, not the sliders. */
   groups.forEach((g) => g.ctl.forEach((c) => { c.inSpec = false; }));
-  groups.unshift({ id: 'roles', t: 'Colour roles', short: 'Roles', sec: 'Roles',
+  groups.push({ id: 'roles', extra: 3, t: 'Colour roles', short: 'Roles', sec: 'Roles',
     why: measured ? 'Every job a colour does here, starting from the exact value found in the project. Open one to change it on its own.' : 'Every job a colour does. No project colours were given, so these are proposals; open one to change it on its own.',
     note: () => (PROJECT_ROLES.length || !measured ? '' : '<span>Only some roles were found in the project; the rest are marked Proposed until you choose them.</span>'),
     ctl: RL.map((r) => ({ k: 'r_' + r.id, t: 'role', label: r.name, role: r.id, more: false, inSpec: false })) }); // the notes carry them, with tokens
-  groups.push({ id: 'read', t: 'Readability', sec: 'Roles', why: 'Every pair of colours that must read together, measured for the palette you have now, beside today’s.',
+  groups.push({ id: 'read', extra: 4, t: 'Readability', sec: 'Roles', why: 'Every pair of colours that must read together, measured for the palette you have now, beside today’s.',
     ctl: [{ k: '_board', t: 'board', label: 'Readability', more: false, inSpec: false }] });
 
   /* ---- what other parts of the studio read ---- */
@@ -2826,7 +2874,7 @@ const sceneIsLight = () => V.mode === 'context' && !!shared('light');
       ctl: [ch('display', 'Lettering for headings', faceOpts('h'))] },
     { id: 'tface', t: 'Text lettering', short: 'Text', sec: 'Faces', why: 'The lettering for paragraphs, labels and everything people read at length. Easy reading first, character second.', note: lostNote('body'),
       ctl: [ch('body', 'Lettering for text', faceOpts('t'))] },
-    { id: 'cface', t: 'Code lettering', short: 'Code', sec: 'Faces', why: 'Even-width lettering for commands, things to copy and code.', note: lostNote('mono'),
+    { id: 'cface', extra: 1, t: 'Code lettering', short: 'Code', sec: 'Faces', why: 'Even-width lettering for commands, things to copy and code.', note: lostNote('mono'),
       ctl: [ch('mono', 'Lettering for code', faceOpts('c'))] },
     { id: 'size', t: 'Text size', sec: 'Size', why: 'How big the reading text is. Every other size is worked out from it.',
       ctl: [ch('size', 'Text size', [
@@ -2840,7 +2888,7 @@ const sceneIsLight = () => V.mode === 'context' && !!shared('light');
         o(1.25, 'Strong', 'A clear ladder from text up to the page title.'), o(1.333, 'Bold', 'Big headings with plenty of contrast.'),
         o(1.5, 'Dramatic', 'Very big titles. Made for landing pages and posters.')]),
       rg('ratio', 'Exact step', 1.067, 1.618, 0.001, '', 'Each size is the one below it times this number.')] },
-    { id: 'lines', t: 'Space between lines', short: 'Between lines', sec: 'Spacing', why: 'Room between the lines of a paragraph, and between the lines of a heading. Text needs more room than big headings.',
+    { id: 'lines', extra: 3, t: 'Space between lines', short: 'Between lines', sec: 'Spacing', why: 'Room between the lines of a paragraph, and between the lines of a heading. Text needs more room than big headings.',
       ctl: [ch('lh', 'Between lines of text', [
         o(1.35, 'Tight', 'Lines close together. Fits more, reads harder.'), o(1.55, 'Comfortable', 'The usual room for reading text.'),
         o(1.7, 'Airy', 'Extra room. Calm and easy over long reading.'), o(1.85, 'Very airy', 'Lots of air between lines.')]),
@@ -2849,18 +2897,18 @@ const sceneIsLight = () => V.mode === 'context' && !!shared('light');
         o(1.2, 'Normal', 'A little room between heading lines.'), o(1.35, 'Open', 'Loose, closer to text.')]),
       rg('lh', 'Exact space between lines of text', 1.2, 2, 0.05, '', 'Times the text size.'),
       rg('hlh', 'Exact space between lines of headings', 0.85, 1.5, 0.05, '', 'Times the heading size.')] },
-    { id: 'letters', t: 'Space between letters', short: 'Between letters', sec: 'Spacing', why: 'Pull heading letters closer for a tighter, bolder look, or spread them out for calm, and for capitals.',
+    { id: 'letters', extra: 4, t: 'Space between letters', short: 'Between letters', sec: 'Spacing', why: 'Pull heading letters closer for a tighter, bolder look, or spread them out for calm, and for capitals.',
       ctl: [ch('htrack', 'Space between letters in headings', [
         o(-0.04, 'Pulled in', 'Letters close together. Bold and modern at big sizes.'), o(-0.02, 'Slightly in', 'Just a touch tighter, as big headings usually want.'),
         o(0, 'As drawn', 'Exactly as the face was spaced by its designer.'), o(0.03, 'Slightly out', 'A little extra air between letters.'),
         o(0.08, 'Spaced out', 'Wide spacing. Suits capitals and calm, airy headings.')]),
       rg('htrack', 'Exact space between letters', -0.06, 0.15, 0.005, 'em', 'A share of the heading size; below zero pulls letters together.')] },
-    { id: 'length', t: 'Line length', sec: 'Spacing', why: 'How many letters fit on one line of a paragraph before it wraps. Too long and the eye loses its place; too short and reading feels choppy.',
+    { id: 'length', extra: 5, t: 'Line length', sec: 'Spacing', why: 'How many letters fit on one line of a paragraph before it wraps. Too long and the eye loses its place; too short and reading feels choppy.',
       ctl: [ch('measure', 'Line length', [
         o(45, 'Short', 'About 45 letters a line. Quick to read, like a newspaper column.'), o(55, 'Narrow', 'About 55 letters. Easy reading in a slim column.'), o(65, 'Medium', 'About 65 letters. Comfortable for most reading.'),
         o(75, 'Long', 'About 75 letters. The longest that still reads easily.'), o(85, 'Very long', 'About 85 letters. Hard to follow from one line to the next.')]),
       rg('measure', 'Exact line length', 30, 110, 1, ' letters', 'The most letters on one line of a paragraph.')] },
-    { id: 'weight', t: 'Thickness', sec: 'Details', why: 'How heavy the letters are, for headings and for text.',
+    { id: 'weight', extra: 2, t: 'Thickness', sec: 'Details', why: 'How heavy the letters are, for headings and for text.',
       note: (s) => { const f = face(s.display, 'display'); return f.weights && f.weights.length === 1 ? `${esc(f.name)} comes in one thickness only, so heading thickness makes no difference with it.` : ''; },
       ctl: [ch('hweight', 'Heading thickness', [
         o(300, 'Light', 'Thin, elegant strokes.'), o(400, 'Regular', 'The normal thickness of the face.'), o(500, 'Medium', 'A little firmer than regular.'),
@@ -2868,11 +2916,11 @@ const sceneIsLight = () => V.mode === 'context' && !!shared('light');
       ch('bweight', 'Text thickness', [
         o(300, 'Light', 'Thin and airy. Needs a big size and strong contrast.'), o(400, 'Regular', 'The normal thickness. Easiest to read.'),
         o(500, 'Medium', 'A little heavier. Helps on dark backgrounds and small screens.')])] },
-    { id: 'caps', t: 'Capitals', sec: 'Details', why: 'Whether headings appear as typed or in capitals.',
+    { id: 'caps', extra: 6, t: 'Capitals', sec: 'Details', why: 'Whether headings appear as typed or in capitals.',
       ctl: [ch('hcase', 'Capitals in headings', [
         o('none', 'As written', 'Headings appear exactly as typed.'), o('uppercase', 'All capitals', 'Every letter a capital. Strong, but slower to read.'),
         o('capitalize', 'Every word capitalised', 'Each word starts with a capital, like a book title.')])] },
-    { id: 'nums', t: 'Numbers', sec: 'Details', why: 'How figures sit in tables and in running text.',
+    { id: 'nums', extra: 7, t: 'Numbers', sec: 'Details', why: 'How figures sit in tables and in running text.',
       ctl: [ch('num', 'Numbers', [
         o('normal', 'As drawn', 'Figures as the face draws them. Some are narrower than others, so columns wander.'),
         o('tabular-nums', 'Lined up in columns', 'Every figure the same width, so prices and totals line up.'),
@@ -2975,7 +3023,7 @@ const DIM_BAD = [];
   ranges.forEach((r) => { m.defaults[r.k] = +r.default; });
   const group = {
     id: 'x-' + d.id, t: d.t.trim(), short: d.short ? String(d.short).slice(0, 24) : undefined, sec: String(d.sec || m.groups.length && m.groups[m.groups.length - 1].sec || 'More'),
-    why: esc(String(d.why || '').slice(0, 240)), dim: true,
+    why: esc(String(d.why || '').slice(0, 240)), dim: true, extra: d.extra === false ? 0 : 9, // a category the agent adds joins the extras unless it says it is essential
     ctl: [ch(d.id, d.t.trim(), opts.map((x) => Object.assign(o(String(x[0]), String(x[1]).slice(0, 40), String(x[2]).slice(0, 200)), { more: true }))),
       ...ranges.map((r) => rg(r.k, String(r.label).slice(0, 40), +r.min, +r.max, +r.step, String(r.unit || '').slice(0, 6), String(r.hint || '').slice(0, 120)))],
   };
@@ -3368,6 +3416,7 @@ function statesHTML() {
 }
 function stageHint() {
   const mode = modeNow();
+  if (PEEK) return 'Trying it on · click to keep it';
   if (HOLDING) return 'Showing ' + baseName(AM()).toLowerCase();
   if (mode === 'context') return CX.real ? 'Your page, simplified' : 'A representative page with your words. Not your live page.';
   return mode === 'alone' && NAV.mod === 'button' ? 'Press it to try it' : '';
@@ -3443,6 +3492,35 @@ function layoutDevice() {
   d.classList.toggle('framed', framed);
   Object.assign($('dwrap').style, { width: w * s + 'px', height: h * s + 'px', left: Math.round((w0 - w * s) / 2) + 'px', top: Math.round((h0 - h * s) / 2) + 'px' });
   $('devhint').textContent = hint;
+  previewExtras(s);
+}
+/** Beside an enlarged design: the same design at its real size; and, once something has changed, a small Today to
+    compare against (it opens Compare). The View menu disappears when it has nothing to offer. */
+function previewExtras(s) {
+  const m = AM(), alone = modeNow() === 'alone' && !m.ground, rs = $('realsz'), tt = $('tthumb');
+  rs.hidden = !(alone && s > 1.05);
+  if (!rs.hidden) {
+    rs.innerHTML = '<span class="rl">Actual size</span>' + art(m, AS(), { compare: true }, 'rart');
+    const i = rs.querySelector('.art-in');
+    if (i && i.offsetWidth > $('stage').clientWidth * 0.5) rs.hidden = true;
+  }
+  tt.hidden = !(alone && !PEEK && changedKeys(m.id).length);
+  if (!tt.hidden) { tt.innerHTML = art(m, DEFS[m.id], { compare: true }) + `<span class="rl">${esc(baseName(m))}</span>`; fitArt(tt); tt.title = 'Compare with ' + baseName(m).toLowerCase(); }
+  $('vmenu').hidden = $('stbar').hidden && $('zoom').hidden;
+}
+/* ---- trying a choice on: pointing at a card shows it in the preview; moving away puts yours back ---- */
+let PEEK = null;
+function peekOn(mid, s) {
+  if (modeNow() !== 'alone' || (HOLDING && !PEEK)) return;
+  if (!PEEK) { PEEK = { mod: mid, s: clone(ST[mid]) }; HOLDING = true; } // HOLDING keeps a tried-on state from being saved
+  setState(mid, s);
+  renderStage();
+}
+function peekOff() {
+  if (!PEEK) return;
+  setState(PEEK.mod, PEEK.s);
+  PEEK = null; HOLDING = false;
+  renderStage();
 }
 
 function seen(kind, v) { if (!UI.seen[kind].includes(v)) UI.seen[kind].push(v); }
@@ -3456,7 +3534,7 @@ function renderStageBar() {
   $('stbar').hidden = m.ground && modeNow() === 'alone'; // a palette or a type specimen brings its own ground and does not move
   $('bgsel').value = V.bg;
   $('rmtog').setAttribute('aria-pressed', String(V.rm));
-  $('hold').textContent = 'Hold for ' + baseName(m).toLowerCase();
+  $('hold').textContent = 'Hold to see ' + baseName(m).toLowerCase();
   $('hold').disabled = !changedKeys(m.id).length;
   const full = PINS.length >= 3;
   const isBase = sameLook(m.id, AS(), DEFS[m.id]);
@@ -3656,14 +3734,14 @@ function askHTML() {
 /* ---- Looks, a category, Review ---- */
 function looksHTML() {
   const m = AM(), now = AS();
-  const base = { id: '@base', n: baseName(m), d: m.measured ? 'What the project has now, as measured.' : 'A plain, sensible place to begin. Not taken from your project.', patch: {} };
-  const card = (l) => {
+  const base = { id: '@base', n: baseName(m), d: m.measured ? 'What the project has now, as measured. Keep it and refine it step by step.' : 'A plain, sensible place to begin. Not taken from your project.', patch: {} };
+  const card = (l, feature) => {
     const s = l.id === '@base' ? fresh(m.id) : lookState(m, l);
-    return `<div class="look" role="button" tabindex="0" data-look="${esc(l.id)}" aria-pressed="${sameLook(m.id, s, now)}">${art(m, s, { look: true }, 'big')}`
-      + `<span class="tn">${esc(l.n)}<span class="sel">Selected</span>${dot(m.id + '.look:' + l.id)}</span><small>${esc(l.d)}</small></div>`;
+    return `<div class="look${feature ? ' feature' : ''}" role="button" tabindex="0" data-look="${esc(l.id)}" aria-pressed="${sameLook(m.id, s, now)}">${art(m, s, { look: true }, 'big')}`
+      + `<span class="tn">${esc(l.n)}${feature ? '<span class="now">Recommended</span>' : ''}<span class="sel">Selected</span>${dot(m.id + '.look:' + l.id)}</span><small>${esc(l.d)}</small></div>`;
   };
-  return `<div class="looks">${[base, ...m.looks].map(card).join('')}</div>`
-    + (m.looks.length > 1 ? '<div class="prow"><button class="chip" data-act="surprise">Surprise me</button><span class="rhint">Picks a look you have not tried.</span></div>' : '');
+  return `<div class="looks start">${card(base, true)}</div>`
+    + (m.looks.length ? `<div class="lrow ideas"><span class="lbl">Or start from an idea</span>${m.looks.length > 1 ? '<button class="addc" data-act="surprise">Surprise me</button>' : ''}</div><div class="looks">${m.looks.map((l) => card(l)).join('')}</div>` : '');
 }
 function groupHTML(g) {
   const s = AS();
@@ -3691,16 +3769,18 @@ function headParts() {
   if (mode === 'compare') return { crumb, t: 'Compare the shortlist', why: `${baseName(m)}, what you pinned and what you have now, at the same scale on the same background.` };
   if (mode === 'states') return { crumb, t: 'Every state', why: 'The selected design resting, pointed at, pressed, focused and more, side by side.' };
   if (mode === 'context') return { crumb, t: CX.real ? 'In your page' : 'In a page', why: CX.real ? 'Your page, simplified, with every studio’s choices applied.' : 'A representative page with your words and every studio’s choices applied. It is not your live page.' };
-  if (!g) return { crumb, t: 'Looks', why: `Finished looks for your ${esc(m.title())}. Pick one and it is yours to change, piece by piece. Undo brings back what you had.` };
+  if (!g) return { crumb, t: 'Where to start', why: `Begin from ${esc(baseName(m).toLowerCase())}, or from an idea. Either way you refine it step by step.` };
   return { crumb, t: g.t, why: g.why };
 }
 /** Back, where you are and Next, at the top of every step where they are seen first. */
 function stepHTML() {
   if (NAV.review || modeNow() !== 'alone') return '';
-  const list = steps(), i = list.findIndex((x) => x.id === NAV.cat[NAV.mod]), pv = prevStep();
-  return `<span class="count">Step ${i + 1} of ${list.length + 1}</span>`
+  const list = steps(), i = list.findIndex((x) => x.id === NAV.cat[NAV.mod]), pv = prevStep(), nx = nextStep();
+  const where = i < 0 ? 'Start' : list[i].extra ? 'Extra' : `Step ${i + 1} of ${lastMain(list) + 1}`;
+  const skip = i >= lastMain(list) && nx.cat !== 'review' && nx.cat !== 'looks' ? '<button class="skip" data-cat="review">Skip to Review</button>' : '';
+  return `<span class="count">${where}</span>${skip}`
     + (pv ? '<button class="go q" data-act="prev">Back</button>' : '')
-    + `<button class="go" data-act="next">Next: ${esc(nextStep().n)} →</button>`;
+    + `<button class="go" data-act="next">${i < 0 && sameLook(NAV.mod, AS(), DEFS[NAV.mod]) ? `Start from ${esc(baseName(AM()).toLowerCase())}` : 'Next: ' + esc(nx.n)} →</button>`;
 }
 function renderHead() {
   $('hstep').innerHTML = stepHTML();
@@ -3754,15 +3834,18 @@ function tabsHTML() {
   return STUDIO.mods.map(tab).join('')
     + (rest.length ? `<select id="addmod" aria-label="Add a studio"><option value="">+ Add</option>${rest.map(([id, n]) => `<option value="${esc(id)}">${esc(n)}</option>`).join('')}</select>` : '');
 }
-/** The steps of the open studio, in order: Looks, then every category that applies to the current design. */
+/** The steps of the open studio: the main ones first, then the extras, in the order each studio gives them. Start
+    (where to begin, with ideas) comes before them and is not counted as a step. */
 function steps(m = AM()) {
-  const s = ST[m.id];
-  return [{ id: 'looks', n: 'Looks' }, ...m.groups.filter((g) => !(g.na && g.na(s))).map((g) => ({ id: g.id, n: g.short || g.t, g }))];
+  const s = ST[m.id], gs = m.groups.filter((g) => !(g.na && g.na(s)));
+  const main = gs.filter((g) => !g.extra), extra = gs.filter((g) => g.extra).sort((a, b) => a.extra - b.extra);
+  return [...main, ...extra].map((g) => ({ id: g.id, n: g.short || g.t, g, extra: !!g.extra }));
 }
-/** Where Next goes from here: the next step, the next studio's first step, then Review. */
+const lastMain = (list) => list.filter((x) => !x.extra).length - 1;
+/** Where Next goes from here: Start, each step, the next studio's Start, then Review. */
 function nextStep() {
   const m = AM(), list = steps(m), i = list.findIndex((x) => x.id === NAV.cat[m.id]);
-  if (i >= 0 && i < list.length - 1) return { mod: m.id, cat: list[i + 1].id, n: list[i + 1].n };
+  if (i < list.length - 1) return { mod: m.id, cat: list[i + 1].id, n: list[i + 1].n };
   const k = STUDIO.mods.indexOf(m);
   if (k < STUDIO.mods.length - 1) { const nm = STUDIO.mods[k + 1]; return { mod: nm.id, cat: 'looks', n: nm.name }; }
   return { mod: m.id, cat: 'review', n: 'Review' };
@@ -3770,22 +3853,38 @@ function nextStep() {
 function prevStep() {
   const m = AM(), list = steps(m), i = list.findIndex((x) => x.id === NAV.cat[m.id]);
   if (i > 0) return { mod: m.id, cat: list[i - 1].id };
+  if (i === 0) return { mod: m.id, cat: 'looks' };
   const k = STUDIO.mods.indexOf(m);
   if (k > 0) { const pm = STUDIO.mods[k - 1], pl = steps(pm); return { mod: pm.id, cat: pl[pl.length - 1].id }; }
   return null;
 }
+/** Every change in the workspace, by step, so Review is never a surprise. */
+function changeList() {
+  const out = [];
+  for (const m of STUDIO.mods) {
+    const ch = new Set(changedKeys(m.id));
+    if (!ch.size) continue;
+    for (const g of m.groups) if (g.ctl.some((c) => ch.has(c.k))) out.push({ mod: m.id, cat: g.id, n: (STUDIO.mods.length > 1 ? m.name + ' · ' : '') + (g.short || g.t) });
+  }
+  return out;
+}
 function navHTML() {
-  const m = AM(), cur = NAV.review ? '' : NAV.cat[m.id], changed = new Set(changedKeys(m.id));
+  const m = AM(), cur = NAV.review ? '' : NAV.cat[m.id], changed = new Set(changedKeys(m.id)), list = steps(m);
   const item = (st, i) => {
-    const fresh = st.id === 'looks' ? m.looks.some((l) => isNew(m.id + '.look:' + l.id)) : st.g.ctl.some((c) => UI.fresh.some((f) => f.startsWith(m.id + '.' + c.k + ':')));
-    const mark = fresh ? '<i class="nw"></i>' : st.g && st.g.ctl.some((c) => changed.has(c.k)) ? '<i class="ch" title="Changed"></i>' : '';
-    return `<button data-cat="${st.id}" aria-current="${cur === st.id ? 'step' : 'false'}"><b class="num">${i + 1}</b><span>${esc(st.n)}</span>${mark}</button>`;
+    const fresh = st.g.ctl.some((c) => UI.fresh.some((f) => f.startsWith(m.id + '.' + c.k + ':')));
+    const mark = fresh ? '<i class="tag">New</i>' : st.g.ctl.some((c) => changed.has(c.k)) ? '<i class="done" title="Changed">✓</i>' : '';
+    return (st.extra && (i === 0 || !list[i - 1].extra) ? '<span class="xsep">Extras</span>' : '')
+      + `<button data-cat="${st.id}" aria-current="${cur === st.id ? 'step' : 'false'}"><b class="num">${i + 1}</b><span>${esc(st.n)}</span>${mark}</button>`;
   };
-  const list = steps(m);
-  return list.map(item).join('') + `<button data-cat="review" aria-current="${NAV.review ? 'step' : 'false'}"><b class="num">${list.length + 1}</b><span>Review</span></button>`;
+  const start = `<button class="start" data-cat="looks" aria-current="${cur === 'looks' ? 'step' : 'false'}"><span>Start</span></button>`;
+  const all = changeList(), mine = all.filter((c) => c.mod === m.id), others = all.length - mine.length;
+  const name = (c) => (STUDIO.mods.length > 1 ? c.n.split(' · ').slice(1).join(' · ') : c.n);
+  return start + list.map(item).join('')
+    + (all.length ? `<p class="chg">${mine.length ? `Changed here: ${mine.map((c) => `<button data-jump="${c.mod}|${c.cat}">${esc(name(c))}</button>`).join('')}` : 'Nothing changed here yet.'}`
+      + (others ? ` <button class="more" data-cat="review">${others} more in other studios</button>` : '') + '</p>' : '');
 }
 function footHTML() {
-  if (!NAV.review) return `<span class="count"></span><button class="go q" data-act="next">Next: ${esc(nextStep().n)} →</button>`; // the main Next is at the top
+  if (!NAV.review) return ''; // Next lives at the top of every step
   return `<button class="go q" data-act="back">Back</button><span class="count"></span><button class="go q" data-act="copy">Copy</button><button class="go" data-act="send">${STATUS.live ? 'Send to chat' : 'Copy for chat'}</button>`;
 }
 
@@ -4134,6 +4233,23 @@ function feel(el, on) {
   if (t && t.on && b) b.classList.toggle('sx-' + t.on, on);
 }
 panel.addEventListener('pointerover', (e) => { const b = e.target.closest('.tile'); if (b && e.pointerType === 'mouse') feel(b, true); });
+/* Try-on: the card under the pointer is drawn in the big preview; a click keeps it, leaving puts yours back. */
+let peekTimer = 0;
+const peekState = (el) => {
+  const m = AM();
+  if (el.dataset.look) return el.dataset.look === '@base' ? fresh(m.id) : lookState(m, m.looks.find((l) => l.id === el.dataset.look));
+  const c = CT[el.dataset.c];
+  return c && c.mid === m.id ? candidate(c, c.opts[+el.dataset.o]) : null;
+};
+panel.addEventListener('pointerover', (e) => {
+  if (e.pointerType !== 'mouse') return;
+  const el = e.target.closest('.tile[data-c], .look[data-look]');
+  clearTimeout(peekTimer);
+  if (!el) { peekTimer = setTimeout(peekOff, 140); return; }
+  peekTimer = setTimeout(() => { const s = peekState(el); if (s) peekOn(NAV.mod, s); }, 70);
+});
+panel.addEventListener('pointerleave', () => { clearTimeout(peekTimer); peekTimer = setTimeout(peekOff, 140); });
+panel.addEventListener('pointerdown', () => { clearTimeout(peekTimer); peekOff(); }, true); // the real state comes back before a pick
 panel.addEventListener('pointerout', (e) => { const b = e.target.closest('.tile'); if (b && !b.contains(e.relatedTarget)) feel(b, false); });
 panel.addEventListener('focusin', (e) => { const b = e.target.closest('.tile'); if (b && b.matches(':focus-visible')) feel(b, true); });
 panel.addEventListener('focusout', (e) => { const b = e.target.closest('.tile'); if (b) feel(b, false); });
@@ -4221,6 +4337,7 @@ document.addEventListener('click', (e) => {
   if ((el = at('[data-goctl]'))) return goControl(el.dataset.goctl);
   if ((el = at('[data-scope]'))) { SCOPE = el.dataset.scope; renderPanel(); return save(); }
   if ((el = at('[data-cat]'))) return go(null, el.dataset.cat);
+  if ((el = at('[data-jump]'))) { const [mod, cat] = el.dataset.jump.split('|'); return go(mod, cat); }
   if ((el = at('[data-mod]'))) return go(el.dataset.mod, NAV.cat[el.dataset.mod]);
   if ((el = at('[data-mode]'))) return setMode(el.dataset.mode);
   if ((el = at('[data-dev]'))) return setDevice(el.dataset.dev);
@@ -4230,6 +4347,16 @@ document.addEventListener('click', (e) => {
 /* Tiles and looks are drawn with real buttons inside, so they are not <button>s themselves: give them the keyboard. */
 document.addEventListener('keydown', (e) => {
   const t = e.target;
+  // Arrows walk the cards of a group; with nothing focused they walk the steps.
+  if (/^Arrow(Left|Right|Up|Down)$/.test(e.key) && !e.altKey && !e.ctrlKey && !e.metaKey) {
+    if (t.matches && t.matches('.tile, .look')) {
+      const all = [...t.parentElement.querySelectorAll(':scope > .tile, :scope > .look')], fwd = e.key === 'ArrowRight' || e.key === 'ArrowDown';
+      const n = all[all.indexOf(t) + (fwd ? 1 : -1)];
+      if (n) { e.preventDefault(); n.focus(); }
+      return;
+    }
+    if ((t === document.body || !t.matches) && !NAV.review && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) { e.preventDefault(); ACTIONS[e.key === 'ArrowRight' ? 'next' : 'prev'](); return; }
+  }
   if ((e.key === 'Enter' || e.key === ' ') && t.matches && t.matches('[role=button][tabindex]')) { e.preventDefault(); t.click(); return; }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !(t.matches && t.matches('input[type=text],textarea'))) { e.preventDefault(); (e.shiftKey ? redo : undo)(); }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); }

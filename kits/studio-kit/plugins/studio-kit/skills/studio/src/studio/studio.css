@@ -368,3 +368,48 @@ details.fine .ctl+.ctl{border-top:0}
 @media (max-width:899px){.work.wide.reviewing{grid-template-columns:minmax(0,1fr);grid-template-areas:"head" "scol"}}
 .tiles .sel{display:none}
 .ib svg.sun,.ib svg.moon{display:none}[data-theme=light] .ib svg.moon,[data-theme=dark] .ib svg.sun{display:block}
+/* ---- steps as tabs: Start, the main steps, then the extras ---- */
+.nav{gap:0 2px;padding-bottom:0;margin-bottom:20px;border-bottom:1px solid var(--line)}
+.nav button{gap:7px;padding:10px 10px 11px;margin-bottom:-1px;border-radius:0;box-shadow:none;border-bottom:2px solid transparent;background:none}
+.nav button:hover{box-shadow:none;color:var(--fg);border-bottom-color:var(--line-2)}
+.nav .num{width:auto;height:auto;background:none;font:600 12px/1 var(--font);color:var(--c-fg-4)}
+.nav button[aria-current=step]{background:none;box-shadow:none;color:var(--fg);border-bottom-color:var(--c-brand)}
+.nav button[aria-current=step] .num{background:none;color:var(--c-brand-ink)}
+.nav .start span{font-weight:600}
+.nav .xsep{align-self:center;margin:0 6px 0 10px;padding-left:12px;border-left:1px solid var(--line-2);font-size:12.5px;color:var(--c-fg-4)}
+.nav .done{font-style:normal;font-size:12px;color:var(--c-fg-3)}
+.nav .tag{font-style:normal;font-size:11px;font-weight:600;color:var(--c-brand-ink)}
+.nav .chg{flex-basis:100%;margin:0;padding:8px 0 10px;font-size:12.5px;color:var(--c-fg-3)}
+.nav .chg button{all:unset;cursor:pointer;color:var(--fg);margin-left:6px;border-bottom:1px solid var(--line-2)}
+.nav .chg button:hover{border-bottom-color:var(--c-brand)}
+.nav .chg button+button::before{content:"·";margin-right:6px;color:var(--c-fg-4)}
+/* Next stays in reach while the choices scroll */
+.head{position:sticky;top:var(--hdr);z-index:6;background:var(--bg);padding-top:6px;margin-top:-2px}
+.hstep .skip{all:unset;cursor:pointer;font-size:13px;color:var(--c-fg-3);margin-right:6px;border-bottom:1px solid var(--line-2)}
+.hstep .skip:hover{color:var(--fg)}
+/* ---- one toolbar above the preview; the rarely used settings live in View ---- */
+.vmenu{position:relative}
+.vmenu>summary{list-style:none;display:inline-block}
+.vmenu>summary::-webkit-details-marker{display:none}
+.vmenu[open]>summary{border-color:var(--c-brand-line)}
+.vpop{position:absolute;right:0;top:calc(100% + 6px);z-index:20;display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-width:250px;padding:12px;border-radius:12px;background:var(--c-surface);border:1px solid var(--line-2);box-shadow:var(--shadow-3)}
+.vpop .stbar{padding:0;border:0;gap:8px}
+/* ---- on the preview: the scale, a small Today to compare with, and the design at its real size ---- */
+.devhint{position:absolute;z-index:3;top:10px;right:12px;font-size:11.5px;font-weight:500;color:var(--c-fg-2);background:color-mix(in oklab,var(--c-surface) 82%,transparent);padding:3px 8px;border-radius:7px;pointer-events:none}
+.devhint:empty{display:none}
+.tthumb{all:unset;position:absolute;z-index:3;top:10px;left:10px;width:164px;height:92px;border-radius:10px;overflow:hidden;cursor:pointer;border:1px solid var(--line-2);box-shadow:0 4px 14px -6px oklch(0% 0 0 / .35)}
+.tthumb .art{height:100%}
+.tthumb:hover{border-color:var(--c-brand-line)}
+.tthumb:focus-visible{outline:2px solid var(--c-focus);outline-offset:2px}
+.realsz{position:absolute;z-index:3;left:10px;bottom:10px;border-radius:10px;overflow:hidden;border:1px solid var(--line-2);pointer-events:none;box-shadow:0 4px 14px -6px oklch(0% 0 0 / .35)}
+.realsz .art{height:auto;padding:14px 18px 26px}
+.tthumb .rl,.realsz .rl{position:absolute;z-index:2;left:6px;bottom:5px;font-size:10.5px;font-weight:600;color:var(--c-fg-2);background:color-mix(in oklab,var(--c-surface) 85%,transparent);padding:1px 6px;border-radius:5px}
+.tiles .art .scale,.looks .art .scale{display:none}
+/* ---- Start: today first and large, ideas after ---- */
+.looks.start{grid-template-columns:minmax(0,1fr)}
+.look.feature .art.big{height:190px}
+.lrow.ideas{margin:24px 0 10px}
+@media (max-width:899px){.head{position:static}.tthumb,.realsz,.nav .chg{display:none!important}.nav .xsep{margin:0 4px}.nav{padding-bottom:0}}
+.tthumb .scale{display:none}
+.nav .chg .more{margin-left:10px;color:var(--c-fg-3)}
+.nav .chg .more::before{content:none!important}

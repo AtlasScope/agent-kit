@@ -186,12 +186,12 @@
       ch('fill', 'Button colour', [o('accent', 'Accent colour', 'The same colour as links and highlights.'), o('ink', 'Black or white', 'The colour of the words: white on dark, near black on light.'), o('own', 'Its own colour', 'A second colour, just for the main button.'), o('soft', 'Soft wash', 'A pale wash of the accent with coloured words.')]),
       ch('fillHue', 'Its colour', hueOpts(), { show: (s) => s.fill === 'own' }),
     ] },
-    { id: 'status', t: 'Status colours', sec: 'Colour', why: 'Colours that say something worked, needs a look, or went wrong.', ctl: [
+    { id: 'status', extra: 1, t: 'Status colours', sec: 'Colour', why: 'Colours that say something worked, needs a look, or went wrong.', ctl: [
       ch('stSet', 'Which colours', SETS.map(([v, n, d, set]) => Object.assign(o(v, n, d), { set }))),
       ch('stC', 'How strong', [o(0.06, 'Quiet', 'Muted. They inform without alarming.'), o(0.13, 'Standard', 'Clear and familiar.'), o(0.2, 'Bright', 'Strong colour that grabs attention.')]),
       rg('stC', 'How strong', 0.02, 0.26, 0.01, '', ''),
     ] },
-    { id: 'words', t: 'Words', sec: 'Words', why: 'How strongly the words stand out from the background. Every level stays readable.', ctl: [
+    { id: 'words', extra: 2, t: 'Words', sec: 'Words', why: 'How strongly the words stand out from the background. Every level stays readable.', ctl: [
       ch('textk', 'Strength', [o(0, 'Softer', 'Gentler words. Calm, a little less sharp.'), o(0.5, 'Balanced', 'Clear without glare.'), o(1, 'Crisp', 'Words as dark or as bright as they go.')]),
       rg('textk', 'Strength', 0, 1, 0.01, '', 'Left is softer, right is crisper.'),
     ] },
@@ -426,11 +426,11 @@
 
   /* Every direction control is a way of proposing role values: the proposal names the roles, not the sliders. */
   groups.forEach((g) => g.ctl.forEach((c) => { c.inSpec = false; }));
-  groups.unshift({ id: 'roles', t: 'Colour roles', short: 'Roles', sec: 'Roles',
+  groups.push({ id: 'roles', extra: 3, t: 'Colour roles', short: 'Roles', sec: 'Roles',
     why: measured ? 'Every job a colour does here, starting from the exact value found in the project. Open one to change it on its own.' : 'Every job a colour does. No project colours were given, so these are proposals; open one to change it on its own.',
     note: () => (PROJECT_ROLES.length || !measured ? '' : '<span>Only some roles were found in the project; the rest are marked Proposed until you choose them.</span>'),
     ctl: RL.map((r) => ({ k: 'r_' + r.id, t: 'role', label: r.name, role: r.id, more: false, inSpec: false })) }); // the notes carry them, with tokens
-  groups.push({ id: 'read', t: 'Readability', sec: 'Roles', why: 'Every pair of colours that must read together, measured for the palette you have now, beside today’s.',
+  groups.push({ id: 'read', extra: 4, t: 'Readability', sec: 'Roles', why: 'Every pair of colours that must read together, measured for the palette you have now, beside today’s.',
     ctl: [{ k: '_board', t: 'board', label: 'Readability', more: false, inSpec: false }] });
 
   /* ---- what other parts of the studio read ---- */

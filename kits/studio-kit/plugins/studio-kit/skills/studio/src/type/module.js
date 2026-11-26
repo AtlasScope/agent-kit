@@ -279,7 +279,7 @@
       ctl: [ch('display', 'Lettering for headings', faceOpts('h'))] },
     { id: 'tface', t: 'Text lettering', short: 'Text', sec: 'Faces', why: 'The lettering for paragraphs, labels and everything people read at length. Easy reading first, character second.', note: lostNote('body'),
       ctl: [ch('body', 'Lettering for text', faceOpts('t'))] },
-    { id: 'cface', t: 'Code lettering', short: 'Code', sec: 'Faces', why: 'Even-width lettering for commands, things to copy and code.', note: lostNote('mono'),
+    { id: 'cface', extra: 1, t: 'Code lettering', short: 'Code', sec: 'Faces', why: 'Even-width lettering for commands, things to copy and code.', note: lostNote('mono'),
       ctl: [ch('mono', 'Lettering for code', faceOpts('c'))] },
     { id: 'size', t: 'Text size', sec: 'Size', why: 'How big the reading text is. Every other size is worked out from it.',
       ctl: [ch('size', 'Text size', [
@@ -293,7 +293,7 @@
         o(1.25, 'Strong', 'A clear ladder from text up to the page title.'), o(1.333, 'Bold', 'Big headings with plenty of contrast.'),
         o(1.5, 'Dramatic', 'Very big titles. Made for landing pages and posters.')]),
       rg('ratio', 'Exact step', 1.067, 1.618, 0.001, '', 'Each size is the one below it times this number.')] },
-    { id: 'lines', t: 'Space between lines', short: 'Between lines', sec: 'Spacing', why: 'Room between the lines of a paragraph, and between the lines of a heading. Text needs more room than big headings.',
+    { id: 'lines', extra: 3, t: 'Space between lines', short: 'Between lines', sec: 'Spacing', why: 'Room between the lines of a paragraph, and between the lines of a heading. Text needs more room than big headings.',
       ctl: [ch('lh', 'Between lines of text', [
         o(1.35, 'Tight', 'Lines close together. Fits more, reads harder.'), o(1.55, 'Comfortable', 'The usual room for reading text.'),
         o(1.7, 'Airy', 'Extra room. Calm and easy over long reading.'), o(1.85, 'Very airy', 'Lots of air between lines.')]),
@@ -302,18 +302,18 @@
         o(1.2, 'Normal', 'A little room between heading lines.'), o(1.35, 'Open', 'Loose, closer to text.')]),
       rg('lh', 'Exact space between lines of text', 1.2, 2, 0.05, '', 'Times the text size.'),
       rg('hlh', 'Exact space between lines of headings', 0.85, 1.5, 0.05, '', 'Times the heading size.')] },
-    { id: 'letters', t: 'Space between letters', short: 'Between letters', sec: 'Spacing', why: 'Pull heading letters closer for a tighter, bolder look, or spread them out for calm, and for capitals.',
+    { id: 'letters', extra: 4, t: 'Space between letters', short: 'Between letters', sec: 'Spacing', why: 'Pull heading letters closer for a tighter, bolder look, or spread them out for calm, and for capitals.',
       ctl: [ch('htrack', 'Space between letters in headings', [
         o(-0.04, 'Pulled in', 'Letters close together. Bold and modern at big sizes.'), o(-0.02, 'Slightly in', 'Just a touch tighter, as big headings usually want.'),
         o(0, 'As drawn', 'Exactly as the face was spaced by its designer.'), o(0.03, 'Slightly out', 'A little extra air between letters.'),
         o(0.08, 'Spaced out', 'Wide spacing. Suits capitals and calm, airy headings.')]),
       rg('htrack', 'Exact space between letters', -0.06, 0.15, 0.005, 'em', 'A share of the heading size; below zero pulls letters together.')] },
-    { id: 'length', t: 'Line length', sec: 'Spacing', why: 'How many letters fit on one line of a paragraph before it wraps. Too long and the eye loses its place; too short and reading feels choppy.',
+    { id: 'length', extra: 5, t: 'Line length', sec: 'Spacing', why: 'How many letters fit on one line of a paragraph before it wraps. Too long and the eye loses its place; too short and reading feels choppy.',
       ctl: [ch('measure', 'Line length', [
         o(45, 'Short', 'About 45 letters a line. Quick to read, like a newspaper column.'), o(55, 'Narrow', 'About 55 letters. Easy reading in a slim column.'), o(65, 'Medium', 'About 65 letters. Comfortable for most reading.'),
         o(75, 'Long', 'About 75 letters. The longest that still reads easily.'), o(85, 'Very long', 'About 85 letters. Hard to follow from one line to the next.')]),
       rg('measure', 'Exact line length', 30, 110, 1, ' letters', 'The most letters on one line of a paragraph.')] },
-    { id: 'weight', t: 'Thickness', sec: 'Details', why: 'How heavy the letters are, for headings and for text.',
+    { id: 'weight', extra: 2, t: 'Thickness', sec: 'Details', why: 'How heavy the letters are, for headings and for text.',
       note: (s) => { const f = face(s.display, 'display'); return f.weights && f.weights.length === 1 ? `${esc(f.name)} comes in one thickness only, so heading thickness makes no difference with it.` : ''; },
       ctl: [ch('hweight', 'Heading thickness', [
         o(300, 'Light', 'Thin, elegant strokes.'), o(400, 'Regular', 'The normal thickness of the face.'), o(500, 'Medium', 'A little firmer than regular.'),
@@ -321,11 +321,11 @@
       ch('bweight', 'Text thickness', [
         o(300, 'Light', 'Thin and airy. Needs a big size and strong contrast.'), o(400, 'Regular', 'The normal thickness. Easiest to read.'),
         o(500, 'Medium', 'A little heavier. Helps on dark backgrounds and small screens.')])] },
-    { id: 'caps', t: 'Capitals', sec: 'Details', why: 'Whether headings appear as typed or in capitals.',
+    { id: 'caps', extra: 6, t: 'Capitals', sec: 'Details', why: 'Whether headings appear as typed or in capitals.',
       ctl: [ch('hcase', 'Capitals in headings', [
         o('none', 'As written', 'Headings appear exactly as typed.'), o('uppercase', 'All capitals', 'Every letter a capital. Strong, but slower to read.'),
         o('capitalize', 'Every word capitalised', 'Each word starts with a capital, like a book title.')])] },
-    { id: 'nums', t: 'Numbers', sec: 'Details', why: 'How figures sit in tables and in running text.',
+    { id: 'nums', extra: 7, t: 'Numbers', sec: 'Details', why: 'How figures sit in tables and in running text.',
       ctl: [ch('num', 'Numbers', [
         o('normal', 'As drawn', 'Figures as the face draws them. Some are narrower than others, so columns wander.'),
         o('tabular-nums', 'Lined up in columns', 'Every figure the same width, so prices and totals line up.'),

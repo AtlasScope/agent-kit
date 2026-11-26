@@ -83,6 +83,23 @@ function feel(el, on) {
   if (t && t.on && b) b.classList.toggle('sx-' + t.on, on);
 }
 panel.addEventListener('pointerover', (e) => { const b = e.target.closest('.tile'); if (b && e.pointerType === 'mouse') feel(b, true); });
+/* Try-on: the card under the pointer is drawn in the big preview; a click keeps it, leaving puts yours back. */
+let peekTimer = 0;
+const peekState = (el) => {
+  const m = AM();
+  if (el.dataset.look) return el.dataset.look === '@base' ? fresh(m.id) : lookState(m, m.looks.find((l) => l.id === el.dataset.look));
+  const c = CT[el.dataset.c];
+  return c && c.mid === m.id ? candidate(c, c.opts[+el.dataset.o]) : null;
+};
+panel.addEventListener('pointerover', (e) => {
+  if (e.pointerType !== 'mouse') return;
+  const el = e.target.closest('.tile[data-c], .look[data-look]');
+  clearTimeout(peekTimer);
+  if (!el) { peekTimer = setTimeout(peekOff, 140); return; }
+  peekTimer = setTimeout(() => { const s = peekState(el); if (s) peekOn(NAV.mod, s); }, 70);
+});
+panel.addEventListener('pointerleave', () => { clearTimeout(peekTimer); peekTimer = setTimeout(peekOff, 140); });
+panel.addEventListener('pointerdown', () => { clearTimeout(peekTimer); peekOff(); }, true); // the real state comes back before a pick
 panel.addEventListener('pointerout', (e) => { const b = e.target.closest('.tile'); if (b && !b.contains(e.relatedTarget)) feel(b, false); });
 panel.addEventListener('focusin', (e) => { const b = e.target.closest('.tile'); if (b && b.matches(':focus-visible')) feel(b, true); });
 panel.addEventListener('focusout', (e) => { const b = e.target.closest('.tile'); if (b) feel(b, false); });
@@ -170,6 +187,7 @@ document.addEventListener('click', (e) => {
   if ((el = at('[data-goctl]'))) return goControl(el.dataset.goctl);
   if ((el = at('[data-scope]'))) { SCOPE = el.dataset.scope; renderPanel(); return save(); }
   if ((el = at('[data-cat]'))) return go(null, el.dataset.cat);
+  if ((el = at('[data-jump]'))) { const [mod, cat] = el.dataset.jump.split('|'); return go(mod, cat); }
   if ((el = at('[data-mod]'))) return go(el.dataset.mod, NAV.cat[el.dataset.mod]);
   if ((el = at('[data-mode]'))) return setMode(el.dataset.mode);
   if ((el = at('[data-dev]'))) return setDevice(el.dataset.dev);
@@ -179,6 +197,16 @@ document.addEventListener('click', (e) => {
 /* Tiles and looks are drawn with real buttons inside, so they are not <button>s themselves: give them the keyboard. */
 document.addEventListener('keydown', (e) => {
   const t = e.target;
+  // Arrows walk the cards of a group; with nothing focused they walk the steps.
+  if (/^Arrow(Left|Right|Up|Down)$/.test(e.key) && !e.altKey && !e.ctrlKey && !e.metaKey) {
+    if (t.matches && t.matches('.tile, .look')) {
+      const all = [...t.parentElement.querySelectorAll(':scope > .tile, :scope > .look')], fwd = e.key === 'ArrowRight' || e.key === 'ArrowDown';
+      const n = all[all.indexOf(t) + (fwd ? 1 : -1)];
+      if (n) { e.preventDefault(); n.focus(); }
+      return;
+    }
+    if ((t === document.body || !t.matches) && !NAV.review && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) { e.preventDefault(); ACTIONS[e.key === 'ArrowRight' ? 'next' : 'prev'](); return; }
+  }
   if ((e.key === 'Enter' || e.key === ' ') && t.matches && t.matches('[role=button][tabindex]')) { e.preventDefault(); t.click(); return; }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !(t.matches && t.matches('input[type=text],textarea'))) { e.preventDefault(); (e.shiftKey ? redo : undo)(); }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); }

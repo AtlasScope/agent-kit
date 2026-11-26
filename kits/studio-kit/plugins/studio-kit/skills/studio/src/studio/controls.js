@@ -35,7 +35,7 @@ const DIM_BAD = [];
   ranges.forEach((r) => { m.defaults[r.k] = +r.default; });
   const group = {
     id: 'x-' + d.id, t: d.t.trim(), short: d.short ? String(d.short).slice(0, 24) : undefined, sec: String(d.sec || m.groups.length && m.groups[m.groups.length - 1].sec || 'More'),
-    why: esc(String(d.why || '').slice(0, 240)), dim: true,
+    why: esc(String(d.why || '').slice(0, 240)), dim: true, extra: d.extra === false ? 0 : 9, // a category the agent adds joins the extras unless it says it is essential
     ctl: [ch(d.id, d.t.trim(), opts.map((x) => Object.assign(o(String(x[0]), String(x[1]).slice(0, 40), String(x[2]).slice(0, 200)), { more: true }))),
       ...ranges.map((r) => rg(r.k, String(r.label).slice(0, 40), +r.min, +r.max, +r.step, String(r.unit || '').slice(0, 6), String(r.hint || '').slice(0, 120)))],
   };

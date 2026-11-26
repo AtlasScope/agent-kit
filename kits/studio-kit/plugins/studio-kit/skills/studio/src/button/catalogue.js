@@ -152,7 +152,7 @@ const STEPS = [
       ], { more: false, show: (s) => isMat(['solid', 'satin', 'gel', 'slab'])(s) && s.cmode !== 'rainbow' }),
     ] },
 
-  { id: 'motion', t: 'Movement', why: 'What the button does while nobody is touching it. Most buttons stay still; movement pulls the eye, so use it for the one thing that matters.', dep: ['material', 'shape'],
+  { id: 'motion', extra: 2, t: 'Movement', why: 'What the button does while nobody is touching it. Most buttons stay still; movement pulls the eye, so use it for the one thing that matters.', dep: ['material', 'shape'],
     note: () => (V.rm ? `<span>Less motion is on, so the preview stays still.${RM_OS ? ' Your device asks for less motion.' : ''}</span><button class="chip sm" data-set="rm">Show movement</button>` : ''),
     ctl: [
       ch('idle', 'Main movement', [
@@ -208,7 +208,7 @@ const STEPS = [
       ], { replay: true }),
     ] },
 
-  { id: 'interact', t: 'Hover, press and keyboard', why: 'How it reacts to a mouse, a finger or the keyboard. Depends on the material and movement.', dep: ['material', 'motion'],
+  { id: 'interact', extra: 1, t: 'Hover, press and keyboard', why: 'How it reacts to a mouse, a finger or the keyboard. Depends on the material and movement.', dep: ['material', 'motion'],
     note: () => (TOUCH ? '<span>This device has no hover. Hover choices show with a mouse or trackpad; the description says what each does.</span>' : ''),
     ctl: [
       ch('hover', 'When the pointer is over it', [
@@ -294,7 +294,7 @@ const STEPS = [
     rg('isz', 'Icon size', 0.9, 1.7, 0.05, 'em', 'Smaller at the left, bigger at the right.', { show: hasIcon }),
   ] },
 
-  { id: 'split', t: `Choosing ${/^[aeiou]/i.test(NOUN) ? 'an' : 'a'} ${NOUN}`, why: `Whether the button also lets people pick ${/^[aeiou]/i.test(NOUN) ? 'an' : 'a'} ${NOUN_H}. Depends on the shape and the words.`, dep: ['shape', 'content'], ctl: [
+  { id: 'split', extra: 4, t: `Choosing ${/^[aeiou]/i.test(NOUN) ? 'an' : 'a'} ${NOUN}`, why: `Whether the button also lets people pick ${/^[aeiou]/i.test(NOUN) ? 'an' : 'a'} ${NOUN_H}. Depends on the shape and the words.`, dep: ['shape', 'content'], ctl: [
     ch('split', 'Layout', [
       o('none', 'Just the button', 'One action, no choice.'),
       o('menu', 'Button with a menu arrow', `An arrow beside it opens a list of ${NOUN}s.`),
@@ -320,7 +320,7 @@ const STEPS = [
     ], { show: (s) => ['menu', 'agent', 'pair', 'segmented'].includes(s.split) }),
   ] },
 
-  { id: 'confirm', t: 'After you press', why: `What people see once it has worked.${P.afterNote ? ' ' + esc(P.afterNote) : ''}`, dep: ['material', 'split', 'content'], ctl: [
+  { id: 'confirm', extra: 3, t: 'After you press', why: `What people see once it has worked.${P.afterNote ? ' ' + esc(P.afterNote) : ''}`, dep: ['material', 'split', 'content'], ctl: [
     ch('confirm', 'What happens', [
       o('swap', `Says ${sayDone}`, `The words change to ${sayDone} with a tick, then change back.`),
       o('burst', 'Confetti', `Says ${sayDone} with a little burst of dots.`),
@@ -345,7 +345,7 @@ const STEPS = [
     ], { show: () => !!ACT.nextLine || (ACT.nextSteps || []).length > 0 }),
   ] },
 
-  { id: 'menu', t: `The ${NOUN} list`, why: `How the list of ${NOUN_H}s looks when it opens. It stays open while you are here.`, dep: ['split', 'material'],
+  { id: 'menu', extra: 5, t: `The ${NOUN} list`, why: `How the list of ${NOUN_H}s looks when it opens. It stays open while you are here.`, dep: ['split', 'material'],
     na: (s) => (hasMenu(s) ? '' : 'Only needed when the button opens a list. Pick a layout with a list under Choosing first.'),
     ctl: [
       ch('menuStyle', 'Style', [

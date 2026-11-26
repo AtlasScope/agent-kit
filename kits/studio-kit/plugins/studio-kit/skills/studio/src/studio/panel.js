@@ -120,14 +120,14 @@ function askHTML() {
 /* ---- Looks, a category, Review ---- */
 function looksHTML() {
   const m = AM(), now = AS();
-  const base = { id: '@base', n: baseName(m), d: m.measured ? 'What the project has now, as measured.' : 'A plain, sensible place to begin. Not taken from your project.', patch: {} };
-  const card = (l) => {
+  const base = { id: '@base', n: baseName(m), d: m.measured ? 'What the project has now, as measured. Keep it and refine it step by step.' : 'A plain, sensible place to begin. Not taken from your project.', patch: {} };
+  const card = (l, feature) => {
     const s = l.id === '@base' ? fresh(m.id) : lookState(m, l);
-    return `<div class="look" role="button" tabindex="0" data-look="${esc(l.id)}" aria-pressed="${sameLook(m.id, s, now)}">${art(m, s, { look: true }, 'big')}`
-      + `<span class="tn">${esc(l.n)}<span class="sel">Selected</span>${dot(m.id + '.look:' + l.id)}</span><small>${esc(l.d)}</small></div>`;
+    return `<div class="look${feature ? ' feature' : ''}" role="button" tabindex="0" data-look="${esc(l.id)}" aria-pressed="${sameLook(m.id, s, now)}">${art(m, s, { look: true }, 'big')}`
+      + `<span class="tn">${esc(l.n)}${feature ? '<span class="now">Recommended</span>' : ''}<span class="sel">Selected</span>${dot(m.id + '.look:' + l.id)}</span><small>${esc(l.d)}</small></div>`;
   };
-  return `<div class="looks">${[base, ...m.looks].map(card).join('')}</div>`
-    + (m.looks.length > 1 ? '<div class="prow"><button class="chip" data-act="surprise">Surprise me</button><span class="rhint">Picks a look you have not tried.</span></div>' : '');
+  return `<div class="looks start">${card(base, true)}</div>`
+    + (m.looks.length ? `<div class="lrow ideas"><span class="lbl">Or start from an idea</span>${m.looks.length > 1 ? '<button class="addc" data-act="surprise">Surprise me</button>' : ''}</div><div class="looks">${m.looks.map((l) => card(l)).join('')}</div>` : '');
 }
 function groupHTML(g) {
   const s = AS();
@@ -155,16 +155,18 @@ function headParts() {
   if (mode === 'compare') return { crumb, t: 'Compare the shortlist', why: `${baseName(m)}, what you pinned and what you have now, at the same scale on the same background.` };
   if (mode === 'states') return { crumb, t: 'Every state', why: 'The selected design resting, pointed at, pressed, focused and more, side by side.' };
   if (mode === 'context') return { crumb, t: CX.real ? 'In your page' : 'In a page', why: CX.real ? 'Your page, simplified, with every studio’s choices applied.' : 'A representative page with your words and every studio’s choices applied. It is not your live page.' };
-  if (!g) return { crumb, t: 'Looks', why: `Finished looks for your ${esc(m.title())}. Pick one and it is yours to change, piece by piece. Undo brings back what you had.` };
+  if (!g) return { crumb, t: 'Where to start', why: `Begin from ${esc(baseName(m).toLowerCase())}, or from an idea. Either way you refine it step by step.` };
   return { crumb, t: g.t, why: g.why };
 }
 /** Back, where you are and Next, at the top of every step where they are seen first. */
 function stepHTML() {
   if (NAV.review || modeNow() !== 'alone') return '';
-  const list = steps(), i = list.findIndex((x) => x.id === NAV.cat[NAV.mod]), pv = prevStep();
-  return `<span class="count">Step ${i + 1} of ${list.length + 1}</span>`
+  const list = steps(), i = list.findIndex((x) => x.id === NAV.cat[NAV.mod]), pv = prevStep(), nx = nextStep();
+  const where = i < 0 ? 'Start' : list[i].extra ? 'Extra' : `Step ${i + 1} of ${lastMain(list) + 1}`;
+  const skip = i >= lastMain(list) && nx.cat !== 'review' && nx.cat !== 'looks' ? '<button class="skip" data-cat="review">Skip to Review</button>' : '';
+  return `<span class="count">${where}</span>${skip}`
     + (pv ? '<button class="go q" data-act="prev">Back</button>' : '')
-    + `<button class="go" data-act="next">Next: ${esc(nextStep().n)} →</button>`;
+    + `<button class="go" data-act="next">${i < 0 && sameLook(NAV.mod, AS(), DEFS[NAV.mod]) ? `Start from ${esc(baseName(AM()).toLowerCase())}` : 'Next: ' + esc(nx.n)} →</button>`;
 }
 function renderHead() {
   $('hstep').innerHTML = stepHTML();
@@ -218,15 +220,18 @@ function tabsHTML() {
   return STUDIO.mods.map(tab).join('')
     + (rest.length ? `<select id="addmod" aria-label="Add a studio"><option value="">+ Add</option>${rest.map(([id, n]) => `<option value="${esc(id)}">${esc(n)}</option>`).join('')}</select>` : '');
 }
-/** The steps of the open studio, in order: Looks, then every category that applies to the current design. */
+/** The steps of the open studio: the main ones first, then the extras, in the order each studio gives them. Start
+    (where to begin, with ideas) comes before them and is not counted as a step. */
 function steps(m = AM()) {
-  const s = ST[m.id];
-  return [{ id: 'looks', n: 'Looks' }, ...m.groups.filter((g) => !(g.na && g.na(s))).map((g) => ({ id: g.id, n: g.short || g.t, g }))];
+  const s = ST[m.id], gs = m.groups.filter((g) => !(g.na && g.na(s)));
+  const main = gs.filter((g) => !g.extra), extra = gs.filter((g) => g.extra).sort((a, b) => a.extra - b.extra);
+  return [...main, ...extra].map((g) => ({ id: g.id, n: g.short || g.t, g, extra: !!g.extra }));
 }
-/** Where Next goes from here: the next step, the next studio's first step, then Review. */
+const lastMain = (list) => list.filter((x) => !x.extra).length - 1;
+/** Where Next goes from here: Start, each step, the next studio's Start, then Review. */
 function nextStep() {
   const m = AM(), list = steps(m), i = list.findIndex((x) => x.id === NAV.cat[m.id]);
-  if (i >= 0 && i < list.length - 1) return { mod: m.id, cat: list[i + 1].id, n: list[i + 1].n };
+  if (i < list.length - 1) return { mod: m.id, cat: list[i + 1].id, n: list[i + 1].n };
   const k = STUDIO.mods.indexOf(m);
   if (k < STUDIO.mods.length - 1) { const nm = STUDIO.mods[k + 1]; return { mod: nm.id, cat: 'looks', n: nm.name }; }
   return { mod: m.id, cat: 'review', n: 'Review' };
@@ -234,22 +239,38 @@ function nextStep() {
 function prevStep() {
   const m = AM(), list = steps(m), i = list.findIndex((x) => x.id === NAV.cat[m.id]);
   if (i > 0) return { mod: m.id, cat: list[i - 1].id };
+  if (i === 0) return { mod: m.id, cat: 'looks' };
   const k = STUDIO.mods.indexOf(m);
   if (k > 0) { const pm = STUDIO.mods[k - 1], pl = steps(pm); return { mod: pm.id, cat: pl[pl.length - 1].id }; }
   return null;
 }
+/** Every change in the workspace, by step, so Review is never a surprise. */
+function changeList() {
+  const out = [];
+  for (const m of STUDIO.mods) {
+    const ch = new Set(changedKeys(m.id));
+    if (!ch.size) continue;
+    for (const g of m.groups) if (g.ctl.some((c) => ch.has(c.k))) out.push({ mod: m.id, cat: g.id, n: (STUDIO.mods.length > 1 ? m.name + ' · ' : '') + (g.short || g.t) });
+  }
+  return out;
+}
 function navHTML() {
-  const m = AM(), cur = NAV.review ? '' : NAV.cat[m.id], changed = new Set(changedKeys(m.id));
+  const m = AM(), cur = NAV.review ? '' : NAV.cat[m.id], changed = new Set(changedKeys(m.id)), list = steps(m);
   const item = (st, i) => {
-    const fresh = st.id === 'looks' ? m.looks.some((l) => isNew(m.id + '.look:' + l.id)) : st.g.ctl.some((c) => UI.fresh.some((f) => f.startsWith(m.id + '.' + c.k + ':')));
-    const mark = fresh ? '<i class="nw"></i>' : st.g && st.g.ctl.some((c) => changed.has(c.k)) ? '<i class="ch" title="Changed"></i>' : '';
-    return `<button data-cat="${st.id}" aria-current="${cur === st.id ? 'step' : 'false'}"><b class="num">${i + 1}</b><span>${esc(st.n)}</span>${mark}</button>`;
+    const fresh = st.g.ctl.some((c) => UI.fresh.some((f) => f.startsWith(m.id + '.' + c.k + ':')));
+    const mark = fresh ? '<i class="tag">New</i>' : st.g.ctl.some((c) => changed.has(c.k)) ? '<i class="done" title="Changed">✓</i>' : '';
+    return (st.extra && (i === 0 || !list[i - 1].extra) ? '<span class="xsep">Extras</span>' : '')
+      + `<button data-cat="${st.id}" aria-current="${cur === st.id ? 'step' : 'false'}"><b class="num">${i + 1}</b><span>${esc(st.n)}</span>${mark}</button>`;
   };
-  const list = steps(m);
-  return list.map(item).join('') + `<button data-cat="review" aria-current="${NAV.review ? 'step' : 'false'}"><b class="num">${list.length + 1}</b><span>Review</span></button>`;
+  const start = `<button class="start" data-cat="looks" aria-current="${cur === 'looks' ? 'step' : 'false'}"><span>Start</span></button>`;
+  const all = changeList(), mine = all.filter((c) => c.mod === m.id), others = all.length - mine.length;
+  const name = (c) => (STUDIO.mods.length > 1 ? c.n.split(' · ').slice(1).join(' · ') : c.n);
+  return start + list.map(item).join('')
+    + (all.length ? `<p class="chg">${mine.length ? `Changed here: ${mine.map((c) => `<button data-jump="${c.mod}|${c.cat}">${esc(name(c))}</button>`).join('')}` : 'Nothing changed here yet.'}`
+      + (others ? ` <button class="more" data-cat="review">${others} more in other studios</button>` : '') + '</p>' : '');
 }
 function footHTML() {
-  if (!NAV.review) return `<span class="count"></span><button class="go q" data-act="next">Next: ${esc(nextStep().n)} →</button>`; // the main Next is at the top
+  if (!NAV.review) return ''; // Next lives at the top of every step
   return `<button class="go q" data-act="back">Back</button><span class="count"></span><button class="go q" data-act="copy">Copy</button><button class="go" data-act="send">${STATUS.live ? 'Send to chat' : 'Copy for chat'}</button>`;
 }
 

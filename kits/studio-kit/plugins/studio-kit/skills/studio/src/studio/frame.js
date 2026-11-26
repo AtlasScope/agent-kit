@@ -63,6 +63,7 @@ function statesHTML() {
 }
 function stageHint() {
   const mode = modeNow();
+  if (PEEK) return 'Trying it on · click to keep it';
   if (HOLDING) return 'Showing ' + baseName(AM()).toLowerCase();
   if (mode === 'context') return CX.real ? 'Your page, simplified' : 'A representative page with your words. Not your live page.';
   return mode === 'alone' && NAV.mod === 'button' ? 'Press it to try it' : '';
@@ -138,6 +139,35 @@ function layoutDevice() {
   d.classList.toggle('framed', framed);
   Object.assign($('dwrap').style, { width: w * s + 'px', height: h * s + 'px', left: Math.round((w0 - w * s) / 2) + 'px', top: Math.round((h0 - h * s) / 2) + 'px' });
   $('devhint').textContent = hint;
+  previewExtras(s);
+}
+/** Beside an enlarged design: the same design at its real size; and, once something has changed, a small Today to
+    compare against (it opens Compare). The View menu disappears when it has nothing to offer. */
+function previewExtras(s) {
+  const m = AM(), alone = modeNow() === 'alone' && !m.ground, rs = $('realsz'), tt = $('tthumb');
+  rs.hidden = !(alone && s > 1.05);
+  if (!rs.hidden) {
+    rs.innerHTML = '<span class="rl">Actual size</span>' + art(m, AS(), { compare: true }, 'rart');
+    const i = rs.querySelector('.art-in');
+    if (i && i.offsetWidth > $('stage').clientWidth * 0.5) rs.hidden = true;
+  }
+  tt.hidden = !(alone && !PEEK && changedKeys(m.id).length);
+  if (!tt.hidden) { tt.innerHTML = art(m, DEFS[m.id], { compare: true }) + `<span class="rl">${esc(baseName(m))}</span>`; fitArt(tt); tt.title = 'Compare with ' + baseName(m).toLowerCase(); }
+  $('vmenu').hidden = $('stbar').hidden && $('zoom').hidden;
+}
+/* ---- trying a choice on: pointing at a card shows it in the preview; moving away puts yours back ---- */
+let PEEK = null;
+function peekOn(mid, s) {
+  if (modeNow() !== 'alone' || (HOLDING && !PEEK)) return;
+  if (!PEEK) { PEEK = { mod: mid, s: clone(ST[mid]) }; HOLDING = true; } // HOLDING keeps a tried-on state from being saved
+  setState(mid, s);
+  renderStage();
+}
+function peekOff() {
+  if (!PEEK) return;
+  setState(PEEK.mod, PEEK.s);
+  PEEK = null; HOLDING = false;
+  renderStage();
 }
 
 function seen(kind, v) { if (!UI.seen[kind].includes(v)) UI.seen[kind].push(v); }
@@ -151,7 +181,7 @@ function renderStageBar() {
   $('stbar').hidden = m.ground && modeNow() === 'alone'; // a palette or a type specimen brings its own ground and does not move
   $('bgsel').value = V.bg;
   $('rmtog').setAttribute('aria-pressed', String(V.rm));
-  $('hold').textContent = 'Hold for ' + baseName(m).toLowerCase();
+  $('hold').textContent = 'Hold to see ' + baseName(m).toLowerCase();
   $('hold').disabled = !changedKeys(m.id).length;
   const full = PINS.length >= 3;
   const isBase = sameLook(m.id, AS(), DEFS[m.id]);
