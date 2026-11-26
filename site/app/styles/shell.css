@@ -79,6 +79,8 @@ html:has(.sheet[open]) { overflow: hidden; }
 .sheet__acct { display: grid; gap: 2px; }
 .sheet__acct--in, html[data-auth] .sheet__acct--out { display: none; }
 html[data-auth] .sheet__acct--in { display: grid; }
+.sheet[data-signed="yes"] .sheet__acct--out, .sheet[data-signed="no"] .sheet__acct--in { display: none; }
+.sheet[data-signed="yes"] .sheet__acct--in, .sheet[data-signed="no"] .sheet__acct--out { display: grid; }
 .sheet__join { width: 100%; color: var(--c-brand-ink); border-color: color-mix(in oklab, var(--c-brand) 55%, transparent); background: color-mix(in oklab, var(--c-brand) 10%, transparent); box-shadow: none; font-weight: var(--weight-semibold); }
 .sheet__signin { display: flex; align-items: center; justify-content: center; min-height: 40px; color: var(--c-fg-2); font-size: var(--type-sm); text-decoration: none; }
 @media (hover: hover) and (pointer: fine) {

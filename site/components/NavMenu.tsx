@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { SITE } from "@/lib/site";
+import { signedIn } from "@/lib/auth-hint";
 import { signInHref } from "./AuthNav";
 import { Chevron, PlaceIcon } from "./PlaceIcon";
 
@@ -29,6 +30,16 @@ export function NavMenu({ account }: { account: boolean }) {
   const sheet = useRef<HTMLDialogElement>(null);
   const toggle = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
+  // html[data-auth] picks the account foot before paint, but only on load. Signing in or out in another tab changes
+  // the cookie, so read it again when this tab comes back and when the menu opens (as InstallPaths does).
+  const [signed, setSigned] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!account) return;
+    const ask = () => setSigned(signedIn(document.cookie));
+    ask();
+    addEventListener("focus", ask); document.addEventListener("visibilitychange", ask);
+    return () => { removeEventListener("focus", ask); document.removeEventListener("visibilitychange", ask); };
+  }, [account]);
   const path = usePathname();
   useEffect(() => { sheet.current?.close(); }, [path]);
   useEffect(() => {
@@ -41,7 +52,7 @@ export function NavMenu({ account }: { account: boolean }) {
     mq.addEventListener("change", wide); d.addEventListener("close", closed); d.addEventListener("toggle", toggled);
     return () => { mq.removeEventListener("change", wide); d.removeEventListener("close", closed); d.removeEventListener("toggle", toggled); };
   }, []);
-  const show = () => { const d = sheet.current; if (d && !d.open) d.showModal(); setOpen(true); };
+  const show = () => { const d = sheet.current; if (account) setSigned(signedIn(document.cookie)); if (d && !d.open) d.showModal(); setOpen(true); };
 
   return (
     <>
@@ -58,7 +69,7 @@ export function NavMenu({ account }: { account: boolean }) {
           With accounts on, its foot is the account: Create a free account and Sign in to someone signed out
           (html[data-auth] is set before paint, so the right one shows from the first frame), Collections to someone
           signed in. Both sign-in links come back to the page the visitor was on. */}
-      <dialog ref={sheet} id="site-menu" className="sheet" aria-label="Menu"
+      <dialog ref={sheet} id="site-menu" className="sheet" aria-label="Menu" data-signed={signed === null ? undefined : signed ? "yes" : "no"}
         onClick={(e) => { const t = e.target as HTMLElement; if (t === e.currentTarget || t.closest("a, button")) sheet.current?.close(); }}>
         <div className="sheet__top">
           {/* The dialog gives its first focus to this title, so Safari draws no ring round Close on open. */}
