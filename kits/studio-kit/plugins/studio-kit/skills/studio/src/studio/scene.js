@@ -20,7 +20,10 @@ function sceneHTML() {
     : `<span class="sc-btn">${esc((P.labels && two(P.labels[0])[0]) || 'Get started')}</span>`;
   /* layout 'hero': one centred column (headline, one line, the action, a note under it, one link, small links at the
      foot), as on a landing page. bg names one of the stage backgrounds, such as a picture the agent added with MORE.bg. */
-  const bg = CX.bg && BGS.some((b) => b[0] === CX.bg) ? ` bgd" data-bg="${esc(CX.bg)}` : '';
+  // The page's own picture stays only while the palette keeps today's light or dark; words chosen for the other side
+  // need the palette's own page behind them, or they stop being readable.
+  const sideMoved = STUDIO.has('palette') && ST.palette.side !== DEFS.palette.side;
+  const bg = CX.bg && !sideMoved && BGS.some((b) => b[0] === CX.bg) ? ` bgd" data-bg="${esc(CX.bg)}` : '';
   if (CX.layout === 'hero') {
     return `<div class="scene sc-heroonly${bg}" id="scene">
  <div class="sc-top"><b class="sc-brand">${esc(P.name)}</b><span class="sc-links">${links.map((l) => `<span>${esc(l)}</span>`).join('')}</span></div>

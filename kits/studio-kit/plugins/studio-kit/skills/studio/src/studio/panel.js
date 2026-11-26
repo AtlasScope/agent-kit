@@ -171,7 +171,7 @@ function stepHTML() {
   const skip = i >= lastMain(list) && nx.cat !== 'review' && nx.cat !== 'looks' ? '<button class="skip" data-cat="review">Skip to Review</button>' : '';
   return `<span class="count">${where}</span>${skip}`
     + (pv ? '<button class="go q" data-act="prev">Back</button>' : '')
-    + `<button class="go" data-act="next">${i < 0 && sameLook(NAV.mod, AS(), DEFS[NAV.mod]) ? `Start from ${esc(baseName(AM()).toLowerCase())}` : 'Next: ' + esc(nx.n)} →</button>`;
+    + `<button class="go" data-act="next">${i < 0 && sameLook(NAV.mod, AS(), DEFS[NAV.mod]) ? (AM().measured ? 'Start from today' : 'Use the starting point') : 'Next: ' + esc(nx.n)} →</button>`;
 }
 function renderHead() {
   $('hstep').innerHTML = stepHTML();
