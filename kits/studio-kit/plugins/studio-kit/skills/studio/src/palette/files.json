@@ -1,0 +1,1 @@
+{ "name": "Palette", "order": 20, "css": ["palette.css"], "js": ["module.js"] }

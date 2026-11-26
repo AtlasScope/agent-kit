@@ -1,0 +1,78 @@
+/* ===== the example page ("In a page"). Every colour and type value is a custom property a studio may set; see scene.js ===== */
+.scene{--sc-bg:transparent;--sc-surface:rgba(255,255,255,.055);--sc-line:rgba(255,255,255,.12);--sc-control:rgba(255,255,255,.3);--sc-fg:#f3f5f4;--sc-fg2:#b4bdba;--sc-fg3:#8b9592;--sc-accent:#8ab4ff;--sc-fill:#f3f5f4;--sc-on-fill:#0b0e0d;--sc-ok:#4ade80;--sc-warn:#f5b94a;--sc-bad:#f87171;
+ --sc-display:var(--dfont);--sc-body:var(--dfont);--sc-mono:var(--dmono);--sc-size:16px;--sc-ratio:1.25;--sc-lh:1.55;--sc-hlh:1.1;--sc-htrack:-.02;--sc-hweight:600;--sc-bweight:400;--sc-hcase:none;--sc-measure:58;--sc-num:normal;
+ min-height:100%;box-sizing:border-box;padding:0 clamp(16px,5%,56px) 40px;background:var(--sc-bg);color:var(--sc-fg);font:var(--sc-bweight) var(--sc-size)/var(--sc-lh) var(--sc-body);font-variant-numeric:var(--sc-num);text-align:left;justify-self:stretch;container-type:inline-size}
+.scene.light{--sc-surface:rgba(0,0,0,.035);--sc-line:rgba(0,0,0,.12);--sc-control:rgba(0,0,0,.34);--sc-fg:#14181a;--sc-fg2:#4a5356;--sc-fg3:#6a7477;--sc-accent:#1d5fd1;--sc-fill:#14181a;--sc-on-fill:#fff;--sc-ok:#15803d;--sc-warn:#a16207;--sc-bad:#b42318}
+.scene *{box-sizing:border-box}
+.sc-top{display:flex;align-items:center;gap:20px;padding:16px 0;border-bottom:1px solid var(--sc-line);font-size:calc(var(--sc-size)*.875)}
+.sc-brand{font-family:var(--sc-display);font-weight:var(--sc-hweight);letter-spacing:calc(var(--sc-htrack)*.5em);white-space:nowrap}
+.sc-links{display:flex;gap:18px;flex:1;min-width:0;overflow:hidden;color:var(--sc-fg2);white-space:nowrap}
+.sc-ghost{padding:5px 12px;border-radius:8px;box-shadow:inset 0 0 0 1px var(--sc-control);white-space:nowrap}
+.sc-hero{padding:clamp(28px,7cqw,64px) 0 clamp(24px,5cqw,44px);max-width:calc(var(--sc-measure)*1ch)}
+.sc-eyebrow{margin:0 0 10px;font-size:calc(var(--sc-size)*.8);font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--sc-accent)}
+.sc-h{margin:0;font-family:var(--sc-display);font-weight:var(--sc-hweight);font-size:clamp(calc(var(--sc-size)*1.6),calc(var(--sc-size)*pow(var(--sc-ratio),4)),11cqw);line-height:var(--sc-hlh);letter-spacing:calc(var(--sc-htrack)*1em);text-transform:var(--sc-hcase);text-wrap:balance}
+.sc-p{margin:14px 0 0;color:var(--sc-fg2);font-size:calc(var(--sc-size)*var(--sc-ratio));line-height:var(--sc-lh);text-wrap:pretty}
+.sc-cta{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px;margin-top:26px}
+.scene #mount{width:auto;max-width:none;padding:0;align-items:flex-start;flex:0 1 auto}
+.scene #mount:has(.pv.fill){flex:1 1 100%}
+.sc-btn{display:inline-flex;align-items:center;height:46px;padding:0 20px;border-radius:10px;background:var(--sc-fill);color:var(--sc-on-fill);font-weight:600}
+.sc-link{color:var(--sc-accent);font-weight:500;white-space:nowrap}
+.sc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:16px}
+.sc-card,.sc-list{margin:0;padding:16px;border-radius:14px;background:var(--sc-surface);box-shadow:inset 0 0 0 1px var(--sc-line)}
+.sc-card{display:flex;flex-direction:column;gap:6px}
+.sc-label{font-size:calc(var(--sc-size)*.875);font-weight:600}
+.sc-field{padding:9px 12px;border-radius:9px;box-shadow:inset 0 0 0 1px var(--sc-control);color:var(--sc-fg3)}
+.sc-hint{font-size:calc(var(--sc-size)*.8);color:var(--sc-fg3)}
+.sc-status{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;margin-top:8px;font-size:calc(var(--sc-size)*.8);color:var(--sc-fg2)}
+.sc-status i{width:8px;height:8px;border-radius:50%;margin-left:8px}.sc-status i:first-child{margin-left:0}
+.sc-status .ok{background:var(--sc-ok)}.sc-status .warn{background:var(--sc-warn)}.sc-status .bad{background:var(--sc-bad)}
+.sc-list{list-style:none;padding:4px 16px}
+.sc-list li{display:flex;align-items:baseline;gap:10px;padding:11px 0;border-top:1px solid var(--sc-line)}
+.sc-list li:first-child{border-top:0}
+.sc-rt{flex:none;max-width:45%;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc-rm{flex:1;min-width:0;font-size:calc(var(--sc-size)*.8);color:var(--sc-fg3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc-badge{flex:none;white-space:nowrap;font-size:calc(var(--sc-size)*.72);font-weight:600;padding:1px 7px;border-radius:999px;color:var(--sc-accent);box-shadow:inset 0 0 0 1px color-mix(in oklch,var(--sc-accent) 50%,transparent)}
+.sc-code{margin:16px 0 0;padding:12px 14px;border-radius:12px;background:var(--sc-surface);box-shadow:inset 0 0 0 1px var(--sc-line);font:calc(var(--sc-size)*.85)/1.5 var(--sc-mono);color:var(--sc-fg2);white-space:pre-wrap;overflow:hidden}
+/* layout 'hero': a landing page's single centred column */
+.sc-heroonly{display:flex;flex-direction:column;min-height:100%;padding-bottom:12px;text-align:center}
+.sc-heroonly .sc-top{border-bottom:0}
+.sc-center{display:flex;flex-direction:column;align-items:center;padding:clamp(28px,9cqw,96px) 0 32px;margin:0 auto;max-width:46rem}
+.sc-heroonly .sc-h{max-width:13em;font-size:clamp(calc(var(--sc-size)*2.1),calc(2.6cqw + var(--sc-size)),calc(var(--sc-size)*4.25));line-height:1.04;letter-spacing:-.042em}
+.sc-heroonly .sc-p{max-width:30em;font-size:calc(var(--sc-size)*1.15);color:var(--sc-fg2)}
+.sc-heroonly .sc-cta{justify-content:center;margin-top:clamp(24px,4cqw,40px)}
+.sc-heroonly #mount{align-items:center}
+.sc-note{margin:12px 0 0;font-size:calc(var(--sc-size)*.8125);color:var(--sc-fg2)}
+.sc-heroonly .sc-link{margin-top:14px;color:var(--sc-fg);font-weight:400}
+.sc-foot{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 20px;margin:auto 0 0;font-size:calc(var(--sc-size)*.8125);color:var(--sc-fg2)}
+@container (max-width:560px){.sc-heroonly .sc-cta,.sc-heroonly #mount{width:100%;max-width:21rem}.sc-heroonly .sc-h{font-size:clamp(2.1rem,9.6cqw,3rem)}}
+/* Surface, Spacing, Motion and Icons paint the same page. Each value falls back to the page's own look, so a studio
+   that is not open changes nothing:
+   surface  --sc-radius --sc-radius-sm --sc-border --sc-border-a --sc-shadow --sc-card-alpha --sc-blur --sc-texture
+   spacing  --sc-space --sc-pad --sc-gap --sc-stack --sc-section --sc-row --sc-align --sc-maxw --sc-control-h
+   motion   --sc-dur --sc-ease --sc-dist --sc-stagger --sc-lift
+   icons    --sc-icon --sc-icon-stroke --sc-icon-gap, and the glyphs drawn into .sc-ic by the Icons studio */
+.scene .sc-card,.scene .sc-list,.scene .sc-code{border-radius:var(--sc-radius,14px);box-shadow:inset 0 0 0 var(--sc-border,1px) color-mix(in srgb,var(--sc-line) calc(var(--sc-border-a,1)*100%),transparent),var(--sc-shadow,0 0 #0000);
+ background:var(--sc-texture,none),color-mix(in srgb,var(--sc-surface) calc(var(--sc-card-alpha,1)*100%),transparent);-webkit-backdrop-filter:blur(var(--sc-blur,0px));backdrop-filter:blur(var(--sc-blur,0px));
+ transition:translate var(--sc-dur,0ms) var(--sc-ease,ease),box-shadow var(--sc-dur,0ms) var(--sc-ease,ease)}
+.scene .sc-card{padding:var(--sc-pad,16px);gap:calc(var(--sc-stack,12px)/2)}
+.scene .sc-list{padding:calc(var(--sc-pad,16px)/4) var(--sc-pad,16px)}
+.scene .sc-list li{padding:var(--sc-row,11px) 0}
+.scene .sc-field,.scene .sc-ghost,.scene .sc-btn{border-radius:var(--sc-radius-sm,9px)}
+.scene .sc-field{min-height:var(--sc-control-h,auto);display:flex;align-items:center}
+.scene .sc-grid{gap:var(--sc-gap,16px)}
+.scene .sc-p{margin-top:var(--sc-stack,14px)}
+.scene .sc-cta{margin-top:calc(var(--sc-stack,14px)*1.85);gap:var(--sc-gap,14px) calc(var(--sc-gap,14px)*1.4)}
+.scene .sc-hero{padding-block:var(--sc-section,clamp(28px,7cqw,64px)) calc(var(--sc-section,clamp(24px,5cqw,44px))*.7);text-align:var(--sc-align,start)}
+.scene .sc-hero .sc-cta{justify-content:var(--sc-align,start)}
+.scene .sc-code{margin-top:var(--sc-gap,16px)}
+@media (hover:hover){.scene .sc-card:hover,.scene .sc-list:hover{translate:0 calc(var(--sc-lift,0px)*-1)}}
+.stage.rm .scene .sc-card,.stage.rm .scene .sc-list{transition:none}
+.sc-ic{display:none}
+.scene.has-icons .sc-ic{display:inline-flex;flex:none;align-items:center;justify-content:center;width:var(--sc-icon,18px);height:var(--sc-icon,18px);color:currentColor}
+.scene.has-icons .sc-ic svg{width:100%;height:100%;display:block}
+.scene.has-icons .sc-list li{align-items:center;gap:var(--sc-icon-gap,10px)}
+.scene.has-icons .sc-ghost,.scene.has-icons .sc-label{display:inline-flex;align-items:center;gap:var(--sc-icon-gap,8px)}
+.scene.has-icons .sc-search{color:var(--sc-fg2)}
+.scene:not(.sc-heroonly)>.sc-hero,.scene:not(.sc-heroonly)>.sc-grid,.scene:not(.sc-heroonly)>.sc-code{margin-inline:var(--sc-hero-m,0)}
+.scene:not(.sc-heroonly)>.sc-grid,.scene:not(.sc-heroonly)>.sc-code{max-width:var(--sc-maxw,none)}
+.scene{--ic-knock:var(--sc-bg)}

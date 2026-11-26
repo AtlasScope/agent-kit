@@ -1,0 +1,7 @@
+interface:
+  display_name: "Studio"
+  short_description: "Choose how buttons, colours, type, surfaces, spacing, motion and icons look in a live studio, then send a proposal"
+  default_prompt: "Use $studio button to open a live studio for this project's buttons. Start from what the project already has, and send me a proposal when I have chosen."
+
+policy:
+  allow_implicit_invocation: false

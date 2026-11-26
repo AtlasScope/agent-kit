@@ -1,0 +1,423 @@
+/* ===== Panel: the studio tabs, the navigator, Looks, a category's choices drawn as tiles, Review and the proposal ===== */
+
+const MAX_SHOWN = 9; // longer lists show this many plus the current one, then "Show N more"
+const WIDE = () => false; // fine adjustments sit inside the step, under its choices, on every screen
+const fmt = (v, c) => (c.step < 0.01 ? (+v).toFixed(3) : c.step < 1 ? (+v).toFixed(2) : Math.round(v)) + (c.unit || '');
+const isNew = (key) => UI.fresh.includes(key);
+const dot = (key) => (isNew(key) ? '<span class="nw" aria-label="new"></span>' : '');
+
+/* ---- a state with one more choice laid on it, and a drawing of any state ---- */
+function candidate(c, op) {
+  const m = STUDIO.by[c.mid], s = clone(ST[c.mid]);
+  s[c.k] = op.v;
+  if (op.set) for (const k in op.set) if (k in DEFS[c.mid]) s[k] = op.set[k];
+  if (m.touch) [c.k, ...Object.keys(op.set || {})].forEach((k) => m.touch(s, k)); // drawn exactly as picking it would leave it
+  if (m.pick) m.pick(s, c, op);
+  if (m.fix) m.fix(s);
+  return s;
+}
+function art(m, s, opt, cls = '', extra = '') {
+  let inner;
+  try { inner = m.still(s, opt); } catch (e) { report(m.id + ' drawing: ' + e.message); inner = ''; }
+  return `<span class="art ${m.ground ? 'ground' : 'bgd'} ${cls}" ${m.ground ? '' : bgAttr()}><span class="art-in ${dimCls(m.id, s)}" style="${varsCss(m.vars(s))}">${inner}</span>${extra}</span>`;
+}
+function lookState(m, look) {
+  const s = Object.assign(fresh(m.id), look.patch), now = ST[m.id];
+  m.keep.forEach((k) => { if (!(k in look.patch)) s[k] = now[k]; });
+  if (m.fix) m.fix(s);
+  return s;
+}
+
+/** Draws each design at its real size, and smaller only when it would not fit its frame; a scaled one says so. */
+function fitArt(root) {
+  root.querySelectorAll('.art, .cmp-art').forEach((a) => {
+    const i = a.querySelector('.art-in'), w = i && i.offsetWidth, h = i && i.offsetHeight;
+    if (!w || !h) return;
+    const ground = a.classList.contains('ground');
+    const k = Math.max(0.2, Math.min(1, (a.clientWidth - (ground ? 0 : 24)) / w, (a.clientHeight - (ground ? 0 : 16)) / h));
+    i.style.transform = k < 0.995 ? `scale(${k.toFixed(3)})` : '';
+    let tag = a.querySelector(':scope > .scale');
+    if (k < 0.97 && !ground) {
+      if (!tag) { tag = document.createElement('span'); tag.className = 'scale'; a.appendChild(tag); }
+      tag.textContent = Math.round(k * 100) + '%';
+    } else if (tag) tag.remove();
+  });
+}
+
+/* ---- one control ---- */
+function descHTML(c, op, s) {
+  if (!op) return '';
+  return `<b>${esc(op.n)}.</b> ${esc(op.d)}`
+    + (op.today && !op.n.startsWith('Today') ? ' This is what the project uses now.' : '')
+    + (avail(op, s) ? '' : ' <em>It will not show with the current choices.</em>');
+}
+const moreLink = () => ''; // asking the agent for more lives in one box at the end of each step (askHTML)
+function choicesHTML(c, s) {
+  const m = STUDIO.by[c.mid], tile = m.tile ? m.tile(c) : null;
+  const isOn = (op) => sameValue(s[c.k], op.v);
+  const can = c.opts.filter((op) => avail(op, s) || isOn(op));
+  const all = UI.expanded[c.id] || can.length <= MAX_SHOWN + 2;
+  const vis = all ? can : can.filter((op, i) => i < MAX_SHOWN || isOn(op) || isNew(freshKey(c, op.v)));
+  const hidden = can.length - vis.length;
+  const tags = (op) => (op.today ? `<span class="now">${m.measured ? 'Today' : 'Start'}</span>` : '') + '<span class="sel">Selected</span>' + dot(freshKey(c, op.v));
+  const one = (op) => {
+    const at = `data-c="${c.id}" data-o="${c.opts.indexOf(op)}" aria-pressed="${isOn(op)}"`;
+    if (!tile) return `<button class="chip${avail(op, s) ? '' : ' off'}" ${at}>${esc(op.n)}${tags(op)}</button>`;
+    const play = tile.moves && !TOUCH ? '<span class="play">Point to play</span>' : '';
+    return `<div class="tile${tile.wide ? ' wide' : ''}${avail(op, s) ? '' : ' off'}" role="button" tabindex="0" ${at}>${art(m, candidate(c, op), { tile: c.k }, '', play)}`
+      + `<span class="tn">${esc(op.n)}${tags(op)}</span>${op.d ? `<span class="td">${esc(op.d)}${avail(op, s) ? '' : ' It will not show with the current choices.'}</span>` : ''}</div>`;
+  };
+  const g = m.groups.find((x) => x.id === c.sid), same = g && g.t.toLowerCase() === c.label.toLowerCase(); // the heading already says it
+  return `<div class="ctl" data-ctl="${c.id}"><div class="lrow"><span class="lbl${same ? ' sr' : ''}" id="l_${c.id}">${esc(c.label)}</span>${moreLink(c)}</div>`
+    + `<div class="${tile ? 'tiles' + (tile.wide ? ' wide' : '') : 'chips'}" role="group" aria-labelledby="l_${c.id}">${vis.map(one).join('')}`
+    + (hidden > 0 ? `<button class="chip ghost" data-expand="${c.id}">Show all ${can.length} ${esc(c.label.toLowerCase())}${tile ? ' choices' : ''}</button>` : '')
+    + (c.replay ? '<button class="chip ghost" data-act="replay">Replay</button>' : '') + '</div>'
+    + `<p class="desc" id="d_${c.id}">${descHTML(c, optOf(c, s[c.k]), s)}</p></div>`;
+}
+function swatchDesc(c, s) {
+  const w = c.sw.find((x) => x[0] === s[c.k]) || c.sw[0];
+  return `<b>${esc(w[0])}.</b> ${esc(w[4] || '')}`;
+}
+function ctlHTML(c, s) {
+  const m = STUDIO.by[c.mid];
+  if (m.control) { const own = m.control(c, s); if (own != null) return own; } // a module's own kind of control
+  if (c.t === 'chips') return choicesHTML(c, s);
+  if (c.t === 'range') {
+    return `<div class="ctl"><div class="lrow"><label class="lbl" for="r_${c.id}">${esc(c.label)}<span id="v_${c.id}">${fmt(s[c.k], c)}</span></label></div>`
+      + `<input id="r_${c.id}" type="range" data-c="${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" value="${s[c.k]}">`
+      + (c.hint ? `<p class="rhint">${esc(c.hint)}</p>` : '') + '</div>';
+  }
+  if (c.t === 'text') return `<div class="ctl"><div class="lrow"><label class="lbl" for="t_${c.id}">${esc(c.label)}</label></div><input id="t_${c.id}" type="text" data-c="${c.id}" value="${esc(s[c.k])}" maxlength="${c.max || 40}"></div>`;
+  if (c.t === 'swatches') {
+    const m = STUDIO.by[c.mid];
+    const one = (w) => `<button data-c="${c.id}" data-sw="${esc(w[0])}" aria-pressed="${s[c.k] === w[0]}" aria-label="${esc(w[0])}" title="${esc(w[0])}" style="background:${m.swatchColour ? m.swatchColour(s, w) : `oklch(${w[3]} ${w[2]} ${w[1]})`}">${dot(freshKey(c, w[0]))}</button>`;
+    return `<div class="ctl" data-ctl="${c.id}"><div class="lrow"><span class="lbl" id="l_${c.id}">${esc(c.label)}</span>${moreLink(c)}</div>`
+      + `<div class="sw" role="group" aria-labelledby="l_${c.id}">${c.sw.map(one).join('')}</div><p class="desc" id="d_${c.id}">${swatchDesc(c, s)}</p></div>`;
+  }
+  return '';
+}
+
+/* ---- asking the agent ---- */
+function askWhere() {
+  const m = AM(), c = UI.ask.target && CT[UI.ask.target];
+  if (c && c.mid === m.id) return { ctl: c, group: m.groups.find((g) => g.id === c.sid), name: `“${c.label}”` };
+  const cat = NAV.cat[m.id];
+  if (cat === 'looks') return { ctl: null, group: null, name: `${m.name.toLowerCase()} looks` };
+  const g = m.groups.find((x) => x.id === cat);
+  return { ctl: null, group: g, name: g ? g.t : m.name };
+}
+function askHTML() {
+  if (NAV.review) return '';
+  const m = AM(), w = askWhere(), p = UI.pending, cat = NAV.cat[m.id], g = m.groups.find((x) => x.id === cat), s = AS();
+  const items = g ? g.ctl.filter((c) => shown(c, s) && !isFine(c) && c.more !== false && (c.t === 'swatches' || (c.t === 'chips' && c.opts.length > 3))).map((c) => ({ id: c.id, what: c.label.toLowerCase() + (c.t === 'swatches' ? 's' : ' choices') })) : [{ id: '@looks', what: 'ideas' }];
+  const live = p && Date.now() - p.at < 15 * 60e3;
+  const status = !live ? '' : p.kind === 'agent'
+    ? `<p class="wait"><span class="spin"></span> The agent is adding to ${esc(p.name)}. New ones arrive here marked New; your picks stay.</p>`
+    : p.kind === 'queued' ? `<p class="wait">Your request for ${esc(p.name)} is in the queue. Say “check the studio” in the chat and the agent picks it up.</p>`
+    : `<p class="wait">Your request for ${esc(p.name)} is copied. Paste it in the chat and the agent adds it here.</p>`;
+  return `<div class="ask" id="askbox"><div class="quick"><label for="ask"><svg class="spark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.5 2.5M15.2 15.2l2.5 2.5M6.3 17.7l2.5-2.5M15.2 8.8l2.5-2.5"/></svg>Want more options?</label>${items.map((x) => `<button class="go q morego" data-moreask="${esc(x.id)}">More ${esc(x.what)} <span aria-hidden="true">→</span></button>`).join('')}<button class="chip" data-quick="different">Something different</button><button class="chip" data-quick="what">What else could change?</button></div>`
+    + `<div class="askrow"><input id="ask" type="text" maxlength="400" value="${esc(UI.ask.text)}" placeholder="Or describe what you want${w.ctl ? ' for ' + esc(w.name) : ''}, and the agent adds it here…"><button class="go q" data-act="ask">${STATUS.live ? 'Ask agent →' : 'Copy request'}</button></div>`
+    + (AWAY ? `<div class="away"><p><b>The agent is not watching the studio right now.</b> Send now copies your request for the chat, where it starts at once. Keep in queue saves it for the next time it looks.</p><div class="awayb"><button class="go morego" data-act="sendnow">Send now</button><button class="go q" data-act="queue">Keep in queue</button><button class="chip" data-act="awaycancel">Cancel</button></div></div>` : status) + '</div>';
+}
+
+/* ---- Looks, a category, Review ---- */
+function looksHTML() {
+  const m = AM(), now = AS();
+  const base = { id: '@base', n: baseName(m), d: m.measured ? 'What the project has now, as measured. Keep it and refine it step by step.' : 'A plain, sensible place to begin. Not taken from your project.', patch: {} };
+  const card = (l, feature) => {
+    const s = l.id === '@base' ? fresh(m.id) : lookState(m, l);
+    return `<div class="look${feature ? ' feature' : ''}" role="button" tabindex="0" data-look="${esc(l.id)}" aria-pressed="${sameLook(m.id, s, now)}">${art(m, s, { look: true }, 'big')}`
+      + `<span class="tn">${esc(l.n)}${feature ? '<span class="now">Recommended</span>' : ''}<span class="sel">Selected</span>${dot(m.id + '.look:' + l.id)}</span><small>${esc(l.d)}</small></div>`;
+  };
+  return `<div class="looks start">${card(base, true)}</div>`
+    + (m.looks.length ? `<div class="lrow ideas"><span class="lbl">Or start from an idea</span>${m.looks.length > 1 ? '<button class="addc" data-act="surprise">Surprise me</button>' : ''}</div><div class="looks">${m.looks.map((l) => card(l)).join('')}</div>` : '');
+}
+function groupHTML(g) {
+  const s = AS();
+  const vis = g.ctl.filter((c) => shown(c, s));
+  const na = g.na && g.na(s), note = g.note && g.note(s);
+  const main = vis.filter((c) => !isFine(c)), fine = na ? [] : vis.filter(isFine);
+  const body = na ? `<div class="na">${esc(na)}</div>`
+    : main.map((c) => ctlHTML(c, s)).join('')
+      + (fine.length && fine.length <= 3 ? `<div class="tune"><p class="tuneh">Adjust</p>${fine.map((c) => ctlHTML(c, s)).join('')}</div>` : '')
+      + (fine.length > 3 ? `<details class="fine" data-fine="${g.id}"${(UI.fine[NAV.mod + '.' + g.id] ?? main.some((c) => c.t === 'swatches')) ? ' open' : ''}><summary><b>Fine-tune</b><span>${esc(list([...new Set(fine.map((c) => c.label))]))}</span></summary>${fine.map((c) => ctlHTML(c, s)).join('')}</details>` : '')
+
+  return `${note ? `<div class="note">${note}</div>` : ''}${body}`;
+}
+/** The fine adjustments of the open category, in the preview card under the design they change (wider screens). */
+function tuneHTML() {
+  const m = AM(), g = !NAV.review && m.groups.find((x) => x.id === NAV.cat[m.id]);
+  if (!g || !WIDE() || (g.na && g.na(AS()))) return '';
+  const s = AS(), fine = g.ctl.filter((c) => shown(c, s) && isFine(c));
+  return fine.length ? `<h3>Fine-tune ${esc((g.short || g.t).toLowerCase())}</h3>${fine.map((c) => ctlHTML(c, s)).join('')}` : '';
+}
+/** The page head: where you are and what this is for. */
+function headParts() {
+  const m = AM(), mode = modeNow();
+  if (NAV.review) return { crumb: P.name, t: 'Review', why: 'What you would change, before and after. Sending it is a proposal: the agent builds nothing until you say so in the chat.' };
+  const cat = NAV.cat[m.id], g = m.groups.find((x) => x.id === cat);
+  const crumb = `${m.name} / ${cap(m.title())}`;
+  if (mode === 'compare') return { crumb, t: 'Compare the shortlist', why: `${baseName(m)}, what you pinned and what you have now, at the same scale on the same background.` };
+  if (mode === 'states') return { crumb, t: 'Every state', why: 'The selected design resting, pointed at, pressed, focused and more, side by side.' };
+  if (mode === 'context') return { crumb, t: CX.real ? 'In your page' : 'In a page', why: CX.real ? 'Your page, simplified, with every studio’s choices applied.' : 'A representative page with your words and every studio’s choices applied. It is not your live page.' };
+  if (!g) return { crumb, t: 'Where to start', why: `Begin from ${esc(baseName(m).toLowerCase())}, or from an idea. Either way you refine it step by step.` };
+  return { crumb, t: g.t, why: g.why };
+}
+/** Back, where you are and Next, at the top of every step where they are seen first. */
+function stepHTML() {
+  if (NAV.review || modeNow() !== 'alone') return '';
+  const list = steps(), i = list.findIndex((x) => x.id === NAV.cat[NAV.mod]), pv = prevStep(), nx = nextStep();
+  const where = i < 0 ? 'Start' : list[i].extra ? 'Extra' : `Step ${i + 1} of ${lastMain(list) + 1}`;
+  const skip = i >= lastMain(list) && nx.cat !== 'review' ? '<button class="skip" data-cat="review">Skip to Review</button>' : '';
+  return `<span class="count">${where}</span>${skip}`
+    + (pv ? '<button class="go q" data-act="prev">Back</button>' : '')
+    + `<button class="go" data-act="next">${i < 0 && sameLook(NAV.mod, AS(), DEFS[NAV.mod]) ? (AM().measured ? 'Start from today' : 'Use the starting point') : 'Next: ' + esc(nx.n)} →</button>`;
+}
+function renderHead() {
+  $('hstep').innerHTML = stepHTML();
+  const h = headParts();
+  $('crumb').textContent = h.crumb;
+  $('htitle').textContent = h.t;
+  $('hwhy').innerHTML = h.why;
+}
+
+/** "How far should this reach?", once per changed studio, in that studio's own terms: a button reaches one place, its
+    family or the system; a palette its tokens or one area. A foundation starts on its sensible default. */
+function reachHTML(mods) {
+  if (!mods.length) return '';
+  return mods.map((m) => {
+    const now = reachNow(m), opts = reachOf(m), id = 'l_scope_' + m.id, pick = opts.find((x) => x[0] === now);
+    return `<div class="ctl reach"><div class="lrow"><span class="lbl" id="${id}">${mods.length > 1 ? `${esc(m.name)}: how far should it reach?` : 'How far should this reach?'}</span></div><div class="chips" role="group" aria-labelledby="${id}">${opts.map(([k, n]) => `<button class="chip" data-scope="${esc(m.id)}|${esc(k)}" aria-pressed="${now === k}">${esc(n)}</button>`).join('')}</div>`
+      + `<p class="desc">${pick ? esc(pick[2]) : 'Choose one, so the agent knows whether to touch one place or the shared styles.'}</p></div>`;
+  }).join('');
+}
+/** Changed studios that still need a reach chosen. */
+const reachMissing = () => STUDIO.mods.filter((m) => changes(m).length && !reachNow(m));
+/** What changed in one module, as [{ c, label, from, to }], one per key. */
+function changes(m) {
+  const s = ST[m.id], d = DEFS[m.id];
+  if (m.changes) return m.changes(s, d); // a module that knows better what a change means (Palette: role by role)
+  return changedKeys(m.id).map((k) => {
+    const c = ctlsFor(m.id, k).find((x) => shown(x, s)) || ctlsFor(m.id, k)[0];
+    if (!c || c.inSpec === false) return null;
+    const say = (st) => { const r = ctlsFor(m.id, k).find((x) => x.t === 'range'); const n = nameIn(m.id, k, st); return n === String(st[k]) && r ? fmt(st[k], r) : n === '' ? 'none' : n; };
+    const isNewCat = m.groups.some((g) => g.dim && g.ctl.some((x) => x.k === k));
+    const known = isNewCat ? 'new' : m.measured && k in m.today ? (P.sources && P.sources[k]) || 'measured' : m.measured ? 'not measured' : '';
+    return { c, label: c.label, from: say(d), to: say(s), known };
+  }).filter(Boolean);
+}
+function checkedLine() {
+  const d = UI.seen.dev.filter((k) => DEV[k]).map((k) => DEV[k].n.toLowerCase());
+  const b = UI.seen.bg.map((v) => (BGS.find((x) => x[0] === v) || [v, v])[1].toLowerCase());
+  return `Looked at on ${list(d) || 'one device'}, against ${list(b) || 'one background'}${UI.seen.mode.includes('context') ? ', in the example page' : ''}; less motion ${UI.seen.rm ? 'tried' : 'not tried'}.`;
+}
+/** A value as Review shows it: a colour gets a dot of itself beside its code. */
+const showVal = (v) => (/^#[0-9A-F]{6}$/i.test(String(v)) ? `<i class="rvsw" style="background:${esc(v)}"></i>${esc(v)}` : esc(v));
+function reviewHTML() {
+  const SHOW = 6; // a long list shows this many, then the rest on request
+  const all = STUDIO.mods.map((m) => ({ m, ch: changes(m) }));
+  const total = all.reduce((n, x) => n + x.ch.length, 0);
+  const blocks = all.map(({ m, ch }) => {
+    const warn = m.warn ? m.warn(ST[m.id]) : [];
+    const row = (x) => `<li><b>${esc(x.label)}</b><span><s>${showVal(x.from)}</s>${x.known === 'not measured' ? ' <i>(not measured)</i>' : ''} → ${showVal(x.to)}</span><button class="addc" data-goctl="${x.c.id}">Change</button></li>`;
+    const open = UI.expanded['review.' + m.id] || ch.length <= SHOW + 2;
+    return `<section class="rvm" id="rv-${m.id}"><h3>${esc(cap(m.title()))}<span class="rvn">${ch.length ? `${ch.length} change${ch.length > 1 ? 's' : ''}` : 'unchanged'}</span></h3>`
+      + (ch.length
+        ? `<div class="ba"><figure>${withCtx(foundations(m.id, DEFS), () => art(m, DEFS[m.id], { compare: true }))}<figcaption>${esc(baseName(m))}</figcaption></figure><figure>${art(m, ST[m.id], { compare: true })}<figcaption>Proposed</figcaption></figure></div>`
+          + `<ul class="rv">${(open ? ch : ch.slice(0, SHOW)).map(row).join('')}</ul>`
+          + (open ? '' : `<button class="chip ghost rvmore" data-expand="review.${m.id}">Show all ${ch.length} changes</button>`)
+        : '')
+      + (warn.length ? `<ul class="warns">${warn.map((w) => `<li class="${w.soft ? 'soft' : ''}">${esc(w.t)}</li>`).join('')}</ul>` : '') + '</section>';
+  }).join('');
+  const any = total > 0;
+  // what changed at a glance, and the one decision that matters, before the detail
+  const summary = `<div class="rvtop"><p class="rvsum">${any ? `${total} change${total > 1 ? 's' : ''}: ${all.filter((x) => x.ch.length).map((x) => `<a href="#rv-${x.m.id}">${esc(x.m.name)} ${x.ch.length}</a>`).join(' · ')}` : 'Nothing has changed yet. Pick something in a studio, then come back.'}</p>`
+    + reachHTML(all.filter((x) => x.ch.length).map((x) => x.m)) + '</div>';
+  return summary + blocks
+    + `<p class="checked">${esc(checkedLine())}</p>`
+    + `<details class="fine" data-fine="review"${UI.fine.review ? ' open' : ''}><summary><b>The exact proposal the agent receives</b></summary><pre class="spec">${esc(specText())}</pre></details>`
+    + `<div class="prow"><button class="chip sm" data-act="export">Save to a file</button><button class="chip sm" data-act="import">Open a saved file</button>${any ? '<button class="chip sm" data-act="resetall">Put everything back</button>' : ''}<input type="file" id="importfile" accept="application/json,.json" hidden></div>`;
+}
+
+function tabsHTML() {
+  const tab = (m) => `<button role="tab" data-mod="${m.id}" aria-selected="${!NAV.review && NAV.mod === m.id}">${esc(m.name)}${changedKeys(m.id).length ? '<i class="ch" title="Changed"></i>' : ''}</button>`;
+  const rest = AVAILABLE.filter(([id]) => !STUDIO.has(id));
+  return STUDIO.mods.map(tab).join('')
+    + (rest.length ? `<select id="addmod" aria-label="Add a studio"><option value="">+ Add</option>${rest.map(([id, n]) => `<option value="${esc(id)}">${esc(n)}</option>`).join('')}</select>` : '');
+}
+/** The steps of the open studio: the main ones first, then the extras, in the order each studio gives them. Start
+    (where to begin, with ideas) comes before them and is not counted as a step. */
+function steps(m = AM()) {
+  const s = ST[m.id], gs = m.groups.filter((g) => !(g.na && g.na(s)));
+  const main = gs.filter((g) => !g.extra), extra = gs.filter((g) => g.extra).sort((a, b) => a.extra - b.extra);
+  return [...main, ...extra].map((g) => ({ id: g.id, n: g.short || g.t, g, extra: !!g.extra }));
+}
+const lastMain = (list) => list.filter((x) => !x.extra).length - 1;
+/** Where Next goes from here: Start, each main step, the next studio's Start, then Review. Extras are optional: Next
+    never walks through them; the person opens one from the Extras row, and Next from there moves on. */
+function nextStep() {
+  const m = AM(), list = steps(m), i = list.findIndex((x) => x.id === NAV.cat[m.id]);
+  const nx = list[i + 1];
+  if (nx && !nx.extra) return { mod: m.id, cat: nx.id, n: nx.n };
+  const k = STUDIO.mods.indexOf(m);
+  if (k < STUDIO.mods.length - 1) { const nm = STUDIO.mods[k + 1]; return { mod: nm.id, cat: 'looks', n: nm.name }; }
+  return { mod: m.id, cat: 'review', n: 'Review' };
+}
+function prevStep() {
+  const m = AM(), list = steps(m), i = list.findIndex((x) => x.id === NAV.cat[m.id]), main = list.filter((x) => !x.extra);
+  if (i >= 0 && list[i].extra) return main.length ? { mod: m.id, cat: main[main.length - 1].id } : { mod: m.id, cat: 'looks' }; // back from an extra: the last main step
+  if (i > 0) return { mod: m.id, cat: list[i - 1].id };
+  if (i === 0) return { mod: m.id, cat: 'looks' };
+  const k = STUDIO.mods.indexOf(m);
+  if (k > 0) { const pm = STUDIO.mods[k - 1], pl = steps(pm).filter((x) => !x.extra); return { mod: pm.id, cat: pl.length ? pl[pl.length - 1].id : 'looks' }; }
+  return null;
+}
+function navHTML() {
+  const m = AM(), cur = NAV.review ? '' : NAV.cat[m.id], changed = new Set(changedKeys(m.id)), list = steps(m);
+  const pill = (st, i) => {
+    const fresh = st.g.ctl.some((c) => UI.fresh.some((f) => f.startsWith(m.id + '.' + c.k + ':')));
+    const done = st.g.ctl.some((c) => changed.has(c.k));
+    const lead = st.extra ? '' : `<b class="num${done ? ' done' : ''}" aria-hidden="true">${i + 1}</b>`;
+    return `<button class="${st.extra ? 'xp' : ''}${done && st.extra ? ' changed' : ''}" data-cat="${st.id}" aria-current="${cur === st.id ? 'step' : 'false'}"${done ? ' title="Changed"' : ''}>${lead}<span>${esc(st.n)}</span>${fresh ? '<i class="tag">New</i>' : ''}</button>`;
+  };
+  const main = list.filter((x) => !x.extra), extra = list.filter((x) => x.extra);
+  return `<div class="srow"><button class="start" data-cat="looks" aria-current="${cur === 'looks' ? 'step' : 'false'}"><span>Start</span></button>${main.map(pill).join('')}</div>`
+    + (extra.length ? `<div class="srow x"><span class="xsep">Extras <i>(optional)</i></span>${extra.map(pill).join('')}</div>` : '');
+}
+function footHTML() {
+  if (!NAV.review) return ''; // Next lives at the top of every step
+  return `<button class="go q" data-act="back">Back</button><span class="count"></span><button class="go q" data-act="copy">Copy</button><button class="go" data-act="send">${STATUS.live ? 'Send to chat' : 'Copy for chat'}</button>`;
+}
+
+function renderTop() {
+  $('tabs').innerHTML = tabsHTML();
+  $('undo').disabled = !HIST.undo.length;
+  $('redo').disabled = !HIST.redo.length;
+  $('review').setAttribute('aria-pressed', String(NAV.review));
+  const title = STUDIO.mods.length > 1 ? 'Studio' : cap(AM().title()) + ' studio';
+  document.title = title + ' · ' + P.name;
+}
+/** Redraws the panel, keeping keyboard focus where the person was. */
+function renderPanel() {
+  const host = $('panel'), ae = document.activeElement, m = AM();
+  let refocus = null;
+  if (ae && host.contains(ae)) {
+    refocus = ae.dataset.o != null ? `[data-c="${ae.dataset.c}"][data-o="${ae.dataset.o}"]`
+      : ae.dataset.sw ? `[data-sw="${CSS.escape(ae.dataset.sw)}"]`
+      : ae.dataset.look ? `[data-look="${CSS.escape(ae.dataset.look)}"]`
+      : ae.dataset.scope ? `[data-scope="${ae.dataset.scope}"]`
+      : ae.id ? '#' + CSS.escape(ae.id)
+      : ae.dataset.more ? `[data-more="${ae.dataset.more}"]` : null;
+  }
+  const navCat = ae && $('nav').contains(ae) ? ae.dataset.cat : null;
+  const cat = NAV.cat[m.id], g = m.groups.find((x) => x.id === cat);
+  let html;
+  try { html = NAV.review ? reviewHTML() : g ? askHTML() + groupHTML(g) : looksHTML() + askHTML(); } catch (e) { report('panel: ' + e.message); html = '<p class="why">This page could not be drawn. The agent has been told.</p>'; }
+  host.innerHTML = html;
+  fitArt(host);
+  $('ptune').innerHTML = tuneHTML();
+  $('nav').innerHTML = navHTML();
+  $('work').classList.toggle('reviewing', NAV.review);
+  renderHead();
+
+  $('pfoot').innerHTML = footHTML();
+  renderTop();
+  renderStageBar();
+  const focus = (el) => el && el.focus({ preventScroll: true });
+  if (refocus) focus(host.querySelector(refocus));
+  else if (navCat) focus($('nav').querySelector(`[data-cat="${navCat}"]`));
+}
+/** Everything, after a state changed underneath: undo, a pinned version taken, a file opened. */
+function redrawAll() { renderStage(); renderPanel(); }
+
+/* ---- moving around ---- */
+const topOffset = () => (innerWidth < 900 ? $('pcol').offsetHeight + 8 : parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hdr')) + 12);
+function scrollToPanel() {
+  const r = $('scol').getBoundingClientRect(), mgn = topOffset();
+  if (r.top < mgn - 1 || r.top > innerHeight * 0.6) scrollTo({ top: scrollY + r.top - mgn, behavior: RM_OS ? 'auto' : 'smooth' });
+}
+/** Choices the agent added stop being marked New once you have looked at their step and moved on. */
+function seenFresh(mid, cat) {
+  const m = STUDIO.by[mid], g = m && m.groups.find((x) => x.id === cat);
+  const keys = cat === 'looks' ? [mid + '.look:'] : g ? g.ctl.map((c) => mid + '.' + c.k + ':') : [];
+  if (keys.length) UI.fresh = UI.fresh.filter((f) => !keys.some((k) => f.startsWith(k)));
+}
+function go(mod, cat) {
+  const wasMod = NAV.mod, wasReview = NAV.review, wasCat = NAV.cat[NAV.mod];
+  if (cat !== wasCat || (mod && mod !== wasMod)) seenFresh(wasMod, wasCat);
+  if (mod && STUDIO.has(mod)) NAV.mod = mod;
+  NAV.review = cat === 'review';
+  if (cat && cat !== 'review') NAV.cat[NAV.mod] = cat;
+  UI.ask.target = null;
+  const m = AM();
+  if (m.onNav) m.onNav();
+  if (wasMod !== NAV.mod || wasReview !== NAV.review) renderStage();
+  renderPanel(); scrollToPanel(); save();
+}
+function goControl(id) {
+  const c = CT[id];
+  if (!c) return;
+  if (isFine(c)) UI.fine[c.mid + '.' + c.sid] = true;
+  go(c.mid, c.sid);
+  const el = $('panel').querySelector(`[data-ctl="${id}"], [data-c="${id}"]`);
+  if (el) el.scrollIntoView({ block: 'center', behavior: RM_OS ? 'auto' : 'smooth' });
+}
+
+/* ---- the proposal the agent receives ---- */
+function specLines(m, skipped = []) {
+  const s = ST[m.id], out = [], changed = new Set(changedKeys(m.id));
+  for (const g of m.groups) {
+    if (g.na && g.na(s)) continue;
+    if (g.extra && !g.ctl.some((c) => changed.has(c.k))) { skipped.push(g.short || g.t); continue; } // an optional step left alone is not a decision
+    const parts = [], done = new Set();
+    for (const c of g.ctl) {
+      if (c.inSpec === false || !shown(c, s) || done.has(c.k)) continue;
+      done.add(c.k);
+      const same = sameValue(JSON.stringify(s[c.k]), JSON.stringify(DEFS[m.id][c.k]));
+      if (c.t === 'swatches') { const k = m.colourOf ? m.colourOf(s) : null; parts.push(`${s[c.k]}${k ? `, oklch(${(+k.L).toFixed(2)} ${(+k.C).toFixed(2)} ${Math.round(k.H)})` : ''}${same ? ' [unchanged]' : ''}`); continue; }
+      if (c.t === 'text') { parts.push(`${c.spec || c.label}: “${s[c.k]}”`); continue; }
+      if (c.t === 'range') { parts.push(`${c.label}: ${fmt(s[c.k], c)}`); continue; }
+      const op = optOf(c, s[c.k]);
+      const r = g.ctl.find((x) => x.k === c.k && x.t === 'range');
+      if (!op) { parts.push(`${c.label}: ${r ? fmt(s[c.k], r) : s[c.k]}`); continue; }
+      const raw = String(op.v);
+      const showRaw = typeof op.v === 'string' && raw && raw.toLowerCase() !== op.n.toLowerCase() && c.k !== 'sub' && c.k !== 'label';
+      parts.push((c.label.toLowerCase() === g.t.toLowerCase() ? '' : c.label + ': ') + op.n
+        + (showRaw ? ` (${raw})` : '') + (r && !op.n.includes(fmt(s[c.k], r)) ? `, ${fmt(s[c.k], r)}` : '') + (same ? ' [unchanged]' : '')
+        + (avail(op, s) ? '' : ' [will not show with these choices]'));
+    }
+    if (parts.length) out.push(`${g.t}: ${parts.join('; ')}`);
+  }
+  return out;
+}
+function specText() {
+  const out = [`A proposal from the studio for ${P.name}. Nothing has been changed. Do not build it until I say so in the chat. ${P.specRules}`];
+  for (const m of STUDIO.mods) {
+    const ch = changes(m);
+    out.push('', `== ${m.name}: ${m.title()} ==`);
+    if (!ch.length) {
+      // nothing of its own changed, but what it follows may have: say so, or the build would leave it behind
+      const moved = STUDIO.mods.filter((f) => f.share && f.id !== m.id && changes(f).length).map((f) => f.name);
+      const fl = m.follows ? m.follows(ST[m.id]).filter((l) => moved.some((n) => l.includes(n))) : [];
+      out.push(fl.length ? `No change of its own. It follows foundations that change here: ${fl.join(' ')} Build it from those shared tokens so it changes with them.` : `No change from ${baseName(m).toLowerCase()}.`);
+      continue;
+    }
+    const r = reachOf(m).find((x) => x[0] === reachNow(m));
+    out.push(`Reach: ${r ? `${r[1]}. ${r[2]}` : 'not chosen yet. Ask me before deciding.'}${r && !SCOPE[m.id] ? ' (the studio’s default for this; not chosen by me)' : ''}`);
+    out.push('Changed: ' + ch.map((x) => `${x.label} ${x.from}${x.known === 'not measured' ? ' (starting value, not measured from the project)' : x.known === 'new' ? ' (a category added in this session)' : ''} → ${x.to}`).join('; ') + '.');
+    const skipped = [];
+    out.push(...specLines(m, skipped).map((l, i) => `${i + 1}. ${l}`));
+    if (skipped.length) out.push(`Left as they are (optional, not opened or not changed): ${skipped.join(', ')}.`);
+    const follows = m.follows ? m.follows(ST[m.id]) : [];
+    if (follows.length) out.push(`Follows: ${follows.join(' ')} If those foundations change, this follows them; build it from the shared tokens, not fixed values.`);
+    const warn = m.warn ? m.warn(ST[m.id]) : [];
+    if (warn.length) out.push('To check: ' + warn.map((w) => w.t).join(' '));
+    if (m.notes) out.push(...m.notes(ST[m.id]));
+    const cats = m.groups.filter((g) => g.dim && changedKeys(m.id).some((k) => g.ctl.some((x) => x.k === k)));
+    if (cats.length) out.push(`New in this session: ${cats.map((g) => `${g.t} (drawn by the .x-${g.ctl[0].k}-* rules${g.ctl.length > 1 ? ` and ${g.ctl.slice(1).map((c) => '--x-' + c.k).join(', ')}` : ''})`).join('; ')}, in the studio's own <style id="more-css">; carry that look into the project's own styles.`);
+    const system = m.system ? m.system() : [];
+    if (system.length) out.push(`How the project builds this today: ${system.join(' ')} These choices may change that. Where they differ and the reach allows it, update or add to the design system to match rather than special-casing.`);
+  }
+  out.push('', checkedLine());
+  return out.join('\n');
+}

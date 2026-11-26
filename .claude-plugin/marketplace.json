@@ -5,7 +5,7 @@
     "name": "AtlasScope"
   },
   "metadata": {
-    "description": "Skills for AI coding agents, in five plugins: design, motion, engineering, experience architecture and working style. Every command runs only when you call it, unless you choose at install to let the /design, /engineer or /database router start on its own."
+    "description": "Skills for AI coding agents, in six plugins: design, motion, studio, engineering, experience architecture and working style. Every command runs only when you call it, unless you choose at install to let the /design, /engineer or /database router start on its own."
   },
   "plugins": [
     {
@@ -38,6 +38,22 @@
         "design",
         "accessibility",
         "performance",
+        "skills"
+      ]
+    },
+    {
+      "name": "studio-kit",
+      "description": "One command, /studio, that opens a live design studio on your computer: see finished looks and every option drawn for real, for buttons, colours, type, surfaces, spacing, motion or icons, in one workspace. Compare, fine-tune, undo, ask the agent for more, then send a proposal to chat. Nothing in your application changes until you approve it. Runs only when you call it.",
+      "version": "0.1.0",
+      "source": "./kits/studio-kit/plugins/studio-kit",
+      "category": "design",
+      "homepage": "https://github.com/AtlasScope/agent-kit/tree/main/kits/studio-kit",
+      "tags": [
+        "studio",
+        "design",
+        "buttons",
+        "color",
+        "typography",
         "skills"
       ]
     },

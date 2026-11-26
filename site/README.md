@@ -33,7 +33,7 @@ Home and Install share the Horizon stage (`app/(stage)/`, `components/stage/`, `
 | `/learn`, `/learn/<lesson>` | Five short lessons on working with a coding agent. |
 | `/prompts`, `/prompts/<slug>` | Hub, area pages, and one page per library entry. Old IDs (`/prompts/A01`) redirect. |
 | `/skills`, `/skills/<name>` | Every skill with its full `SKILL.md`, install commands, credit, and license. |
-| `/kits`, `/kits/<kit>` | The five plugins. |
+| `/kits`, `/kits/<kit>` | The six plugins. |
 | `/fix`, `/fix/<problem>` | Symptom pages that list the prompts to try first. |
 | `/index.md`, `/prompts.md`, `/skills.md`, `/kits.md`, `/fix.md`, and `/<section>/<slug>.md` | Markdown twins of the library index and item pages, for agents. |
 | `/llms.txt`, `/llms-full.txt`, `/sitemap.xml`, `/robots.txt` | Search and AI crawler files. Every crawler is allowed. |

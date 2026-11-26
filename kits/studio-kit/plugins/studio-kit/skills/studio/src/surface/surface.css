@@ -1,0 +1,55 @@
+/* ===== Surface module: a card, a field and a floating menu on the page. Everything reads --su-* properties from vars(s) ===== */
+.su{--su-font:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;position:relative;box-sizing:border-box;width:100%;min-height:100%;display:grid;grid-template-columns:minmax(0,1fr);place-items:center;overflow:hidden;padding:26px 24px;color:var(--su-text);font:14px/1.45 var(--su-font);text-align:left;-webkit-font-smoothing:antialiased}
+.su *{box-sizing:border-box;margin:0}
+.su-stack{position:relative;width:100%;min-width:0;max-width:320px}
+.su-stack.su-full{padding-bottom:112px}
+.su-live .su-stack{max-width:400px;padding-bottom:120px}
+/* the coloured shapes behind the card, so every kind of see-through shows what it does */
+.su-blob{position:absolute;z-index:0;top:-20px;right:-16px;width:74px;height:74px;border-radius:50%;background:var(--su-acc)}
+.su-band{position:absolute;z-index:0;left:-12px;right:-12px;top:52%;height:22px;border-radius:11px;background:var(--su-acc2)}
+.su-full .su-band{top:46%}
+.su-card{position:relative;z-index:1;padding:20px;border-radius:var(--su-r);background:var(--su-bg);border:var(--su-bd);box-shadow:var(--su-shadow);-webkit-backdrop-filter:var(--su-blur);backdrop-filter:var(--su-blur);transition:transform .2s ease,box-shadow .2s ease}
+.su-card::before{content:"";position:absolute;inset:0;border-radius:inherit;background-image:var(--su-tex);background-repeat:repeat;pointer-events:none}
+.su-card>*{position:relative}
+.su-h{font:600 17px/1.25 var(--su-display,var(--su-font));letter-spacing:-.01em;color:var(--su-text)}
+.su-p{margin-top:5px;color:var(--su-text2);font-size:14px}
+.su-lbl{display:block;margin:14px 0 6px;font-size:12.5px;font-weight:600;color:var(--su-text)}
+.su-field{display:flex;align-items:center;height:40px;padding:0 12px;border-radius:var(--su-rs);background:var(--su-n-bg);border:var(--su-fbd);box-shadow:var(--su-n-sh);color:var(--su-text2);font-size:14px;outline:0;transition:box-shadow .15s ease,border-color .15s ease}
+.su-field span{opacity:.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.su-field:focus-visible,.su-field.su-focus{border-color:var(--su-acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--su-acc) 38%,transparent)}
+.su-row{display:flex;align-items:center;gap:9px;margin-top:10px;height:36px;padding:0 11px;border-radius:var(--su-rs);background:var(--su-n-bg);box-shadow:var(--su-n-sh);font-size:13px;color:var(--su-text);white-space:nowrap;overflow:hidden}
+.su-row i{flex:none;width:8px;height:8px;border-radius:50%;background:var(--su-acc)}
+.su-row span{flex:none;font-weight:500}
+.su-row em{flex:1;min-width:0;font-style:normal;color:var(--su-text2);font-size:12px;overflow:hidden;text-overflow:ellipsis}
+.su-menu{position:absolute;z-index:2;right:10px;bottom:0;width:min(176px,74%);list-style:none;padding:5px;border-radius:var(--su-rm);background:var(--su-menu-bg);border:var(--su-bd);box-shadow:var(--su-menu-shadow);-webkit-backdrop-filter:var(--su-blur);backdrop-filter:var(--su-blur)}
+.su-live .su-menu{width:min(196px,74%);right:14px}
+.su-menu li{display:block;padding:7px 10px;border-radius:max(0px,calc(var(--su-rm) - 4px));font-size:13px;color:var(--su-text);white-space:nowrap}
+.su-menu li.on{background:color-mix(in srgb,var(--su-text) 9%,transparent)}
+.su-menu li.sep{height:1px;padding:0;margin:4px 6px;border-radius:0;background:color-mix(in srgb,var(--su-text) 14%,transparent)}
+.su-menu li.bad{color:var(--su-bad)}
+.su-live .su-menu li:not(.sep){cursor:default;transition:background .12s ease}
+.su-live .su-menu li:not(.sep):hover{background:color-mix(in srgb,var(--su-text) 9%,transparent)}
+.su-live .su-card.su-lift:hover,.su-card.su-hover{transform:translateY(-3px);box-shadow:var(--su-shadow-up)}
+.su-note{position:absolute;left:0;right:0;bottom:10px;text-align:center;font-size:12px;color:var(--su-text2);opacity:.8;padding:0 16px}
+/* small drawings (tiles) */
+.su-tile{padding:14px 16px 28px}
+.su-tile .su-stack{max-width:none}
+.su-tile .su-card{padding:12px}
+.su-tile .su-h{font-size:13px}
+.su-tile .su-field{height:28px;margin-top:8px;padding:0 9px;font-size:11.5px}
+.su-tile .su-row{height:26px;margin-top:7px;padding:0 8px;gap:6px;font-size:11px}
+.su-tile .su-row em{font-size:10.5px}
+.su-tile .su-blob{width:46px;height:46px;top:-12px;right:-10px}
+.su-tile .su-band{height:14px;border-radius:7px;left:-8px;right:-8px}
+/* tiles and compare drawings grow to their content and fill the frame */
+.art:has(.su),.cmp-art:has(.su){height:auto;min-height:150px;place-items:stretch;place-content:stretch}
+.art:has(.su)>.art-in,.cmp-art:has(.su)>.art-in{width:100%;transform:none!important}
+.looks .art:has(.su){min-height:250px}
+.tiles .art:has(.su),.looks .art:has(.su){height:auto}
+.board.states .cmp-art:has(.su){min-height:300px}
+.stage.rm .su-card,.stage.rm .su-field{transition:none!important}
+.stage.rm .su-live .su-card.su-lift:hover{transform:none!important}
+@media (prefers-reduced-motion:reduce){.su-card,.su-field,.su-menu li{transition:none!important}.su-live .su-card.su-lift:hover,.su-card.su-hover{transform:none!important}}
+@media (max-width:899px){.tiles:has(.su){grid-template-columns:repeat(auto-fill,minmax(min(100%,150px),1fr))}.tiles .art:has(.su){min-height:0}}
+.su-row,.su-field,.su-menu li{min-width:0}
+.su-menu li{overflow:hidden;text-overflow:ellipsis}

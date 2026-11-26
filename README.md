@@ -1,10 +1,10 @@
 # Agent Kit
 
-Agent Kit by AtlasScope is a free, open set of skills and prompts for AI coding agents. It ships as five installable kits, a standalone prompt library, a public website at [atlasscope.dev](https://www.atlasscope.dev), and a read-only MCP server.
+Agent Kit by AtlasScope is a free, open set of skills and prompts for AI coding agents. It ships as six installable kits, a standalone prompt library, a public website at [atlasscope.dev](https://www.atlasscope.dev), and a read-only MCP server.
 
 It's for people who use Claude Code, Codex, Cursor, or another coding agent and want it to follow a clear method for design, motion, engineering, database, and product structure work. If you've never used a coding agent before, the site also has an eight-step [first-app guide](https://www.atlasscope.dev/start).
 
-Most of the skills come from other authors: 49 of the 66 come from Emil Kowalski, Matt Pocock, Wondel.ai, and seven other authors. Agent Kit routes between them and adds 17 skills of its own. See [CREDITS.md](CREDITS.md).
+Most of the skills come from other authors: 49 of the 67 come from Emil Kowalski, Matt Pocock, Wondel.ai, and seven other authors. Agent Kit routes between them and adds 18 skills of its own. See [CREDITS.md](CREDITS.md).
 
 ## Get one result
 
@@ -18,19 +18,20 @@ Some `/design` recipes hand steps to external plugins Agent Kit doesn't ship, li
 
 ## What's inside
 
-Agent Kit has 5 kits (66 skills total) and 255 library entries.
+Agent Kit has 6 kits (67 skills total) and 255 library entries.
 
 | Kit | Skills | What it does |
 |---|---|---|
 | [design-kit](kits/design-kit) | 40 | `/design` routes to the right design skill or recipe: layout, typography, color, motion, UX writing, usability, landing copy, native iOS, and more. Includes `/design-setup`, `/palette-builder`, `fix-writing` and an early `/keen`, Agent Kit's own design command. |
 | [motion-kit](kits/motion-kit) | 1 | `/motion` sets up a motion system, storyboards a sequence, builds an animation, and reviews or fixes existing motion using code scans and browser frame captures. |
+| [studio-kit](kits/studio-kit) | 1 | `/studio` opens a live design studio on your computer for buttons, colours, type, surfaces, spacing, motion and icons: compare finished looks, fine-tune, undo, ask for more, then send a proposal to chat. Early, tested only on Windows with Claude Code. |
 | [engineering-kit](kits/engineering-kit) | 17 | `/engineer` understands, diagnoses and fixes difficult codebases with evidence, or points to the right skill: bug diagnosis, test-first work, architecture scans, plan interviews, retros, and research. `/database` picks and runs a read-only PostgreSQL investigation. Includes `/engineering-setup`. |
 | [experience-architecture](kits/experience-architecture) | 4 | `diagnose`, `rethink`, `verify`, and `walkthrough` (preview) inspect and test how a web app's pages, navigation, URLs, and Back button hang together. |
 | [working-style](kits/working-style) | 4 | `/ceo` explains in plain English, `/recommend` makes the call, `/harsh-review` gives direct critique, and `/viewport-proof` checks a screen across sizes. |
 
 ## Install
 
-Commands in `design-kit`, `motion-kit`, `engineering-kit`, and `working-style` wait to be typed unless you turn on automatic start for `/design`, `/engineer`, or `/database`. The four `experience-architecture` skills, `fix-writing`, five borrowed design skills, and four engineering helper skills can also be picked by the agent when your request calls for them.
+Commands in `design-kit`, `motion-kit`, `studio-kit`, `engineering-kit`, and `working-style` wait to be typed unless you turn on automatic start for `/design`, `/engineer`, or `/database`. The four `experience-architecture` skills, `fix-writing`, five borrowed design skills, and four engineering helper skills can also be picked by the agent when your request calls for them.
 
 ### Claude Code
 
@@ -38,6 +39,7 @@ Commands in `design-kit`, `motion-kit`, `engineering-kit`, and `working-style` w
 claude plugin marketplace add AtlasScope/agent-kit
 claude plugin install design-kit@agent-kit
 claude plugin install motion-kit@agent-kit
+claude plugin install studio-kit@agent-kit
 claude plugin install engineering-kit@agent-kit
 claude plugin install experience-architecture@agent-kit
 claude plugin install working-style@agent-kit
@@ -61,6 +63,7 @@ To change an answer, type `/design-setup` or `/engineering-setup`. Both explain 
   "enabledPlugins": {
     "design-kit@agent-kit": true,
     "motion-kit@agent-kit": true,
+    "studio-kit@agent-kit": true,
     "engineering-kit@agent-kit": true,
     "experience-architecture@agent-kit": true,
     "working-style@agent-kit": true
@@ -118,7 +121,7 @@ node library/build.mjs
 ## Layout
 
 - `kits/<name>/`: each kit's README, license, scripts, tests, and `THIRD_PARTY.md` (when it carries borrowed skills), with the installable plugin under `kits/<name>/plugins/<name>/`. `design-kit`, `engineering-kit`, and `experience-architecture` were separate repos until November 2026 and keep their git history here.
-- `.claude-plugin/marketplace.json` and `.agents/plugins/marketplace.json`: catalogs listing all five plugins.
+- `.claude-plugin/marketplace.json` and `.agents/plugins/marketplace.json`: catalogs listing all six plugins.
 - `library/`: prompt library source (`library.json`, `template.html`, `copy.mjs`), editorial standard, shared build and check scripts, and public generated `dist/` exports.
 - `site/`: the Next.js website and MCP server.
 - `scripts/`: repo-wide checks and the optional local installer.
