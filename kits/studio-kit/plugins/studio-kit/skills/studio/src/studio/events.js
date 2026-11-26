@@ -196,6 +196,7 @@ $('pin').onclick = pinNow;
 }
 $('tabs').addEventListener('change', (e) => { if (e.target.id === 'addmod' && e.target.value) { sendModule(e.target.value); e.target.value = ''; } });
 $('msgx').onclick = () => $('msg').classList.remove('show');
+$('theme').onclick = () => setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
 $('zoom').onclick = () => { UI.zoom = UI.zoom === false; layoutDevice(); };
 const segKeys = (id, keys, cur, set, attr) => $(id).addEventListener('keydown', (e) => {
   if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
