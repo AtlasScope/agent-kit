@@ -331,6 +331,16 @@
         o('tabular-nums', 'Lined up in columns', 'Every figure the same width, so prices and totals line up.'),
         o('oldstyle-nums', 'Old style', 'Some figures dip below the line, like small letters. Lovely in a paragraph, untidy in a table. Only where the face has them.')])] },
   ];
+  /* Fewer extras: the three kinds of spacing are one step, capitals and numbers another. */
+  const fold = (ids, into) => {
+    const parts = ids.map((id) => groups.find((g) => g.id === id)).filter(Boolean);
+    if (!parts.length) return;
+    const at = groups.indexOf(parts[0]);
+    groups.splice(at, 0, Object.assign({}, into, { ctl: parts.flatMap((g) => g.ctl) }));
+    parts.forEach((g) => groups.splice(groups.indexOf(g), 1));
+  };
+  fold(['lines', 'letters', 'length'], { id: 'spacing', extra: 3, t: 'Spacing', sec: 'Spacing', why: 'Room between lines, between letters in headings, and how long a line of reading runs.' });
+  fold(['caps', 'nums'], { id: 'details', extra: 4, t: 'Capitals and numbers', short: 'Capitals & numbers', sec: 'Details', why: 'Whether headings are set in capitals, and how figures sit in tables and text.' });
 
   const defaults = { display: 'system', body: 'system', mono: 'sysmono', size: 16, ratio: 1.25, hweight: 600, bweight: 400, lh: 1.55, hlh: 1.1, htrack: -0.02, measure: 65, hcase: 'none', num: 'normal' };
   const L = (id, n, d, f, size, ratio, hweight, bweight, lh, hlh, htrack, measure, hcase = 'none', num = 'normal') =>

@@ -163,21 +163,16 @@
     { id: 'mode', t: 'Light or dark', sec: 'Overall', why: 'Whether the page is dark with light words or light with dark words, and how far the background goes.', ctl: [
       ch('side', 'Light or dark', [o('dark', 'Dark', 'Light words on a dark background.'), o('light', 'Light', 'Dark words on a light background.')], { show: () => !BOTH }),
       ch('pair', 'Themes', [o('one', 'One theme', 'Only the theme shown here.'), o('both', 'Light and dark, matched', 'A twin for the other theme from the same greys, accent and status colours, so both read as one product. Drawn beside this one and proposed with it.')], { show: () => !BOTH }),
-      ch('base', 'Background', [o(0, 'Pure', 'As far as it goes: black, or white.'), o(0.35, 'Softened', 'Just off black or white. Easier on the eyes.'), o(0.75, 'Muted', 'A deep grey, or a paper tone.')]),
       rg('base', 'How far from black or white', 0, 1, 0.01, '', 'Left is pure black or pure white.'),
     ] },
     { id: 'greys', t: 'Greys', sec: 'Overall', why: 'Greys make up most of the page: the background, cards, lines and words. A hint of colour in them sets the mood.', ctl: [
       ch('tint', 'Hint of colour', tintOpts()),
-      ch('tintk', 'How much colour', [o(0.5, 'Barely', 'You only notice it next to plain grey.'), o(1, 'Lightly', 'A gentle hint.'), o(2, 'Clearly', 'Easy to see.'), o(3, 'Strongly', 'The greys become a colour of their own.')], { show: (s) => s.gC > 0 }),
-      ch('sep', 'Cards and lines', [o(0.4, 'Flat', 'Cards and lines barely stand out from the page.'), o(1, 'Gentle', 'Cards and lines are easy to see but quiet.'), o(1.7, 'Clear', 'Cards stand well apart from the page.'), o(2.5, 'Bold', 'Strong steps between the page, cards and lines.')]),
       rg('tintk', 'How much colour', 0, 4, 0.05, '', '', { show: (s) => s.gC > 0 }),
       rg('sep', 'Cards and lines', 0.2, 3, 0.05, '', 'How far apart the page, cards and lines are.'),
       rg('gH', 'Hint of colour, exact', 0, 359, 1, '', 'Slide through every colour.', { show: (s) => s.gC > 0, inSpec: false }),
     ] },
     { id: 'accent', t: 'Accent colour', sec: 'Colour', why: 'The one colour that marks links, highlights and the selected item.', ctl: [
       ch('hue', 'Colour', hueOpts()),
-      ch('vivid', 'How vivid', [o(0, 'None', 'No colour at all. Links and highlights in grey.'), o(0.05, 'Greyed', 'Only just coloured. Very quiet.'), o(0.09, 'Soft', 'Gentle colour.'), o(0.14, 'Clear', 'Plainly coloured, not shouting.'), o(0.2, 'Vivid', 'Rich and bright.'), o(0.28, 'Loud', 'As strong as screens can show.')]),
-      ch('lift', 'How light', [o(-0.12, 'Deeper', 'A darker shade.'), o(0, 'Middle', 'The usual shade for this background.'), o(0.12, 'Lighter', 'A paler shade.')]),
       rg('hue', 'Exact colour', 0, 359, 1, '', 'Slide through every colour.'),
       rg('vivid', 'How vivid', 0, 0.32, 0.005, '', ''),
       rg('lift', 'How light', -0.3, 0.25, 0.01, '', 'Lighter or darker than usual. Too far and links get hard to read.'),
@@ -188,7 +183,6 @@
     ] },
     { id: 'status', extra: 1, t: 'Status colours', sec: 'Colour', why: 'Colours that say something worked, needs a look, or went wrong.', ctl: [
       ch('stSet', 'Which colours', SETS.map(([v, n, d, set]) => Object.assign(o(v, n, d), { set }))),
-      ch('stC', 'How strong', [o(0.06, 'Quiet', 'Muted. They inform without alarming.'), o(0.13, 'Standard', 'Clear and familiar.'), o(0.2, 'Bright', 'Strong colour that grabs attention.')]),
       rg('stC', 'How strong', 0.02, 0.26, 0.01, '', ''),
     ] },
     { id: 'words', extra: 2, t: 'Words', sec: 'Words', why: 'How strongly the words stand out from the background. Every level stays readable.', ctl: [
@@ -338,14 +332,25 @@
     return `<div class="pl-card2" style="${f ? `font-family:${esc(f.body)};` : ''}background:${R.page};color:${R.text};box-shadow:inset 0 0 0 1px ${R.line}"><span class="pl-sd" style="color:${R.text3}">${sideName(side)}</span>`
       + `<b style="${ff}">${esc(CX.headline || P.name)}</b><span class="pl-go" style="background:${R.fill};color:${R['on-fill']}">${esc(label)}</span></div>`;
   };
+  /** A choice drawn as a small real page: the project's headline, a line of text, a link in the accent and the main
+      button, so a palette is judged by what it does to words, not by bars. */
+  const tileCard = (R) => {
+    const f = shared('fonts'), label = (STUDIO.has('button') ? ST.button.label : '') || (P.labels && P.labels[0] && two(P.labels[0])[0]) || 'Get started';
+    return `<div class="pl-tc" style="background:${R.page};color:${R.text};${f ? `font-family:${esc(f.body)};` : ''}">`
+      + `<b style="${f ? `font-family:${esc(f.display)};` : ''}">${esc(CX.headline || P.name)}</b>`
+      + `<span class="pl-tcp" style="color:${R.text2}">${esc(CX.body || 'A line of ordinary text underneath.')}</span>`
+      + `<span class="pl-tca"><span class="pl-tcl" style="color:${R.accent}">${esc(CX.secondary || 'Learn more')} →</span><span class="pl-go" style="background:${R.fill};color:${R['on-fill']}">${esc(label)}</span></span>`
+      + `<i class="pl-tce" style="background:${R.accent}"></i>`
+      + `<span class="pl-tcs" style="background:${R.surface};box-shadow:inset 0 0 0 1px ${R.line}"></span></div>`;
+  };
   const label2 = (side, own) => `${sideName(side)}${own ? '' : ', matched'}`;
   const still = (s, opt = {}) => {
     const R = slots(s), t = twin(s);
     if (opt.look) return `<div class="pl-lk">${strip(R)}<div class="pl-cards">${swatchCard(R, s.side)}${t ? swatchCard(t[1], t[0]) : ''}</div></div>`;
-    if (opt.tile === 'pair') return t ? `<div class="pl-twins">${mini(R)}${mini(t[1])}</div>` : mini(R);
+    if (opt.tile === 'pair') return t ? `<div class="pl-twins">${tileCard(R)}${tileCard(t[1])}</div>` : tileCard(R);
     if (opt.tile === 'stSet' || opt.tile === 'stC') return statusArt(R);
     if (opt.tile === 'textk') return wordsArt(R);
-    if (opt.tile) return mini(R);
+    if (opt.tile) return tileCard(R);
     if (t) return `<div class="pl-cmp pl-two"><div><span class="pl-cap">${sideName(s.side)}</span>${scenelet(R, true)}${strip(R)}</div><div><span class="pl-cap">${label2(t[0], t[2])}</span>${scenelet(t[1], true)}${strip(t[1])}</div></div>`;
     return `<div class="pl-cmp">${scenelet(R, true)}${strip(R)}</div>`;
   };

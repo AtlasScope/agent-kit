@@ -255,7 +255,7 @@ function navHTML() {
   const pill = (st, i) => {
     const fresh = st.g.ctl.some((c) => UI.fresh.some((f) => f.startsWith(m.id + '.' + c.k + ':')));
     const done = st.g.ctl.some((c) => changed.has(c.k));
-    const lead = st.extra ? '' : `<b class="num${done ? ' done' : ''}" aria-hidden="true">${done ? '✓' : i + 1}</b>`;
+    const lead = st.extra ? '' : `<b class="num${done ? ' done' : ''}" aria-hidden="true">${i + 1}</b>`;
     return `<button class="${st.extra ? 'xp' : ''}${done && st.extra ? ' changed' : ''}" data-cat="${st.id}" aria-current="${cur === st.id ? 'step' : 'false'}"${done ? ' title="Changed"' : ''}>${lead}<span>${esc(st.n)}</span>${fresh ? '<i class="tag">New</i>' : ''}</button>`;
   };
   const main = list.filter((x) => !x.extra), extra = list.filter((x) => x.extra);
