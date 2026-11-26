@@ -287,7 +287,7 @@
         o(16, 'Standard', 'The usual size for reading on screens.'), o(17, 'Roomy', 'Slightly bigger and easier on the eyes.'),
         o(18, 'Large', 'Comfortable for long reading.'), o(20, 'Very large', 'Big and generous, like a well-made book or a landing page.')]),
       rg('size', 'Exact text size', 12, 24, 1, 'px', 'The reading text, in pixels.')] },
-    { id: 'ratio', t: 'Size steps', short: 'Steps', sec: 'Size', why: 'How much bigger each heading is than the size below it. Small steps feel calm; big steps feel dramatic.',
+    { id: 'ratio', extra: 2, t: 'Size steps', short: 'Steps', sec: 'Size', why: 'How much bigger each heading is than the size below it. Small steps feel calm; big steps feel dramatic.',
       ctl: [ch('ratio', 'How much bigger headings get', [
         o(1.125, 'Gentle', 'Headings only a little bigger than text. Calm and compact.'), o(1.2, 'Clear', 'Easy to tell apart without shouting.'),
         o(1.25, 'Strong', 'A clear ladder from text up to the page title.'), o(1.333, 'Bold', 'Big headings with plenty of contrast.'),
@@ -313,7 +313,7 @@
         o(45, 'Short', 'About 45 letters a line. Quick to read, like a newspaper column.'), o(55, 'Narrow', 'About 55 letters. Easy reading in a slim column.'), o(65, 'Medium', 'About 65 letters. Comfortable for most reading.'),
         o(75, 'Long', 'About 75 letters. The longest that still reads easily.'), o(85, 'Very long', 'About 85 letters. Hard to follow from one line to the next.')]),
       rg('measure', 'Exact line length', 30, 110, 1, ' letters', 'The most letters on one line of a paragraph.')] },
-    { id: 'weight', extra: 2, t: 'Thickness', sec: 'Details', why: 'How heavy the letters are, for headings and for text.',
+    { id: 'weight', t: 'Thickness', sec: 'Details', why: 'How heavy the letters are, for headings and for text.',
       note: (s) => { const f = face(s.display, 'display'); return f.weights && f.weights.length === 1 ? `${esc(f.name)} comes in one thickness only, so heading thickness makes no difference with it.` : ''; },
       ctl: [ch('hweight', 'Heading thickness', [
         o(300, 'Light', 'Thin, elegant strokes.'), o(400, 'Regular', 'The normal thickness of the face.'), o(500, 'Medium', 'A little firmer than regular.'),

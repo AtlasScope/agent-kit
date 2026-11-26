@@ -113,6 +113,7 @@
      single theme can ask for a matched twin, derived from the same greys, accent and status colours. */
   const BOTH = PROJECT_ROLES.some((r) => r.side === 'light') && PROJECT_ROLES.some((r) => r.side === 'dark');
   DEFAULTS.pair = BOTH ? 'both' : 'one';
+  DEFAULTS.theme = BOTH ? 'both' : 'dark';
   const otherSide = (s) => (s.side === 'light' ? 'dark' : 'light');
   const twinOn = (s) => BOTH || s.pair === 'both';
   const sideName = (x) => (x === 'light' ? 'Light' : 'Dark');
@@ -123,7 +124,7 @@
   /* Which roles a direction control moves. Changing one of these lets go of the hand-set values it covers. */
   const GREYS = ['page', 'surface', 'line', 'control', 'text', 'text2', 'text3'];
   const MOVES = {
-    side: '*', base: GREYS, tint: GREYS, gH: GREYS, gC: GREYS, tintk: GREYS, sep: ['surface', 'line', 'control'],
+    side: '*', theme: '*', base: GREYS, tint: GREYS, gH: GREYS, gC: GREYS, tintk: GREYS, sep: ['surface', 'line', 'control'],
     hue: ['accent', 'fill', 'on-fill'], vivid: ['accent', 'fill', 'on-fill'], lift: ['accent', 'fill', 'on-fill'],
     fill: ['fill', 'on-fill'], fillHue: ['fill', 'on-fill'], stSet: ['ok', 'warn', 'bad'], okH: ['ok'], warnH: ['warn'], badH: ['bad'], stC: ['ok', 'warn', 'bad'],
     textk: ['text', 'text2', 'text3'],
@@ -161,8 +162,7 @@
 
   const groups = [
     { id: 'mode', t: 'Light or dark', sec: 'Overall', why: 'Whether the page is dark with light words or light with dark words, and how far the background goes.', ctl: [
-      ch('side', 'Light or dark', [o('dark', 'Dark', 'Light words on a dark background.'), o('light', 'Light', 'Dark words on a light background.')], { show: () => !BOTH }),
-      ch('pair', 'Themes', [o('one', 'One theme', 'Only the theme shown here.'), o('both', 'Light and dark, matched', 'A twin for the other theme from the same greys, accent and status colours, so both read as one product. Drawn beside this one and proposed with it.')], { show: () => !BOTH }),
+      ch('theme', 'Light or dark', [o('dark', 'Dark', 'Light words on a dark background.'), o('light', 'Light', 'Dark words on a light background.'), o('both', 'Both, matched', 'This theme plus a twin for the other one, from the same greys, accent and status colours, so both read as one product.')], { show: () => !BOTH }),
       rg('base', 'How far from black or white', 0, 1, 0.01, '', 'Left is pure black or pure white.'),
     ] },
     { id: 'greys', t: 'Greys', sec: 'Overall', why: 'Greys make up most of the page: the background, cards, lines and words. A hint of colour in them sets the mood.', ctl: [
@@ -273,12 +273,14 @@
   const today = Object.assign(fromHexes(found), (PP.today && typeof PP.today === 'object') ? PP.today : {});
   RL.forEach((r) => { if (r.value) today['r_' + r.id] = r.value; });
   today.pair = DEFAULTS.pair;
+  today.theme = DEFAULTS.pair === 'both' ? 'both' : today.side || DEFAULTS.side;
   const measured = RL.some((r) => r.value);
   if (!measured && !(PP.today && PP.today.side)) DEFAULTS.side = 'light'; // a project with no colours yet starts on a plain light page
 
   const fix = (s) => {
     if (s.side !== 'light') s.side = 'dark';
     s.pair = BOTH ? 'both' : s.pair === 'both' ? 'both' : 'one';
+    s.theme = s.pair === 'both' ? 'both' : s.side;
     for (const k in DEFAULTS) if (typeof DEFAULTS[k] === 'number') s[k] = num(s[k], DEFAULTS[k]);
     s.base = lim(s.base, 0, 1); s.textk = lim(s.textk, 0, 1); s.tintk = lim(s.tintk, 0, 4); s.sep = lim(s.sep, 0.2, 3);
     s.vivid = lim(s.vivid, 0, 0.32); s.lift = lim(s.lift, -0.3, 0.25); s.stC = lim(s.stC, 0.02, 0.26);
@@ -286,6 +288,7 @@
     RL.forEach((r) => { const k = 'r_' + r.id; s[k] = typeof s[k] === 'string' && C.HEX.test(s[k]) ? s[k].toUpperCase() : ''; });
   };
   const pick = (s, c) => {
+    if (c.k === 'theme') { if (s.theme !== 'both') s.side = s.theme; s.pair = s.theme === 'both' ? 'both' : 'one'; } // one choice drives side and pair
     if (c.k === 'hue' && s.vivid < 0.005) s.vivid = 0.14; // choosing a colour should show it
     if (c.k === 'tint' && s.gC > 0 && s.tintk < 0.2) s.tintk = 1;
   };
@@ -347,7 +350,7 @@
   const still = (s, opt = {}) => {
     const R = slots(s), t = twin(s);
     if (opt.look) return `<div class="pl-lk">${strip(R)}<div class="pl-cards">${swatchCard(R, s.side)}${t ? swatchCard(t[1], t[0]) : ''}</div></div>`;
-    if (opt.tile === 'pair') return t ? `<div class="pl-twins">${tileCard(R)}${tileCard(t[1])}</div>` : tileCard(R);
+    if (opt.tile === 'theme') return t ? `<div class="pl-twins">${tileCard(R)}${tileCard(t[1])}</div>` : tileCard(R);
     if (opt.tile === 'stSet' || opt.tile === 'stC') return statusArt(R);
     if (opt.tile === 'textk') return wordsArt(R);
     if (opt.tile) return tileCard(R);

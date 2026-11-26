@@ -159,7 +159,8 @@ function seen(kind, v) { if (!UI.seen[kind].includes(v)) UI.seen[kind].push(v); 
 const seg = (items, cur, attr) => items.map(([k, n, title]) => `<button role="radio" data-${attr}="${k}" aria-checked="${cur === k}"${title ? ` title="${esc(title)}"` : ''}>${esc(n)}</button>`).join('');
 function renderStageBar() {
   const m = AM();
-  $('modes').innerHTML = seg(MODES.filter(([k]) => k !== 'states' || m.states), modeNow(), 'mode');
+  $('modes').innerHTML = seg(MODES.filter(([k]) => k !== 'states' || modeNow() === 'states'), modeNow(), 'mode'); // States is in View
+  $('statesbtn').hidden = !m.states;
   $('devices').innerHTML = seg(Object.entries(DEV).map(([k, d]) => [k, d.n, d.n + (k === VIEW ? ' (this device)' : '')]), V.device, 'dev');
   $('devices').hidden = modeNow() !== 'context';
   $('bgsel').hidden = m.ground && modeNow() === 'alone';

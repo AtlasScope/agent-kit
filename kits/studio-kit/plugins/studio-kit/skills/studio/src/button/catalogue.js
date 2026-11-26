@@ -379,8 +379,13 @@ const STEPS = [
     ] },
 ];
 if (!AG.length) P.dropSteps = [...(P.dropSteps || []), 'split', 'menu'];
+/* The optional second line is an extra of its own: most buttons have one line of words. */
+{
+  const words = STEPS.find((g) => g.id === 'content'), at = words ? words.ctl.findIndex((c) => c.k === 'sub') : -1;
+  if (at >= 0) STEPS.push({ id: 'subline', extra: 5.5, t: 'Second line', why: 'An optional smaller line under the main words, for a detail people should know before pressing.', dep: ['content'], ctl: words.ctl.splice(at, 1) });
+}
 
-const SHORT = { shape: 'Shape', material: 'Material', colour: 'Colour', motion: 'Movement', interact: 'Hover', content: 'Words', split: Noun, confirm: 'After press', menu: 'List' };
+const SHORT = { shape: 'Shape', material: 'Material', colour: 'Colour', motion: 'Movement', interact: 'Hover & press', subline: 'Second line', content: 'Words', split: Noun, confirm: 'After press', menu: 'List' };
 
 const PRESETS = [
   [P.startName || (P.measured ? 'Today' : 'Simple start'), {}],
