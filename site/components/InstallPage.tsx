@@ -179,10 +179,10 @@ export function InstallPage({ places, kits, skills, kitLines, account, children 
               <button type="button" className="inst__copy inst__copy--main" onClick={copyMessage} aria-label="Copy the message"><CopyIcon />{blocked ? "Copy" : "Copy install message"}</button>
             </div>
             <p className="inst__lede">One message installs {kits} kits and {skills} skills. Copy it, then paste it into your agent.</p>
-            {/* Three equal choices. They open in a new tab, so this page stays. */}
+            {/* Three equal choices, each lit in its own colour. They open in a new tab, so this page stays. */}
             <div className="inst__agents" role="group" aria-label="Open your agent">
               {openable.map((a) => (
-                <a key={a.id} className="inst__agent" href={(phone && OPEN_URL_PHONE[a.id]) || OPEN_URL[a.id]} target="_blank" rel="noopener noreferrer" onClick={() => setOpened(a.label)}>
+                <a key={a.id} className="inst__agent" data-a-light={a.id} href={(phone && OPEN_URL_PHONE[a.id]) || OPEN_URL[a.id]} target="_blank" rel="noopener noreferrer" onClick={() => setOpened(a.label)}>
                   <AgentMark id={a.id} /><span>{a.label}</span><Ext /><span className="sr"> (opens in a new tab)</span>
                 </a>
               ))}
