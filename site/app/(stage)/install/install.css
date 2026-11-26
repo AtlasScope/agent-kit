@@ -242,8 +242,10 @@ html[data-auth] .inst__paths:not([data-signed="no"]) .inst__dacct, .inst__paths[
 }
 
 /* The status: announced for screen readers; a blocked copy shows, since the visitor has to act. */
-.inst__status { display: grid; justify-items: center; margin-top: 14px; text-align: center; }
-.inst__status:empty { display: none; }
+/* It takes room only for the visible blocked warning; the copied note is for screen readers, so its coming and going
+   never moves the page. */
+.inst__status { display: grid; justify-items: center; text-align: center; }
+.inst__status:has(.is-warn) { margin-top: 14px; }
 .inst__note { display: flex; align-items: baseline; gap: 10px; margin: 0; font-size: var(--type-sm); line-height: 1.55; color: var(--t2); text-wrap: pretty; animation: inst-note var(--dur-base) var(--ease-out); }
 .inst__note .led { flex: none; transform: translateY(-1px); }
 .inst__note b { color: var(--t1); font-weight: 550; }
