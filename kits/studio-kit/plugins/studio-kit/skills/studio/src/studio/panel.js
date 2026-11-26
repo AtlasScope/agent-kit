@@ -395,7 +395,13 @@ function specText() {
   for (const m of STUDIO.mods) {
     const ch = changes(m);
     out.push('', `== ${m.name}: ${m.title()} ==`);
-    if (!ch.length) { out.push(`No change from ${baseName(m).toLowerCase()}.`); continue; }
+    if (!ch.length) {
+      // nothing of its own changed, but what it follows may have: say so, or the build would leave it behind
+      const moved = STUDIO.mods.filter((f) => f.share && f.id !== m.id && changes(f).length).map((f) => f.name);
+      const fl = m.follows ? m.follows(ST[m.id]).filter((l) => moved.some((n) => l.includes(n))) : [];
+      out.push(fl.length ? `No change of its own. It follows foundations that change here: ${fl.join(' ')} Build it from those shared tokens so it changes with them.` : `No change from ${baseName(m).toLowerCase()}.`);
+      continue;
+    }
     const r = reachOf(m).find((x) => x[0] === reachNow(m));
     out.push(`Reach: ${r ? `${r[1]}. ${r[2]}` : 'not chosen yet. Ask me before deciding.'}${r && !SCOPE[m.id] ? ' (the studio’s default for this; not chosen by me)' : ''}`);
     out.push('Changed: ' + ch.map((x) => `${x.label} ${x.from}${x.known === 'not measured' ? ' (starting value, not measured from the project)' : x.known === 'new' ? ' (a category added in this session)' : ''} → ${x.to}`).join('; ') + '.');

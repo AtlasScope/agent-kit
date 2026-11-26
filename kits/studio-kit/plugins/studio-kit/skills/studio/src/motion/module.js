@@ -177,7 +177,9 @@
 
   /* ---- the project's colours and fonts, else the stage's ---- */
   const lt = () => { try { return bgLight(); } catch { return false; } };
-  function pal() {
+  // goes inside style="...": a font name in double quotes would end the attribute and drop every colour after it
+  const pal = () => palCss().replace(/"/g, "'");
+  function palCss() {
     const R = shared('roles'), F = shared('fonts');
     const [, H, C, Lb] = Array.isArray(P.brand) ? P.brand : [0, 255, 0.17, 0.64];
     const brand = `oklch(${Lb} ${C} ${H})`;

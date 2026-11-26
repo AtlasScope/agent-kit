@@ -46,7 +46,7 @@ export const KITS = ["design-kit", "motion-kit", "studio-kit", "engineering-kit"
 export const KIT_GUIDE: Record<string, { line: string; type: string[] }> = {
   "design-kit": { line: "Layout, typography, color, UX writing, landing copy, usability and native iOS. Describe the job and it picks the skill.", type: ["/design"] },
   "motion-kit": { line: "Sets up, builds, reviews and fixes interface motion on the web, in React, SwiftUI and React Native.", type: ["/motion"] },
-  "studio-kit": { line: "A live studio for choosing how a button, a colour palette or typography looks, with a proposal sent back to chat.", type: ["/studio"] },
+  "studio-kit": { line: "A live studio for choosing how buttons, colours, type, surfaces, spacing, motion and icons look, with a proposal sent back to chat.", type: ["/studio"] },
   "engineering-kit": { line: "Bug diagnosis, test-first work, architecture scans, plan interviews and read-only PostgreSQL investigations.", type: ["/engineer", "/database"] },
   "experience-architecture": { line: "Finds out why an app’s pages, navigation or Back button feel wrong, and whether its structure should change.", type: ["/experience-architecture:diagnose", "/experience-architecture:rethink"] },
   "working-style": { line: "Plain-English explanations, a straight recommendation, direct critique and a screen checked across sizes.", type: ["/ceo", "/recommend", "/harsh-review", "/viewport-proof"] },

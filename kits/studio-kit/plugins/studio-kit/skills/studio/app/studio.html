@@ -4107,7 +4107,7 @@ function btnFollows(s) {
   function skin() {
     const R = roles(), f = shared('fonts');
     return `background:${R.page};color:${R.text};--sp-page:${R.page};--sp-surf:${R.surface};--sp-line:${R.line};--sp-ctrl:${R.control};--sp-fg:${R.text};--sp-fg2:${R.text2};--sp-fg3:${R.text3};--sp-fill:${R.fill};--sp-onfill:${R['on-fill']}`
-      + (f ? `;font-family:${f.body};--sp-display:${f.display}` : ';--sp-display:inherit');
+      + (f ? `;font-family:${f.body};--sp-display:${f.display}`.replace(/"/g, "'") : ';--sp-display:inherit'); // inside style="...": no double quotes
   }
 
   function vars(s) {
@@ -4512,7 +4512,9 @@ function btnFollows(s) {
 
   /* ---- the project's colours and fonts, else the stage's ---- */
   const lt = () => { try { return bgLight(); } catch { return false; } };
-  function pal() {
+  // goes inside style="...": a font name in double quotes would end the attribute and drop every colour after it
+  const pal = () => palCss().replace(/"/g, "'");
+  function palCss() {
     const R = shared('roles'), F = shared('fonts');
     const [, H, C, Lb] = Array.isArray(P.brand) ? P.brand : [0, 255, 0.17, 0.64];
     const brand = `oklch(${Lb} ${C} ${H})`;
@@ -5460,10 +5462,12 @@ const SKEY = 'studio:' + (P.id || P.name + ':' + P.noun);
 const OLD_KEY = 'button-studio:' + P.name + ':' + P.noun; // saved by the button studio before it had modules
 
 /** A value another module offers to follow: 'accent', 'fonts', 'light'. */
+const SHARING = new Set(); // modules whose share() is running: one that asks shared() from inside its own share() is skipped
 function shared(k) {
   for (const m of STUDIO.mods) {
-    if (!m.share) continue;
-    try { const v = m.share(ST[m.id]); if (v && v[k] != null) return v[k]; } catch {}
+    if (!m.share || SHARING.has(m.id)) continue;
+    SHARING.add(m.id);
+    try { const v = m.share(ST[m.id]); if (v && v[k] != null) return v[k]; } catch (e) { report(m.id + ' share: ' + e.message); } finally { SHARING.delete(m.id); }
   }
   return null;
 }
@@ -6396,7 +6400,13 @@ function specText() {
   for (const m of STUDIO.mods) {
     const ch = changes(m);
     out.push('', `== ${m.name}: ${m.title()} ==`);
-    if (!ch.length) { out.push(`No change from ${baseName(m).toLowerCase()}.`); continue; }
+    if (!ch.length) {
+      // nothing of its own changed, but what it follows may have: say so, or the build would leave it behind
+      const moved = STUDIO.mods.filter((f) => f.share && f.id !== m.id && changes(f).length).map((f) => f.name);
+      const fl = m.follows ? m.follows(ST[m.id]).filter((l) => moved.some((n) => l.includes(n))) : [];
+      out.push(fl.length ? `No change of its own. It follows foundations that change here: ${fl.join(' ')} Build it from those shared tokens so it changes with them.` : `No change from ${baseName(m).toLowerCase()}.`);
+      continue;
+    }
     const r = reachOf(m).find((x) => x[0] === reachNow(m));
     out.push(`Reach: ${r ? `${r[1]}. ${r[2]}` : 'not chosen yet. Ask me before deciding.'}${r && !SCOPE[m.id] ? ' (the studio’s default for this; not chosen by me)' : ''}`);
     out.push('Changed: ' + ch.map((x) => `${x.label} ${x.from}${x.known === 'not measured' ? ' (starting value, not measured from the project)' : x.known === 'new' ? ' (a category added in this session)' : ''} → ${x.to}`).join('; ') + '.');

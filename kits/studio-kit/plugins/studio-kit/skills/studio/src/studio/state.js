@@ -63,10 +63,12 @@ const SKEY = 'studio:' + (P.id || P.name + ':' + P.noun);
 const OLD_KEY = 'button-studio:' + P.name + ':' + P.noun; // saved by the button studio before it had modules
 
 /** A value another module offers to follow: 'accent', 'fonts', 'light'. */
+const SHARING = new Set(); // modules whose share() is running: one that asks shared() from inside its own share() is skipped
 function shared(k) {
   for (const m of STUDIO.mods) {
-    if (!m.share) continue;
-    try { const v = m.share(ST[m.id]); if (v && v[k] != null) return v[k]; } catch {}
+    if (!m.share || SHARING.has(m.id)) continue;
+    SHARING.add(m.id);
+    try { const v = m.share(ST[m.id]); if (v && v[k] != null) return v[k]; } catch (e) { report(m.id + ' share: ' + e.message); } finally { SHARING.delete(m.id); }
   }
   return null;
 }

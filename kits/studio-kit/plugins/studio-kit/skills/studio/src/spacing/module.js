@@ -67,7 +67,7 @@
   function skin() {
     const R = roles(), f = shared('fonts');
     return `background:${R.page};color:${R.text};--sp-page:${R.page};--sp-surf:${R.surface};--sp-line:${R.line};--sp-ctrl:${R.control};--sp-fg:${R.text};--sp-fg2:${R.text2};--sp-fg3:${R.text3};--sp-fill:${R.fill};--sp-onfill:${R['on-fill']}`
-      + (f ? `;font-family:${f.body};--sp-display:${f.display}` : ';--sp-display:inherit');
+      + (f ? `;font-family:${f.body};--sp-display:${f.display}`.replace(/"/g, "'") : ';--sp-display:inherit'); // inside style="...": no double quotes
   }
 
   function vars(s) {

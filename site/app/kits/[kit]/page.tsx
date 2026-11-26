@@ -16,7 +16,7 @@ export const generateStaticParams = () => kits.map((k) => ({ kit: k.name }));
 const TITLES: Record<string, string> = {
   "design-kit": "design skills for Claude Code, Codex and Cursor",
   "motion-kit": "interface motion, checked frame by frame",
-  "studio-kit": "a live studio for buttons, colours and type",
+  "studio-kit": "a live studio for buttons, colours, type, surfaces, spacing, motion and icons",
   "engineering-kit": "engineering skills for Claude Code and Codex",
   "experience-architecture": "fix navigation, URLs and the Back button",
   "working-style": "how your agent explains, decides and reviews",
