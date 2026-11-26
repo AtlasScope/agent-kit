@@ -2,6 +2,7 @@ import type { Viewport } from "next";
 import { notFound } from "next/navigation";
 import { InstallRoute } from "@/components/InstallRoute";
 import { fixturesEnabled } from "../store";
+import "../../../(stage)/stage.css";
 import "../../../(stage)/install/install.css";
 
 export const metadata = { title: "Install (sample account offer)", robots: { index: false } };
