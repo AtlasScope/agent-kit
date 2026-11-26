@@ -13,25 +13,22 @@
   --satin-1: color-mix(in oklab, var(--c-brand), var(--c-brand-hi) 34%); --satin-2: color-mix(in oklab, var(--c-brand), var(--c-brand-lo) 30%); }
 .stage .quiet.inst::before, .stage .quiet.inst::after { content: none; }
 
-.inst__in { width: min(680px, 100% - 2 * max(var(--gutter), env(safe-area-inset-left))); margin-inline: auto; padding-block: clamp(24px, 5.5svh, 88px) 96px; }
+.inst__in { width: min(720px, 100% - 2 * max(var(--gutter), env(safe-area-inset-left))); margin-inline: auto; padding-block: clamp(24px, 5.5svh, 88px) 96px; }
 .inst__main { display: grid; gap: 0; min-width: 0; }
 
-/* The welcome: one heading, worded for the state, and one line about what Agent Kit is for. */
-.inst__hello { text-align: center; }
-.inst h1 { margin: 0; font: 600 clamp(2.25rem, 1.9vw + 1.45rem, 3.25rem)/1.05 var(--font-body); letter-spacing: -0.04em; color: #fff; text-wrap: balance; }
+/* The heading lives in the panel: Copied, the page's h1 (Install Agent Kit on a direct visit). */
 .inst__h-got { display: none; }
 .inst:is([data-got], [data-said]) .inst__h-got { display: inline; }
 .inst:is([data-got], [data-said]) .inst__h-new { display: none; }
 /* The heading takes focus on arrival from the homepage, so keyboard and screen reader users start at the top. It is not
    a control, so it shows no ring. */
 .inst h1:focus, .inst h1:focus-visible { outline: none; box-shadow: none; }
-.inst__lede { margin: 10px auto 0; max-width: 38em; color: oklch(100% 0 0 / .64); font-size: 1.0625rem; line-height: 1.5; letter-spacing: -0.008em; text-wrap: balance; }
 
 /* Small labels. */
 .inst__label { display: inline-flex; align-items: center; gap: 9px; margin: 0; font: 500 0.8125rem/1.2 var(--font-body); letter-spacing: -0.003em; color: var(--t3); }
 
 /* ---- The deck: the panel and the floor it stands on. ---- */
-.inst__deck { position: relative; isolation: isolate; margin-top: clamp(28px, 5svh, 48px); }
+.inst__deck { position: relative; isolation: isolate; margin-top: clamp(8px, 4svh, 56px); }
 
 /* The panel. Dark glass in layers: a lift at the top, a specular line under the top edge, a hairline edge brighter
    above than below, the floor's cyan light catching its lower half, a deep soft shadow onto the floor. */
@@ -87,35 +84,54 @@
   background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--c-brand-hi) 30%, transparent) 22%, color-mix(in oklab, var(--c-brand-hi) 85%, transparent) 42%, #fff 50%, color-mix(in oklab, var(--c-brand-hi) 85%, transparent) 58%, color-mix(in oklab, var(--c-brand-hi) 30%, transparent) 78%, transparent);
   box-shadow: 0 0 14px 1px color-mix(in oklab, var(--c-brand-glow) 45%, transparent); opacity: .7; }
 
-/* ---- The panel: Copied, and the three agents. ---- */
-.inst__head { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 64px; padding: 16px 16px 12px 20px; }
-.inst__done { display: none; align-items: center; gap: 12px; margin: 0; font: 600 1.375rem/1.1 var(--font-body); letter-spacing: -0.025em; color: #fff; }
-.inst__idle { min-width: 0; }
-.inst__tick { display: inline-grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: 50%; background: var(--c-signal); color: #04141b;
-  box-shadow: 0 0 0 4px color-mix(in oklab, var(--c-signal) 14%, transparent), 0 0 18px -2px color-mix(in oklab, var(--c-brand-glow) 70%, transparent); }
-.inst__tick .i { width: 17px; height: 17px; stroke-width: 2.6; animation: tick-in 420ms var(--ease-out) both; }
-.inst__msg kbd { height: 1.7em; min-width: 1.7em; font-size: .75rem; }
+/* ---- The panel: Copied, and the three agents. The centrepiece. ---- */
+.inst__head { display: flex; align-items: center; gap: 14px; min-height: 76px; padding: 22px 22px 6px 24px; }
+.inst h1 { flex: 1; min-width: 0; margin: 0; font: 600 clamp(1.75rem, 1.2vw + 1.3rem, 2.25rem)/1.05 var(--font-body); letter-spacing: -0.035em; color: #fff; text-wrap: balance; }
+.inst__tick { display: none; place-items: center; flex: none; width: 38px; height: 38px; border-radius: 50%; background: var(--c-signal); color: #04141b;
+  box-shadow: 0 0 0 5px color-mix(in oklab, var(--c-signal) 14%, transparent), 0 0 22px -2px color-mix(in oklab, var(--c-brand-glow) 75%, transparent); }
+.inst__tick .i { width: 20px; height: 20px; stroke-width: 2.6; animation: tick-in 420ms var(--ease-out) both; }
+.inst__lede { margin: 0; padding: 4px 24px 0; font-size: .9375rem; line-height: 1.5; color: var(--t3); text-wrap: pretty; }
 .inst__quietrow .inst__again--copy { display: none; }
-/* Copied (data-got before paint, data-said after): the tick and the word, and Copy it again below; otherwise the label
-   and the Copy key. */
-.inst[data-got] .inst__msg:not([data-blocked]), .inst__msg.is-copied:not([data-blocked]) { & .inst__done { display: flex; } & .inst__idle, & .inst__copy--main { display: none; } }
+/* Copied (data-got before paint, data-said after): the tick and the word, and Copy it again below; otherwise the Copy
+   key and the one line about what the message does. */
+.inst[data-got] .inst__msg:not([data-blocked]), .inst__msg.is-copied:not([data-blocked]) { & .inst__tick { display: grid; } & .inst__copy--main, & .inst__lede { display: none; } }
 .inst:is([data-got], [data-said]):not(:has(.inst__msg[data-blocked])) .inst__quietrow .inst__again--copy { display: inline-flex; }
-.inst:is([data-got], [data-said]) .inst__lede { display: none; }
-.stage[data-shift="install"] .inst__done { animation: step-in 420ms var(--ease-out) 560ms both; }
+.stage[data-shift="install"] .inst__head { animation: step-in 420ms var(--ease-out) 560ms both; }
+.inst__msg kbd { height: 1.7em; min-width: 1.7em; font-size: .75rem; }
 
-.inst__agents { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 0 14px 14px; }
-.inst__agent { display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 50px; padding: 0 12px; border-radius: 14px; background: var(--panel-2); box-shadow: inset 0 0 0 1px var(--line-2);
-  color: var(--t1); font: 550 0.9375rem/1 var(--font-body); text-decoration: none; white-space: nowrap; -webkit-tap-highlight-color: transparent;
-  transition: background-color var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out), transform 220ms var(--ease-out); }
-.inst__agent .i { flex: none; width: 17px; height: 17px; }
-.inst__ext { flex: none; width: 13px; height: 13px; opacity: .6; }
-.inst__agent:active { transform: translateY(calc(1px * var(--travel))) scale(.97); transition-duration: 70ms; }
-.inst__agent--lead { color: var(--c-on-brand); font-weight: 600;
-  background: radial-gradient(120% 100% at 50% -30%, oklch(100% 0 0 / .18), transparent 62%), linear-gradient(180deg, var(--satin-1), var(--satin-2));
-  box-shadow: inset 0 1px 0 oklch(100% 0 0 / .34), inset 0 0 0 1px oklch(100% 0 0 / .06), 0 0 0 1px var(--c-brand-edge), 0 8px 22px -10px color-mix(in oklab, var(--c-brand-glow) 60%, transparent); }
+/* The agents: three equal tiles in the homepage button's family. Each has its own light (--ag, --ag-hi): Claude Code
+   warm, Codex silver, Cursor ice blue. A lit rim brighter at the top, a glow of its colour inside and out; hover
+   charges it. */
+.inst__agents { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 18px 18px 18px; }
+.inst__agent { --ag: oklch(80% .1 212); --ag-hi: oklch(93% .07 210); --charge: 0;
+  position: relative; isolation: isolate; display: grid; justify-items: center; align-content: center; gap: 10px; min-height: 104px; padding: 16px 10px 14px; border-radius: 18px;
+  color: var(--ag-hi); font: 600 1rem/1.1 var(--font-body); letter-spacing: -0.012em; text-decoration: none; text-align: center; -webkit-tap-highlight-color: transparent;
+  background:
+    radial-gradient(120% 90% at 50% -10%, color-mix(in oklch, var(--ag) calc(16% + 12% * var(--charge)), transparent), transparent 62%),
+    linear-gradient(180deg, oklch(17% .01 240 / .9), oklch(10% .008 240 / .94));
+  box-shadow: 0 0 calc(14px + 14px * var(--charge)) calc(-6px + 2px * var(--charge)) color-mix(in oklch, var(--ag) 70%, transparent), inset 0 0 calc(18px + 10px * var(--charge)) -10px var(--ag), 0 18px 34px -22px oklch(0% 0 0 / .9);
+  text-shadow: 0 0 calc(10px * var(--charge)) color-mix(in oklch, var(--ag) 70%, transparent);
+  transform: translateY(calc(-1px * var(--charge)));
+  transition: --charge 360ms var(--ease-out), transform 220ms var(--ease-out); }
+.inst__agent::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; padding: 1.5px; pointer-events: none;
+  background: linear-gradient(170deg, var(--ag-hi), color-mix(in oklch, var(--ag) 75%, transparent) 30%, color-mix(in oklch, var(--ag) 30%, transparent) 65%, color-mix(in oklch, var(--ag-hi) 70%, transparent));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  filter: brightness(calc(1 + .25 * var(--charge))); }
+.inst__agent::after { content: ""; position: absolute; top: 1px; left: 18%; right: 18%; height: 1px; border-radius: 1px; background: linear-gradient(90deg, transparent, var(--ag-hi), transparent); opacity: calc(.7 + .3 * var(--charge)); pointer-events: none; }
+.inst__agent .i { width: 26px; height: 26px; filter: drop-shadow(0 0 calc(4px + 6px * var(--charge)) color-mix(in oklch, var(--ag) 70%, transparent)); }
+.inst__agent .inst__ext { position: absolute; top: 12px; right: 12px; width: 13px; height: 13px; opacity: calc(.55 + .4 * var(--charge)); }
+.inst__agent:active { --charge: 1.2; transform: scale(.975); transition-duration: 70ms; }
+.inst__agent:focus-visible { --charge: .8; outline: 2px solid var(--c-focus); outline-offset: 3px; }
+.inst__agent[data-a-light="claude"] { --ag: oklch(72% .14 45); --ag-hi: oklch(86% .09 55); }
+.inst__agent[data-a-light="codex"] { --ag: oklch(84% .012 250); --ag-hi: oklch(98% .004 250); }
+.inst__agent[data-a-light="cursor"] { --ag: oklch(78% .12 228); --ag-hi: oklch(93% .07 218); }
+@property --charge { syntax: "<number>"; inherits: true; initial-value: 0; }
+/* After opening one: a line saying where it went. */
+.inst__opened { min-height: 0; margin: 0; padding: 0 24px; font-size: .875rem; line-height: 1.5; color: var(--t2); text-align: center; }
+.inst__opened:not(:empty) { padding-bottom: 16px; margin-top: -4px; animation: inst-note var(--dur-base) var(--ease-out); }
 
 /* The message, only when asked for: the chat bubble you will send, selectable in one go. */
-.inst__peek { padding: 0 14px 14px; }
+.inst__peek { padding: 0 18px 18px; }
 .inst__peek[hidden] { display: none; }
 .inst__peekmsg { margin: 0 0 0 auto; max-width: min(94%, 34em); padding: 11px 15px; border-radius: 18px 18px 6px 18px; font-size: .9375rem; line-height: 1.55; color: oklch(96% .01 220); overflow-wrap: anywhere;
   background: linear-gradient(180deg, color-mix(in oklab, var(--c-brand) 18%, oklch(22% .01 230)), color-mix(in oklab, var(--c-brand) 10%, oklch(17% .01 230)));
@@ -131,102 +147,110 @@
   color: var(--t1); font: 550 0.8125rem/1 var(--font-body); cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent;
   transition: background-color var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out), transform 220ms var(--ease-out); }
 .inst__copy .i { width: 15px; height: 15px; }
-.inst__copy--main { flex: none; min-width: 104px; min-height: 40px; padding: 0 16px; border: 0; border-radius: 12px; color: var(--c-on-brand); font-weight: 600;
+.inst__copy--main { flex: none; min-width: 104px; min-height: 42px; padding: 0 16px; border: 0; border-radius: 12px; color: var(--c-on-brand); font-weight: 600;
   background: radial-gradient(120% 100% at 50% -30%, oklch(100% 0 0 / .16), transparent 62%), linear-gradient(180deg, var(--satin-1), var(--satin-2));
   box-shadow: inset 0 1px 0 oklch(100% 0 0 / .32), inset 0 0 0 1px oklch(100% 0 0 / .06), 0 0 0 1px var(--c-brand-edge), 0 6px 18px -8px color-mix(in oklab, var(--c-brand-glow) 55%, transparent); }
 .inst__copy:active { transform: translateY(calc(1px * var(--travel))) scale(.97); transition-duration: 70ms; }
 .inst__copy--main .i { stroke-width: 2; }
 
-/* ---- Two ways on: an account, or the site. Two lit cards standing on the floor, past the horizon. ---- */
-.inst__paths { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: clamp(48px, 8svh, 88px); }
-.inst__paths:not([data-account]) { grid-template-columns: minmax(0, 340px); justify-content: center; }
-.inst__path { position: relative; display: grid; grid-template-rows: auto auto 1fr auto; justify-items: start; gap: 0; padding: 20px 20px 18px; border-radius: 20px;
-  background: linear-gradient(180deg, oklch(17% .008 235 / .72), oklch(11% .006 235 / .8)); -webkit-backdrop-filter: blur(18px) saturate(1.3); backdrop-filter: blur(18px) saturate(1.3);
-  box-shadow: inset 0 1px 0 oklch(100% 0 0 / .1), inset 0 0 0 1px oklch(100% 0 0 / .07), 0 24px 50px -28px oklch(0% 0 0 / .95), 0 22px 60px -38px color-mix(in oklab, var(--c-brand-glow) 35%, transparent); }
-.inst__path--in { display: none; }
-html[data-auth] .inst__paths:not([data-signed="no"]) .inst__path--out, .inst__paths[data-signed="yes"] .inst__path--out { display: none; }
-html[data-auth] .inst__paths:not([data-signed="no"]) .inst__path--in, .inst__paths[data-signed="yes"] .inst__path--in { display: grid; }
-.inst__pathmark { display: grid; place-items: center; width: 38px; height: 38px; margin-bottom: 14px; border-radius: 12px; color: var(--c-brand-hi);
-  background: color-mix(in oklab, var(--c-brand) 12%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--c-brand) 28%, transparent), 0 0 22px -8px var(--c-brand-glow); }
-.inst__pathmark .i { width: 18px; height: 18px; }
-.inst__path h2 { margin: 0; font: 600 1.1875rem/1.2 var(--font-body); letter-spacing: -0.022em; color: #fff; }
-.inst__path p { margin: 6px 0 0; font-size: .875rem; line-height: 1.5; color: var(--t3); text-wrap: pretty; }
-.inst__pathdo { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 18px; }
-/* Create a free account: white satin, dark ink. */
-.inst__join { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px; border-radius: 12px; color: oklch(17% .03 230); font: 600 .9375rem/1 var(--font-body); letter-spacing: -0.01em; text-decoration: none; white-space: nowrap; -webkit-tap-highlight-color: transparent;
-  background: radial-gradient(120% 100% at 50% -30%, #fff, transparent 70%), linear-gradient(180deg, oklch(99% .004 220), oklch(90% .02 215));
-  box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 oklch(80% .03 220), 0 0 0 1px oklch(100% 0 0 / .4), 0 10px 26px -12px color-mix(in oklab, var(--c-brand-glow) 55%, transparent);
-  transition: box-shadow var(--dur-base) var(--ease-out), transform 220ms var(--ease-out), filter var(--dur-base) var(--ease-out); }
-/* Explore: cyan glass with a lit edge, the same family as the homepage button, quieter. */
-.inst__explore { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 22px; border: 0; border-radius: 12px; cursor: pointer; color: var(--c-brand-hi); font: 600 .9375rem/1 var(--font-body); letter-spacing: -0.01em; -webkit-tap-highlight-color: transparent;
-  background: color-mix(in oklab, var(--c-brand) 10%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--c-brand) 55%, transparent), inset 0 1px 0 color-mix(in oklab, var(--c-brand-hi) 40%, transparent), 0 0 20px -8px var(--c-brand-glow);
-  transition: box-shadow var(--dur-base) var(--ease-out), background-color var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out), transform 220ms var(--ease-out); }
-:is(.inst__join, .inst__explore):active { transform: translateY(calc(1px * var(--travel))) scale(.97); transition-duration: 70ms; }
-/* Quiet text keys: Sign in, See the message, Copy it again. */
-.inst__quiet { display: inline-flex; align-items: center; min-height: 36px; padding: 0 10px; border: 0; border-radius: 10px; background: none; color: var(--t2); font: 500 .8125rem/1 var(--font-body); white-space: nowrap; text-decoration: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
-  transition: color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out); }
-.inst__pathdo .inst__quiet { color: var(--t1); font-size: .875rem; }
-.inst__quietrow { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 8px; margin-top: 36px; }
+/* ---- Two ways on: full-width rows standing on the floor, past the horizon. The account row is lit cyan; Explore is
+   dark glass with a cyan edge on hover. Each row is one control. ---- */
+.inst__paths { display: grid; gap: 12px; margin-top: clamp(40px, 7svh, 72px); }
+.inst__row { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 18px; row-gap: 4px; width: 100%; min-height: 72px; padding: 16px 22px 16px 24px; border: 0; border-radius: 20px;
+  color: #fff; font: inherit; text-align: left; text-decoration: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  background: linear-gradient(180deg, oklch(16% .008 235 / .78), oklch(10% .006 235 / .86)); -webkit-backdrop-filter: blur(18px) saturate(1.3); backdrop-filter: blur(18px) saturate(1.3);
+  box-shadow: inset 0 1px 0 oklch(100% 0 0 / .09), inset 0 0 0 1px oklch(100% 0 0 / .08), 0 24px 50px -30px oklch(0% 0 0 / .95);
+  transition: box-shadow var(--dur-slow) var(--ease-out), background-color var(--dur-slow) var(--ease-out), transform 220ms var(--ease-out); }
+.inst__rowt { grid-column: 1; font: 600 1.25rem/1.2 var(--font-body); letter-spacing: -0.022em; }
+.inst__rowl { grid-column: 1; font-size: .9375rem; line-height: 1.45; color: var(--t2); }
+.inst__arrow { grid-column: 2; grid-row: 1 / span 2; width: 26px; height: 26px; color: var(--c-brand-hi); transition: transform var(--dur-slow) var(--ease-out); }
+.inst__row:active { transform: scale(.99); transition-duration: 70ms; }
+.inst__row--explore .inst__rowt { grid-row: 1 / span 2; }
+.inst__row--acct { min-height: 92px;
+  background: radial-gradient(70% 140% at 0% 0%, color-mix(in oklab, var(--c-brand) 22%, transparent), transparent 60%), linear-gradient(180deg, oklch(21% .04 225 / .82), oklch(13% .03 228 / .88));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--c-brand) 60%, transparent), inset 0 1px 0 color-mix(in oklab, var(--c-brand-hi) 55%, transparent), 0 0 30px -12px var(--c-brand-glow), 0 24px 50px -30px oklch(0% 0 0 / .95); }
+.inst__row--acct .inst__rowt { color: var(--c-brand-hi); text-shadow: 0 0 18px color-mix(in oklab, var(--c-brand-glow) 45%, transparent); }
+.inst__row--in { display: none; }
+html[data-auth] .inst__paths:not([data-signed="no"]) .inst__row--out, .inst__paths[data-signed="yes"] .inst__row--out { display: none; }
+html[data-auth] .inst__paths:not([data-signed="no"]) .inst__row--in, .inst__paths[data-signed="yes"] .inst__row--in { display: grid; }
+/* After an agent opens: the account row comes forward, once. */
+.inst__paths[data-nudge] .inst__row--out { animation: acct-call 1400ms var(--ease-out) 1; box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--c-brand-hi) 80%, transparent), inset 0 1px 0 var(--c-brand-hi), 0 0 44px -10px var(--c-brand-glow), 0 24px 50px -30px oklch(0% 0 0 / .95); }
+@keyframes acct-call { 0% { transform: scale(.985); } 30% { transform: scale(1.012); } 100% { transform: none; } }
 
-/* ---- The explore drawer: a sheet from the right (from the bottom on a phone) over a dimmed page. ---- */
-.inst__drawer { position: fixed; inset: 0 0 0 auto; width: min(420px, 100vw); max-width: none; height: 100dvh; max-height: none; margin: 0; padding: 0; border: 0; color: var(--t1);
-  background: linear-gradient(180deg, oklch(15% .008 235 / .94), oklch(9% .006 235 / .96)); -webkit-backdrop-filter: blur(24px) saturate(1.3); backdrop-filter: blur(24px) saturate(1.3);
-  box-shadow: inset 1px 0 0 oklch(100% 0 0 / .08), -30px 0 80px -20px oklch(0% 0 0 / .8); }
-.inst__drawer::backdrop { background: oklch(0% 0 0 / .55); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+/* ---- The explore drawer: a glass sheet from the right (from the bottom on a phone) over a dimmed page. ---- */
+.inst__drawer { position: fixed; inset: 12px 12px 12px auto; width: min(420px, 100vw - 24px); max-width: none; height: auto; max-height: none; margin: 0; padding: 0; border: 0; border-radius: 24px; color: var(--t1); overflow: auto; overscroll-behavior: contain;
+  background: linear-gradient(180deg, oklch(17% .01 235 / .92), oklch(10% .007 235 / .95)); -webkit-backdrop-filter: blur(28px) saturate(1.4); backdrop-filter: blur(28px) saturate(1.4);
+  box-shadow: inset 0 1px 0 oklch(100% 0 0 / .12), inset 0 0 0 1px oklch(100% 0 0 / .08), -30px 0 80px -20px oklch(0% 0 0 / .85), 0 0 60px -30px color-mix(in oklab, var(--c-brand-glow) 50%, transparent); }
+.inst__drawer::backdrop { background: oklch(0% 0 0 / .5); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
 .inst__drawer[open] { animation: drawer-in 420ms var(--ease-out); }
 .inst__drawer[open]::backdrop { animation: inst-note 300ms ease; }
-@keyframes drawer-in { from { transform: translateX(calc(40px * var(--travel))); opacity: 0; } }
-.inst__drawerin { display: grid; gap: 14px; padding: max(18px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom)) 22px; }
+.inst__drawer[data-closing] { animation: drawer-out 220ms cubic-bezier(0.4, 0, 1, 1) forwards; }
+.inst__drawer[data-closing]::backdrop { animation: drawer-fade 220ms ease forwards; }
+@keyframes drawer-in { from { transform: translateX(calc(48px * var(--travel))); opacity: 0; } }
+@keyframes drawer-out { to { transform: translateX(calc(40px * var(--travel))); opacity: 0; } }
+@keyframes drawer-fade { to { opacity: 0; } }
+.inst__drawerin { display: grid; gap: 14px; padding: 18px 18px 20px 22px; }
 .inst__drawerhead { display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
-.inst__drawerhead h2 { margin: 0; font: 600 1.125rem/1.2 var(--font-body); letter-spacing: -0.02em; color: #fff; }
-.inst__close { display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 10px; background: none; color: var(--t2); cursor: pointer; }
+.inst__drawerhead h2 { margin: 0; font: 600 1.375rem/1.2 var(--font-body); letter-spacing: -0.025em; color: #fff; }
+.inst__close { display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 12px; background: none; color: var(--t2); cursor: pointer; }
 .inst__close .i { width: 18px; height: 18px; }
-.inst__dsearch { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 14px; border: 0; border-radius: 12px; cursor: pointer; color: var(--t2); font: 400 .9375rem/1 var(--font-body); text-align: left;
+.inst__dsearch { display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 0 14px; border: 0; border-radius: 14px; cursor: pointer; color: var(--t2); font: 400 .9375rem/1 var(--font-body); text-align: left;
   background: oklch(100% 0 0 / .05); box-shadow: inset 0 0 0 1px var(--line-2); }
 .inst__dsearch .i { width: 16px; height: 16px; color: var(--t3); }
-.inst__places { display: grid; margin: 4px 0 0; padding: 0; list-style: none; }
+.inst__places { display: grid; margin: 2px 0 0; padding: 0; list-style: none; }
 .inst__places li + li { border-top: 1px solid var(--line); }
-.inst__places a { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; row-gap: 3px; align-items: center; padding: 15px 4px; color: inherit; text-decoration: none; border-radius: 10px; }
-.inst__placet { font: 550 1rem/1.3 var(--font-body); color: #fff; }
-.inst__placel { grid-column: 1; font-size: .8125rem; line-height: 1.45; color: var(--t3); text-wrap: pretty; }
-.inst__go { grid-column: 2; grid-row: 1 / span 2; width: 16px; height: 16px; color: var(--t3); transition: transform var(--dur-slow) var(--ease-out), color var(--dur-fast) var(--ease-out); }
+.inst__places a { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 14px; row-gap: 2px; align-items: center; padding: 14px 6px 14px 2px; color: inherit; text-decoration: none; border-radius: 12px; }
+.inst__placei { grid-row: 1 / span 2; width: 24px; height: 24px; color: var(--c-brand-hi); filter: drop-shadow(0 0 6px color-mix(in oklab, var(--c-brand-glow) 40%, transparent)); }
+.inst__placet { grid-column: 2; font: 600 1rem/1.3 var(--font-body); color: #fff; }
+.inst__placel { grid-column: 2; font-size: .8125rem; line-height: 1.45; color: var(--t3); text-wrap: pretty; }
+.inst__go { grid-column: 3; grid-row: 1 / span 2; width: 16px; height: 16px; color: var(--t3); transition: transform var(--dur-slow) var(--ease-out), color var(--dur-fast) var(--ease-out); }
+.inst__dacct { display: grid; gap: 10px; margin-top: 6px; padding-top: 18px; border-top: 1px solid var(--line); text-align: center; }
+.inst__dacct p { margin: 0; font-size: .875rem; color: var(--t2); }
+.inst__djoin { display: flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 14px; color: var(--c-brand-hi); font: 600 1rem/1 var(--font-body); text-decoration: none;
+  background: color-mix(in oklab, var(--c-brand) 14%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--c-brand) 60%, transparent), inset 0 1px 0 color-mix(in oklab, var(--c-brand-hi) 45%, transparent), 0 0 24px -10px var(--c-brand-glow); }
+html[data-auth] .inst__paths:not([data-signed="no"]) .inst__dacct, .inst__paths[data-signed="yes"] .inst__dacct { display: none; }
+
+/* Quiet text keys: See the message, Copy it again. */
+.inst__quiet { display: inline-flex; align-items: center; min-height: 36px; padding: 0 10px; border: 0; border-radius: 10px; background: none; color: var(--t3); font: 500 .8125rem/1 var(--font-body); white-space: nowrap; text-decoration: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out); }
+.inst__quietrow { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 8px; margin-top: 28px; }
 
 @media (hover: hover) and (pointer: fine) {
+  .inst__agent:hover { --charge: 1; }
   .inst__quiet:hover { color: var(--t1); background: oklch(100% 0 0 / .06); }
   .inst__copy:not(.inst__copy--main):hover { background: oklch(100% 0 0 / .1); }
   .inst__copy--main:hover { filter: brightness(1.05); box-shadow: inset 0 1px 0 oklch(100% 0 0 / .38), inset 0 0 0 1px oklch(100% 0 0 / .08), 0 0 0 1px var(--c-brand-edge), 0 8px 24px -8px color-mix(in oklab, var(--c-brand-glow) 75%, transparent); }
-  .inst__agent:not(.inst__agent--lead):hover { background: oklch(100% 0 0 / .1); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--c-brand) 45%, transparent), 0 0 18px -8px var(--c-brand-glow); }
-  .inst__agent--lead:hover { filter: brightness(1.05); }
-  .inst__join:hover { filter: brightness(1.03); box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 oklch(80% .03 220), 0 0 0 1px oklch(100% 0 0 / .55), 0 14px 32px -12px color-mix(in oklab, var(--c-brand-glow) 75%, transparent); }
-  .inst__explore:hover { color: #fff; background: color-mix(in oklab, var(--c-brand) 18%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--c-brand-hi) 75%, transparent), inset 0 1px 0 color-mix(in oklab, var(--c-brand-hi) 60%, transparent), 0 0 28px -6px var(--c-brand-glow); }
-  .inst__close:hover { color: #fff; background: oklch(100% 0 0 / .06); }
+  .inst__row:hover .inst__arrow { transform: translateX(4px); }
+  .inst__row--explore:hover { box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--c-brand) 50%, transparent), inset 0 1px 0 oklch(100% 0 0 / .12), 0 0 28px -14px var(--c-brand-glow), 0 24px 50px -30px oklch(0% 0 0 / .95); }
+  .inst__row--acct:hover { box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--c-brand-hi) 85%, transparent), inset 0 1px 0 var(--c-brand-hi), 0 0 44px -10px var(--c-brand-glow), 0 24px 50px -30px oklch(0% 0 0 / .95); }
+  .inst__close:hover { color: #fff; background: oklch(100% 0 0 / .07); }
   .inst__dsearch:hover { color: var(--t1); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--c-brand) 45%, transparent); }
-  .inst__places a:hover .inst__placet { color: var(--c-brand-hi); }
+  .inst__places a:hover { background: oklch(100% 0 0 / .035); }
   .inst__places a:hover .inst__go { color: var(--c-brand-hi); transform: translateX(3px); }
+  .inst__djoin:hover { color: #fff; box-shadow: inset 0 0 0 1px var(--c-brand-hi), inset 0 1px 0 var(--c-brand-hi), 0 0 30px -8px var(--c-brand-glow); }
 }
-@media (pointer: coarse) { .inst__agent, .inst__copy, .inst__quiet { min-height: 44px; } }
+.inst :is(.inst__row, .inst__places a, .inst__djoin, .inst__dsearch, .inst__close):focus-visible { outline: 2px solid var(--c-focus); outline-offset: 2px; }
+@media (pointer: coarse) { .inst__copy, .inst__quiet { min-height: 44px; } }
 
-/* Phones: the agents become tiles with the mark over the name; the two paths stack; the drawer rises from the bottom. */
+/* Phones: the three tiles stay side by side, smaller; the drawer rises from the bottom. */
 @media (max-width: 640px) {
   .inst__in { padding-top: 28px; }
-  .inst__deck { margin-top: 24px; }
   .inst__msg { border-radius: 20px; }
-  .inst__head { padding: 14px 12px 10px 16px; }
+  .inst__head { padding: 18px 16px 4px 18px; min-height: 64px; }
   .inst__msg:not(.is-copied) .inst__head { flex-wrap: wrap; }
-  .inst__agents { padding: 0 12px 12px; }
-  .inst__agent { flex-direction: column; gap: 7px; min-height: 72px; padding: 10px 6px; font-size: .8125rem; }
-  .inst__agent .inst__ext { display: none; }
-  .inst__agent .i { width: 20px; height: 20px; }
-  .inst__paths { grid-template-columns: minmax(0, 1fr); margin-top: 48px; gap: 12px; }
-  .inst__path { grid-template-columns: auto minmax(0, 1fr); grid-template-rows: none; column-gap: 14px; padding: 18px 16px 16px; }
-  .inst__pathmark { margin: 0; }
-  .inst__path h2 { align-self: center; }
-  .inst__path p, .inst__pathdo { grid-column: 1 / -1; }
-  .inst__path p { margin-top: 10px; }
-  .inst__pathdo { margin-top: 14px; }
-  .inst__join, .inst__explore { flex: 1; }
-  .inst__drawer { inset: auto 0 0 0; width: 100vw; height: auto; max-height: 86dvh; border-radius: 22px 22px 0 0; box-shadow: inset 0 1px 0 oklch(100% 0 0 / .1), 0 -30px 80px -20px oklch(0% 0 0 / .8); }
+  .inst__lede { padding-inline: 18px; }
+  .inst__agents { gap: 8px; padding: 14px 12px 14px; }
+  .inst__agent { min-height: 92px; gap: 8px; padding: 14px 4px 12px; font-size: .8125rem; border-radius: 16px; }
+  .inst__agent .i { width: 24px; height: 24px; }
+  .inst__agent .inst__ext { top: 9px; right: 9px; width: 11px; height: 11px; }
+  .inst__paths { margin-top: 40px; gap: 10px; }
+  .inst__row { min-height: 64px; padding: 14px 16px 14px 18px; border-radius: 18px; }
+  .inst__row--acct { min-height: 84px; }
+  .inst__rowt { font-size: 1.125rem; }
+  .inst__rowl { font-size: .875rem; }
+  .inst__drawer { inset: auto 0 0 0; width: 100vw; max-height: 88dvh; border-radius: 24px 24px 0 0; padding-bottom: env(safe-area-inset-bottom); }
   @keyframes drawer-in { from { transform: translateY(calc(60px * var(--travel))); opacity: 0; } }
+  @keyframes drawer-out { to { transform: translateY(calc(50px * var(--travel))); opacity: 0; } }
 }
 
 /* The status: announced for screen readers; a blocked copy shows, since the visitor has to act. */
@@ -355,5 +379,6 @@ html:not([data-os="mac"], [data-os="linux"]) .inst__keys [data-os="other"], html
    as the green rim, the tick and the words, without the light running round. */
 @media (prefers-reduced-motion: reduce) {
   .inst__trace, .inst__bloom { animation: none; opacity: 0; }
-  .inst__done, .inst__tick .i, .inst__peekmsg, .inst__drawer[open], .inst__drawer[open]::backdrop { animation: none; }
+  .inst__tick .i, .inst__peekmsg, .inst__drawer[open], .inst__drawer[open]::backdrop, .inst__opened, .inst__paths[data-nudge] .inst__row--out { animation: none; }
+  .inst__agent { transition: none; }
 }

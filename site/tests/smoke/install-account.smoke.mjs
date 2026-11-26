@@ -31,23 +31,23 @@ async function open(size, extra = {}) {
   assert.equal(res.status(), 200, "sample data is on at this server");
   return { page, ctx, errors };
 }
-const copy = (page) => page.getByRole("button", { name: /Copy the message/ }).first().click();
-const offer = (page) => page.locator(".inst__path--out");
-const join = (page) => page.getByRole("link", { name: "Create a free account" });
-const explore = (page) => page.getByRole("button", { name: "Explore", exact: true });
+const copy = async (page) => { await page.getByRole("button", { name: /Copy the message/ }).first().click(); await page.locator(".inst__msg.is-copied").waitFor(); };
+const offer = (page) => page.locator(".inst__row--out");
+const join = (page) => page.locator(".inst__row--out");
+const explore = (page) => page.getByRole("button", { name: "Explore Agent Kit" });
 
 for (const size of SIZES) {
   test(`${size.name}: after a copy, the two ways on are an account and Explore, both in view`, async () => {
     const { page, ctx, errors } = await open(size);
     await copy(page);
-    assert.equal((await page.locator(".inst__done").innerText()).trim(), "Copied");
+    assert.equal((await page.locator(".inst h1").innerText()).trim(), "Copied");
     // Nothing else competes on the first screen: no prompt to copy before the install message is pasted.
     assert.equal(await page.locator(".inst__msg .copy, .inst__msg [data-copied]").count(), 0);
     await offer(page).waitFor();
-    assert.equal(await page.getByRole("heading", { name: "Keep what works" }).count(), 1);
-    assert.match(await offer(page).innerText(), /Star prompts and skills[\s\S]*collections[\s\S]*Free/);
-    // Create a free account and Sign in go to sign-in, which comes back here.
-    for (const l of [join(page), offer(page).getByRole("link", { name: "Sign in" })]) assert.equal(await l.getAttribute("href"), "/sign-in?redirect_url=%2Finstall");
+    assert.match(await offer(page).innerText(), /^Create a free account\s+Keep your favourite prompts and skills/);
+    // One row, one control: it goes to sign-in, which comes back here.
+    assert.equal(await join(page).getAttribute("href"), "/sign-in?redirect_url=%2Finstall");
+    assert.equal(await offer(page).locator("a, button").count(), 0, "no buttons nested in the row");
     // Below the agent buttons, and on a computer both ways on are on the first screen.
     const agents = await page.locator(".inst__agents").boundingBox(), j = await join(page).boundingBox(), e = await explore(page).boundingBox();
     assert.ok(j.y > agents.y + agents.height, "the paths sit below the agent buttons");
@@ -58,14 +58,30 @@ for (const size of SIZES) {
     await ctx.close();
   });
 
+  test(`${size.name}: opening an agent keeps this page, says where it went and brings the account row forward`, async () => {
+    const { page, ctx } = await open(size);
+    await copy(page);
+    const agent = page.locator(".inst__agent", { hasText: "Codex" });
+    assert.equal(await agent.getAttribute("target"), "_blank");
+    // The agent's own site isn't loaded in the test: stop the new tab, keep the click.
+    await agent.evaluate((a) => a.addEventListener("click", (e) => e.preventDefault(), { once: true }));
+    await agent.click();
+    assert.equal(await page.locator(".inst__opened").innerText(), "Codex opens in a new tab. Paste the message there.");
+    assert.equal(await page.locator(".inst__paths[data-nudge]").count(), 1);
+    assert.match(page.url(), /\/install$/);
+    await ctx.close();
+  });
+
   test(`${size.name}: Explore opens a drawer to each part of the site, and Escape closes it`, async () => {
     const { page, ctx } = await open(size);
     await explore(page).click();
     const drawer = page.getByRole("dialog", { name: "Explore Agent Kit" });
     await drawer.waitFor();
     for (const name of ["Prompts", "Skills", "Kits", "Fix a problem", "New to coding agents?"]) assert.equal(await drawer.getByRole("link", { name: new RegExp(`^${name.replace("?", "\\?")}`) }).count(), 1, name);
+    // An account entry at its foot for someone signed out.
+    assert.equal(await drawer.getByRole("link", { name: "Create a free account" }).getAttribute("href"), "/sign-in?redirect_url=%2Finstall");
     await page.keyboard.press("Escape");
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(400);
     assert.equal(await page.locator(".inst__drawer[open]").count(), 0);
     await ctx.close();
   });
@@ -84,6 +100,18 @@ for (const size of SIZES) {
     await ctx.close();
   });
 }
+
+test("the sign-in page: a way on without an account, back where the visitor came from", async () => {
+  const { page, ctx } = await open(SIZES[0]);
+  const res = await page.goto(base + "/account/fixture/sign-in?redirect_url=%2Finstall", { waitUntil: "networkidle" });
+  assert.equal(res.status(), 200);
+  assert.equal(await page.getByRole("heading", { level: 1 }).innerText(), "Make Agent Kit yours");
+  assert.equal(await page.getByRole("link", { name: "Continue without an account" }).getAttribute("href"), "/install");
+  // A link to another site, or a loop back to sign-in, falls back to the library.
+  await page.goto(base + "/account/fixture/sign-in?redirect_url=%2F%2Fevil.example", { waitUntil: "networkidle" });
+  assert.equal(await page.getByRole("link", { name: "Continue without an account" }).getAttribute("href"), "/prompts");
+  await ctx.close();
+});
 
 test("reduced motion: the drawer opens without animating", async () => {
   const { page, ctx } = await open(SIZES[0], { reducedMotion: "reduce" });

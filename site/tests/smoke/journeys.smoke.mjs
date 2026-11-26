@@ -59,7 +59,7 @@ for (const size of SIZES) {
     await page.waitForURL(/\/install$/);
     await page.locator(".inst__note", { hasText: "Message copied" }).waitFor();
     assert.equal(await clipboard(page), INSTALL_MESSAGE, "Install copies the message to paste into an agent");
-    assert.equal((await page.locator(".inst__done").innerText()).trim(), "Copied", "the panel says Copied");
+    assert.equal((await page.locator(".inst h1").innerText()).trim(), "Copied", "the panel says Copied");
     assert.equal(await page.locator(".inst__say").count(), 0, "the message is not shown");
     // It is one tap away, exactly as copied.
     await page.getByRole("button", { name: "See the message" }).click();
@@ -76,7 +76,7 @@ for (const size of SIZES) {
       assert.equal(await clipboard(page), agent.steps.join("\n"), `${agent.label} tab copies every step`);
     }
     // Explore opens a drawer that goes straight to each part of the site.
-    await page.getByRole("button", { name: "Explore", exact: true }).click();
+    await page.getByRole("button", { name: "Explore Agent Kit" }).click();
     await page.getByRole("dialog", { name: "Explore Agent Kit" }).getByRole("link", { name: /^Prompts/ }).click();
     await page.waitForURL(/\/prompts$/);
     assert.deepEqual(errors, []);

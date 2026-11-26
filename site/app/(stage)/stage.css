@@ -169,9 +169,7 @@
    The planet sinks and fades to black on the camera's spring over the same time. */
 /* Where the light lands it stays: the line reaches the panel's foot (Stage.tsx), spreads past the panel into the
    floor's horizon, and the floor lights outward from it, as if the button's light had become the room. */
-.stage[data-shift="install"] .inst__main > :not(.inst__hello, .inst__deck) { animation: stage-rise 520ms var(--stage-ease) 420ms backwards; }
-.stage[data-shift="install"] .inst__hello > * { animation: stage-drop 560ms var(--stage-ease) 200ms backwards; }
-.stage[data-shift="install"] .inst__hello > .inst__lede { animation-delay: 240ms; }
+.stage[data-shift="install"] .inst__main > :not(.inst__deck) { animation: stage-rise 520ms var(--stage-ease) 460ms backwards; }
 .stage[data-shift="install"] .inst__deck > .inst__msg { animation: msg-grow 380ms cubic-bezier(0.2, 0.7, 0.2, 1) 300ms backwards; }
 .stage[data-shift="install"] .inst__msg .inst__rim { animation: rim-take 700ms ease 340ms backwards; }
 .stage[data-shift="install"] .inst__horizon { animation: horizon-spread 900ms cubic-bezier(0.2, 0.7, 0.2, 1) 400ms backwards; }
@@ -208,7 +206,7 @@
   .launch__go { transition: --charge 200ms ease; }
   .launch__go::before, .launch__fx, .launch__fx::before, .launch__go .i { animation: none !important; }
   .launch__fx::after { --mx: 50%; --my: 50%; }
-  .stage[data-shift] :is(.hero__w, .hero__lede, .hero__cta, .hero__foot, .inst__main > :not(.inst__deck), .inst__hello > *, .inst__deck > .inst__msg, .inst__msg .inst__rim, .inst__horizon, .inst__grid, .inst__pool) { animation: stage-fade 200ms ease backwards; }
+  .stage[data-shift] :is(.hero__w, .hero__lede, .hero__cta, .hero__foot, .inst__main > :not(.inst__deck), .inst__deck > .inst__msg, .inst__msg .inst__rim, .inst__horizon, .inst__grid, .inst__pool) { animation: stage-fade 200ms ease backwards; }
 }
 
 /* The bar on the two stage pages: no green dot after the name, and the lit stretch of its lower edge is the Install
