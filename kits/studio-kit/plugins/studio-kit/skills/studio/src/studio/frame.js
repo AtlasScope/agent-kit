@@ -151,8 +151,8 @@ function previewExtras(s) {
     const i = rs.querySelector('.art-in');
     if (i && i.offsetWidth > $('stage').clientWidth * 0.5) rs.hidden = true;
   }
-  tt.hidden = !(alone && !PEEK && changedKeys(m.id).length);
-  if (!tt.hidden) { tt.innerHTML = art(m, DEFS[m.id], { compare: true }) + `<span class="rl">${esc(baseName(m))}</span>`; fitArt(tt); tt.title = 'Compare with ' + baseName(m).toLowerCase(); }
+  tt.hidden = !(alone && !PEEK && (changedKeys(m.id).length || HOLDING));
+  if (!tt.hidden && !HOLDING) { tt.innerHTML = art(m, DEFS[m.id], { compare: true }) + `<span class="rl">${esc(baseName(m))} · hold to see it</span>`; fitArt(tt); tt.title = 'Hold to see ' + baseName(m).toLowerCase() + ' in the preview; click to compare side by side'; }
   $('vmenu').hidden = $('stbar').hidden && $('zoom').hidden;
 }
 /* ---- trying a choice on: pointing at a card shows it in the preview; moving away puts yours back ---- */

@@ -327,8 +327,6 @@ details.fine .ctl+.ctl{border-top:0}
  .conn{display:none}
  .work{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"head" "pcol" "nav" "scol";padding:14px 14px 96px}
  .head{margin-bottom:14px;gap:10px;flex-wrap:wrap}
- .hstep{padding-top:0;width:100%}
- .hstep .go{flex:1}
  .head h2{font-size:24px}
  .hwhy{font-size:14px;margin-top:4px}
  .htx{flex-basis:100%}
@@ -441,3 +439,39 @@ details.fine .ctl+.ctl{border-top:0}
 .nav .xp.changed::after{content:"";width:5px;height:5px;border-radius:50%;background:var(--c-brand-ink)}
 .nav .chg{padding:4px 0 0}
 @media (max-width:899px){.nav .srow{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.nav .srow>*{flex:none}}
+/* ---- the step bar: its own row, in reach while the choices scroll ---- */
+.work{grid-template-areas:"pcol step" "pcol head" "pcol nav" "pcol scol"}
+.hstep{grid-area:step;position:sticky;top:var(--hdr);z-index:6;display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:10px 0;background:var(--bg);border-bottom:1px solid transparent}
+.hstep .count{margin-right:auto;font-size:13px;font-weight:500;color:var(--mut)}
+.head{position:static;display:block;margin:6px 0 14px;padding-top:0;background:none}
+.work.wide .hstep,.work.reviewing .hstep{display:none}
+/* the order to work in, and the extras the same size as the main steps */
+.nav .rec{margin:0 0 2px;font-size:12.5px;color:var(--c-fg-4)}
+.nav .xp{padding:5px 13px;font-size:13.5px;background:var(--s1)}
+.nav .srow.x{gap:6px}
+.nav .xsep{font-size:13px;font-weight:600;color:var(--c-fg-3);margin-right:6px}
+/* one More box per step */
+.morebox{flex-wrap:wrap}
+.morebox .mbtns{display:flex;flex-wrap:wrap;gap:8px}
+/* Fine-tune: a clear row that says what is inside */
+details.fine{margin-top:18px;border-top:0;padding-top:0}
+details.fine>summary{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;background:var(--s1);border:1px solid var(--line);color:var(--fg);font-size:14px}
+details.fine>summary b{font-weight:600}
+details.fine>summary span{font-weight:400;color:var(--mut);font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+details.fine>summary:hover{border-color:var(--c-brand-line)}
+details.fine[open]>summary{border-radius:12px 12px 0 0;border-bottom-color:transparent}
+details.fine[open]{border-radius:12px}
+details.fine[open]>.ctl{padding:12px 14px 4px;background:var(--s1);border:1px solid var(--line);border-top:0;margin:0}
+details.fine[open]>.ctl:last-child{border-radius:0 0 12px 12px;padding-bottom:14px}
+details.fine[open]>.ctl:not(:last-child){border-bottom:0}
+/* half a screen beside a chat: the steps get the larger share */
+@media (min-width:900px) and (max-width:1240px){.work{grid-template-columns:minmax(280px,.8fr) minmax(0,1.2fr);column-gap:20px;padding:14px 18px 32px}.tiles{grid-template-columns:repeat(auto-fill,minmax(min(100%,150px),1fr))}.looks{grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr))}}
+/* phones: the step bar sits at the bottom of the screen */
+@media (max-width:899px){
+ .work{grid-template-areas:"head" "pcol" "nav" "scol" "step"}
+ .hstep{position:sticky;top:auto;bottom:0;padding:10px 0 calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line);margin:0 -14px;padding-left:14px;padding-right:14px}
+ .hstep .go{flex:none}
+ .nav .rec{display:none}
+}
+.pcol>.hacts{flex-wrap:nowrap}.pcol>.hacts .seg{min-width:0;flex:0 1 auto}@media (max-width:1240px){.pcol>.hacts .seg button{padding:5px 9px}}
+.chip .now{margin-left:8px}

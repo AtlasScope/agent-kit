@@ -217,6 +217,14 @@ $('redo').onclick = redo;
 $('review').onclick = () => (NAV.review ? go(null, NAV.cat[NAV.mod]) : go(null, 'review'));
 $('pin').onclick = pinNow;
 {
+  const t = $('tthumb'); let tm = 0, held = false;
+  t.addEventListener('pointerdown', (e) => { e.preventDefault(); t.setPointerCapture(e.pointerId); held = false; tm = setTimeout(() => { held = true; holdOn(); }, 220); });
+  const up = () => { clearTimeout(tm); if (held) holdOff(); else setMode('compare'); held = false; };
+  t.addEventListener('pointerup', up);
+  t.addEventListener('pointercancel', () => { clearTimeout(tm); if (held) holdOff(); held = false; });
+  t.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMode('compare'); } });
+}
+{
   const h = $('hold');
   h.addEventListener('pointerdown', (e) => { e.preventDefault(); h.setPointerCapture(e.pointerId); holdOn(); });
   ['pointerup', 'pointercancel', 'lostpointercapture', 'blur'].forEach((n) => h.addEventListener(n, holdOff));

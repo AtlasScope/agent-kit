@@ -52,13 +52,17 @@ function descHTML(c, op, s) {
     + (avail(op, s) ? '' : ' <em>It will not show with the current choices.</em>');
 }
 const moreLink = () => ''; // asking for more lives in its own box under the choices (moreBox)
-/** Under a set of choices: one clear offer to have the agent design more of them, sent with one click. */
-function moreBox(id, what) {
-  const p = UI.pending, busy = p && p.key === id && Date.now() - p.at < 15 * 60e3;
-  return `<div class="morebox${busy ? ' busy' : ''}"><div class="mtx"><b>${busy ? 'The agent is designing more' : 'Want to see more options?'}</b>`
-    + `<span>${busy ? `New ${esc(what)} arrive here on their own, marked New. Keep going; nothing you picked is lost.` : `The agent designs new ${esc(what)} for this project and adds them here. Your picks stay as they are.`}</span></div>`
-    + (busy ? '<span class="spin"></span>' : `<button class="go q morego" data-moreask="${esc(id)}">More ${esc(what)} <span aria-hidden="true">→</span></button>`) + '</div>';
+/** One clear offer at the end of a step: the agent designs more of any of its choices, sent with one click.
+    While a request is out it says honestly whether the agent has it or it is waiting for the agent to look. */
+function moreBox(items) {
+  const p = UI.pending, mine = p && Date.now() - p.at < 15 * 60e3 && items.find((x) => x.id === p.key);
+  if (!items.length) return '';
+  if (mine) return `<div class="morebox busy"><div class="mtx"><b>${p.sent ? 'The agent is designing more' : 'Your request is waiting for the agent'}</b>`
+    + `<span>${p.sent ? `New ${esc(mine.what)} arrive here on their own, marked New. Keep going; nothing you picked is lost.` : 'It is saved and will be picked up when the agent next looks. Say “check the studio” in the chat to have it look now.'}</span></div>${p.sent ? '<span class="spin"></span>' : ''}</div>`;
+  return `<div class="morebox"><div class="mtx"><b>Want to see more options?</b><span>The agent designs new choices for this project and adds them here. Your picks stay as they are.</span></div>`
+    + `<div class="mbtns">${items.map((x) => `<button class="go q morego" data-moreask="${esc(x.id)}">More ${esc(x.what)} <span aria-hidden="true">→</span></button>`).join('')}</div></div>`;
 }
+const moreStep = (ctls) => moreBox(ctls.filter((c) => c.more !== false && (c.t === 'chips' || c.t === 'swatches')).map((c) => ({ id: c.id, what: c.label.toLowerCase() + (c.t === 'swatches' ? 's' : ' choices') })));
 function choicesHTML(c, s) {
   const m = STUDIO.by[c.mid], tile = m.tile ? m.tile(c) : null;
   const isOn = (op) => sameValue(s[c.k], op.v);
@@ -79,7 +83,7 @@ function choicesHTML(c, s) {
     + `<div class="${tile ? 'tiles' + (tile.wide ? ' wide' : '') : 'chips'}" role="group" aria-labelledby="l_${c.id}">${vis.map(one).join('')}`
     + (hidden > 0 ? `<button class="chip ghost" data-expand="${c.id}">Show ${hidden} more</button>` : '')
     + (c.replay ? '<button class="chip ghost" data-act="replay">Replay</button>' : '') + '</div>'
-    + `<p class="desc" id="d_${c.id}">${descHTML(c, optOf(c, s[c.k]), s)}</p>${c.more !== false ? moreBox(c.id, c.label.toLowerCase() + ' choices') : ''}</div>`;
+    + `<p class="desc" id="d_${c.id}">${descHTML(c, optOf(c, s[c.k]), s)}</p></div>`;
 }
 function swatchDesc(c, s) {
   const w = c.sw.find((x) => x[0] === s[c.k]) || c.sw[0];
@@ -99,7 +103,7 @@ function ctlHTML(c, s) {
     const m = STUDIO.by[c.mid];
     const one = (w) => `<button data-c="${c.id}" data-sw="${esc(w[0])}" aria-pressed="${s[c.k] === w[0]}" aria-label="${esc(w[0])}" title="${esc(w[0])}" style="background:${m.swatchColour ? m.swatchColour(s, w) : `oklch(${w[3]} ${w[2]} ${w[1]})`}">${dot(freshKey(c, w[0]))}</button>`;
     return `<div class="ctl" data-ctl="${c.id}"><div class="lrow"><span class="lbl" id="l_${c.id}">${esc(c.label)}</span>${moreLink(c)}</div>`
-      + `<div class="sw" role="group" aria-labelledby="l_${c.id}">${c.sw.map(one).join('')}</div><p class="desc" id="d_${c.id}">${swatchDesc(c, s)}</p>${c.more !== false ? moreBox(c.id, c.label.toLowerCase() + ' choices') : ''}</div>`;
+      + `<div class="sw" role="group" aria-labelledby="l_${c.id}">${c.sw.map(one).join('')}</div><p class="desc" id="d_${c.id}">${swatchDesc(c, s)}</p></div>`;
   }
   return '';
 }
@@ -134,7 +138,7 @@ function looksHTML() {
       + `<span class="tn">${esc(l.n)}${feature ? '<span class="now">Recommended</span>' : ''}<span class="sel">Selected</span>${dot(m.id + '.look:' + l.id)}</span><small>${esc(l.d)}</small></div>`;
   };
   return `<div class="looks start">${card(base, true)}</div>`
-    + (m.looks.length ? `<div class="lrow ideas"><span class="lbl">Or start from an idea</span>${m.looks.length > 1 ? '<button class="addc" data-act="surprise">Surprise me</button>' : ''}</div><div class="looks">${m.looks.map((l) => card(l)).join('')}</div>${moreBox('@looks', 'ideas')}` : '');
+    + (m.looks.length ? `<div class="lrow ideas"><span class="lbl">Or start from an idea</span>${m.looks.length > 1 ? '<button class="addc" data-act="surprise">Surprise me</button>' : ''}</div><div class="looks">${m.looks.map((l) => card(l)).join('')}</div>${moreBox([{ id: '@looks', what: 'ideas' }])}` : '');
 }
 function groupHTML(g) {
   const s = AS();
@@ -143,7 +147,8 @@ function groupHTML(g) {
   const main = vis.filter((c) => !isFine(c)), fine = na ? [] : vis.filter(isFine);
   const body = na ? `<div class="na">${esc(na)}</div>`
     : main.map((c) => ctlHTML(c, s)).join('')
-      + (fine.length && !WIDE() ? `<details class="fine" data-fine="${g.id}"${UI.fine[NAV.mod + '.' + g.id] ? ' open' : ''}><summary>Fine-tune</summary>${fine.map((c) => ctlHTML(c, s)).join('')}</details>` : '');
+      + (fine.length ? `<details class="fine" data-fine="${g.id}"${(UI.fine[NAV.mod + '.' + g.id] ?? main.some((c) => c.t === 'swatches')) ? ' open' : ''}><summary><b>Fine-tune</b><span>${esc(list([...new Set(fine.map((c) => c.label))]))}</span></summary>${fine.map((c) => ctlHTML(c, s)).join('')}</details>` : '')
+      + moreStep(main);
   return `${note ? `<div class="note">${note}</div>` : ''}${body}`;
 }
 /** The fine adjustments of the open category, in the preview card under the design they change (wider screens). */
@@ -272,7 +277,7 @@ function navHTML() {
   const main = list.filter((x) => !x.extra), extra = list.filter((x) => x.extra);
   const all = changeList(), mine = all.filter((c) => c.mod === m.id), others = all.length - mine.length;
   const name = (c) => (STUDIO.mods.length > 1 ? c.n.split(' · ').slice(1).join(' · ') : c.n);
-  return `<div class="srow"><button class="start" data-cat="looks" aria-current="${cur === 'looks' ? 'step' : 'false'}"><span>Start</span></button>${main.map(pill).join('')}</div>`
+  return `<p class="rec">Work through 1 to ${main.length} in order; the extras are optional polish.</p><div class="srow"><button class="start" data-cat="looks" aria-current="${cur === 'looks' ? 'step' : 'false'}"><span>Start</span></button>${main.map(pill).join('')}</div>`
     + (extra.length ? `<div class="srow x"><span class="xsep">Extras</span>${extra.map(pill).join('')}</div>` : '')
     + (all.length ? `<p class="chg">${mine.length ? `Changed here: ${mine.map((c) => `<button data-jump="${c.mod}|${c.cat}">${esc(name(c))}</button>`).join('')}` : 'Nothing changed here yet.'}`
       + (others ? ` <button class="more" data-cat="review">${others} more in other studios</button>` : '') + '</p>' : '');
@@ -329,8 +334,15 @@ function scrollToPanel() {
   const r = $('scol').getBoundingClientRect(), mgn = topOffset();
   if (r.top < mgn - 1 || r.top > innerHeight * 0.6) scrollTo({ top: scrollY + r.top - mgn, behavior: RM_OS ? 'auto' : 'smooth' });
 }
+/** Choices the agent added stop being marked New once you have looked at their step and moved on. */
+function seenFresh(mid, cat) {
+  const m = STUDIO.by[mid], g = m && m.groups.find((x) => x.id === cat);
+  const keys = cat === 'looks' ? [mid + '.look:'] : g ? g.ctl.map((c) => mid + '.' + c.k + ':') : [];
+  if (keys.length) UI.fresh = UI.fresh.filter((f) => !keys.some((k) => f.startsWith(k)));
+}
 function go(mod, cat) {
-  const wasMod = NAV.mod, wasReview = NAV.review;
+  const wasMod = NAV.mod, wasReview = NAV.review, wasCat = NAV.cat[NAV.mod];
+  if (cat !== wasCat || (mod && mod !== wasMod)) seenFresh(wasMod, wasCat);
   if (mod && STUDIO.has(mod)) NAV.mod = mod;
   NAV.review = cat === 'review';
   if (cat && cat !== 'review') NAV.cat[NAV.mod] = cat;
