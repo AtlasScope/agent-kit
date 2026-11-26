@@ -12,13 +12,13 @@ export function InstallRoute({ account }: { account: boolean }) {
     if (!k || !g) throw new Error(`Install page: kit ${name} is missing from ${k ? "KIT_GUIDE" : "content/generated.json"}`);
     return { name, line: g.line, type: g.type, skills: k.skills.length };
   });
-  // The explore drawer: each part of the site in one line, with real counts.
+  // The explore drawer: each part of the site.
   const places: Place[] = [
-    { href: "/prompts", icon: "prompts", title: "Prompts", line: `${counts.prompts} better instructions to paste into your agent` },
-    { href: "/skills", icon: "skills", title: "Skills", line: `${counts.skills} abilities your agent uses on its own` },
-    { href: "/kits", icon: "kits", title: "Kits", line: "Skills grouped by the job they do" },
-    { href: "/fix", icon: "fix", title: "Fix a problem", line: "Start from what’s wrong" },
-    { href: "/start", icon: "start", title: "New to coding agents?", line: "An eight-step guide to a first result" },
+    { href: "/prompts", icon: "prompts", title: "Prompts" },
+    { href: "/skills", icon: "skills", title: "Skills" },
+    { href: "/kits", icon: "kits", title: "Kits" },
+    { href: "/fix", icon: "fix", title: "Fix a problem" },
+    { href: "/start", icon: "start", title: "New to coding agents?" },
   ];
   return (
     <InstallPage places={places} kits={KITS.length} skills={counts.skills} kitLines={kitLines} account={account}>
