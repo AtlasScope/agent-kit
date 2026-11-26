@@ -119,11 +119,22 @@ function layoutDevice() {
     d.style.height = h0 + 'px';
     const need = AM().ground ? 0 : cv.scrollWidth;
     if (need > w0 + 1) { w = need + 24; s = w0 / w; h = h0 / s; }
-    hint = AM().ground ? (AM().id === 'palette' ? 'Representative, not live' : '') : s < 1 ? 'Shown at ' + Math.round(s * 100) + '%' : 'Actual size';
+    else if (!AM().ground && UI.zoom !== false) {
+      // Fit: a small design is enlarged to fill the preview, so it reads at any screen size; the label says by how much.
+      // the drawing's own extent: its wrapper may span the row, so measure what is inside it
+      const c = cv.firstElementChild, kids = c ? [...c.children].filter((k) => k.offsetWidth) : [];
+      const rs = kids.map((k) => k.getBoundingClientRect()), cw = rs.length ? Math.max(...rs.map((r) => r.right)) - Math.min(...rs.map((r) => r.left)) : 0;
+      const ch = rs.length ? Math.max(...rs.map((r) => r.bottom)) - Math.min(...rs.map((r) => r.top)) : 0;
+      const f = cw && ch ? Math.min(2.5, (w0 * 0.6) / cw, (h0 * 0.45) / ch) : 1;
+      if (f > 1.05) { s = f; w = w0 / f; h = h0 / f; }
+    }
+    hint = AM().ground ? (AM().id === 'palette' ? 'Representative, not live' : '') : s < 0.995 || s > 1.005 ? 'Shown at ' + Math.round(s * 100) + '%' : 'Actual size';
+    $('zoom').hidden = !!AM().ground || need > w0 + 1;
+    $('zoom').textContent = UI.zoom === false ? 'Enlarge' : 'Show actual size';
   }
   d.style.width = w + 'px';
   d.style.height = h + 'px';
-  d.style.transform = s < 1 ? `scale(${s})` : '';
+  d.style.transform = s !== 1 ? `scale(${s})` : '';
   d.classList.toggle('framed', framed);
   Object.assign($('dwrap').style, { width: w * s + 'px', height: h * s + 'px', left: Math.round((w0 - w * s) / 2) + 'px', top: Math.round((h0 - h * s) / 2) + 'px' });
   $('devhint').textContent = hint;

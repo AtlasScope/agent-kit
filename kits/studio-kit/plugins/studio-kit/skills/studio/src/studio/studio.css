@@ -2,15 +2,15 @@
  /* AtlasScope (site/app/styles/tokens.css, the dark stage): the studio's own frame looks the same in every project; only
     the designs inside it take the project's identity. Cyan is light and material, for the one main action, where you
     are, and small answers to the pointer. Truthful state stays green; focus stays blue. */
- --c-canvas:#000;--c-surface:oklch(15.5% .005 260);--c-raised:oklch(20% .006 260);--c-raised-2:oklch(25% .007 260);--c-sunken:oklch(8% .004 260);
+ --c-canvas:oklch(18.5% .006 260);--c-surface:oklch(22.5% .007 260);--c-raised:oklch(26.5% .008 260);--c-raised-2:oklch(31% .009 260);--c-sunken:oklch(15.5% .006 260);
  --c-fg:oklch(96.5% .003 260);--c-fg-2:oklch(84% .006 260);--c-fg-3:oklch(72% .01 260);--c-fg-4:oklch(56% .008 260);
- --c-line:oklch(100% 0 0 / .09);--c-line-2:oklch(100% 0 0 / .16);--c-fill:oklch(100% 0 0 / .06);--c-fill-2:oklch(100% 0 0 / .1);
+ --c-line:oklch(100% 0 0 / .1);--c-line-2:oklch(100% 0 0 / .18);--c-fill:oklch(100% 0 0 / .06);--c-fill-2:oklch(100% 0 0 / .1);
  --c-signal:oklch(84% .2 152);--c-focus:oklch(72% .15 252);--c-warm:#F5A524;
  --c-brand:oklch(80% .145 212);--c-brand-hi:oklch(91% .11 205);--c-brand-lo:oklch(70% .16 220);--c-brand-edge:oklch(54% .12 218);--c-brand-glow:oklch(84% .17 210);--c-on-brand:oklch(19% .05 225);
  --c-brand-line:color-mix(in oklab,var(--c-brand) 42%,transparent);
- --glass-bg:linear-gradient(180deg,oklch(22% .008 250 / .78),oklch(13% .006 250 / .82) 60%,oklch(11% .008 200 / .86));
+ --glass-bg:linear-gradient(180deg,oklch(25% .008 255),oklch(22% .007 255));
  --glass-rim:inset 0 1px 0 oklch(100% 0 0 / .1),inset 0 0 0 1px oklch(100% 0 0 / .06);
- --glass-shadow:0 1px 2px oklch(0% 0 0 / .5),0 24px 48px -18px oklch(0% 0 0 / .9),0 30px 80px -34px color-mix(in oklab,var(--c-brand-glow) 22%,transparent);
+ --glass-shadow:0 1px 2px oklch(0% 0 0 / .3),0 20px 44px -22px oklch(0% 0 0 / .6);
  --shadow-3:0 2px 4px oklch(0% 0 0 / .5),0 16px 40px -8px oklch(0% 0 0 / .75);
  --ease-out:cubic-bezier(.16,1,.3,1);
  --bg:var(--c-canvas);--s1:var(--c-surface);--s2:var(--c-raised);--s3:var(--c-raised-2);--line:var(--c-line);--line2:var(--c-line-2);--fg:var(--c-fg);--mut:var(--c-fg-3);--dim:var(--c-fg-4);--okc:var(--c-signal);--okd:oklch(22% .06 152);--amb:var(--c-warm);--hdr:64px;
@@ -26,7 +26,7 @@ button,select,input,textarea{font:inherit;color:inherit}
 .ui :focus-visible{outline:2px solid var(--c-focus);outline-offset:2px}
 .spin{display:inline-block;width:12px;height:12px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:rot .8s linear infinite;flex:none;vertical-align:-1px}
 /* header */
-.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;display:flex;align-items:center;gap:16px;height:var(--hdr);padding:0 20px;background:#000;border-bottom:1px solid var(--line)}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;display:flex;align-items:center;gap:16px;height:var(--hdr);padding:0 20px;background:oklch(16% .006 260);border-bottom:1px solid var(--line)}
 .bar::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;pointer-events:none;background:linear-gradient(90deg,transparent 2%,color-mix(in oklab,var(--c-brand-glow) 70%,transparent) 10%,color-mix(in oklab,var(--c-brand-glow) 18%,transparent) 22%,transparent 34%);box-shadow:0 0 12px color-mix(in oklab,var(--c-brand-glow) 30%,transparent)}
 .bar .ttl{min-width:0;display:flex;align-items:center;gap:10px;overflow:hidden;flex:0 1 auto}
 .brand{display:inline-flex;align-items:center;color:var(--c-fg);flex:none}
@@ -57,9 +57,14 @@ select:hover{border-color:var(--line2)}
 .ib:hover{background:var(--s2)}
 .ib:disabled{opacity:.28;cursor:default;background:none}
 /* the workspace: a page head, one row of categories, the catalogue, and a compact preview beside it */
-.work{max-width:1560px;margin:0 auto;padding:20px 28px 40px;display:grid;grid-template-columns:minmax(380px,5fr) minmax(0,6fr);grid-template-areas:"pcol head" "pcol nav" "pcol scol";column-gap:32px;align-items:start}
-.head{grid-area:head;margin:4px 0 14px}
-.htx{min-width:0;flex:1 1 420px}
+.work{max-width:1720px;margin:0 auto;padding:20px 28px 40px;display:grid;grid-template-columns:minmax(420px,6fr) minmax(400px,5fr);grid-template-areas:"pcol head" "pcol nav" "pcol scol";column-gap:32px;align-items:start}
+.head{grid-area:head;display:flex;align-items:flex-start;gap:12px 20px;margin:4px 0 14px}
+.htx{min-width:0;flex:1 1 auto}
+.hstep{flex:none;display:flex;align-items:center;gap:8px;padding-top:18px}
+.hstep:empty{display:none}
+.hstep .count{font-size:13px;color:var(--mut);margin-right:4px;white-space:nowrap}
+.hstep .go{padding:11px 22px;font-size:14.5px}
+.hstep .go.q{padding:11px 16px}
 .crumb{margin:0 0 6px;font-size:13px;color:var(--mut)}
 .head h2{margin:0;font-size:26px;line-height:1.15;letter-spacing:-.025em;font-weight:650;text-wrap:balance}
 .hwhy{margin:6px 0 0;color:var(--mut);font-size:14.5px;max-width:62ch}
@@ -294,7 +299,7 @@ details.fine .ctl+.ctl{border-top:0}
 .stage.rm .agents .pv,.stage.rm .lnk{opacity:1}
 /* the studio itself when the computer asks for less motion; the preview follows the Less motion switch */
 @media (prefers-reduced-motion:reduce){.bar *,.scol *,.stbar *,.msg{transition:none!important}.spin{animation:none}.scol .art *,.scol .art *::before,.scol .art *::after{animation:none!important}}
-@media (max-width:1100px){.work{padding:16px 20px 32px;column-gap:20px;grid-template-columns:minmax(320px,1fr) minmax(0,1.15fr)}}
+@media (max-width:1100px){.work{padding:16px 20px 32px;column-gap:20px;grid-template-columns:minmax(300px,1fr) minmax(360px,1fr)}}
 @media (max-width:899px){
  .bar{position:static;height:auto;min-height:56px;padding:8px 14px 0;flex-wrap:wrap;gap:4px 10px;background:var(--bg)}
  .bar .ttl{flex:1 1 auto}
@@ -308,7 +313,9 @@ details.fine .ctl+.ctl{border-top:0}
  .bsep,.blight{display:none}
  .conn{display:none}
  .work{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"head" "pcol" "nav" "scol";padding:14px 14px 96px}
- .head{margin-bottom:14px;gap:10px}
+ .head{margin-bottom:14px;gap:10px;flex-wrap:wrap}
+ .hstep{padding-top:0;width:100%}
+ .hstep .go{flex:1}
  .head h2{font-size:24px}
  .hwhy{font-size:14px;margin-top:4px}
  .htx{flex-basis:100%}

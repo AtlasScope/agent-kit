@@ -158,7 +158,16 @@ function headParts() {
   if (!g) return { crumb, t: 'Looks', why: `Finished looks for your ${esc(m.title())}. Pick one and it is yours to change, piece by piece. Undo brings back what you had.` };
   return { crumb, t: g.t, why: g.why };
 }
+/** Back, where you are and Next, at the top of every step where they are seen first. */
+function stepHTML() {
+  if (NAV.review || modeNow() !== 'alone') return '';
+  const list = steps(), i = list.findIndex((x) => x.id === NAV.cat[NAV.mod]), pv = prevStep();
+  return `<span class="count">Step ${i + 1} of ${list.length + 1}</span>`
+    + (pv ? '<button class="go q" data-act="prev">Back</button>' : '')
+    + `<button class="go" data-act="next">Next: ${esc(nextStep().n)} →</button>`;
+}
 function renderHead() {
+  $('hstep').innerHTML = stepHTML();
   const h = headParts();
   $('crumb').textContent = h.crumb;
   $('htitle').textContent = h.t;
@@ -240,12 +249,7 @@ function navHTML() {
   return list.map(item).join('') + `<button data-cat="review" aria-current="${NAV.review ? 'step' : 'false'}"><b class="num">${list.length + 1}</b><span>Review</span></button>`;
 }
 function footHTML() {
-  if (!NAV.review) {
-    const list = steps(), i = list.findIndex((x) => x.id === NAV.cat[NAV.mod]), nx = nextStep(), pv = prevStep();
-    return (pv ? '<button class="go q" data-act="prev">Back</button>' : '<span></span>')
-      + `<span class="count">Step ${i + 1} of ${list.length + 1}${STUDIO.mods.length > 1 ? ' · ' + esc(AM().name) : ''}</span>`
-      + `<button class="go" data-act="next">Next: ${esc(nx.n)}</button>`;
-  }
+  if (!NAV.review) return `<span class="count"></span><button class="go q" data-act="next">Next: ${esc(nextStep().n)} →</button>`; // the main Next is at the top
   return `<button class="go q" data-act="back">Back</button><span class="count"></span><button class="go q" data-act="copy">Copy</button><button class="go" data-act="send">${STATUS.live ? 'Send to chat' : 'Copy for chat'}</button>`;
 }
 

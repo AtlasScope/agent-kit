@@ -196,6 +196,7 @@ $('pin').onclick = pinNow;
 }
 $('tabs').addEventListener('change', (e) => { if (e.target.id === 'addmod' && e.target.value) { sendModule(e.target.value); e.target.value = ''; } });
 $('msgx').onclick = () => $('msg').classList.remove('show');
+$('zoom').onclick = () => { UI.zoom = UI.zoom === false; layoutDevice(); };
 const segKeys = (id, keys, cur, set, attr) => $(id).addEventListener('keydown', (e) => {
   if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
   const ks = keys(), k = ks[(ks.indexOf(cur()) + (e.key === 'ArrowRight' ? 1 : ks.length - 1)) % ks.length];
