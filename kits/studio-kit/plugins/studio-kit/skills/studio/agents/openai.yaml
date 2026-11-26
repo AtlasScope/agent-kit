@@ -1,0 +1,7 @@
+interface:
+  display_name: "Button Studio"
+  short_description: "Step-by-step studio for choosing a button's look"
+  default_prompt: "Use $button-studio to build a step-by-step studio for this project's buttons."
+
+policy:
+  allow_implicit_invocation: true

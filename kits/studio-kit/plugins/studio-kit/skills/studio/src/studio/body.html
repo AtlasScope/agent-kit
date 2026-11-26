@@ -1,0 +1,26 @@
+<div class="ui">
+<header class="bar"><div class="ttl"><h1 id="ttl">Button studio</h1><span class="proj" id="proj"></span></div>
+ <select id="preset" aria-label="Start from"></select>
+ <span class="conn" id="conn" role="status"><i></i><span>Starting</span></span></header>
+<main class="layout">
+ <section class="pcol" id="pcol" aria-label="Preview">
+  <div class="stage" id="stage"><span class="devhint" id="devhint"></span><span class="tryhint">Press the button to try it</span>
+   <div class="dwrap" id="dwrap"><div class="device" id="device"><div id="mount"></div>
+    <div class="overlay" id="ov"><div class="chk"><svg width="28" height="28"><use href="#i-check"/></svg></div><h4 id="ovh">Done</h4><small id="ovs"></small><div id="ovbtns" style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:230px"></div></div>
+    <div class="toast" id="toast"><span class="dot"><svg width="14" height="14"><use href="#i-check"/></svg></span><div><b id="toasth">Done</b><span class="s"></span></div><span id="toastbtn" style="margin-left:auto"></span></div>
+   </div></div>
+  </div>
+  <div class="stbar">
+   <div class="seg" id="devices" role="radiogroup" aria-label="Device"></div>
+   <select id="bgsel" aria-label="Background"></select>
+   <button class="tog" id="rmtog" aria-pressed="false"><i></i>Less motion</button>
+  </div>
+ </section>
+ <section class="scol" id="scol" aria-label="Choices">
+  <nav class="nav" id="nav" aria-label="Steps"></nav>
+  <div class="panel" id="panel" aria-live="polite"></div>
+  <div class="pfoot" id="pfoot"></div>
+ </section>
+</main>
+<div class="msg" id="msg" role="status"><span></span><button class="x" id="msgx">Close</button></div>
+</div>
