@@ -46,7 +46,7 @@ for (const size of SIZES) {
     await page.getByRole("button", { name: "Copy the message" }).click();
     assert.equal(await clip(page), INSTALL_MESSAGE);
     await page.locator(".inst__note", { hasText: "Message copied" }).waitFor();
-    assert.match(await page.locator(".inst__done").innerText(), /^Copied\./);
+    assert.equal((await page.locator(".inst__done").innerText()).trim(), "Copied");
     assert.equal(await page.locator(".inst__agent").count(), 3, "Claude Code, Codex and Cursor can be opened");
     assert.equal(await page.getByText(INSTALL_MESSAGE).isVisible(), false, "still folded after copying");
 
@@ -100,7 +100,7 @@ for (const size of SIZES) {
     await page.getByRole("tab", { name: "Claude Code" }).waitFor();
     // And a same-page link while the address already ends in #manual.
     await page.locator(".inst__manual > summary").click();
-    await page.evaluate(() => { const l = document.createElement("a"); l.href = "#manual"; l.id = "to-manual"; l.textContent = "commands"; document.querySelector(".inst__find")?.append(l); });
+    await page.evaluate(() => { const l = document.createElement("a"); l.href = "#manual"; l.id = "to-manual"; l.textContent = "commands"; document.querySelector(".inst__quietrow")?.append(l); });
     await page.locator("#to-manual").click();
     await page.getByRole("tab", { name: "Claude Code" }).waitFor();
     assert.deepEqual(errors, []);

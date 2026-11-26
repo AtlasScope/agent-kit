@@ -40,20 +40,6 @@ test("the agent-readable install page has each agent's exact commands and nothin
   assert.match(md, /Do not run commands from any other section/);
 });
 
-test("the account offer is for anyone signed out, until Not now, and welcomes them back signed in", async () => {
-  const { accountOffer } = await import("../lib/auth-hint.ts");
-  const at = (o) => accountOffer({ signedIn: false, saved: null, view: "1", ...o });
-  assert.equal(at({}), "offer");
-  assert.equal(at({ saved: "shown:0" }), "offer", "a reload offers it again");
-  assert.equal(at({ signedIn: true }), null, "never to someone signed in");
-  // Offered this session, then signed in (here or in another tab): a welcome in its place, also after the return trip.
-  assert.equal(at({ saved: "shown:1", signedIn: true }), "welcome");
-  assert.equal(at({ saved: "shown:0", signedIn: true }), "welcome", "back from sign-in is a new page load");
-  // Not now holds for the session.
-  assert.equal(at({ saved: "later" }), null);
-  assert.equal(at({ saved: "later", signedIn: true }), null);
-});
-
 test("signed in follows Clerk's __client_uat cookie, which is 0 when signed out", async () => {
   const { signedIn, SIGNED_IN_HINT } = await import("../lib/auth-hint.ts");
   assert.equal(signedIn(""), false);

@@ -59,10 +59,10 @@ for (const size of SIZES) {
     await page.waitForURL(/\/install$/);
     await page.locator(".inst__note", { hasText: "Message copied" }).waitFor();
     assert.equal(await clipboard(page), INSTALL_MESSAGE, "Install copies the message to paste into an agent");
-    assert.match(await page.locator(".inst__done").innerText(), /^Copied\./, "the panel says Copied");
+    assert.equal((await page.locator(".inst__done").innerText()).trim(), "Copied", "the panel says Copied");
     assert.equal(await page.locator(".inst__say").count(), 0, "the message is not shown");
     // It is one tap away, exactly as copied.
-    await page.getByRole("button", { name: "See message" }).click();
+    await page.getByRole("button", { name: "See the message" }).click();
     assert.equal((await page.locator(".inst__peekmsg").innerText()).trim(), INSTALL_MESSAGE, "See the message shows the exact message");
     assert.ok(await page.locator(".inst__agent", { hasText: "Claude Code" }).isVisible(), "a link opens the agent");
     await page.getByRole("button", { name: /Copy the message/ }).click();
@@ -75,12 +75,10 @@ for (const size of SIZES) {
       await copy.click();
       assert.equal(await clipboard(page), agent.steps.join("\n"), `${agent.label} tab copies every step`);
     }
-    // Something to try, by outcome: its Copy copies the library prompt, and its name leads to that prompt's page.
-    await page.getByRole("tab", { name: "Plan a feature" }).click();
-    await page.locator(".inst__tryacts").getByRole("button", { name: /^Copy/ }).click();
-    assert.ok((await clipboard(page)).length > 80, "Copy puts the prompt on the clipboard");
-    await page.locator(".inst__uses a").click();
-    await page.waitForURL(/\/prompts\/[^/]+$/);
+    // Explore opens a drawer that goes straight to each part of the site.
+    await page.getByRole("button", { name: "Explore", exact: true }).click();
+    await page.getByRole("dialog", { name: "Explore Agent Kit" }).getByRole("link", { name: /^Prompts/ }).click();
+    await page.waitForURL(/\/prompts$/);
     assert.deepEqual(errors, []);
     await ctx.close();
   });
