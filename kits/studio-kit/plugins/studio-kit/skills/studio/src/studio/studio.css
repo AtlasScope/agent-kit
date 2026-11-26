@@ -527,3 +527,20 @@ details.fine[open]>.ctl:not(:last-child){border-bottom:0}
 .ask .askrow input{padding:8px 12px;font-size:13.5px}
 .ask .askrow .go{padding:8px 14px;font-size:13.5px}
 .looks+.ask,.lrow.ideas~.ask{margin-top:20px}
+.away{margin-top:12px;padding:12px 14px;border-radius:10px;background:color-mix(in oklab,var(--c-warm) 9%,var(--s1));border:1px solid color-mix(in oklab,var(--c-warm) 40%,transparent)}
+.away p{margin:0 0 10px;font-size:13px;line-height:1.45;color:var(--c-fg-2)}
+.away p b{color:var(--fg);font-weight:600}
+.awayb{display:flex;flex-wrap:wrap;gap:8px}
+.awayb .go{padding:8px 16px;font-size:13.5px}
+/* Review: the count and the reach first, colour dots beside colour codes, long lists shortened */
+.rvtop{margin:0 0 6px;padding:14px 16px 2px;border-radius:12px;background:var(--s1);border:1px solid var(--line)}
+.rvsum{margin:0 0 12px;font-size:14px;color:var(--c-fg-2)}
+.rvsum a{color:var(--fg);text-decoration:none;border-bottom:1px solid var(--line-2)}
+.rvsum a:hover{border-bottom-color:var(--c-brand)}
+.rvtop .ctl{padding-bottom:12px}
+.rvm h3{display:flex;align-items:baseline;gap:10px}
+.rvn{font-size:12.5px;font-weight:500;color:var(--mut)}
+.rvsw{display:inline-block;width:11px;height:11px;margin-right:5px;border-radius:3px;vertical-align:-1px;box-shadow:inset 0 0 0 1px var(--line-2)}
+.rv li s .rvsw{opacity:.6}
+.rvmore{margin-top:8px}
+.msg .chip{margin:0 2px}

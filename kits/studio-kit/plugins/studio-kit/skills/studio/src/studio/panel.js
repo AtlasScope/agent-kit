@@ -111,12 +111,13 @@ function askHTML() {
   const m = AM(), w = askWhere(), p = UI.pending, cat = NAV.cat[m.id], g = m.groups.find((x) => x.id === cat), s = AS();
   const items = g ? g.ctl.filter((c) => shown(c, s) && !isFine(c) && c.more !== false && (c.t === 'swatches' || (c.t === 'chips' && c.opts.length > 3))).map((c) => ({ id: c.id, what: c.label.toLowerCase() + (c.t === 'swatches' ? 's' : ' choices') })) : [{ id: '@looks', what: 'ideas' }];
   const live = p && Date.now() - p.at < 15 * 60e3;
-  const status = !live ? '' : p.sent
+  const status = !live ? '' : p.kind === 'agent'
     ? `<p class="wait"><span class="spin"></span> The agent is adding to ${esc(p.name)}. New ones arrive here marked New; your picks stay.</p>`
-    : `<p class="wait">Your request for ${esc(p.name)} is waiting for the agent. Say “check the studio” in the chat to have it look now.</p>`;
+    : p.kind === 'queued' ? `<p class="wait">Your request for ${esc(p.name)} is in the queue. Say “check the studio” in the chat and the agent picks it up.</p>`
+    : `<p class="wait">Your request for ${esc(p.name)} is copied. Paste it in the chat and the agent adds it here.</p>`;
   return `<div class="ask" id="askbox"><div class="quick"><label for="ask"><svg class="spark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.5 2.5M15.2 15.2l2.5 2.5M6.3 17.7l2.5-2.5M15.2 8.8l2.5-2.5"/></svg>Want more options?</label>${items.map((x) => `<button class="go q morego" data-moreask="${esc(x.id)}">More ${esc(x.what)} <span aria-hidden="true">→</span></button>`).join('')}<button class="chip" data-quick="different">Something different</button><button class="chip" data-quick="what">What else could change?</button></div>`
     + `<div class="askrow"><input id="ask" type="text" maxlength="400" value="${esc(UI.ask.text)}" placeholder="Or describe what you want${w.ctl ? ' for ' + esc(w.name) : ''}, and the agent adds it here…"><button class="go q" data-act="ask">${STATUS.live ? 'Ask agent →' : 'Copy request'}</button></div>`
-    + status + '</div>';
+    + (AWAY ? `<div class="away"><p><b>The agent is not watching the studio right now.</b> Send now copies your request for the chat, where it starts at once. Keep in queue saves it for the next time it looks.</p><div class="awayb"><button class="go morego" data-act="sendnow">Send now</button><button class="go q" data-act="queue">Keep in queue</button><button class="chip" data-act="awaycancel">Cancel</button></div></div>` : status) + '</div>';
 }
 
 /* ---- Looks, a category, Review ---- */
@@ -199,22 +200,32 @@ function checkedLine() {
   const b = UI.seen.bg.map((v) => (BGS.find((x) => x[0] === v) || [v, v])[1].toLowerCase());
   return `Looked at on ${list(d) || 'one device'}, against ${list(b) || 'one background'}${UI.seen.mode.includes('context') ? ', in the example page' : ''}; less motion ${UI.seen.rm ? 'tried' : 'not tried'}.`;
 }
+/** A value as Review shows it: a colour gets a dot of itself beside its code. */
+const showVal = (v) => (/^#[0-9A-F]{6}$/i.test(String(v)) ? `<i class="rvsw" style="background:${esc(v)}"></i>${esc(v)}` : esc(v));
 function reviewHTML() {
-  const blocks = STUDIO.mods.map((m) => {
-    const ch = changes(m), warn = m.warn ? m.warn(ST[m.id]) : [];
-    const rows = ch.map((x) => `<li><b>${esc(x.label)}</b><span><s>${esc(x.from)}</s>${x.known === 'not measured' ? ' <i>(not measured)</i>' : ''} → ${esc(x.to)}</span><button class="addc" data-goctl="${x.c.id}">Change</button></li>`).join('');
-    return `<section class="rvm"><h3>${esc(cap(m.title()))}</h3>`
+  const SHOW = 6; // a long list shows this many, then the rest on request
+  const all = STUDIO.mods.map((m) => ({ m, ch: changes(m) }));
+  const total = all.reduce((n, x) => n + x.ch.length, 0);
+  const blocks = all.map(({ m, ch }) => {
+    const warn = m.warn ? m.warn(ST[m.id]) : [];
+    const row = (x) => `<li><b>${esc(x.label)}</b><span><s>${showVal(x.from)}</s>${x.known === 'not measured' ? ' <i>(not measured)</i>' : ''} → ${showVal(x.to)}</span><button class="addc" data-goctl="${x.c.id}">Change</button></li>`;
+    const open = UI.expanded['review.' + m.id] || ch.length <= SHOW + 2;
+    return `<section class="rvm" id="rv-${m.id}"><h3>${esc(cap(m.title()))}<span class="rvn">${ch.length ? `${ch.length} change${ch.length > 1 ? 's' : ''}` : 'unchanged'}</span></h3>`
       + (ch.length
-        ? `<div class="ba"><figure>${art(m, DEFS[m.id], { compare: true })}<figcaption>${esc(baseName(m))}</figcaption></figure><figure>${art(m, ST[m.id], { compare: true })}<figcaption>Proposed</figcaption></figure></div><ul class="rv">${rows}</ul>`
-        : `<p class="why">Nothing changed from ${esc(baseName(m).toLowerCase())}.</p>`)
+        ? `<div class="ba"><figure>${art(m, DEFS[m.id], { compare: true })}<figcaption>${esc(baseName(m))}</figcaption></figure><figure>${art(m, ST[m.id], { compare: true })}<figcaption>Proposed</figcaption></figure></div>`
+          + `<ul class="rv">${(open ? ch : ch.slice(0, SHOW)).map(row).join('')}</ul>`
+          + (open ? '' : `<button class="chip ghost rvmore" data-expand="review.${m.id}">Show all ${ch.length} changes</button>`)
+        : '')
       + (warn.length ? `<ul class="warns">${warn.map((w) => `<li class="${w.soft ? 'soft' : ''}">${esc(w.t)}</li>`).join('')}</ul>` : '') + '</section>';
   }).join('');
-  const any = STUDIO.mods.some((m) => changedKeys(m.id).length);
-  return blocks
+  const any = total > 0;
+  // what changed at a glance, and the one decision that matters, before the detail
+  const summary = `<div class="rvtop"><p class="rvsum">${any ? `${total} change${total > 1 ? 's' : ''}: ${all.filter((x) => x.ch.length).map((x) => `<a href="#rv-${x.m.id}">${esc(x.m.name)} ${x.ch.length}</a>`).join(' · ')}` : 'Nothing has changed yet. Pick something in a studio, then come back.'}</p>`
     + `<div class="ctl"><div class="lrow"><span class="lbl" id="l_scope">How far should this reach?</span></div><div class="chips" role="group" aria-labelledby="l_scope">${SCOPES.map(([k, n]) => `<button class="chip" data-scope="${k}" aria-pressed="${SCOPE === k}">${n}</button>`).join('')}</div>`
-    + `<p class="desc">${SCOPE ? esc(SCOPES.find((x) => x[0] === SCOPE)[2]) : 'Choose one, so the agent knows whether to touch one place or the shared styles.'}</p></div>`
+    + `<p class="desc">${SCOPE ? esc(SCOPES.find((x) => x[0] === SCOPE)[2]) : 'Choose one, so the agent knows whether to touch one place or the shared styles.'}</p></div></div>`;
+  return summary + blocks
     + `<p class="checked">${esc(checkedLine())}</p>`
-    + `<details class="fine" data-fine="review"${UI.fine.review ? ' open' : ''}><summary>The exact proposal the agent receives</summary><pre class="spec">${esc(specText())}</pre></details>`
+    + `<details class="fine" data-fine="review"${UI.fine.review ? ' open' : ''}><summary><b>The exact proposal the agent receives</b></summary><pre class="spec">${esc(specText())}</pre></details>`
     + `<div class="prow"><button class="chip sm" data-act="export">Save to a file</button><button class="chip sm" data-act="import">Open a saved file</button>${any ? '<button class="chip sm" data-act="resetall">Put everything back</button>' : ''}<input type="file" id="importfile" accept="application/json,.json" hidden></div>`;
 }
 

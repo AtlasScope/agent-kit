@@ -50,7 +50,7 @@ Build only the studios asked for. "The checkout button" is `button`. "Our colour
 
 4. **Open it.** `node <skill>/scripts/studio.mjs open <dir>` prints `URL: ...`; add `--at button/material` or `--at palette` to open straight where the user pointed. Open it in your own browser panel, or give the link if you have none. The address stays the same across restarts. Confirm the first look reproduces today's design, there are no console errors, and the Computer and Phone views both look right. If you can run JavaScript in the page, `studioCheck()` lists choices that draw exactly like another; fix or remove any you added.
 
-5. **Listen.** Start `node <skill>/scripts/studio.mjs wait <dir>` in the background. It exits with one of:
+5. **Listen, the whole time the studio is open.** Start `node <skill>/scripts/studio.mjs wait <dir>` in the background, and start it again the moment it returns, so a click on More … choices reaches you at once (the page shows "Agent listening"). When nothing is listening the page offers Send now (copies the request for the chat) or Keep in queue; a request pasted from the page is the same as one from `wait`. It exits with one of:
    - `MORE: {json}`: a request for more choices. Handle it as below, then start `wait` again.
    - `MODULE: name`: the user wants another studio in the workspace. Read the project for it, run `studio.mjs add <dir> <name>`, fill its part of `PROJECT`, run `check`, start `wait` again. The page reloads on its own and keeps every pick.
    - `SPEC:` ... `END SPEC`: a proposal. Treat it as the user pasting it into the chat. Say what you received and what it would touch. Build only when they say so.

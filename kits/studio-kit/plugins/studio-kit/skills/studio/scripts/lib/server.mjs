@@ -63,6 +63,7 @@ export function serve(dir) {
     queue.push({ ...item, at: new Date().toISOString() });
     persist();
     flush();
+    broadcast(); // the page shows what is waiting, and sees it go once the agent takes it
   }
   /* Hands the whole queue to one live waiter. If that connection closes before the reply is sent, the items go
      back on the queue for the next wait. */

@@ -537,6 +537,23 @@ details.fine[open]>.ctl:not(:last-child){border-bottom:0}
 .ask .askrow input{padding:8px 12px;font-size:13.5px}
 .ask .askrow .go{padding:8px 14px;font-size:13.5px}
 .looks+.ask,.lrow.ideas~.ask{margin-top:20px}
+.away{margin-top:12px;padding:12px 14px;border-radius:10px;background:color-mix(in oklab,var(--c-warm) 9%,var(--s1));border:1px solid color-mix(in oklab,var(--c-warm) 40%,transparent)}
+.away p{margin:0 0 10px;font-size:13px;line-height:1.45;color:var(--c-fg-2)}
+.away p b{color:var(--fg);font-weight:600}
+.awayb{display:flex;flex-wrap:wrap;gap:8px}
+.awayb .go{padding:8px 16px;font-size:13.5px}
+/* Review: the count and the reach first, colour dots beside colour codes, long lists shortened */
+.rvtop{margin:0 0 6px;padding:14px 16px 2px;border-radius:12px;background:var(--s1);border:1px solid var(--line)}
+.rvsum{margin:0 0 12px;font-size:14px;color:var(--c-fg-2)}
+.rvsum a{color:var(--fg);text-decoration:none;border-bottom:1px solid var(--line-2)}
+.rvsum a:hover{border-bottom-color:var(--c-brand)}
+.rvtop .ctl{padding-bottom:12px}
+.rvm h3{display:flex;align-items:baseline;gap:10px}
+.rvn{font-size:12.5px;font-weight:500;color:var(--mut)}
+.rvsw{display:inline-block;width:11px;height:11px;margin-right:5px;border-radius:3px;vertical-align:-1px;box-shadow:inset 0 0 0 1px var(--line-2)}
+.rv li s .rvsw{opacity:.6}
+.rvmore{margin-top:8px}
+.msg .chip{margin:0 2px}
 
 /* ===== the example page ("In a page"). Every colour and type value is a custom property a studio may set; see scene.js ===== */
 .scene{--sc-bg:transparent;--sc-surface:rgba(255,255,255,.055);--sc-line:rgba(255,255,255,.12);--sc-control:rgba(255,255,255,.3);--sc-fg:#f3f5f4;--sc-fg2:#b4bdba;--sc-fg3:#8b9592;--sc-accent:#8ab4ff;--sc-fill:#f3f5f4;--sc-on-fill:#0b0e0d;--sc-ok:#4ade80;--sc-warn:#f5b94a;--sc-bad:#f87171;
@@ -3863,12 +3880,13 @@ function askHTML() {
   const m = AM(), w = askWhere(), p = UI.pending, cat = NAV.cat[m.id], g = m.groups.find((x) => x.id === cat), s = AS();
   const items = g ? g.ctl.filter((c) => shown(c, s) && !isFine(c) && c.more !== false && (c.t === 'swatches' || (c.t === 'chips' && c.opts.length > 3))).map((c) => ({ id: c.id, what: c.label.toLowerCase() + (c.t === 'swatches' ? 's' : ' choices') })) : [{ id: '@looks', what: 'ideas' }];
   const live = p && Date.now() - p.at < 15 * 60e3;
-  const status = !live ? '' : p.sent
+  const status = !live ? '' : p.kind === 'agent'
     ? `<p class="wait"><span class="spin"></span> The agent is adding to ${esc(p.name)}. New ones arrive here marked New; your picks stay.</p>`
-    : `<p class="wait">Your request for ${esc(p.name)} is waiting for the agent. Say “check the studio” in the chat to have it look now.</p>`;
+    : p.kind === 'queued' ? `<p class="wait">Your request for ${esc(p.name)} is in the queue. Say “check the studio” in the chat and the agent picks it up.</p>`
+    : `<p class="wait">Your request for ${esc(p.name)} is copied. Paste it in the chat and the agent adds it here.</p>`;
   return `<div class="ask" id="askbox"><div class="quick"><label for="ask"><svg class="spark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.5 2.5M15.2 15.2l2.5 2.5M6.3 17.7l2.5-2.5M15.2 8.8l2.5-2.5"/></svg>Want more options?</label>${items.map((x) => `<button class="go q morego" data-moreask="${esc(x.id)}">More ${esc(x.what)} <span aria-hidden="true">→</span></button>`).join('')}<button class="chip" data-quick="different">Something different</button><button class="chip" data-quick="what">What else could change?</button></div>`
     + `<div class="askrow"><input id="ask" type="text" maxlength="400" value="${esc(UI.ask.text)}" placeholder="Or describe what you want${w.ctl ? ' for ' + esc(w.name) : ''}, and the agent adds it here…"><button class="go q" data-act="ask">${STATUS.live ? 'Ask agent →' : 'Copy request'}</button></div>`
-    + status + '</div>';
+    + (AWAY ? `<div class="away"><p><b>The agent is not watching the studio right now.</b> Send now copies your request for the chat, where it starts at once. Keep in queue saves it for the next time it looks.</p><div class="awayb"><button class="go morego" data-act="sendnow">Send now</button><button class="go q" data-act="queue">Keep in queue</button><button class="chip" data-act="awaycancel">Cancel</button></div></div>` : status) + '</div>';
 }
 
 /* ---- Looks, a category, Review ---- */
@@ -3951,22 +3969,32 @@ function checkedLine() {
   const b = UI.seen.bg.map((v) => (BGS.find((x) => x[0] === v) || [v, v])[1].toLowerCase());
   return `Looked at on ${list(d) || 'one device'}, against ${list(b) || 'one background'}${UI.seen.mode.includes('context') ? ', in the example page' : ''}; less motion ${UI.seen.rm ? 'tried' : 'not tried'}.`;
 }
+/** A value as Review shows it: a colour gets a dot of itself beside its code. */
+const showVal = (v) => (/^#[0-9A-F]{6}$/i.test(String(v)) ? `<i class="rvsw" style="background:${esc(v)}"></i>${esc(v)}` : esc(v));
 function reviewHTML() {
-  const blocks = STUDIO.mods.map((m) => {
-    const ch = changes(m), warn = m.warn ? m.warn(ST[m.id]) : [];
-    const rows = ch.map((x) => `<li><b>${esc(x.label)}</b><span><s>${esc(x.from)}</s>${x.known === 'not measured' ? ' <i>(not measured)</i>' : ''} → ${esc(x.to)}</span><button class="addc" data-goctl="${x.c.id}">Change</button></li>`).join('');
-    return `<section class="rvm"><h3>${esc(cap(m.title()))}</h3>`
+  const SHOW = 6; // a long list shows this many, then the rest on request
+  const all = STUDIO.mods.map((m) => ({ m, ch: changes(m) }));
+  const total = all.reduce((n, x) => n + x.ch.length, 0);
+  const blocks = all.map(({ m, ch }) => {
+    const warn = m.warn ? m.warn(ST[m.id]) : [];
+    const row = (x) => `<li><b>${esc(x.label)}</b><span><s>${showVal(x.from)}</s>${x.known === 'not measured' ? ' <i>(not measured)</i>' : ''} → ${showVal(x.to)}</span><button class="addc" data-goctl="${x.c.id}">Change</button></li>`;
+    const open = UI.expanded['review.' + m.id] || ch.length <= SHOW + 2;
+    return `<section class="rvm" id="rv-${m.id}"><h3>${esc(cap(m.title()))}<span class="rvn">${ch.length ? `${ch.length} change${ch.length > 1 ? 's' : ''}` : 'unchanged'}</span></h3>`
       + (ch.length
-        ? `<div class="ba"><figure>${art(m, DEFS[m.id], { compare: true })}<figcaption>${esc(baseName(m))}</figcaption></figure><figure>${art(m, ST[m.id], { compare: true })}<figcaption>Proposed</figcaption></figure></div><ul class="rv">${rows}</ul>`
-        : `<p class="why">Nothing changed from ${esc(baseName(m).toLowerCase())}.</p>`)
+        ? `<div class="ba"><figure>${art(m, DEFS[m.id], { compare: true })}<figcaption>${esc(baseName(m))}</figcaption></figure><figure>${art(m, ST[m.id], { compare: true })}<figcaption>Proposed</figcaption></figure></div>`
+          + `<ul class="rv">${(open ? ch : ch.slice(0, SHOW)).map(row).join('')}</ul>`
+          + (open ? '' : `<button class="chip ghost rvmore" data-expand="review.${m.id}">Show all ${ch.length} changes</button>`)
+        : '')
       + (warn.length ? `<ul class="warns">${warn.map((w) => `<li class="${w.soft ? 'soft' : ''}">${esc(w.t)}</li>`).join('')}</ul>` : '') + '</section>';
   }).join('');
-  const any = STUDIO.mods.some((m) => changedKeys(m.id).length);
-  return blocks
+  const any = total > 0;
+  // what changed at a glance, and the one decision that matters, before the detail
+  const summary = `<div class="rvtop"><p class="rvsum">${any ? `${total} change${total > 1 ? 's' : ''}: ${all.filter((x) => x.ch.length).map((x) => `<a href="#rv-${x.m.id}">${esc(x.m.name)} ${x.ch.length}</a>`).join(' · ')}` : 'Nothing has changed yet. Pick something in a studio, then come back.'}</p>`
     + `<div class="ctl"><div class="lrow"><span class="lbl" id="l_scope">How far should this reach?</span></div><div class="chips" role="group" aria-labelledby="l_scope">${SCOPES.map(([k, n]) => `<button class="chip" data-scope="${k}" aria-pressed="${SCOPE === k}">${n}</button>`).join('')}</div>`
-    + `<p class="desc">${SCOPE ? esc(SCOPES.find((x) => x[0] === SCOPE)[2]) : 'Choose one, so the agent knows whether to touch one place or the shared styles.'}</p></div>`
+    + `<p class="desc">${SCOPE ? esc(SCOPES.find((x) => x[0] === SCOPE)[2]) : 'Choose one, so the agent knows whether to touch one place or the shared styles.'}</p></div></div>`;
+  return summary + blocks
     + `<p class="checked">${esc(checkedLine())}</p>`
-    + `<details class="fine" data-fine="review"${UI.fine.review ? ' open' : ''}><summary>The exact proposal the agent receives</summary><pre class="spec">${esc(specText())}</pre></details>`
+    + `<details class="fine" data-fine="review"${UI.fine.review ? ' open' : ''}><summary><b>The exact proposal the agent receives</b></summary><pre class="spec">${esc(specText())}</pre></details>`
     + `<div class="prow"><button class="chip sm" data-act="export">Save to a file</button><button class="chip sm" data-act="import">Open a saved file</button>${any ? '<button class="chip sm" data-act="resetall">Put everything back</button>' : ''}<input type="file" id="importfile" accept="application/json,.json" hidden></div>`;
 }
 
@@ -4149,6 +4177,7 @@ function conn() {
   const c = $('conn'), t = c.querySelector('span');
   c.className = 'conn' + (STATUS.live && STATUS.listening ? ' on' : '');
   c.hidden = STATUS.live && !STATUS.listening && !STATUS.queued; // all is well: say nothing
+  if (UI.pending && UI.pending.kind === 'queued' && STATUS.live && STATUS.queued === 0 && Date.now() - UI.pending.at > 1500) { UI.pending.kind = 'agent'; if (typeof renderPanel === 'function') renderPanel(); } // the agent took it from the queue
   t.textContent = STATUS.live ? (STATUS.listening ? 'Agent listening' : STATUS.queued ? `${STATUS.queued} waiting for the agent` : 'Agent connected') : STATUS.cloud ? 'Saved on this page' : LIVE ? 'Not connected · buttons copy text' : 'Offline · buttons copy text';
   c.title = STATUS.live ? (STATUS.listening ? 'What you send reaches the agent now.' : 'What you send is kept, and reaches the agent when it next listens. Say “check the studio” in the chat if it seems to have stopped.')
     : STATUS.cloud ? 'Your choices and requests are saved on this page, where the agent can read them. Buttons also copy a message for you to paste in the chat.'
@@ -4226,20 +4255,45 @@ function cloudSentMsg(copied, kept, words, after) {
   return `Could not copy or save. Tell the agent in the chat: ${esc(words)}`;
 }
 /** Hands one request to the agent by whichever way is open: the local server, the claude.ai store, or the clipboard. */
-async function deliver(payload, words, okMsg, after) {
-  let sent = false;
+/* Sending to the agent. Listening: it goes straight there. Connected but not listening: the person chooses Send now
+   (the request is copied for the chat, where the agent starts at once) or Keep in queue (saved for when it next
+   looks); nothing pretends to be working. Offline: copied. done(kind) learns which: agent, queued or copied. */
+let AWAY = null;
+async function deliver(payload, words, okMsg, after, done = () => {}) {
   if (CLOUD) {
     const copied = await copyText(words), kept = await cloudSend(Object.assign({ words }, payload)); // copy first, while the click still counts
     msg(cloudSentMsg(copied, kept, words, after), copied || kept ? 'ok' : 'warn', true);
+    done(kept ? 'queued' : 'copied');
     return kept;
   }
-  if (STATUS.live) { try { await api('/api/send', payload); sent = true; } catch {} }
-  if (sent) msg(okMsg + (STATUS.listening ? '' : ' The agent is not listening right now; it is kept until it does. Saying “check the studio” in the chat wakes it.'), 'ok', !STATUS.listening);
-  else {
-    const ok = await copyText(words);
-    msg(ok ? `Copied. Paste it in the chat with the agent. ${after}` : `Could not copy. Tell the agent: ${esc(words)}`, 'warn', true);
+  if (STATUS.live && STATUS.listening) {
+    try { await api('/api/send', payload); msg(okMsg, 'ok'); done('agent'); return true; } catch {}
   }
-  return sent;
+  if (STATUS.live) {
+    AWAY = { payload, words, after, done, name: payload.stepName || '' };
+    if (!NAV.review && typeof renderPanel === 'function') renderPanel(); // the choice appears in the box that was clicked
+    else msg('The agent is not watching the studio right now. <button class="chip sm" data-act="sendnow">Send now</button> <button class="chip sm" data-act="queue">Keep in queue</button>', 'warn', true);
+    return false;
+  }
+  const ok = await copyText(words);
+  msg(ok ? `Copied. Paste it in the chat with the agent. ${after}` : `Could not copy. Tell the agent: ${esc(words)}`, 'warn', true);
+  done('copied');
+  return false;
+}
+async function sendNow() {
+  if (!AWAY) return;
+  const a = AWAY; AWAY = null;
+  const ok = await copyText(a.words);
+  renderPanel();
+  msg(ok ? 'Copied. Paste it in the chat with the agent (Ctrl+V, then Enter) and it starts now. New choices arrive here on their own.' : `Could not copy. Tell the agent: ${esc(a.words)}`, ok ? 'ok' : 'warn', true);
+  a.done('copied');
+}
+async function keepQueued() {
+  if (!AWAY) return;
+  const a = AWAY; AWAY = null;
+  renderPanel();
+  try { await api('/api/send', a.payload); msg('Kept in the queue. The agent picks it up the next time it looks; say “check the studio” in the chat to make that now.', 'ok'); a.done('queued'); }
+  catch { msg('Could not reach the studio’s server. Use Send now instead.', 'warn', true); AWAY = a; }
 }
 
 const INTENTS = { more: 'More choices for this, clearly different from the ones already here and suited to this project.', like: 'More choices in the spirit of the current one.', different: 'Something completely different from everything here.', what: 'What else could change here that the studio does not offer yet? Add it.' };
@@ -4258,11 +4312,12 @@ async function sendAsk(intent, key = null) {
   };
   const words = `Studio (${P.name}, ${m.title()}): add choices to ${c ? `“${c.label}” under ${w.group.t}` : w.group ? w.group.t : `the ${m.name} looks`}. `
     + (intent ? INTENTS[intent] + ' ' : '') + (wish ? 'What I want: ' + wish + (/[.!?]$/.test(wish) ? '' : '.') : '') + (c ? ` Current choice: ${curName}.` : '');
-  const sent = await deliver(payload, words, `Asked the agent to add to ${esc(w.name)}. New choices arrive here on their own, marked New.`, 'When it is done this page updates and keeps your choices.');
-  UI.pending = { name: w.name, at: Date.now(), sent, key };
   UI.ask = { target: null, text: '' };
+  await deliver(payload, words, `The agent has your request for ${esc(w.name)}. New choices arrive here on their own, marked New.`, 'When it is done this page updates and keeps your choices.', (kind) => {
+    UI.pending = { name: w.name, at: Date.now(), kind, key };
+    renderPanel(); save(true);
+  });
   renderPanel();
-  save(true);
 }
 async function sendModule(id) {
   const name = (AVAILABLE.find((x) => x[0] === id) || [id, id])[1];
@@ -4277,11 +4332,8 @@ async function sendSpec() {
     if (!copied && !kept) return msg('Could not copy or save. Open “The exact proposal” and copy it from there.', 'warn', true);
     return msg(cloudSentMsg(copied, kept, '', 'Nothing is built until you say so.'), 'ok', true);
   }
-  if (STATUS.live) {
-    try { await api('/api/send', { kind: 'spec', text }); msg('Sent to the agent as a proposal. Nothing is built until you tell it to in the chat.', 'ok'); return; } catch {}
-  }
-  const ok = await copyText(text);
-  msg(ok ? 'Copied. Paste it in the chat with the agent.' : 'Could not copy. Open “The exact proposal” and copy it from there.', ok ? 'ok' : 'warn');
+  // the same honest path as every other request: straight to a listening agent, or Send now / Keep in queue
+  await deliver({ kind: 'spec', text }, text, 'The agent has your proposal. Nothing is built until you tell it to in the chat.', 'Nothing is built until you say so.');
 }
 
 /* ---- studio/events.js ---- */
@@ -4417,6 +4469,9 @@ const ACTIONS = {
   export: exportFile,
   import: () => $('importfile').click(),
   resetall: resetAll,
+  sendnow: () => sendNow(),
+  queue: () => keepQueued(),
+  awaycancel: () => { AWAY = null; renderPanel(); },
   next: () => { const n = nextStep(); go(n.mod, n.cat); },
   prev: () => { const p = prevStep(); if (p) go(p.mod, p.cat); },
   pin: () => pinNow(),
@@ -4645,7 +4700,7 @@ function studioCheck() {
     msg(newCats.length ? `Something new to change: <b>${esc(list(newCats))}</b>, with its choices drawn and marked New. Everything you picked and pinned is still here.`
       : `${added.length} new choice${added.length > 1 ? 's' : ''} added${UI.pending ? ' to ' + esc(UI.pending.name) : ''}, marked New. Everything you picked is still selected.`, 'ok');
     UI.pending = null;
-  } else if (!(UI.pending && UI.pending.sent && Date.now() - UI.pending.at < 15 * 60e3)) UI.pending = null;
+  } else if (!(UI.pending && UI.pending.kind && Date.now() - UI.pending.at < 15 * 60e3)) UI.pending = null;
 
   const m = AM();
   if (m.onNav) m.onNav();

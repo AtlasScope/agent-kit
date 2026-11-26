@@ -7,6 +7,7 @@ function conn() {
   const c = $('conn'), t = c.querySelector('span');
   c.className = 'conn' + (STATUS.live && STATUS.listening ? ' on' : '');
   c.hidden = STATUS.live && !STATUS.listening && !STATUS.queued; // all is well: say nothing
+  if (UI.pending && UI.pending.kind === 'queued' && STATUS.live && STATUS.queued === 0 && Date.now() - UI.pending.at > 1500) { UI.pending.kind = 'agent'; if (typeof renderPanel === 'function') renderPanel(); } // the agent took it from the queue
   t.textContent = STATUS.live ? (STATUS.listening ? 'Agent listening' : STATUS.queued ? `${STATUS.queued} waiting for the agent` : 'Agent connected') : STATUS.cloud ? 'Saved on this page' : LIVE ? 'Not connected · buttons copy text' : 'Offline · buttons copy text';
   c.title = STATUS.live ? (STATUS.listening ? 'What you send reaches the agent now.' : 'What you send is kept, and reaches the agent when it next listens. Say “check the studio” in the chat if it seems to have stopped.')
     : STATUS.cloud ? 'Your choices and requests are saved on this page, where the agent can read them. Buttons also copy a message for you to paste in the chat.'
@@ -84,20 +85,45 @@ function cloudSentMsg(copied, kept, words, after) {
   return `Could not copy or save. Tell the agent in the chat: ${esc(words)}`;
 }
 /** Hands one request to the agent by whichever way is open: the local server, the claude.ai store, or the clipboard. */
-async function deliver(payload, words, okMsg, after) {
-  let sent = false;
+/* Sending to the agent. Listening: it goes straight there. Connected but not listening: the person chooses Send now
+   (the request is copied for the chat, where the agent starts at once) or Keep in queue (saved for when it next
+   looks); nothing pretends to be working. Offline: copied. done(kind) learns which: agent, queued or copied. */
+let AWAY = null;
+async function deliver(payload, words, okMsg, after, done = () => {}) {
   if (CLOUD) {
     const copied = await copyText(words), kept = await cloudSend(Object.assign({ words }, payload)); // copy first, while the click still counts
     msg(cloudSentMsg(copied, kept, words, after), copied || kept ? 'ok' : 'warn', true);
+    done(kept ? 'queued' : 'copied');
     return kept;
   }
-  if (STATUS.live) { try { await api('/api/send', payload); sent = true; } catch {} }
-  if (sent) msg(okMsg + (STATUS.listening ? '' : ' The agent is not listening right now; it is kept until it does. Saying “check the studio” in the chat wakes it.'), 'ok', !STATUS.listening);
-  else {
-    const ok = await copyText(words);
-    msg(ok ? `Copied. Paste it in the chat with the agent. ${after}` : `Could not copy. Tell the agent: ${esc(words)}`, 'warn', true);
+  if (STATUS.live && STATUS.listening) {
+    try { await api('/api/send', payload); msg(okMsg, 'ok'); done('agent'); return true; } catch {}
   }
-  return sent;
+  if (STATUS.live) {
+    AWAY = { payload, words, after, done, name: payload.stepName || '' };
+    if (!NAV.review && typeof renderPanel === 'function') renderPanel(); // the choice appears in the box that was clicked
+    else msg('The agent is not watching the studio right now. <button class="chip sm" data-act="sendnow">Send now</button> <button class="chip sm" data-act="queue">Keep in queue</button>', 'warn', true);
+    return false;
+  }
+  const ok = await copyText(words);
+  msg(ok ? `Copied. Paste it in the chat with the agent. ${after}` : `Could not copy. Tell the agent: ${esc(words)}`, 'warn', true);
+  done('copied');
+  return false;
+}
+async function sendNow() {
+  if (!AWAY) return;
+  const a = AWAY; AWAY = null;
+  const ok = await copyText(a.words);
+  renderPanel();
+  msg(ok ? 'Copied. Paste it in the chat with the agent (Ctrl+V, then Enter) and it starts now. New choices arrive here on their own.' : `Could not copy. Tell the agent: ${esc(a.words)}`, ok ? 'ok' : 'warn', true);
+  a.done('copied');
+}
+async function keepQueued() {
+  if (!AWAY) return;
+  const a = AWAY; AWAY = null;
+  renderPanel();
+  try { await api('/api/send', a.payload); msg('Kept in the queue. The agent picks it up the next time it looks; say “check the studio” in the chat to make that now.', 'ok'); a.done('queued'); }
+  catch { msg('Could not reach the studio’s server. Use Send now instead.', 'warn', true); AWAY = a; }
 }
 
 const INTENTS = { more: 'More choices for this, clearly different from the ones already here and suited to this project.', like: 'More choices in the spirit of the current one.', different: 'Something completely different from everything here.', what: 'What else could change here that the studio does not offer yet? Add it.' };
@@ -116,11 +142,12 @@ async function sendAsk(intent, key = null) {
   };
   const words = `Studio (${P.name}, ${m.title()}): add choices to ${c ? `“${c.label}” under ${w.group.t}` : w.group ? w.group.t : `the ${m.name} looks`}. `
     + (intent ? INTENTS[intent] + ' ' : '') + (wish ? 'What I want: ' + wish + (/[.!?]$/.test(wish) ? '' : '.') : '') + (c ? ` Current choice: ${curName}.` : '');
-  const sent = await deliver(payload, words, `Asked the agent to add to ${esc(w.name)}. New choices arrive here on their own, marked New.`, 'When it is done this page updates and keeps your choices.');
-  UI.pending = { name: w.name, at: Date.now(), sent, key };
   UI.ask = { target: null, text: '' };
+  await deliver(payload, words, `The agent has your request for ${esc(w.name)}. New choices arrive here on their own, marked New.`, 'When it is done this page updates and keeps your choices.', (kind) => {
+    UI.pending = { name: w.name, at: Date.now(), kind, key };
+    renderPanel(); save(true);
+  });
   renderPanel();
-  save(true);
 }
 async function sendModule(id) {
   const name = (AVAILABLE.find((x) => x[0] === id) || [id, id])[1];
@@ -135,9 +162,6 @@ async function sendSpec() {
     if (!copied && !kept) return msg('Could not copy or save. Open “The exact proposal” and copy it from there.', 'warn', true);
     return msg(cloudSentMsg(copied, kept, '', 'Nothing is built until you say so.'), 'ok', true);
   }
-  if (STATUS.live) {
-    try { await api('/api/send', { kind: 'spec', text }); msg('Sent to the agent as a proposal. Nothing is built until you tell it to in the chat.', 'ok'); return; } catch {}
-  }
-  const ok = await copyText(text);
-  msg(ok ? 'Copied. Paste it in the chat with the agent.' : 'Could not copy. Open “The exact proposal” and copy it from there.', ok ? 'ok' : 'warn');
+  // the same honest path as every other request: straight to a listening agent, or Send now / Keep in queue
+  await deliver({ kind: 'spec', text }, text, 'The agent has your proposal. Nothing is built until you tell it to in the chat.', 'Nothing is built until you say so.');
 }

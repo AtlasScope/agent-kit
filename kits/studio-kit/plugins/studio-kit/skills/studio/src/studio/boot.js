@@ -110,7 +110,7 @@ function studioCheck() {
     msg(newCats.length ? `Something new to change: <b>${esc(list(newCats))}</b>, with its choices drawn and marked New. Everything you picked and pinned is still here.`
       : `${added.length} new choice${added.length > 1 ? 's' : ''} added${UI.pending ? ' to ' + esc(UI.pending.name) : ''}, marked New. Everything you picked is still selected.`, 'ok');
     UI.pending = null;
-  } else if (!(UI.pending && UI.pending.sent && Date.now() - UI.pending.at < 15 * 60e3)) UI.pending = null;
+  } else if (!(UI.pending && UI.pending.kind && Date.now() - UI.pending.at < 15 * 60e3)) UI.pending = null;
 
   const m = AM();
   if (m.onNav) m.onNav();
