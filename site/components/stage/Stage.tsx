@@ -185,7 +185,11 @@ export function Stage({ children }: { children: React.ReactNode }) {
       if (booted) return;
       booted = true;
       if (softwareGL()) return;
-      const loaded = new Promise<void>((done) => { if (document.readyState === "complete") done(); else addEventListener("load", () => done(), { once: true }); });
+      // After the page has loaded; on a phone also after a short pause, so the words' entrance and a first tap never
+      // share the main thread with the scene's code and maps arriving. The still covers until the scene is ready.
+      const touch = matchMedia("(pointer: coarse)").matches;
+      const loaded = new Promise<void>((done) => { if (document.readyState === "complete") done(); else addEventListener("load", () => done(), { once: true }); })
+        .then(() => touch ? new Promise<void>((done) => setTimeout(done, 1600)) : undefined);
       loaded.then(() => import("../horizon")).then((m) => {
         if (gone) return;
         try { stage = m.createStage(cv, { direction: m.DIRECTIONS[VIEW], tall: () => matchMedia(TALL).matches, meter: METER, onError: () => {} }); } catch { stage = null; }

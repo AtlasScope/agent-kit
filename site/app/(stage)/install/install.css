@@ -99,15 +99,14 @@
 .stage[data-shift="install"] .inst__head { animation: step-in 420ms var(--ease-out) 560ms both; }
 .inst__msg kbd { height: 1.7em; min-width: 1.7em; font-size: .75rem; }
 
-/* The agents: three equal tiles in the homepage button's family. Each has its own light (--ag, --ag-hi): Claude Code
-   warm, Codex silver, Cursor ice blue. A lit rim brighter at the top, a glow of its colour inside and out; hover
-   charges it. */
+/* The agents: three identical tiles, a quieter version of the homepage's Install button: its cyan (--ag, --ag-hi), a
+   lit rim brighter at the top, a soft glow inside and out, the agent's own mark in white; hover charges it. */
 .inst__agents { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 18px 18px 18px; }
-.inst__agent { --ag: oklch(80% .1 212); --ag-hi: oklch(93% .07 210); --charge: 0;
+.inst__agent { --ag: oklch(82% .19 212); --ag-hi: oklch(93% .12 208); --charge: 0;
   position: relative; isolation: isolate; display: grid; justify-items: center; align-content: center; gap: 10px; min-height: 104px; padding: 16px 10px 14px; border-radius: 18px;
-  color: var(--ag-hi); font: 600 1rem/1.1 var(--font-body); letter-spacing: -0.012em; text-decoration: none; text-align: center; -webkit-tap-highlight-color: transparent;
+  color: #fff; font: 600 1rem/1.1 var(--font-body); letter-spacing: -0.012em; text-decoration: none; text-align: center; -webkit-tap-highlight-color: transparent;
   background:
-    radial-gradient(120% 90% at 50% -10%, color-mix(in oklch, var(--ag) calc(16% + 12% * var(--charge)), transparent), transparent 62%),
+    radial-gradient(120% 90% at 50% -10%, color-mix(in oklch, var(--ag) calc(12% + 12% * var(--charge)), transparent), transparent 62%),
     linear-gradient(180deg, oklch(17% .01 240 / .9), oklch(10% .008 240 / .94));
   box-shadow: 0 0 calc(14px + 14px * var(--charge)) calc(-6px + 2px * var(--charge)) color-mix(in oklch, var(--ag) 70%, transparent), inset 0 0 calc(18px + 10px * var(--charge)) -10px var(--ag), 0 18px 34px -22px oklch(0% 0 0 / .9);
   text-shadow: 0 0 calc(10px * var(--charge)) color-mix(in oklch, var(--ag) 70%, transparent);
@@ -122,9 +121,6 @@
 .inst__agent .inst__ext { position: absolute; top: 12px; right: 12px; width: 13px; height: 13px; opacity: calc(.55 + .4 * var(--charge)); }
 .inst__agent:active { --charge: 1.2; transform: scale(.975); transition-duration: 70ms; }
 .inst__agent:focus-visible { --charge: .8; outline: 2px solid var(--c-focus); outline-offset: 3px; }
-.inst__agent[data-a-light="claude"] { --ag: oklch(72% .14 45); --ag-hi: oklch(86% .09 55); }
-.inst__agent[data-a-light="codex"] { --ag: oklch(84% .012 250); --ag-hi: oklch(98% .004 250); }
-.inst__agent[data-a-light="cursor"] { --ag: oklch(78% .12 228); --ag-hi: oklch(93% .07 218); }
 @property --charge { syntax: "<number>"; inherits: true; initial-value: 0; }
 /* After opening one: a line saying where it went. */
 .inst__opened { min-height: 0; margin: 0; padding: 0 24px; font-size: .875rem; line-height: 1.5; color: var(--t2); text-align: center; }

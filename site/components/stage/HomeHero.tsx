@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { clearHandoff, saveHandoff } from "../install-choice";
+import { useEffect } from "react";
+import { COPIED_KEY, clearHandoff, saveHandoff } from "../install-choice";
 import { HERO, INSTALL_MESSAGE, SITE } from "@/lib/site";
 
 // The homepage's words: what Agent Kit is, in a headline and one line, and one action. The view from orbit behind
@@ -18,10 +19,18 @@ import { HERO, INSTALL_MESSAGE, SITE } from "@/lib/site";
 // navigation, where the stage's own arrival plays instead).
 const LOADED = `try{var e=document.currentScript.parentElement;if(!matchMedia("(prefers-reduced-motion: reduce)").matches)e.setAttribute("data-load","")}catch(e){}`;
 export const HANDOFF_EVENT = "agent-kit:handoff";
+// A press before the page's scripts have started (a moment on a phone) would otherwise follow the plain link and copy
+// nothing. This runs with the page's first bytes: until the hero has mounted (window.__akHero), it copies on the press,
+// saves the same hand-off the hero does, and goes to /install once the clipboard has answered. The hero's own handler
+// takes over once it mounts.
+const EARLY = `document.addEventListener("click",function(v){var a=v.target&&v.target.closest&&v.target.closest(".launch__go");if(!a||window.__akHero||v.metaKey||v.ctrlKey||v.shiftKey||v.altKey||v.button)return;v.preventDefault();var k=${JSON.stringify(COPIED_KEY)},go=function(h){try{h.at=Date.now();sessionStorage.setItem(k,JSON.stringify(h))}catch(x){}location.assign(a.href)};try{sessionStorage.removeItem(k);navigator.clipboard.writeText(${JSON.stringify(INSTALL_MESSAGE)}).then(function(){go({message:true})},function(){go({blocked:true})})}catch(x){go({blocked:true})}},true);`;
 // Arriving at the guide from Start here, a new visitor is offered a free account there (StartWelcome.tsx).
 const markStartHere = () => { try { sessionStorage.setItem("agent-kit:start-here", String(Date.now())); } catch {} };
 
+declare global { interface Window { __akHero?: boolean } }
+
 export function HomeHero() {
+  useEffect(() => { window.__akHero = true; }, []);
   const install = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;
     // A result left by an earlier press (within its 10-second life) must not answer for this one: clear it before
@@ -41,7 +50,7 @@ export function HomeHero() {
   const lines = HERO.headline.split(" ");
   return (
     <section className="hero" aria-labelledby="hero-h" suppressHydrationWarning>
-      <script dangerouslySetInnerHTML={{ __html: LOADED }} />
+      <script dangerouslySetInnerHTML={{ __html: LOADED + EARLY }} />
       <div className="hero__msg">
         <h1 id="hero-h">{lines.map((w, i) => <span key={i} className="hero__w" style={{ "--i": i } as React.CSSProperties}>{w}{i < lines.length - 1 ? " " : ""}</span>)}</h1>
         <p className="hero__lede">Skills and prompts for Claude Code, Codex and Cursor.</p>
