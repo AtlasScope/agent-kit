@@ -6,7 +6,7 @@ import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import crypto from "node:crypto";
-import { syntaxProblems } from "./check.mjs";
+import { syntaxProblems, extensionProblems } from "./check.mjs";
 
 export const metaDir = (dir) => path.join(dir, ".studio");
 export const readJSON = (f, fallback) => { try { return JSON.parse(fs.readFileSync(f, "utf8")); } catch { return fallback; } };
@@ -44,12 +44,13 @@ export function serve(dir) {
     const html = fs.readFileSync(file, "utf8");
     const hash = crypto.createHash("sha1").update(html).digest("hex").slice(0, 12);
     const problems = syntaxProblems(html);
+    if (!problems.length) problems.push(...extensionProblems(html)); // a broken new category keeps the last good page too
     if (!problems.length || !good) { good = html; version = hash; }
     ok = !problems.length;
     error = problems.join("; ");
     if (!ok && !reportedBroken.has(hash)) {
       reportedBroken.add(hash);
-      push({ kind: "error", message: `The last edit to index.html does not parse, so the page still shows the version before it: ${error}` });
+      push({ kind: "error", message: `The last edit to index.html has a mistake, so the page still shows the version before it: ${error}` });
     }
   }
   const page = () => good.replace("</head>", `<meta name="studio-version" content="${version}"></head>`);

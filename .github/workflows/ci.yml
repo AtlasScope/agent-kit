@@ -61,14 +61,15 @@ jobs:
           keen=$(has '^kits/design-kit/plugins/design-kit/skills/keen/(scripts|tests)/')
           engineer=$(has '^kits/engineering-kit/plugins/engineering-kit/skills/engineer/(scripts|tests)/')
           database=$(has '^kits/engineering-kit/plugins/engineering-kit/skills/database/(scripts|tests)/')
+          studio=$(has '^kits/studio-kit/plugins/studio-kit/skills/studio/(scripts|src|tests)/|^kits/design-kit/plugins/design-kit/skills/palette-builder/scripts/palette\.mjs$')
           ea=$(has '^kits/experience-architecture/(plugins/experience-architecture/scripts/|tests/(data/|journeys/|proposals/|[^/]+\.test\.mjs$)|fixtures/(northwind|fernway|kestrel)/|package(-lock)?\.json$)')
-          [ "$all" = true ] && site=true build=true unit=true browser=true library=true routing=true checker=true public=true catalog=true motion=true keen=true engineer=true database=true ea=true
+          [ "$all" = true ] && site=true build=true unit=true browser=true library=true routing=true checker=true public=true catalog=true motion=true keen=true engineer=true database=true studio=true ea=true
           # A required check always reports, but irrelevant changes need no checkout or install.
           checkout=false
-          for flag in "$site" "$library" "$routing" "$checker" "$public" "$catalog" "$motion" "$keen" "$engineer" "$database" "$ea"; do
+          for flag in "$site" "$library" "$routing" "$checker" "$public" "$catalog" "$motion" "$keen" "$engineer" "$database" "$studio" "$ea"; do
             [ "$flag" = true ] && checkout=true
           done
-          for name in site build unit browser library routing checker public catalog motion keen engineer database ea checkout; do
+          for name in site build unit browser library routing checker public catalog motion keen engineer database studio ea checkout; do
             echo "$name=${!name}" >> "$GITHUB_OUTPUT"
           done
 
@@ -131,6 +132,10 @@ jobs:
         env:
           KEEN_REQUIRE_BROWSER: "1"
         run: node --test "kits/design-kit/plugins/design-kit/skills/keen/tests/*.test.mjs"
+
+      - name: Test the Studio Kit build and checks
+        if: steps.changes.outputs.studio == 'true'
+        run: node --test "kits/studio-kit/plugins/studio-kit/skills/studio/tests/*.test.mjs"
 
       # The instruments read and clone Git repositories they make in temp folders; they need git, no browser.
       - name: Test the engineer instruments

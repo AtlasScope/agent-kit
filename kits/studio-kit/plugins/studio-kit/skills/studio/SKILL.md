@@ -9,7 +9,7 @@ metadata:
 
 # Studio
 
-The user names a project and what they want to explore: one thing ("the install button"), several ("our colours and type"), or nothing in particular. They get one live page. On the left a preview: on its own, in an example page with the project's words, pinned versions side by side, or every state at once. On the right, the studios they asked for as tabs, a short list of what can change, and every choice drawn with the real thing rather than named. They pick a finished look or go straight to one property, fine-tune with sliders, undo, pin up to three versions, and ask for things that are not there. **Review** shows what changed, before and after, and sends a proposal to the chat.
+The user names a project and what they want to explore: one thing ("the install button"), several ("our colours and type"), or nothing in particular. They get one live page that feels like shopping for designs. The studios they asked for are tabs; one row of categories sits under the page title; the catalogue of choices takes the main space, every choice drawn large with the real thing (the real words, near real size, labelled when scaled); the selected design sits in a compact preview card beside it, with the open category's fine adjustments under it. In a page, Compare (today, up to three pinned versions and now) and States take the whole workspace, with no device frame around a comparison. They pick a finished look or go straight to one property, undo, pin, and ask for things that are not there, including a whole new kind of choice. **Review** shows what changed, before and after, and sends a proposal to the chat.
 
 The page is the deliverable. A written list of recommendations, or a static file with no way to reach you, is a failure.
 
@@ -35,14 +35,14 @@ Build only the studios asked for. "The checkout button" is `button`. "Our colour
 
 2. **Make the studio.** `node <skill>/scripts/studio.mjs new <primary checkout>/.artifacts/design/<slug> --modules button,palette,type` (list only the ones wanted). The primary checkout is the parent of `git rev-parse --path-format=absolute --git-common-dir`, never a worktree. Make sure `.artifacts/` is ignored by git. Outside a repository use a `studio/<slug>` folder in the user's documents. Then fill only the `PROJECT` block at the top of its `index.html`:
    - `id`: a steady id such as `acme/checkout-button`. `name`: the project. `noun`: what the button is called ("install button").
-   - `measured`: true when `today` holds found values. The first look is then "Today" and today's choices carry a "now" tag.
+   - `measured`: true when `today` holds found values. The first look is then "Today", and today's choice comes first in every list with a Today tag.
    - `brand`: `[plain name, oklch hue, chroma, lightness]` of today's button colour, converted from hex.
    - `column`: width in px of the content column the button sits in on a computer. `pageBg`, `font`, `fontCss`: the page background, the button's font stack, and optional `@font-face` or `@import` CSS so that font loads. A font file copied into the studio folder is served beside the page.
    - `labels`: today's wording first, then 4 to 6 real alternatives in the product's voice, each `['text', 'why it fits']`. `subs`: optional second lines.
    - `action`: `done` (the word after pressing), `copy` (text the preview copies, only if the real button copies), `nextLine`, `nextSteps`, `cta`.
    - `choices`: when the button carries a choice (agent, plan, workspace): `noun` and `items` as `[name, colour, letter, description]`. With no items those parts drop out. `secondary`: quieter actions beside it.
    - `system`: how the project builds this today, as plain sentences. `today`: found values keyed like `DEFAULTS` (list at the end). `sources`: per key, how it was found. `dropSteps`: group ids that make no sense here (`motion`, `split`, `confirm`, `menu`).
-   - `context`: the project's own words for the example page: `eyebrow`, `headline`, `body`, `links`, `secondary`, `field`, `placeholder`, `hint`, `rows` as `[title, detail, tag]`, `code`. Without them the page shows stand-in words and says so.
+   - `context`: the project's own words for the example page: `eyebrow`, `headline`, `body`, `links`, `secondary`, `field`, `placeholder`, `hint`, `rows` as `[title, detail, tag]`, `code`. Without them the page shows stand-in words and says so. Reproduce the real surroundings of the target, not a generic page: `layout:'hero'` draws a landing page's single centred column (headline, `body` as its one line, the action, `note` under it, `secondary` as a link, `foot` as the small links), and `bg` names a stage background, such as the page's own picture added with `MORE.bg` and its CSS (embed it as a data URL; the page works offline). `real:false` keeps the label that says it is a representative page.
    - `palette` and `type`: read `references/palette.md` or `references/type.md` first when that studio is in the page.
    - A found value with no matching choice: add it to `MORE` with `{setup:true}` and its CSS, and set `today` to it.
 
@@ -76,9 +76,27 @@ Add 2 to 4 choices that fit, look clearly different from everything in `existing
 - A button choice needs CSS in `<style id="more-css">`: material `.m-NAME`, main movement `.i-NAME` (its `.fx` child is a clipped layer), light layer `.l-NAME`, hover `.h-NAME:hover` (inside `@media (hover:hover)`), press `.p-NAME:active` (use `!important` on transform), icon movement `.if-NAME`, entrance `.e-NAME`, shape `.sh-NAME` (or `set:{rr:...}`), keyboard outline `.f-NAME`, background `.device[data-bg=NAME]` (listed in `MORE.bg`), list style `.menu.NAME`. Animate whole-button movement with `translate`, `scale` or `rotate`, not `transform`. Use the engine's variables (`--ac`, `--ach`, `--acl`, `--h`, `--r`, `--spd`, `--dp`, `--on`) so colour, size and speed follow the picks.
 - An icon needs `<symbol id="i-NAME" viewBox="0 0 24 24">` after the `MORE ICONS` comment. A new after-press flow or layout needs a function in `MORE_JS.confirm[NAME]` or `MORE_JS.split[NAME]`.
 - Every name is plain and every sentence short. No design jargon in anything the user reads.
-- A new group of controls, or a new studio, is a change to the skill (`src/`), not to a page. Say so and offer it.
+- A new studio is a change to the skill (`src/`), not to a page. Say so and offer it. A new *kind of choice* inside a studio is not: see below.
 
-Run `check`, then start `wait` again. Saving the file is enough: the page notices, reloads, keeps every pick, pin and undo step, opens where the new choices are and marks them with a green dot. Look at them in the browser before saying they are there.
+### A new kind of choice ("What else could change?")
+
+When the request asks what else could change (`intent: what`), or asks for something no existing control covers, add a whole new category to the session in `MORE.dims`, not another value of an old key. Pick one that is genuinely absent and would visibly matter for this design (directional rim light, optical icon alignment, a texture), not a rename of something there.
+
+```js
+dims:[{ id:'rimLight', module:'button', t:'Rim light', sec:'Appearance', after:'material',
+  why:'Which edge catches the light.',
+  options:[['none','No rim','No extra light on the edge.'], ['top','From above','A bright rim along the top edge.'], ...],
+  default:'none',
+  ranges:[{ k:'rimK', label:'Rim brightness', min:0.2, max:1, step:0.05, default:0.6, hint:'Faint at the left, bright at the right.' }] }]
+```
+
+- `id` and each slider's `k`: letters and digits, starting with a small letter, not used by the studio already. They are the saved keys: never rename them once the user has picked one. Values: small letters, digits and hyphens. 2 to 16 options; `after` is the category it sits after.
+- Every drawing of that studio (tiles, the preview card, Compare, Review, the example page) gets the class `x-<id>-<value>` on a wrapper and `--x-<k>` for each slider. Style them in `<style id="more-css">` with descendant selectors, for the button `.x-rimLight-top .pv .fx{...}`. Draw on a layer the materials leave free (the button's `.fx` box-shadow is free) so every material keeps its own look; the choice that changes nothing may go without CSS.
+- `check` and the local server apply the same rules as the page. A definition that breaks one is never served: the page keeps the last good version, tells the user calmly, and you get `PAGE ERROR` with the reason.
+- The proposal marks the category as added in this session and points at its rules, so the build carries the look into the project's own styles.
+
+Run `check`, then start `wait` again.
+ Saving the file is enough: the page notices, reloads, keeps every pick, pin and undo step, opens where the new choices are and marks them with a green dot. Look at them in the browser before saying they are there.
 
 If the page is open without the server, its buttons copy a message instead and the user pastes it to you. Make the same edit; they reload, and the browser has kept their picks.
 

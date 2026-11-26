@@ -1,7 +1,7 @@
 /* ===== Events: picking, typing, sliding, and the studio's own controls ===== */
 
 const unfresh = (key) => { const i = UI.fresh.indexOf(key); if (i >= 0) UI.fresh.splice(i, 1); };
-function pick(c, op) {
+function choose(c, op) {
   const m = STUDIO.by[c.mid];
   commit(c.mid);
   setState(c.mid, candidate(c, op));
@@ -45,25 +45,28 @@ function slid() {
   frame = requestAnimationFrame(() => { frame = 0; refreshLive(); });
 }
 const panel = $('panel');
-panel.addEventListener('input', (e) => {
-  const t = e.target;
-  if (t.id === 'ask') { UI.ask.text = t.value; save(); return; }
-  const c = CT[t.dataset.c];
-  if (!c) return;
-  if (editing !== c.id) { commit(c.mid); editing = c.id; }
-  const s = ST[c.mid];
-  if (t.type === 'range') { s[c.k] = +t.value; const v = $('v_' + c.id); if (v) v.textContent = fmt(s[c.k], c); slid(); }
-  else if (t.type === 'text') { s[c.k] = t.value; renderStage(); }
-  save();
-});
-panel.addEventListener('change', (e) => {
-  const c = CT[e.target.dataset.c];
-  if (!c) return;
-  editing = null;
-  if (e.target.type === 'range') renderPanel(); else { renderTop(); renderStageBar(); }
-  save();
-});
-panel.addEventListener('focusout', (e) => { if (e.target.dataset && e.target.dataset.c === editing) editing = null; });
+/* The choices and the fine adjustments in the preview card answer the same way. */
+for (const host of [panel, $('ptune')]) {
+  host.addEventListener('input', (e) => {
+    const t = e.target;
+    if (t.id === 'ask') { UI.ask.text = t.value; save(); return; }
+    const c = CT[t.dataset.c];
+    if (!c) return;
+    if (editing !== c.id) { commit(c.mid); editing = c.id; }
+    const s = ST[c.mid], m = STUDIO.by[c.mid];
+    if (t.type === 'range') { s[c.k] = +t.value; if (m.touch) m.touch(s, c.k); const v = $('v_' + c.id); if (v) v.textContent = fmt(s[c.k], c); slid(); }
+    else if (t.type === 'text') { s[c.k] = t.value; renderStage(); }
+    save();
+  });
+  host.addEventListener('change', (e) => {
+    const c = CT[e.target.dataset.c];
+    if (!c) return;
+    editing = null;
+    if (e.target.type === 'range') renderPanel(); else { renderTop(); renderStageBar(); }
+    save();
+  });
+  host.addEventListener('focusout', (e) => { if (e.target.dataset && e.target.dataset.c === editing) editing = null; });
+}
 panel.addEventListener('toggle', (e) => { const d = e.target; if (d.dataset && d.dataset.fine) { UI.fine[d.dataset.fine === 'review' ? 'review' : NAV.mod + '.' + d.dataset.fine] = d.open; save(); } }, true);
 panel.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.id === 'ask') sendAsk(''); });
 panel.addEventListener('change', (e) => { if (e.target.id === 'importfile') importFile(e.target.files[0]); });
@@ -127,15 +130,31 @@ const ACTIONS = {
   export: exportFile,
   import: () => $('importfile').click(),
   resetall: resetAll,
+  pin: () => pinNow(),
 };
+/** A module's own control setting one value directly: data-mset="module|key" with data-val. The key must already
+   exist in that module's state and the value must have the same type; anything else is ignored. */
+function setValue(el) {
+  const [mid, k] = String(el.dataset.mset).split('|'), m = STUDIO.by[mid];
+  if (!m || !(k in DEFS[mid])) return;
+  let v = el.dataset.val;
+  if (typeof DEFS[mid][k] === 'number') { v = +v; if (!isFinite(v)) return; }
+  commit(mid);
+  ST[mid][k] = v;
+  if (m.touch) m.touch(ST[mid], k);
+  if (m.fix) m.fix(ST[mid]);
+  redrawAll(); save();
+}
 document.addEventListener('click', (e) => {
   const t = e.target, at = (sel) => t.closest(sel);
   if (STUDIO.has('button') && S.menuOpen && !onMenuStep() && at('#stage') && !at('#menu,#tog,#tog2,.expand,.lg2')) setMenu(false);
   let el;
   if ((el = at('[data-act]'))) return ACTIONS[el.dataset.act] && ACTIONS[el.dataset.act]();
+  if ((el = at('[data-mset]'))) return setValue(el);
+  if ((el = at('[data-mopen]'))) { UI.open = UI.open === el.dataset.mopen ? '' : el.dataset.mopen; renderPanel(); return save(); }
   if (at('[data-set="rm"]')) return setRm(false);
   if ((el = at('[data-sw]'))) return pickSwatch(CT[el.dataset.c], el.dataset.sw);
-  if ((el = at('[data-o]'))) { const c = CT[el.dataset.c]; return pick(c, c.opts[+el.dataset.o]); }
+  if ((el = at('[data-o]'))) { const c = CT[el.dataset.c]; return choose(c, c.opts[+el.dataset.o]); }
   if ((el = at('[data-look]'))) return pickLook(el.dataset.look);
   if ((el = at('[data-expand]'))) { UI.expanded[el.dataset.expand] = true; renderPanel(); return save(); }
   if ((el = at('[data-more]'))) {
@@ -187,9 +206,12 @@ $('bgsel').innerHTML = BGS.map((b) => `<option value="${esc(b[0])}">${esc(b[1])}
 $('bgsel').onchange = (e) => setBg(e.target.value);
 $('rmtog').onclick = () => setRm(!V.rm);
 
+let wideWas = WIDE();
 addEventListener('resize', () => {
+  if (WIDE() !== wideWas) { wideWas = WIDE(); renderPanel(); }
   const v = VIEWER();
   if (v === VIEW) return;
+
   const followed = V.device === VIEW; // still showing the device the person is on: follow them
   VIEW = v;
   if (followed) V.device = v;

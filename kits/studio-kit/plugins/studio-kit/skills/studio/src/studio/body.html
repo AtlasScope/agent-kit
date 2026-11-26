@@ -9,31 +9,33 @@
   <button class="go sm" id="review" aria-pressed="false">Review</button>
  </div>
 </header>
-<main class="layout">
- <section class="pcol" id="pcol" aria-label="Preview">
-  <div class="stbar top">
+<main class="work" id="work">
+ <div class="head" id="head">
+  <div class="htx"><p class="crumb" id="crumb"></p><h2 id="htitle"></h2><p class="hwhy" id="hwhy"></p></div>
+  <div class="hacts" id="hacts">
    <div class="seg" id="modes" role="radiogroup" aria-label="View"></div>
-   <span class="grow"></span>
    <button class="tb" id="hold" title="Hold down to see what you started from, let go to come back">Hold for today</button>
    <button class="tb" id="pin">Pin</button>
   </div>
+ </div>
+ <nav class="nav" id="nav" aria-label="What to change"></nav>
+ <section class="scol" id="scol" aria-label="Choices"><div class="panel" id="panel"></div><div class="pfoot" id="pfoot"></div></section>
+ <aside class="pcol" id="pcol" aria-label="Preview">
+  <div class="phead"><b id="ptitle">Your design</b><span class="devhint" id="devhint"></span></div>
   <div class="stage" id="stage"><span class="tryhint" id="tryhint"></span>
    <div class="dwrap" id="dwrap"><div class="device bgd" id="device"><div class="canvas" id="canvas"></div>
     <div class="overlay" id="ov"><div class="chk"><svg width="28" height="28"><use href="#i-check"/></svg></div><h4 id="ovh">Done</h4><small id="ovs"></small><div id="ovbtns" style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:230px"></div></div>
     <div class="toast" id="toast"><span class="dot"><svg width="14" height="14"><use href="#i-check"/></svg></span><div><b id="toasth">Done</b><span class="s"></span></div><span id="toastbtn" style="margin-left:auto"></span></div>
    </div></div>
   </div>
-  <div class="stbar">
-   <div class="seg" id="devices" role="radiogroup" aria-label="Device"></div>
+  <div class="board" id="board" hidden></div>
+  <div class="stbar" id="stbar">
+   <div class="seg" id="devices" role="radiogroup" aria-label="Screen width"></div>
    <select id="bgsel" aria-label="Background"></select>
    <button class="tog" id="rmtog" aria-pressed="false"><i></i>Less motion</button>
-   <span class="devhint" id="devhint"></span>
   </div>
- </section>
- <section class="scol" id="scol" aria-label="Choices">
-  <nav class="nav" id="nav" aria-label="What to change"></nav>
-  <div class="pwrap"><div class="panel" id="panel"></div><div class="pfoot" id="pfoot"></div></div>
- </section>
+  <div class="ptune" id="ptune"></div>
+ </aside>
 </main>
 <div class="msg" id="msg" role="status"><span></span><button class="x" id="msgx">Close</button></div>
 </div>

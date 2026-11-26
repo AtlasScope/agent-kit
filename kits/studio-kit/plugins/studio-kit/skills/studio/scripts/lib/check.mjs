@@ -20,6 +20,45 @@ export function syntaxProblems(html) {
   });
 }
 
+const DIM_ID = /^[a-z][A-Za-z0-9]{1,23}$/, DIM_VAL = /^[a-z0-9][a-z0-9-]{0,23}$/;
+/** Problems with the new categories in MORE.dims (see SKILL.md, "A new kind of choice"). The page applies the same rules. */
+export function dimProblems(M, moreCss) {
+  const dims = M && M.dims, out = [];
+  if (dims == null) return out;
+  if (!Array.isArray(dims)) return ["MORE.dims should be a list of categories."];
+  if (dims.length > 8) out.push("MORE.dims has more than 8 categories; the page shows the first 8.");
+  const seen = new Set();
+  dims.slice(0, 8).forEach((d, i) => {
+    const name = d && d.id ? `MORE.dims '${d.id}'` : `MORE.dims[${i}]`;
+    if (!d || typeof d !== "object") return out.push(`${name} is not an object.`);
+    if (!DIM_ID.test(String(d.id))) out.push(`${name}: id must be letters and digits starting with a small letter, 2 to 24 long.`);
+    if (seen.has(d.id)) out.push(`${name}: the id is used twice.`);
+    seen.add(d.id);
+    if (typeof d.t !== "string" || !d.t.trim() || d.t.length > 40) out.push(`${name}: t needs a short plain name.`);
+    const opts = Array.isArray(d.options) ? d.options : [];
+    if (opts.length < 2 || opts.length > 16) out.push(`${name}: options needs 2 to 16 choices.`);
+    for (const x of opts) {
+      if (!Array.isArray(x) || !DIM_VAL.test(String(x[0])) || !x[1] || !x[2]) { out.push(`${name}: each option is [value, 'Name', 'Sentence'], value in small letters, digits and hyphens.`); break; }
+    }
+    if (d.default != null && !opts.some((x) => Array.isArray(x) && String(x[0]) === String(d.default))) out.push(`${name}: default is not one of the options.`);
+    for (const r of Array.isArray(d.ranges) ? d.ranges : []) {
+      if (!r || !DIM_ID.test(String(r.k)) || !r.label || !(+r.min < +r.max) || !(+r.step > 0) || !(+r.default >= +r.min && +r.default <= +r.max)) out.push(`${name}: each slider needs k, label, min < max, step > 0 and a default between them.`);
+    }
+    const drawn = opts.filter((x) => Array.isArray(x) && !hasClass(moreCss, `.x-${d.id}-${x[0]}`)).map((x) => x[0]);
+    if (opts.length && drawn.length >= opts.length) out.push(`${name}: no choice has CSS. Style .x-${d.id}-<value> in <style id="more-css"> (the choice that changes nothing may go without).`);
+  });
+  return out;
+}
+/** For the server: the new-category problems of a page that already parses, without running anything but MORE. */
+export function extensionProblems(html) {
+  const scripts = scriptsOf(html);
+  if (scripts.length < 2) return [];
+  const ctx = vm.createContext({});
+  try { vm.runInContext(scripts[1] + "\n;globalThis.__M=MORE;", ctx, { timeout: 500 }); } catch { return []; }
+  const moreCss = (html.match(/<style id="more-css">([\s\S]*?)<\/style>/) || [])[1] || "";
+  return dimProblems(ctx.__M || {}, moreCss);
+}
+
 export function checkHtml(html) {
   const scripts = scriptsOf(html);
   const problems = scripts.length < 3 ? [`Expected 3 inline scripts (PROJECT, MORE, ENGINE); found ${scripts.length}.`] : [];
@@ -42,7 +81,9 @@ export function checkHtml(html) {
     if (onButton.length) problems.push(`${onButton.join(", ")} sets transition on the button, which stops the other hover and press effects from easing. Set it only under :active or :hover, or leave it out.`);
   }
 
+  problems.push(...dimProblems(M, moreCss));
   for (const [fullKey, list] of Object.entries(M)) {
+    if (fullKey === "dims") continue;
     // 'palette.scheme' is a key of the palette studio; a bare key, or 'button.material', is the button's.
     const dotted = fullKey.includes("."), mod = dotted ? fullKey.split(".")[0] : "button";
     const key = dotted ? fullKey.slice(mod.length + 1) : fullKey;

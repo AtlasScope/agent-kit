@@ -4,7 +4,7 @@
 .ty *{box-sizing:border-box;margin:0}
 .ty-h{font-family:var(--ty-display);font-weight:var(--ty-hw);line-height:var(--ty-hlh);letter-spacing:var(--ty-track);text-transform:var(--ty-case);text-wrap:balance;overflow-wrap:anywhere}
 .ty-t{font-family:var(--ty-body);font-weight:var(--ty-bw);line-height:var(--ty-lh);font-variant-numeric:var(--ty-num);text-wrap:pretty}
-.ty-c{display:block;font-family:var(--ty-mono);font-variant-numeric:normal;line-height:1.45;white-space:pre;overflow:hidden;text-overflow:ellipsis}
+.ty-c{display:block;font-family:var(--ty-mono);font-variant-numeric:normal;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
 .ty-faint{opacity:.62}
 .ty-strong{font-weight:600}
 .ty-gap{margin-top:.45em!important}
@@ -15,15 +15,17 @@
 .ty-miss{display:block;margin-top:6px;padding:2px 7px;border-radius:6px;width:max-content;max-width:100%;font:600 12px/1.3 var(--font);color:#1a1300;background:#f5b94a}
 .ty-tile .ty-miss{font-size:15px}
 .ty-miss.ty-top{margin:0 0 6px}
-/* Fixed sizes, so every candidate gets the same frame and the shell scales them all alike. A drawing wider than its
-   frame sits in a grid track as wide as itself, which starts at the left; centring the track keeps it in the middle. */
-.art:has(>.art-in>.ty),.cmp-art:has(>.ty){place-content:center}
-.ty-tile{width:160px;max-height:100px;overflow:hidden}
-.ty-tile.ty-wide{width:300px}
-.ty-spec{width:236px;max-height:142px;overflow:hidden}
-.ty-spec.ty-big{width:300px;max-height:none}
-.ty-nums{border-collapse:collapse;margin-left:auto;line-height:1.15}
-.ty-nums td{text-align:right;padding:0}
+/* Specimens fill their card and grow to their words: the whole headline, a whole paragraph, nothing clipped. */
+.art:has(.ty),.cmp-art:has(.ty){height:auto;min-height:150px;place-items:stretch;place-content:stretch}
+.art:has(.ty)>.art-in,.cmp-art:has(.ty)>.art-in{width:100%;transform:none!important}
+.ty-tile{width:100%;padding:18px 20px 16px}
+.ty-spec{width:100%;padding:20px 22px 18px}
+.ty-spec.ty-big{padding:24px 26px 22px}
+.looks .art:has(.ty){min-height:240px}
+.ty-numrow{display:block;font-family:var(--ty-body);font-variant-numeric:var(--ty-num);letter-spacing:.01em;opacity:.85;margin-top:.5em}
+.ty-tile .ty-meta{display:block;margin-bottom:6px}
+.ty-nums{border-collapse:collapse;width:100%;line-height:1.35}
+.ty-nums td{padding:2px 0}.ty-nums td+td{text-align:right}
 /* the "On its own" specimen sheet */
 .ty-sheet{width:min(100%,920px);align-self:start;padding:28px clamp(16px,4%,40px) 48px;font-size:var(--ty-size)}
 .ty-sheet section{margin-top:34px}
@@ -43,3 +45,6 @@
 .ty-pre{padding:12px 14px;border-radius:10px;background:color-mix(in srgb,currentColor 7%,transparent);white-space:pre-wrap;overflow-wrap:anywhere}
 .ty-sheet{container-type:inline-size}
 @container (max-width:520px){.ty-row{grid-template-columns:minmax(0,1fr);gap:2px;padding:8px 0}.ty-meta b{display:inline;margin-left:6px}}
+/* Specimens always grow to their words, in every grid and at every width; on a phone, one per row. */
+.tiles .art:has(.ty),.looks .art:has(.ty){height:auto;min-height:150px}
+@media (max-width:899px){.tiles.wide:has(.ty),.looks:has(.ty){grid-template-columns:minmax(0,1fr)}.tiles .art:has(.ty){min-height:0}}

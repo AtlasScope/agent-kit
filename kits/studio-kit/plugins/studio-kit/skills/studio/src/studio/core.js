@@ -29,8 +29,15 @@
      share(s)            foundation values other modules may follow, e.g. { accent: { H, C, L }, fonts: { body } } (optional)
      notes(s)            extra lines for the proposal (optional)
      warn(s)             [{ t: 'plain sentence', k?: controlKey }] real problems to look at before sending (optional)
+     control(c, s)       HTML for a control of the module's own kind ({ t: 'role' }, say), or null for the shell's (optional).
+                         It sets values with data-mset="module|key" data-val="..." and opens itself with data-mopen
+     touch(s, k)         runs after key k changed by a pick, a slider or data-mset, to let go of values it covers (optional)
+     changes(s, base)    [{ c, label, from, to, known }] what Review lists, when the module knows better than key by key (optional)
 
-   Modules other than button wrap themselves in a block so their names stay their own, and read their part of the
+   New categories the agent adds to a session (MORE.dims) are turned into ordinary groups by controls.js before any
+   module code sees them; their drawings get x-<id>-<value> classes and --x-<k> properties (see SKILL.md).
+
+   Modules other than button are built into their own function scope so their names stay their own, and read their part of the
    project from P[id] (for example P.palette). State is only ever read from the `s` a function is given. */
 
 if (typeof PROJECT === 'undefined') {

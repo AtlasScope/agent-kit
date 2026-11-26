@@ -74,7 +74,10 @@ export function build({ modules: wanted, keep = {} } = {}) {
   };
   const css = [...SHELL_CSS, ...ids.flatMap((id) => all[id].css)].map(read).join("\n");
   const files = [...SHELL_HEAD, ...ids.flatMap((id) => all[id].js), ...SHELL_TAIL];
-  const js = [`/* ---- studio/colour.mjs (Palette Builder's colour maths) ---- */\n${colourJs()}`, ...files.map((f) => `/* ---- ${f} ---- */\n${read(f)}`)].join("\n");
+  // Modules other than the button keep their names to themselves: each file runs in its own function scope, so a helper
+  // it declares can never replace one of the shell's (the page is not strict code, so a block alone does not do that).
+  const own = (f) => !f.startsWith("studio/") && !f.startsWith("button/");
+  const js = [`/* ---- studio/colour.mjs (Palette Builder's colour maths) ---- */\n${colourJs()}`, ...files.map((f) => `/* ---- ${f} ---- */\n${own(f) ? `(() => {\n${read(f)}\n})();` : read(f)}`)].join("\n");
   if (/<\/script/i.test(js) || /<\/style/i.test(css)) throw new Error("A src file contains a closing script or style tag.");
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8">

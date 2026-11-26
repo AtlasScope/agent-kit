@@ -2,11 +2,11 @@
 
 const BGS = [
   ...(P.pageBg ? [['page', 'Your page']] : []),
-  ['black', 'Black'], ['light', 'Light grey'], ['cool', 'Colourful'], ['warm', 'Warm colours'], ['aurora', 'Night sky'],
+  ['studio', 'Quiet dark'], ['black', 'Black'], ['light', 'Light grey'], ['cool', 'Colourful'], ['warm', 'Warm colours'], ['aurora', 'Night sky'],
   ['sunset', 'Sunset'], ['paper', 'Paper'], ['grid', 'Grid'], ['checker', 'Checker'],
   ...(Array.isArray(MO.bg) ? MO.bg : []).filter(Array.isArray).map((e) => [String(e[0]), String(e[1] || e[0])]),
 ];
-const MODES = [['alone', 'On its own'], ['context', 'In a page'], ['compare', 'Compare'], ['states', 'States']];
+const MODES = [['alone', 'Choices'], ['context', 'In a page'], ['compare', 'Compare'], ['states', 'States']];
 const modeNow = () => (V.mode === 'states' && !AM().states ? 'alone' : V.mode);
 const baseName = (m) => (m.measured ? 'Today' : 'Starting point');
 const bgLight = () => ['light', 'paper'].includes(V.bg) || (V.bg === 'page' && COLOUR.HEX.test(P.pageBg) && COLOUR.lum(P.pageBg) > 0.3);
@@ -27,46 +27,65 @@ function stageState() {
   d.dataset.bg = V.bg;
   d.style.background = V.bg === 'page' ? P.pageBg : '';
   $('stage').classList.toggle('rm', V.rm === true);
-  $('pcol').classList.toggle('tall', modeNow() !== 'alone' || !!(m.tall && m.tall()));
+  $('pcol').classList.toggle('tall', modeNow() === 'alone' && !!(m.tall && m.tall()));
 }
 
-/* ---- what the stage shows ---- */
+/* ---- what the workspace shows ----
+   Choices: the catalogue, with the selected design drawn live in the preview card beside it.
+   In a page: the example page across the workspace, at a chosen screen width.
+   Compare and States: plain cards across the workspace, every drawing at the same scale on the same ground. These are
+   not drawn inside a simulated device: a device frame around a comparison only makes everything smaller. */
+const boardMode = () => ['compare', 'states'].includes(modeNow());
+function cmpArt(m, s, opt) {
+  let inner;
+  try { inner = m.still(s, opt); } catch (e) { report(m.id + ' drawing: ' + e.message); inner = ''; }
+  return `<div class="cmp-art${m.ground ? ' ground' : ' bgd'}" ${m.ground ? '' : bgAttr()}><span class="art-in cmp-in ${dimCls(m.id, s)}" style="${varsCss(m.vars(s))}">${inner}</span></div>`;
+}
 function compareHTML() {
   const m = AM(), mid = m.id, now = AS();
   const pins = PINS.filter((p) => p.mod === mid);
-  const col = (name, s, key, extra = '') => `<figure class="cmp${key === 'now' ? ' cur' : ''}"><div class="cmp-art" style="${varsCss(m.vars(s))}">${m.still(s, { compare: true })}</div>`
-    + `<figcaption><b>${esc(name)}</b>${key !== 'now' && !sameLook(mid, s, now) ? `<button class="mini" data-use="${esc(key)}">Use this</button>` : ''}${extra}</figcaption></figure>`;
-  return col(baseName(m), DEFS[mid], 'base')
-    + pins.map((p) => col(p.name, p.s, p.id, `<button class="mini q" data-unpin="${esc(p.id)}" aria-label="Remove ${esc(p.name)}">Remove</button>`)).join('')
-    + col('Now', now, 'now')
-    + (pins.length ? '' : '<p class="cmp-tip">Press <b>Pin</b> on a version you like, keep exploring, and it stays here beside what you have now. Up to three.</p>');
+  const sum = (s) => { try { return m.summary ? m.summary(s) : ''; } catch { return ''; } };
+  const card = (name, badge, s, key, extra = '') => `<figure class="cmp${key === 'now' ? ' cur' : ''}"><div class="cmp-top"><b>${esc(name)}</b><span>${esc(badge)}</span></div>${cmpArt(m, s, { compare: true })}`
+    + `<figcaption class="cmp-foot"><p>${esc(sum(s))}</p>${key !== 'now' && !sameLook(mid, s, now) ? `<button class="mini" data-use="${esc(key)}">Use this</button>` : key !== 'now' ? '<span>In use now</span>' : ''}${extra}</figcaption></figure>`;
+  const nowPinned = pins.some((p) => sameLook(mid, p.s, now)) || sameLook(mid, DEFS[mid], now);
+  return card(baseName(m), m.measured ? 'Measured' : 'Starting point', DEFS[mid], 'base')
+    + pins.map((p) => card(p.name, 'Pinned', p.s, p.id, `<button class="mini q" data-unpin="${esc(p.id)}" aria-label="Unpin ${esc(p.name)}">Unpin</button>`)).join('')
+    + (nowPinned ? '' : card('Now', 'Not pinned', now, 'now', '<button class="mini q" data-act="pin">Pin</button>'))
+    + (pins.length ? '' : `<p class="cmp-tip">Press <b>Pin</b> on a version you like, keep exploring, and it waits here beside ${esc(baseName(m).toLowerCase())}. Up to three.</p>`);
 }
 function statesHTML() {
-  const m = AM(), s = AS(), v = varsCss(m.vars(s));
-  return m.states.map(([id, n]) => `<figure class="cmp sm"><div class="cmp-art" style="${v}">${m.still(s, { state: id })}</div><figcaption><b>${esc(n)}</b></figcaption></figure>`).join('')
+  const m = AM(), s = AS();
+  return m.states.map(([id, n]) => `<figure class="cmp"><div class="cmp-top"><b>${esc(n)}</b></div>${cmpArt(m, s, { state: id })}</figure>`).join('')
     + (m.stateNote ? `<p class="cmp-tip">${esc(m.stateNote)}</p>` : '');
 }
 function stageHint() {
   const mode = modeNow();
   if (HOLDING) return 'Showing ' + baseName(AM()).toLowerCase();
-  if (mode === 'context') return CX.real ? 'Your page, simplified' : 'An example page with your words. Not your real page.';
-  if (mode === 'compare') return '';
-  if (mode === 'states') return 'Every state at once';
-  return NAV.mod === 'button' ? 'Press the button to try it' : '';
+  if (mode === 'context') return CX.real ? 'Your page, simplified' : 'A representative page with your words. Not your live page.';
+  return mode === 'alone' && NAV.mod === 'button' ? 'Press it to try it' : '';
 }
 function renderStage() {
-  const m = AM(), cv = $('canvas'), mode = modeNow();
+  const m = AM(), cv = $('canvas'), mode = modeNow(), board = $('board'), work = $('work');
   if (STUDIO.has('button')) STUDIO.by.button.reset(); // stops any after-press sequence still running
-  cv.className = 'canvas mode-' + mode;
+  work.classList.toggle('wide', mode !== 'alone');
+  work.classList.toggle('boarded', boardMode());
+  board.hidden = !boardMode();
+  board.className = 'board' + (mode === 'states' ? ' states' : '');
+  cv.className = 'canvas mode-' + mode + (mode === 'alone' && m.ground ? ' fill' : '') + (mode === 'alone' ? ' ' + dimCls(m.id, AS()) : '');
   cv.scrollTop = 0;
   try {
-    if (mode === 'compare') cv.innerHTML = compareHTML();
-    else if (mode === 'states') cv.innerHTML = statesHTML();
-    else if (mode === 'context') { cv.innerHTML = sceneHTML(); paintScene(); }
-    else m.live(cv, AS());
-  } catch (e) { report(m.id + ' preview: ' + e.message); cv.innerHTML = '<p class="cmp-tip">This preview could not be drawn. The agent has been told.</p>'; }
+    if (mode === 'compare') { cv.innerHTML = ''; board.innerHTML = compareHTML(); }
+    else if (mode === 'states') { cv.innerHTML = ''; board.innerHTML = statesHTML(); }
+    else {
+      board.innerHTML = '';
+      if (mode === 'context') { cv.innerHTML = sceneHTML(); paintScene(); } else m.live(cv, AS());
+    }
+  } catch (e) { report(m.id + ' preview: ' + e.message); (boardMode() ? board : cv).innerHTML = '<p class="cmp-tip">This preview could not be drawn. The agent has been told.</p>'; }
+  if (boardMode()) fitArt(board);
   $('tryhint').textContent = stageHint();
   $('tryhint').hidden = !stageHint();
+  $('ptitle').textContent = 'Your ' + m.title();
+  if (typeof renderHead === 'function') renderHead();
   stageState();
   layoutDevice();
 }
@@ -74,33 +93,37 @@ function renderStage() {
 function refreshLive() {
   const mode = modeNow();
   if (mode === 'context') { paintSceneVars(); applyVars(); }
-  else if (mode === 'alone' && NAV.mod === 'button') applyVars();
+  else if (mode === 'alone' && NAV.mod === 'button') { applyVars(); layoutDevice(); }
   else if (mode === 'alone') AM().live($('canvas'), AS());
   else renderStage();
 }
 
-/* Your own device fills the preview at actual size, unless the project's column is wider than the preview.
-   Another device is drawn at its real width and scaled down only when it cannot fit. The label says which. */
+/* In the preview card the design is drawn at its real size, and scaled down only when it is wider than the card; the
+   label says which. In a page, your own device fills the workspace; another device is drawn at its real width and
+   scaled down only when it cannot fit. */
 function layoutDevice() {
-  const st = $('stage'), d = $('device'), w0 = st.clientWidth, h0 = st.clientHeight;
-  if (!w0 || !h0) return;
-  const k = V.device, D = DEV[k], own = k === VIEW;
-  let w = w0, h = h0, s = 1;
-  if (own) {
-    const need = k === 'computer' && modeNow() === 'alone' ? COLUMN + 2 * D.gut : 0;
-    if (need > w0) { w = need; s = w0 / need; h = h0 / s; }
+  const st = $('stage'), d = $('device'), cv = $('canvas'), w0 = st.clientWidth, h0 = st.clientHeight;
+  if (!w0 || !h0 || boardMode()) return;
+  const mode = modeNow();
+  let w = w0, h = h0, s = 1, framed = false, hint;
+  if (mode === 'context') {
+    const k = V.device, D = DEV[k], own = k === VIEW;
+    if (!own) { framed = true; w = D.w; s = Math.min(1, (w0 - 32) / w); h = Math.min(D.h, (h0 - 32) / s); }
+    hint = `${D.n} · ${own ? 'this screen' : D.w + ' px wide'} · ${s < 1 ? 'shown at ' + Math.round(s * 100) + '%' : 'actual size'}`;
   } else {
-    w = D.w;
-    s = Math.min(1, (w0 - 32) / w);
-    h = Math.min(D.h, (h0 - 32) / s);
+    d.style.transform = '';
+    d.style.width = w0 + 'px';
+    d.style.height = h0 + 'px';
+    const need = AM().ground ? 0 : cv.scrollWidth;
+    if (need > w0 + 1) { w = need + 24; s = w0 / w; h = h0 / s; }
+    hint = AM().ground ? (AM().id === 'palette' ? 'Representative, not live' : '') : s < 1 ? 'Shown at ' + Math.round(s * 100) + '%' : 'Actual size';
   }
   d.style.width = w + 'px';
   d.style.height = h + 'px';
   d.style.transform = s < 1 ? `scale(${s})` : '';
-  d.classList.toggle('framed', !own);
-  const wr = $('dwrap');
-  Object.assign(wr.style, { width: w * s + 'px', height: h * s + 'px', left: Math.round((w0 - w * s) / 2) + 'px', top: Math.round((h0 - h * s) / 2) + 'px' });
-  $('devhint').textContent = `${D.n} · ${own ? 'this device' : D.w + ' px wide'} · ${s < 1 ? 'shown at ' + Math.round(s * 100) + '%' : 'actual size'}`;
+  d.classList.toggle('framed', framed);
+  Object.assign($('dwrap').style, { width: w * s + 'px', height: h * s + 'px', left: Math.round((w0 - w * s) / 2) + 'px', top: Math.round((h0 - h * s) / 2) + 'px' });
+  $('devhint').textContent = hint;
 }
 
 function seen(kind, v) { if (!UI.seen[kind].includes(v)) UI.seen[kind].push(v); }
@@ -109,13 +132,17 @@ function renderStageBar() {
   const m = AM();
   $('modes').innerHTML = seg(MODES.filter(([k]) => k !== 'states' || m.states), modeNow(), 'mode');
   $('devices').innerHTML = seg(Object.entries(DEV).map(([k, d]) => [k, d.n, d.n + (k === VIEW ? ' (this device)' : '')]), V.device, 'dev');
+  $('devices').hidden = modeNow() !== 'context';
+  $('bgsel').hidden = m.ground && modeNow() === 'alone';
+  $('stbar').hidden = m.ground && modeNow() === 'alone'; // a palette or a type specimen brings its own ground and does not move
   $('bgsel').value = V.bg;
   $('rmtog').setAttribute('aria-pressed', String(V.rm));
   $('hold').textContent = 'Hold for ' + baseName(m).toLowerCase();
   $('hold').disabled = !changedKeys(m.id).length;
   const full = PINS.length >= 3;
   $('pin').disabled = full || PINS.some((p) => p.mod === m.id && sameLook(m.id, p.s, AS()));
-  $('pin').title = full ? 'Three are pinned. Remove one in Compare to pin another.' : 'Keep this version to compare with later ones';
+  $('pin').title = full ? 'Three are pinned. Unpin one in Compare to pin another.' : 'Keep this version to compare with later ones';
+  $('pin').textContent = PINS.some((p) => p.mod === m.id && sameLook(m.id, p.s, AS())) ? 'Pinned' : 'Pin';
 }
 function setMode(k) {
   V.mode = k;

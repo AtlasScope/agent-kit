@@ -6,6 +6,53 @@ const sameValue = (a, b) => String(a) === String(b);
 /** Choices the agent added for a module's key: MORE['palette.scheme'], and for the button plain MORE.material too. */
 const moreFor = (m, k) => [...(m.id === 'button' && Array.isArray(MO[k]) ? MO[k] : []), ...(Array.isArray(MO[m.id + '.' + k]) ? MO[m.id + '.' + k] : [])].filter(Array.isArray);
 
+/* ---- new categories the agent added in this session (MORE.dims) ----
+   A category is data: an id, a name, plain choices and optional sliders. Each drawing of its module gets the class
+   x-<id>-<choice> and the custom property --x-<slider>, and the agent's CSS in <style id="more-css"> does the rest.
+   A definition that breaks a rule is left out with a message; the rest of the page carries on. The same rules are
+   checked by `studio.mjs check` and by the local server before it serves an edited page (scripts/lib/check.mjs). */
+const DIM_ID = /^[a-z][A-Za-z0-9]{1,23}$/, DIM_VAL = /^[a-z0-9][a-z0-9-]{0,23}$/;
+const DIMS = {}; // module id -> [{ id, opts, ranges }]
+const DIM_BAD = [];
+(Array.isArray(MO.dims) ? MO.dims.slice(0, 8) : []).forEach((d, i) => {
+  const say = (why) => DIM_BAD.push(`${d && d.t ? `“${String(d.t).slice(0, 40)}”` : `Category ${i + 1}`}: ${why}`);
+  if (!d || typeof d !== 'object') return say('is not a definition.');
+  const mid = String(d.module || 'button'), m = STUDIO.by[mid];
+  if (!m) return say(`belongs to a studio that is not open here (${mid}).`);
+  if (!DIM_ID.test(String(d.id))) return say('needs an id of letters and digits, starting with a small letter.');
+  const keys = new Set([...Object.keys(m.defaults), ...m.groups.flatMap((g) => g.ctl.map((c) => c.k))]);
+  if (keys.has(d.id) || (DIMS[mid] || []).some((x) => x.id === d.id)) return say(`its id “${d.id}” is already used.`);
+  if (typeof d.t !== 'string' || !d.t.trim() || d.t.length > 40) return say('needs a short plain name.');
+  const opts = Array.isArray(d.options) ? d.options : [];
+  if (opts.length < 2 || opts.length > 16 || !opts.every((x) => Array.isArray(x) && DIM_VAL.test(String(x[0])) && x[1] && x[2])) return say('needs 2 to 16 choices, each [value, \'Name\', \'Sentence\'] with a value of small letters, digits and hyphens.');
+  const def = d.default == null ? String(opts[0][0]) : String(d.default);
+  if (!opts.some((x) => String(x[0]) === def)) return say('its default is not one of its choices.');
+  const ranges = Array.isArray(d.ranges) ? d.ranges.slice(0, 3) : [];
+  const badRange = ranges.find((r) => !r || !DIM_ID.test(String(r.k)) || keys.has(r.k) || r.k === d.id || !r.label || !(+r.min < +r.max) || !(+r.step > 0) || !(+r.default >= +r.min && +r.default <= +r.max));
+  if (badRange) return say('has a slider without a fresh id, a label, min below max, a step and a default between them.');
+  const dim = { id: d.id, def, opts, ranges };
+  m.defaults[d.id] = def;
+  ranges.forEach((r) => { m.defaults[r.k] = +r.default; });
+  const group = {
+    id: 'x-' + d.id, t: d.t.trim(), short: d.short ? String(d.short).slice(0, 24) : undefined, sec: String(d.sec || m.groups.length && m.groups[m.groups.length - 1].sec || 'More'),
+    why: esc(String(d.why || '').slice(0, 240)), dim: true,
+    ctl: [ch(d.id, d.t.trim(), opts.map((x) => Object.assign(o(String(x[0]), String(x[1]).slice(0, 40), String(x[2]).slice(0, 200)), { more: true }))),
+      ...ranges.map((r) => rg(r.k, String(r.label).slice(0, 40), +r.min, +r.max, +r.step, String(r.unit || '').slice(0, 6), String(r.hint || '').slice(0, 120)))],
+  };
+  const at = m.groups.findIndex((g) => g.id === d.after);
+  if (at >= 0) m.groups.splice(at + 1, 0, group); else m.groups.push(group);
+  (DIMS[mid] = DIMS[mid] || []).push(dim);
+  if (m.tile) { const t = m.tile; m.tile = (c) => (c.k === d.id ? {} : t(c)); }
+});
+/** The classes and custom properties that let the agent's CSS draw a module's new categories. */
+const dimCls = (mid, s) => (DIMS[mid] || []).map((d) => `x-${d.id}-${s[d.id]}`).join(' ');
+const dimVars = (mid, s) => Object.fromEntries((DIMS[mid] || []).flatMap((d) => d.ranges.map((r) => ['--x-' + r.k, s[r.k]])));
+for (const m of STUDIO.mods) {
+  if (!DIMS[m.id]) continue;
+  const v = m.vars;
+  m.vars = (s) => Object.assign({}, v(s), dimVars(m.id, s));
+}
+
 for (const m of STUDIO.mods) {
   const drop = new Set(m.id === 'button' ? P.dropSteps || [] : (P[m.id] && P[m.id].drop) || []);
   m.groups = m.groups.filter((g) => !drop.has(g.id));
@@ -37,7 +84,7 @@ for (const m of STUDIO.mods) {
         op = o(tv, c.k === 'h' ? `Today, ${tv}px` : 'Today', 'What the project uses now.');
         c.opts.unshift(op);
       }
-      if (op) op.today = true;
+      if (op) { op.today = true; if (c.opts[0] !== op && c.k !== 'label') { c.opts.splice(c.opts.indexOf(op), 1); c.opts.unshift(op); } } // today's comes first
     }
   }));
   for (const e of moreFor(m, 'look')) {

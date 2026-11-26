@@ -52,7 +52,7 @@ function studioCheck() {
     for (const op of c.opts) {
       if (!avail(op, ST[c.mid])) continue;
       const s = candidate(c, op);
-      box.innerHTML = `<div style="${varsCss(m.vars(s))}">${m.still(s, { tile: c.k })}</div>`;
+      box.innerHTML = `<div class="${dimCls(m.id, s)}" style="${varsCss(m.vars(s))}">${m.still(s, { tile: c.k })}</div>`;
       if (t.on) box.querySelectorAll('.pv').forEach((b) => b.classList.add('sx-' + t.on));
       const f = print();
       if (seen[f]) out.lookAlike.push(`${c.mid}.${c.k}: “${op.n}” draws the same as “${seen[f]}”`); else seen[f] = op.n;
@@ -79,7 +79,7 @@ function studioCheck() {
 
   if (!DEV[V.device] || UI.devAt !== VIEW) V.device = VIEW; // a new device, or a different one: start on the one in hand
   UI.devAt = VIEW;
-  if (!BGS.some((b) => b[0] === V.bg)) V.bg = P.pageBg ? 'page' : 'cool';
+  if (!BGS.some((b) => b[0] === V.bg)) V.bg = P.pageBg ? 'page' : 'studio';
   seen('dev', V.device);
   seen('bg', V.bg);
   seen('mode', V.mode);
@@ -91,6 +91,10 @@ function studioCheck() {
   const added = had ? all.filter((k) => !UI.known.includes(k)) : [];
   UI.fresh = [...new Set(UI.fresh.concat(added))].filter((k) => all.includes(k));
   UI.known = all;
+  if (DIM_BAD.length) {
+    msg(`A new category the agent added has a mistake, so it is left out: ${esc(DIM_BAD[0])} Everything else works, and your choices are safe.`, 'warn', true);
+    report('MORE.dims: ' + DIM_BAD.join(' '));
+  }
   if (!MORE_OK) {
     msg('The choices the agent added have a mistake, so they are hidden for now. Your choices are safe. The agent has been told.', 'warn', true);
     report('The MORE block in the page did not load (syntax error).');
@@ -102,7 +106,9 @@ function studioCheck() {
       NAV.cat[mid] = c ? c.sid : 'looks';
       added.forEach((k) => { const [m2, k2] = k.split(':')[0].split('.'); ctlsFor(m2, k2).forEach((x) => { UI.expanded[x.id] = true; }); });
     }
-    msg(`${added.length} new choice${added.length > 1 ? 's' : ''} added${UI.pending ? ' to ' + esc(UI.pending.name) : ''}, marked with a green dot. Everything you picked is still selected.`, 'ok');
+    const newCats = [...new Set(added.map((k) => ctlsFor(...k.split(':')[0].split('.'))[0]).filter((c) => c && STUDIO.by[c.mid].groups.find((g) => g.id === c.sid && g.dim)).map((c) => STUDIO.by[c.mid].groups.find((g) => g.id === c.sid).t))];
+    msg(newCats.length ? `Something new to change: <b>${esc(list(newCats))}</b>, with its choices drawn and marked with a green dot. Everything you picked and pinned is still here.`
+      : `${added.length} new choice${added.length > 1 ? 's' : ''} added${UI.pending ? ' to ' + esc(UI.pending.name) : ''}, marked with a green dot. Everything you picked is still selected.`, 'ok');
     UI.pending = null;
   } else if (!(UI.pending && UI.pending.sent && Date.now() - UI.pending.at < 15 * 60e3)) UI.pending = null;
 

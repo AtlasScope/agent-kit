@@ -147,34 +147,39 @@
   const X = (t, px, x = '') => `<p class="ty-t${x}" style="font-size:${px}px">${esc(t)}</p>`;
   function tileArt(s, k) {
     const w = words(), [d, b, m] = facesOf(s);
+    /* Every tile shows complete words at a size you can judge: the whole headline, a whole paragraph. */
+    const NUMS = '<span class="ty-numrow">0123456789 · 1,280 · £71.17</span>';
     switch (k) {
       case 'display': case 'hweight': case 'htrack': case 'hcase':
-        return H(short(w.h, 15), 26, ' ty-c2') + (k === 'display' ? miss(d) : '');
+        return H(w.h, 28) + (k === 'display' ? miss(d) : '');
       case 'body': case 'bweight':
-        return X(w.p, 17, ' ty-c3') + (k === 'body' ? miss(b) : '');
+        return X(w.p, 16) + (k === 'body' ? miss(b) : '');
       case 'mono':
-        return `<code class="ty-c" style="font-size:17px">${esc(short(w.code, 20))}</code><code class="ty-c ty-faint" style="font-size:17px">{ ok: true }</code>` + miss(m);
+        return `<code class="ty-c" style="font-size:15px">${esc(w.code)}</code><code class="ty-c ty-faint" style="font-size:15px">{ ok: true, items: 6 }</code>` + miss(m);
       case 'size':
-        return X(w.p, s.size * 1.1, ' ty-c3');
+        return `<span class="ty-meta">${s.size}px</span>` + X(w.p, s.size);
       case 'ratio': {
-        const big = Math.min(46, 12 * Math.pow(s.ratio, 3)), mid = 12 * Math.pow(s.ratio, 1.5);
-        return H('Title', big) + H('Section', mid, ' ty-gap') + X('Reading text at the base size.', 12, ' ty-gap');
+        const px = (n) => r1(Math.min(44, s.size * Math.pow(s.ratio, n)));
+        return H('Page title', px(4)) + H('Section heading', px(2), ' ty-gap') + X('Reading text at the base size, with the heading sizes worked out from it.', s.size, ' ty-gap');
       }
-      case 'lh': return X(w.p + ' ' + STAND.more, 13, ' ty-c4');
-      case 'hlh': { const t = short(w.h, 20).split(' '), h = Math.ceil(t.length / 2); return `<div class="ty-h" style="font-size:25px;white-space:nowrap">${esc(t.slice(0, h).join(' '))}<br>${esc(t.slice(h).join(' ') || 'and more')}</div>`; }
-      case 'measure': return `<p class="ty-t ty-read ty-c4" style="font-size:7px;line-height:1.6">${esc(w.p + ' ' + STAND.more)}</p>`;
-      case 'num': return `<table class="ty-t ty-nums" style="font-size:24px"><tr><td>£1,111.10</td></tr><tr><td>£980.45</td></tr><tr><td>£71.17</td></tr></table>`;
-      default: return H(short(w.h, 18), 28, ' ty-c2');
+      case 'lh': return X(w.p + ' ' + STAND.more, 14);
+      case 'hlh': return H(w.h, 30);
+      case 'measure': return `<p class="ty-t ty-read" style="font-size:8px">${esc(w.p + ' ' + STAND.more)}</p>`;
+      case 'num': return `<table class="ty-t ty-nums" style="font-size:22px"><tr><td>Starter</td><td>£1,111.10</td></tr><tr><td>Team</td><td>£980.45</td></tr><tr><td>Business</td><td>£71.17</td></tr></table>`;
+      default: return H(w.h, 28) + NUMS;
     }
   }
-  /* Looks are drawn in a short card, so they leave out the code line; Compare has room for everything. */
+  /* A whole specimen: label, the complete headline, a paragraph, figures and a line of code, identical content in
+     every direction so only the lettering differs. */
   function specimen(s, big) {
     const w = words(), [d, b, m] = facesOf(s);
-    const hs = Math.max(18, Math.min(big ? 36 : 30, 12.5 * Math.pow(s.ratio, 3)));
-    return (missing(d) || missing(b) || (big && missing(m)) ? '<span class="ty-miss ty-top">Showing a stand-in face</span>' : '')
-      + `<span class="ty-lbl ty-t">${esc(CX.eyebrow || 'New')}</span>${H(short(w.h, 34), hs, ' ty-c2')}`
-      + X(w.p, 12.5, (big ? ' ty-c3' : ' ty-c2') + ' ty-gap')
-      + (big ? `<code class="ty-c ty-gap" style="font-size:11px">${esc(short(w.code, 30))}</code>` : '');
+    const hs = r1(Math.max(22, Math.min(big ? 40 : 34, s.size * Math.pow(s.ratio, 3.2))));
+    return (missing(d) || missing(b) || missing(m) ? `<span class="ty-miss ty-top">${esc(list([d, b, m].filter(missing).map((f) => f.name)))} not loaded: showing a stand-in</span>` : '')
+      + (CX.eyebrow ? `<span class="ty-lbl ty-t">${esc(CX.eyebrow)}</span>` : '') + H(w.h, hs)
+      + X(w.p, Math.min(17, s.size), ' ty-gap ty-read')
+      + `<p class="ty-t ty-gap ty-numrow" style="font-size:${Math.min(17, s.size)}px">0123456789 · 1,280 seats · £71.17</p>`
+      + `<code class="ty-c ty-gap" style="font-size:${r1(Math.min(15, s.size * 0.875))}px">${esc(w.code)}</code>`
+      + `<span class="ty-meta ty-gap">${esc(d.name)}${d.id === b.id ? '' : ' · ' + esc(b.name)} · ${esc(m.name)} · ${s.size}px</span>`;
   }
   function still(s, opt = {}) {
     if (opt.tile) return `<div class="ty ty-tile${opt.tile === 'measure' ? ' ty-wide' : ''}${lt()}">${tileArt(s, opt.tile)}</div>`;
@@ -188,7 +193,7 @@
     const sample = { '-1': 'Small print, captions and footnotes', 0: w.p, 1: 'An opening line that leads in', 2: 'A smaller heading', 3: 'A section heading', 4: w.h };
     const rows = SCALE.slice().reverse().map(([n, role]) => {
       const px = stepPx(s, n), head = n >= 2;
-      return `<div class="ty-row"><span class="ty-meta">${role}<b>${px}px</b></span><span class="${head ? 'ty-h' : 'ty-t'} ${n === 4 ? 'ty-c2' : 'ty-one'}" style="font-size:${px}px">${esc(sample[n])}</span></div>`;
+      return `<div class="ty-row"><span class="ty-meta">${role}<b>${px}px</b></span><span class="${head ? 'ty-h' : 'ty-t'} ${n === 4 ? '' : 'ty-one'}" style="font-size:${px}px">${esc(sample[n])}</span></div>`;
     }).join('');
     const lost = [d, b, m].filter(missing);
     el.innerHTML = `<div class="ty ty-sheet${lt()}" style="${varsCss(vars(s))}">`
@@ -263,7 +268,7 @@
   }
 
   /* ---- controls ---- */
-  const TILES = { display: {}, body: {}, mono: {}, size: {}, ratio: {}, lh: {}, hlh: {}, htrack: {}, measure: { wide: true }, hweight: {}, bweight: {}, hcase: {}, num: {} };
+  const TILES = { display: { wide: true }, body: { wide: true }, mono: { wide: true }, size: { wide: true }, ratio: { wide: true }, lh: { wide: true }, hlh: { wide: true }, htrack: { wide: true }, measure: { wide: true }, hweight: { wide: true }, bweight: { wide: true }, hcase: { wide: true }, num: { wide: true } };
   const lostNote = (k) => (s) => { const f = face(s[k], k); return missing(f) ? `<b>${esc(f.name)} did not load.</b> The drawings are showing a stand-in face in its place, so they do not show ${esc(f.name)}. It needs an internet connection the first time.` : ''; };
   const groups = [
     { id: 'hface', t: 'Heading lettering', short: 'Headings', sec: 'Faces', why: 'The lettering for titles and headings. It sets the voice before anyone reads a word.', note: lostNote('display'),
@@ -355,7 +360,7 @@
     if (!['none', 'uppercase', 'capitalize'].includes(s.hcase)) s.hcase = 'none';
     if (!['normal', 'tabular-nums', 'oldstyle-nums'].includes(s.num)) s.num = 'normal';
   }
-  function pick(s, c) {
+  function pickType(s, c) {
     if (c.k === 'display') { const f = face(s.display); if (f.weights && f.weights.length === 1) s.hweight = f.weights[0]; }
     if (c.k === 'hcase') {
       if (s.hcase === 'uppercase' && s.htrack < 0.04) s.htrack = 0.06;
@@ -370,11 +375,11 @@
   STUDIO.add({
     id: 'type', ground: true, name: 'Typography',
     title: () => 'lettering',
-    mode0: 'context',
+
     defaults, today: T.today || {}, measured: !!T.measured,
     groups, keep: [],
     looks: T.measured ? looks : looks.filter((l) => l.id !== 'builtin'), // without a measured Today, Built in is the starting point
-    fix, pick, vars, still, live, scene, share, warn, notes, summary,
+    fix, pick: pickType, vars, still, live, scene, share, warn, notes, summary,
     tile: (c) => TILES[c.k] || null,
     tall: () => true,
   });

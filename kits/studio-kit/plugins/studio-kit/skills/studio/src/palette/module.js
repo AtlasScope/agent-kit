@@ -81,23 +81,50 @@
     ['warn', 'Caution', 'Needs a look.'],
     ['bad', 'Error', 'Failed, or something is wrong.'],
   ];
-  const BOARD = [['Backgrounds and lines', ['page', 'surface', 'line', 'control']], ['Words', ['text', 'text2', 'text3']], ['Colour', ['accent', 'fill', 'on-fill']], ['Status', ['ok', 'warn', 'bad']]];
-  /** Every pair of colours that must be readable together: [words, background, minimum, plain name, control to fix it]. */
-  const pairs = (s) => [
-    ['text', 'page', 4.5, 'Main words on the page', 'textk'],
-    ['text', 'surface', 4.5, 'Main words on cards', 'textk'],
-    ['text2', 'page', 4.5, 'Secondary words on the page', 'textk'],
-    ['text3', 'page', 4.5, 'Faint words on the page', 'textk'],
-    ['text3', 'surface', 4.5, 'Faint words on cards', 'textk'],
-    ['accent', 'page', 4.5, 'Links on the page', 'lift'],
-    ['accent', 'surface', 4.5, 'Links on cards', 'lift'],
-    ['on-fill', 'fill', 4.5, 'Words on the main button', 'fill'],
-    ...(s.fill === 'soft' ? [] : [['fill', 'page', 3, 'The main button against the page', 'fill']]),
-    ['control', 'page', 3, 'Field edges on the page', 'sep'],
-    ['ok', 'surface', 4.5, 'Success words on cards', 'stC'],
-    ['warn', 'surface', 4.5, 'Caution words on cards', 'stC'],
-    ['bad', 'surface', 4.5, 'Error words on cards', 'stC'],
-  ];
+  /* ---- the project's own colour roles ----
+     P.palette.roles uses Palette Builder's role contract (references/palette.md): { id, name, type, side, value, used,
+     tokens: [{ name, file, scope, format }], against: [[role, minimum]] }. Each role's exact value is the baseline and
+     can be changed on its own; a direction (a look, a slider) proposes values for the roles nobody has set by hand.
+     Without project roles, the thirteen roles above stand in, and the page says their values are proposals. */
+  const PP = (P.palette && typeof P.palette === 'object') ? P.palette : {};
+  const ID_OK = /^[a-z][a-z0-9-]{0,39}$/;
+  const SLOT_OF = (r) => {
+    if (r.type === 'signal') { const t = (r.id + ' ' + (r.name || '')).toLowerCase(); return /warn|warm|caution|attention|star/.test(t) ? 'warn' : /err|bad|fail|danger|destruct/.test(t) ? 'bad' : 'ok'; }
+    return C.TYPES[r.type] ? r.type : null;
+  };
+  const SLOT_NAME = Object.fromEntries(ROLE.map(([id, n]) => [id, n]));
+  const PROJECT_ROLES = (Array.isArray(PP.roles) ? PP.roles : []).filter((r) => r && ID_OK.test(String(r.id)) && C.HEX.test(String(r.value)) && C.TYPES[r.type]).slice(0, 40).map((r) => ({
+    id: String(r.id), name: String(r.name || r.id), type: r.type, side: r.side === 'light' ? 'light' : 'dark', value: String(r.value).toUpperCase(),
+    used: String(r.used || ''), slot: SLOT_OF(r), note: String(r.note || ''),
+    tokens: (Array.isArray(r.tokens) ? r.tokens : []).filter((t) => t && t.name).map((t) => ({ name: String(t.name), file: String(t.file || ''), scope: String(t.scope || ':root'), format: C.FORMATS.includes(t.format) ? t.format : 'hex' })),
+    against: (Array.isArray(r.against) ? r.against : []).filter((a) => Array.isArray(a) && ID_OK.test(String(a[0]))).map((a) => [String(a[0]), +a[1] || 0]),
+    source: r.source === 'estimated' ? 'estimated' : 'measured',
+  }));
+  /* Older pages name a few found colours by slot (P.palette.hexes); they become exact values for those slots. */
+  const HEXES = (PP.hexes && typeof PP.hexes === 'object') ? PP.hexes : {};
+  const SLOT_TYPE = { ok: 'signal', warn: 'signal', bad: 'signal' };
+  const SLOT_AGAINST = { text: [['page', 4.5], ['surface', 4.5]], text2: [['page', 4.5]], text3: [['page', 4.5], ['surface', 4.5]], accent: [['page', 4.5], ['surface', 4.5]], 'on-fill': [['fill', 4.5]], fill: [['page', 3]], control: [['page', 3]], ok: [['surface', 4.5]], warn: [['surface', 4.5]], bad: [['surface', 4.5]] };
+  const RL = PROJECT_ROLES.length ? PROJECT_ROLES : ROLE.map(([id, n, d]) => ({
+    id, name: n, type: SLOT_TYPE[id] || id, side: 'dark', value: C.HEX.test(String(HEXES[id])) ? String(HEXES[id]).toUpperCase() : '', used: d, slot: id, note: '', tokens: [],
+    against: SLOT_AGAINST[id] || [], source: C.HEX.test(String(HEXES[id])) ? (PP.measured === false ? 'estimated' : 'measured') : 'proposed',
+  }));
+  const RBY = Object.fromEntries(RL.map((r) => [r.id, r]));
+  RL.forEach((r) => { DEFAULTS['r_' + r.id] = ''; });
+  const FIRST_OF_SLOT = {};
+  RL.forEach((r) => { if (r.slot && !FIRST_OF_SLOT[r.slot]) FIRST_OF_SLOT[r.slot] = r.id; });
+  /* Which roles a direction control moves. Changing one of these lets go of the hand-set values it covers. */
+  const GREYS = ['page', 'surface', 'line', 'control', 'text', 'text2', 'text3'];
+  const MOVES = {
+    side: '*', base: GREYS, tint: GREYS, gH: GREYS, gC: GREYS, tintk: GREYS, sep: ['surface', 'line', 'control'],
+    hue: ['accent', 'fill', 'on-fill'], vivid: ['accent', 'fill', 'on-fill'], lift: ['accent', 'fill', 'on-fill'],
+    fill: ['fill', 'on-fill'], fillHue: ['fill', 'on-fill'], stSet: ['ok', 'warn', 'bad'], okH: ['ok'], warnH: ['warn'], badH: ['bad'], stC: ['ok', 'warn', 'bad'],
+    textk: ['text', 'text2', 'text3'],
+  };
+  const touch = (s, k) => {
+    const slots = MOVES[k];
+    if (!slots) return;
+    RL.forEach((r) => { if (slots === '*' || slots.includes(r.slot)) s['r_' + r.id] = ''; });
+  };
 
   /* ---- choices ---- */
   const HUE = [
@@ -176,8 +203,23 @@
     ['violet', 'Midnight violet', 'Inky purple, a bright violet and a pink main button.', { base: 0.2, tint: 'Indigo', gH: 277, gC: 0.03, tintk: 1.4, sep: 1.2, hue: 300, vivid: 0.2, lift: 0.05, fill: 'own', fillHue: 355 }],
   ].map(([id, n, d, patch]) => ({ id, n, d, patch: Object.assign({}, DEFAULTS, patch) }));
 
+  /* ---- the colours a state gives every role ---- */
+  /** Every role's colour: its own value when one is set, else what the direction proposes for its kind. */
+  const values = (s) => {
+    const R = roles(s), out = {};
+    RL.forEach((r) => { const v = s['r_' + r.id]; out[r.id] = typeof v === 'string' && C.HEX.test(v) ? v.toUpperCase() : R[r.slot] || R.text; });
+    return out;
+  };
+  /** The colours the drawings use, by kind, with the project's own roles laid over the direction's. */
+  const slots = (s) => {
+    const R = Object.assign({}, roles(s)), v = values(s);
+    for (const k in FIRST_OF_SLOT) R[k] = v[FIRST_OF_SLOT[k]];
+    return R;
+  };
+  /** A role as Palette Builder's helpers expect it; the thirteen stand-in roles sit on whichever side the palette is. */
+  const roleFor = (s) => (r) => (PROJECT_ROLES.length ? r : Object.assign({}, r, { side: s.side === 'light' ? 'light' : 'dark' }));
+
   /* ---- what the project has today ---- */
-  const PP = (P.palette && typeof P.palette === 'object') ? P.palette : {};
   const fromHexes = (h) => {
     const ok = (x) => typeof x === 'string' && C.HEX.test(x), out = {};
     if (!ok(h.page)) return out;
@@ -191,9 +233,8 @@
     }
     if (ok(h.surface)) out.sep = r2(lim(Math.abs(C.toOklch(h.surface)[0] - L) / (dark ? 0.045 : 0.035), 0.2, 3));
     if (ok(h.text)) { const t = C.toOklch(h.text)[0]; out.textk = r2(lim(dark ? (t - 0.86) / 0.13 : (0.31 - t) / 0.17, 0, 1)); }
-    let acc = null;
     if (ok(h.accent)) {
-      acc = C.toOklch(h.accent);
+      const acc = C.toOklch(h.accent);
       if (acc[1] >= 0.03) { out.hue = Math.round(acc[2]); out.vivid = r2(acc[1]); } else out.vivid = 0;
       out.lift = r2(lim(acc[0] - ACC[side], -0.3, 0.25));
     }
@@ -215,9 +256,12 @@
     }
     return out;
   };
-  const hexes = (PP.hexes && typeof PP.hexes === 'object') ? PP.hexes : {};
-  const today = Object.assign(fromHexes(hexes), (PP.today && typeof PP.today === 'object') ? PP.today : {});
-  const measured = !!PP.measured || Object.keys(today).length > 0;
+  /* The direction that comes closest to today, then every found value laid over it exactly. */
+  const found = {};
+  RL.forEach((r) => { if (r.value && r.slot && !found[r.slot]) found[r.slot] = r.value; });
+  const today = Object.assign(fromHexes(found), (PP.today && typeof PP.today === 'object') ? PP.today : {});
+  RL.forEach((r) => { if (r.value) today['r_' + r.id] = r.value; });
+  const measured = RL.some((r) => r.value);
 
   const fix = (s) => {
     if (s.side !== 'light') s.side = 'dark';
@@ -225,6 +269,7 @@
     s.base = lim(s.base, 0, 1); s.textk = lim(s.textk, 0, 1); s.tintk = lim(s.tintk, 0, 4); s.sep = lim(s.sep, 0.2, 3);
     s.vivid = lim(s.vivid, 0, 0.32); s.lift = lim(s.lift, -0.3, 0.25); s.stC = lim(s.stC, 0.02, 0.26);
     ['gH', 'hue', 'fillHue', 'okH', 'warnH', 'badH'].forEach((k) => { s[k] = C.hue360(s[k]); });
+    RL.forEach((r) => { const k = 'r_' + r.id; s[k] = typeof s[k] === 'string' && C.HEX.test(s[k]) ? s[k].toUpperCase() : ''; });
   };
   const pick = (s, c) => {
     if (c.k === 'hue' && s.vivid < 0.005) s.vivid = 0.14; // choosing a colour should show it
@@ -243,68 +288,148 @@
     + `<div class="pl-card" style="background:${R.surface};${edge(R.line)}">${bar(R.text, 30, 3)}<span class="pl-field" style="${edge(R.control)}"></span>${dots(R)}</div>`
     + '</div></div>';
   const statusArt = (R) => `<div class="pl-mini pl-stat" style="background:${R.page}">`
-    + [['ok', 34], ['warn', 46], ['bad', 28]].map(([k, w]) => `<span class="pl-pill" style="background:${R.surface};${edge(R.line)}"><i style="background:${R[k]}"></i>${bar(R[k], w, 4)}</span>`).join('') + '</div>';
+    + [['ok', 'Saved'], ['warn', 'Needs a look'], ['bad', 'Failed']].map(([k, w]) => `<span class="pl-pill" style="background:${R.surface};${edge(R.line)};color:${R[k]}"><i style="background:${R[k]}"></i>${w}</span>`).join('') + '</div>';
   const wordsArt = (R) => `<div class="pl-mini pl-words" style="background:${R.page}">`
-    + `<b style="color:${R.text}">Aa</b><span class="pl-col">${bar(R.text, 70, 5)}${bar(R.text2, 84, 4)}${bar(R.text3, 58, 4)}</span></div>`;
-  const page = (R, big) => `<div class="pl-look${big ? ' pl-cmp' : ''}" style="background:${R.page};color:${R.text}">`
-    + `<div class="pl-lh" style="border-bottom:1px solid ${R.line}"><b>${esc(big ? P.name : 'Aa')}</b>${bar(R.text2, 20, 3)}${bar(R.text2, 16, 3)}<span class="pl-ghost" style="${edge(R.control)}"></span></div>`
-    + '<div class="pl-lb"><div class="pl-col">'
-    + `<span class="pl-lt">${big ? 'A clear headline' : 'Hello there'}</span>${bar(R.text2, big ? 130 : 100, 3)}${bar(R.text2, big ? 96 : 74, 3)}`
-    + `<span class="pl-row"><span class="pl-btn pl-word" style="background:${R.fill};color:${R['on-fill']}">Start</span><span class="pl-word" style="color:${R.accent}">More</span></span></div>`
-    + `<div class="pl-card" style="background:${R.surface};${edge(R.line)}">${bar(R.text, 34, 3)}<span class="pl-field" style="${edge(R.control)}">${bar(R.text3, 26, 3)}</span>${dots(R)}</div></div>`
-    + `<div class="pl-strip">${['page', 'surface', 'line', 'text', 'text2', 'accent', 'fill', 'ok', 'warn', 'bad'].map((k) => `<i style="background:${R[k]}"></i>`).join('')}</div></div>`;
+    + `<b style="color:${R.text}">Aa</b><span class="pl-col"><span style="color:${R.text}">Main words</span><span style="color:${R.text2}">Secondary words</span><span style="color:${R.text3}">Faint hint</span></span></div>`;
+  /** A coordinated palette at a glance: the jobs that carry it, as big swatches. */
+  const STRIP = ['page', 'surface', 'line', 'text2', 'text', 'accent', 'fill', 'warn'];
+  const strip = (R) => `<div class="pl-strip-big">${STRIP.map((k) => `<i style="background:${R[k]}" title="${esc(SLOT_NAME[k] || k)}"></i>`).join('')}</div>`;
+  /** A representative piece of the product with its own words, painted with the palette: every role at work. */
+  const scenelet = (R, big) => {
+    const links = (CX.links.length ? CX.links : ['Docs', 'Pricing']).slice(0, big ? 3 : 2);
+    const label = (STUDIO.has('button') ? ST.button.label : '') || (P.labels && P.labels[0] && two(P.labels[0])[0]) || 'Get started';
+    return `<div class="pl-scene${big ? ' big' : ''}" style="background:${R.page};color:${R.text}">`
+      + `<div class="pl-sh" style="border-bottom:1px solid ${R.line}"><b>${esc(P.name)}</b><span style="color:${R.text2}">${links.map((l) => `<span>${esc(l)}</span>`).join('')}</span></div>`
+      + '<div class="pl-sb">'
+      + (CX.eyebrow ? `<p class="pl-eb" style="color:${R.accent}">${esc(CX.eyebrow)}</p>` : '')
+      + `<h4>${esc(CX.headline || 'A clear headline that says what this is')}</h4>`
+      + `<p class="pl-p" style="color:${R.text2}">${esc(CX.body || 'One or two plain sentences underneath, long enough to judge how words read on this page.')}</p>`
+      + `<div class="pl-acts"><span class="pl-go" style="background:${R.fill};color:${R['on-fill']}">${esc(label)}</span><span style="color:${R.accent}">${esc(CX.secondary || (P.secondary && P.secondary[0]) || 'Learn more')} →</span></div>`
+      + `<div class="pl-box" style="background:${R.surface};${edge(R.line)}"><span class="pl-lbl">${esc(CX.field || 'Email')}</span>`
+      + `<span class="pl-in" style="${edge(R.control)};color:${R.text3}">${esc(CX.placeholder || CX.hint || 'name@example.com')}</span>`
+      + `<span class="pl-st"><i style="background:${R.ok}"></i><span style="color:${R.ok}">Saved</span><i style="background:${R.warn}"></i><span style="color:${R.warn}">Needs a look</span><i style="background:${R.bad}"></i><span style="color:${R.bad}">Failed</span></span></div>`
+      + '</div></div>';
+  };
   const still = (s, opt = {}) => {
-    const R = roles(s);
+    const R = slots(s);
+    if (opt.look) return strip(R);
     if (opt.tile === 'stSet' || opt.tile === 'stC') return statusArt(R);
     if (opt.tile === 'textk') return wordsArt(R);
     if (opt.tile) return mini(R);
-    return page(R, !!opt.compare);
+    return `<div class="pl-cmp">${scenelet(R, true)}${strip(R)}</div>`;
   };
+  /* The preview card: the palette at work in a representative piece of the product. */
+  const live = (el, s) => { el.innerHTML = `<div class="pl-live">${scenelet(slots(s), false)}</div>`; };
 
-  /* ---- "On its own": every role, what it is for, and whether words on it can be read ---- */
-  const live = (el, s) => {
-    const R = roles(s), p = pairs(s);
-    const card = (id) => { const [, n, d] = ROLE.find((x) => x[0] === id); return `<div class="pl-role" style="background:${R.surface};${edge(R.line)}"><span class="pl-sw" style="background:${R[id]};${edge(R.line)}"></span><div><b style="color:${R.text}">${esc(n)}</b><code style="color:${R.text2}">${R[id]}</code><small style="color:${R.text3}">${esc(d)}</small></div></div>`; };
-    const row = ([fg, bg, min, n]) => {
-      const got = C.ratio(R[fg], R[bg]), pass = got >= min;
-      return `<li style="border-top:1px solid ${R.line}"><span class="pl-aa" style="background:${R[bg]};color:${R[fg]};${edge(R.line)}">Aa</span><span style="color:${R.text}">${esc(n)}</span>`
-        + `<span class="pl-res"><b style="color:${pass ? R.ok : R.bad}">${pass ? 'Readable' : 'Too faint'}</b><span style="color:${R.text3}">${C.showRatio(got)} to 1, needs ${min}</span></span></li>`;
-    };
-    const fails = p.filter(([fg, bg, min]) => C.ratio(R[fg], R[bg]) < min).length;
-    el.innerHTML = `<div class="pl-board" style="background:${R.page};color:${R.text}">`
-      + `<p class="pl-intro" style="color:${R.text2}">Every colour in this palette, what it is for, and whether words on it can be read. ${fails ? `<b style="color:${R.bad}">${fails} pair${fails > 1 ? 's are' : ' is'} too faint.</b>` : `<b style="color:${R.ok}">Everything is readable.</b>`}</p>`
-      + BOARD.map(([t, ids]) => `<section class="pl-sec"><h3 style="color:${R.text}">${t}</h3><div class="pl-grid">${ids.map(card).join('')}</div></section>`).join('')
-      + `<section class="pl-sec"><h3 style="color:${R.text}">Can people read it?</h3><ul class="pl-pairs" style="background:${R.surface};${edge(R.line)}">${p.map(row).join('')}</ul></section></div>`;
+  /* ---- a role you can change on its own: Palette Builder's families and shades ---- */
+  const status = (r, s) => {
+    const v = s['r_' + r.id], base = DEFS.palette && DEFS.palette['r_' + r.id];
+    if (!v) return ['Proposed', 'From the direction you chose; not a project value.'];
+    if (r.value && v === r.value) return r.source === 'estimated' ? ['Estimated', 'Read from source, not measured on a running page.'] : ['Today', 'The exact value found in the project.'];
+    return base && v === base ? ['Today', ''] : ['Changed', 'Set by hand here.'];
   };
+  const contrastLine = (role, vals) => C.failures([role], vals).map((f) => `Too faint on ${esc((RBY[f.bg] || { name: f.bg }).name)}: ${C.showRatio(f.got)} to 1, needs ${f.min}.`).join(' ');
+  function roleRow(c, s) {
+    const r = RBY[c.role], vals = values(s), hex = vals[r.id], role = roleFor(s)(r), open = UI.open === 'palette:' + r.id;
+    const [tag, tip] = status(r, s);
+    const tok = r.tokens[0];
+    const bad = contrastLine(role, vals);
+    let pick = '';
+    if (open) {
+      const color = C.isColor(role), range = C.roleRange(role, hex), fam = C.familyOf(hex, color), L = C.toOklch(hex)[0];
+      const fams = (color ? C.HUES : C.TINTS);
+      const famBtn = (f) => {
+        const rows = C.shadeRows(role, f, range, color), row = rows[Math.min(1, rows.length - 1)][1];
+        const near = row.reduce((b, x) => (Math.abs(C.toOklch(x)[0] - L) < Math.abs(C.toOklch(b)[0] - L) ? x : b));
+        return `<button class="pl-fam" data-mset="palette|r_${r.id}" data-val="${near}" aria-pressed="${f[0] === fam}" title="${esc(f[0])}"><i style="background:${C.familyPreview(role, f, range, color)}"></i>${esc(f[0])}</button>`;
+      };
+      const shades = C.shadeRows(role, fams.find((f) => f[0] === fam) || fams[0], range, color).map(([n, row]) => `<div class="pl-shrow"><span>${esc(n)}</span>${row.map((x) => `<button class="pl-shade" data-mset="palette|r_${r.id}" data-val="${x}" aria-pressed="${x === hex}" aria-label="${x}" title="${x}" style="background:${x}"></button>`).join('')}</div>`).join('');
+      const fixTo = bad ? C.nearestPassing(role, vals) : null;
+      pick = `<div class="pl-pick"><div class="pl-fams" role="group" aria-label="Colour family">${fams.map(famBtn).join('')}</div><div class="pl-shades">${shades}</div>`
+        + '<div class="pl-pacts">'
+        + (fixTo ? `<button class="chip sm" data-mset="palette|r_${r.id}" data-val="${fixTo}">Use the nearest readable shade, ${fixTo}</button>` : '')
+        + (r.value && hex !== r.value ? `<button class="chip sm" data-mset="palette|r_${r.id}" data-val="${r.value}">Back to today’s ${r.value}</button>` : '')
+        + (s['r_' + r.id] ? `<button class="chip sm ghost" data-mset="palette|r_${r.id}" data-val="">Follow the direction</button>` : '')
+        + '</div></div>';
+    }
+    return `<div class="pl-rrow${open ? ' open' : ''}" data-ctl="${c.id}"><button class="pl-rbtn" data-mopen="palette:${r.id}" aria-expanded="${open}">`
+      + `<span class="pl-rsw" style="background:${hex}"></span><span class="pl-rtx"><b>${esc(r.name)}</b><small>${esc(r.used || SLOT_NAME[r.slot] || '')}</small></span>`
+      + `<span class="pl-rv"><code>${hex}</code><span class="pl-tag pl-${tag.toLowerCase()}" title="${esc(tip)}">${tag}</span></span></button>`
+      + (tok ? `<p class="pl-tok">${esc(tok.name)}${tok.file ? ` <span>${esc(tok.file)}</span>` : ''}${r.tokens.length > 1 ? ` and ${r.tokens.length - 1} more` : ''}</p>` : '')
+      + (bad ? `<p class="pl-bad">${bad}</p>` : '') + (r.note ? `<p class="pl-tok">${esc(r.note)}</p>` : '') + pick + '</div>';
+  }
+  /* ---- every pair that must read together, today and now ---- */
+  function board(s) {
+    const vals = values(s), base = values(DEFS.palette), rs = RL.map(roleFor(s));
+    const rows = [];
+    rs.forEach((r) => (r.against || []).forEach(([bg, min]) => {
+      if (!min || !(bg in vals)) return;
+      const now = C.ratio(vals[r.id], vals[bg]), then = C.ratio(base[r.id], base[bg]);
+      rows.push(`<li><span class="pl-aa" style="background:${vals[bg]};color:${vals[r.id]}">Aa</span><span><b>${esc(r.name)}</b> on ${esc((RBY[bg] || { name: bg }).name)}</span>`
+        + `<span class="pl-res"><b class="${now >= min ? 'ok' : 'no'}">${now >= min ? 'Readable' : 'Too faint'} · ${C.showRatio(now)}</b><small>needs ${min}${measured ? ` · today ${C.showRatio(then)}` : ''}</small></span></li>`);
+    }));
+    const fails = C.failures(rs, vals).length, wasFail = measured ? C.failures(rs, base).length : 0;
+    return `<div class="pl-read"><p class="why">${fails ? `${fails} pair${fails > 1 ? 's are' : ' is'} too faint with these colours.` : 'Every pair reads with these colours.'}`
+      + (measured ? ` ${wasFail ? `Today’s palette already has ${wasFail} pair${wasFail > 1 ? 's' : ''} below the minimum; that is a finding about the product, not a change.` : 'Today’s palette passes every pair.'}` : '')
+      + ' Gradients, glass and images behind words are not measured here; check those on the real page.</p>'
+      + `<ul class="pl-pairs">${rows.join('')}</ul></div>`;
+  }
+  const control = (c, s) => (c.t === 'role' ? roleRow(c, s) : c.t === 'board' ? board(s) : null);
+
+  /* Every direction control is a way of proposing role values: the proposal names the roles, not the sliders. */
+  groups.forEach((g) => g.ctl.forEach((c) => { c.inSpec = false; }));
+  groups.unshift({ id: 'roles', t: 'Colour roles', short: 'Roles', sec: 'Roles',
+    why: measured ? 'Every job a colour does here, starting from the exact value found in the project. Open one to change it on its own.' : 'Every job a colour does. No project colours were given, so these are proposals; open one to change it on its own.',
+    note: () => (PROJECT_ROLES.length || !measured ? '' : '<span>Only some roles were found in the project; the rest are marked Proposed until you choose them.</span>'),
+    ctl: RL.map((r) => ({ k: 'r_' + r.id, t: 'role', label: r.name, role: r.id, more: false, inSpec: false })) }); // the notes carry them, with tokens
+  groups.push({ id: 'read', t: 'Readability', sec: 'Roles', why: 'Every pair of colours that must read together, measured for the palette you have now, beside today’s.',
+    ctl: [{ k: '_board', t: 'board', label: 'Readability', more: false, inSpec: false }] });
 
   /* ---- what other parts of the studio read ---- */
   const scene = (s) => {
-    const R = roles(s);
+    const R = slots(s);
     return { vars: { '--sc-bg': R.page, '--sc-surface': R.surface, '--sc-line': R.line, '--sc-control': R.control, '--sc-fg': R.text, '--sc-fg2': R.text2, '--sc-fg3': R.text3, '--sc-accent': R.accent, '--sc-fill': R.fill, '--sc-on-fill': R['on-fill'], '--sc-ok': R.ok, '--sc-warn': R.warn, '--sc-bad': R.bad } };
   };
   const share = (s) => {
-    const R = roles(s), [L, ch, H] = C.toOklch(R.accent);
+    const R = slots(s), [L, ch, H] = C.toOklch(R.accent);
     return { accent: { H: ch < 0.01 ? s.hue : Math.round(H), C: Math.round(ch * 1000) / 1000, L: Math.round(L * 1000) / 1000 }, light: s.side === 'light', roles: Object.assign({}, R) };
   };
   const warn = (s) => {
-    const R = roles(s);
-    return pairs(s).filter(([fg, bg, min]) => C.ratio(R[fg], R[bg]) < min).map(([fg, bg, min, n, k]) => ({
-      k, t: min >= 4.5
-        ? `${n} have a contrast of ${C.showRatio(C.ratio(R[fg], R[bg]))} to 1. Words need at least 4.5.`
-        : `${n} has a contrast of ${C.showRatio(C.ratio(R[fg], R[bg]))} to 1. Shapes people need to see need at least 3.`,
+    const vals = values(s), base = values(DEFS.palette), rs = RL.map(roleFor(s));
+    const was = new Set(C.failures(rs, base).map((f) => f.role + '/' + f.bg));
+    return C.failures(rs, vals).map((f) => ({
+      k: 'r_' + f.role, soft: was.has(f.role + '/' + f.bg),
+      t: `${RBY[f.role].name} on ${(RBY[f.bg] || { name: f.bg }).name}: ${C.showRatio(f.got)} to 1, needs ${f.min}.${was.has(f.role + '/' + f.bg) ? ' Today’s palette has this too.' : ''}`,
+    }));
+  };
+  /** What changed, role by role, for Review: the exact values, and how today's was known. */
+  const changes = (s, d) => {
+    const v = values(s), b = values(d);
+    return RL.filter((r) => v[r.id] !== b[r.id]).map((r) => ({
+      c: ctlsFor('palette', 'r_' + r.id)[0], label: r.name, from: b[r.id], to: v[r.id],
+      known: r.value ? (r.source === 'estimated' ? 'estimated from source' : '') : 'not measured',
     }));
   };
   const notes = (s) => {
-    const R = roles(s);
-    return [`Palette roles (${s.side === 'light' ? 'light' : 'dark'}). Map each onto the project's own colour tokens; the role names follow Palette Builder:`,
-      ...ROLE.map(([id, n]) => `${id}: ${R[id]} ${C.formatColor(R[id], 'oklch')} (${n.toLowerCase()})`)];
+    const v = values(s), d = values(DEFS.palette), out = [];
+    const tok = (r) => (r.tokens.length ? r.tokens.map((t) => `${t.name}${t.file ? ' in ' + t.file : ''}${t.scope && t.scope !== ':root' ? ' (' + t.scope + ')' : ''}: ${C.formatColor(v[r.id], t.format)}`).join('; ') : 'no token found; say where it should live');
+    const changed = RL.filter((r) => v[r.id] !== d[r.id]);
+    out.push(`Colour roles (${s.side === 'light' ? 'light' : 'dark'}), by Palette Builder role id. Write each into its token in the format it already uses.`);
+    changed.forEach((r) => out.push(`- ${r.id} (${r.name}${r.used ? '; used for ' + r.used : ''}): ${d[r.id]} → ${v[r.id]}. Today’s value ${r.value ? (r.source === 'estimated' ? 'estimated from source' : 'found in the project') : 'was not found; the old value shown is a proposal'}. ${tok(r)}.`));
+    const same = RL.filter((r) => v[r.id] === d[r.id]);
+    if (same.length) out.push(`Unchanged: ${same.map((r) => `${r.id} ${v[r.id]}`).join(', ')}.`);
+    return out;
   };
-  const summary = (s) => `${s.side === 'light' ? 'Light' : 'Dark'}, ${s.vivid < 0.005 ? 'grey' : hueName(s.hue).toLowerCase()}`;
+  const summary = (s) => {
+    const n = RL.filter((r) => s['r_' + r.id] && r.value && s['r_' + r.id] !== r.value).length;
+    const look = LOOKS.find((l) => Object.keys(l.patch).every((k) => sameValue(l.patch[k], s[k])));
+    return (look ? look.n : `${s.side === 'light' ? 'Light' : 'Dark'}, ${s.vivid < 0.005 ? 'grey' : hueName(s.hue).toLowerCase()}`) + (n ? `, ${n} role${n > 1 ? 's' : ''} set by hand` : '');
+  };
 
   STUDIO.add({
-    id: 'palette', ground: true, name: 'Palette', title: () => 'colours', mode0: 'context',
+    id: 'palette', ground: true, name: 'Palette', title: () => 'colours',
     defaults: DEFAULTS, today, measured, groups, looks: LOOKS, keep: [],
-    fix, pick, vars: () => ({}), live, still, tile: () => ({}), tall: () => true,
-    scene, share, warn, notes, summary, roles,
+    fix, pick, touch, vars: () => ({}), live, still, control, changes, tile: () => ({}), tall: () => true,
+    scene, share, warn, notes, summary, roles: slots,
   });
 }

@@ -14,7 +14,7 @@ const fresh = (id) => clone(DEFS[id]);
 function setState(id, s) { ST[id] = s; if (id === 'button') S = s; }
 setState('button', ST.button || {});
 
-const V = { device: VIEW, bg: P.pageBg ? 'page' : 'cool', rm: RM_OS, mode: 'alone' }; // how the preview is shown
+const V = { device: VIEW, bg: P.pageBg ? 'page' : 'studio', rm: RM_OS, mode: 'alone' }; // how the preview is shown
 const NAV = { mod: STUDIO.mods[0].id, cat: {}, review: false }; // cat[module] is a group id, or 'looks'
 STUDIO.mods.forEach((m) => { NAV.cat[m.id] = 'looks'; });
 const AM = () => STUDIO.by[NAV.mod];
@@ -29,7 +29,7 @@ const UI = {
   fresh: [], known: [], // choices marked new, and every added choice seen so far
   expanded: {}, fine: {}, // long lists opened, Fine-tune sections opened
   seen: { dev: [], bg: [], rm: false, mode: [] }, // which views were looked at, for Review and the proposal
-  devAt: null, scroll: 0,
+  devAt: null, scroll: 0, open: '', // open: the module control expanded right now (a colour role being edited)
 };
 const SKEY = 'studio:' + (P.id || P.name + ':' + P.noun);
 const OLD_KEY = 'button-studio:' + P.name + ':' + P.noun; // saved by the button studio before it had modules
