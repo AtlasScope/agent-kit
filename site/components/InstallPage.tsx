@@ -5,18 +5,19 @@ import { INSTALL_MESSAGE, type Agent } from "@/lib/site";
 import { InstallPaths, Ext, type Place } from "./InstallPaths";
 import { AgentMark } from "./AgentMark";
 import { HANDOFF_EVENT } from "./stage/HomeHero";
-import { AGENT_KEY, COPIED_KEY, FALLBACK, FRESH_MS, OPEN_URL, OPEN_URL_PHONE, OS_SCRIPT, SHOWN, commandFor, isPhone, lastAgent, markOS, readHandoff } from "./install-choice";
+import { AGENT_KEY, COPIED_KEY, FALLBACK, FRESH_MS, OPEN, OS_SCRIPT, SHOWN, commandFor, device, lastAgent, markOS, readHandoff, type Device } from "./install-choice";
 
-// The install page: a short welcome. It confirms the install message was copied (INSTALL_MESSAGE, copied by the
-// homepage's Install button) and offers Claude Code, Codex and Cursor; on a direct visit its first line is the Copy key
-// instead. Then two ways on, side by side: a free account, or a drawer that introduces the site (InstallPaths). The
-// message, copying it again, the per-agent terminal commands and the kit list stay available in one quiet row and two
-// closed rows at the foot. The message opens selected when the browser blocks copying. Nothing here says the kits are
-// installed: copying is all this page has done.
+// The install page: a short welcome. Two ways on, side by side (a free account, and a drawer that introduces the site:
+// InstallPaths), then a panel with Claude Code, Codex and Cursor. On a Mac or Windows PC each tile opens that desktop
+// app with the install message (INSTALL_MESSAGE, also copied by the homepage's Install button) typed in and not sent.
+// A tile that opens a website copies the message too, since it has to be pasted there. A chip above it all flashes Copied after a copy.
+// The page's heading is for screen readers. Under the panel, two small chips go back to the homepage and copy the
+// message again. Under them, one panel with two tabs: the kits it installs, and the terminal commands for each agent. The message shows,
+// selected, only when the browser blocks copying. Nothing here says the kits are installed.
 //
 // It shares the homepage's view from orbit (components/stage/Stage.tsx), seen from further away, and that stage plays
 // the arrival from the homepage's Install button. By then the message is on the clipboard (readHandoff,
-// install-choice.ts): Copy shows Copied at once and the status line says so a moment later, after a screen reader
+// install-choice.ts): the chip shows Copied at once and the status line says so a moment later, after a screen reader
 // has read the new page's title. The clipboard's answer can land after this page is up, so the page also listens for
 // it (HANDOFF_EVENT). data-arrived marks such a visit.
 //
@@ -27,15 +28,29 @@ import { AGENT_KEY, COPIED_KEY, FALLBACK, FRESH_MS, OPEN_URL, OPEN_URL_PHONE, OS
 const AGENT_SCRIPT = `document.currentScript.parentElement.setAttribute("data-load","");try{var h=JSON.parse(sessionStorage.getItem("${COPIED_KEY}")||"null");if(h&&h.message&&Date.now()-h.at<${FRESH_MS})document.currentScript.parentElement.setAttribute("data-got","")}catch(e){}try{var a=(localStorage.getItem("${AGENT_KEY}")||"").replace(/^t-/,"");if(/^(${SHOWN.map((a) => a.id).join("|")})$/.test(a))document.currentScript.parentElement.setAttribute("data-agent",a)}catch(e){}`;
 // How long a "copied" note lasts. After that the page stops claiming anything about the clipboard.
 const NOTE_MS = 6000;
-// How long the panel keeps saying Copied: long enough to switch to an agent and back, short enough that a tab left open
-// does not claim a clipboard it may no longer hold.
+// How long the panel keeps its copied glow: long enough to switch to an agent and back, short enough that a tab left
+// open does not claim a clipboard it may no longer hold.
 const COPIED_MS = 120_000;
 type Note = { kind: "message" | "copied" | "blocked" | "failed"; n: number };
-export type KitLine = { name: string; line: string; type: string[]; skills: number };
+export type KitLine = { name: string; line: string; type: string[] };
 
 const Check = () => <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>;
 const CopyIcon = () => <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" /></svg>;
 const Chevron = () => <svg className="i inst__chev" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg>;
+const BoxIcon = () => <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"><path d="M12 3 20 7.5v9L12 21l-8-4.5v-9z" /><path d="M4 7.5 12 12l8-4.5M12 12v9" /></svg>;
+const TermIcon = () => <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="3" /><path d="m7.5 10 3 2.5-3 2.5M13 15h3.5" /></svg>;
+// What it installs shows this many kits; past that, a last card links to all of them. Nothing on the panel depends on
+// how many kits or skills there are.
+const KIT_CARDS = 6;
+// Each kit's tile takes a hue from its name, so a new kit gets its own colour without a list to keep.
+const hue = (name: string) => [...name].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
+// Firefox replaces the page with an error when no app answers an app link, so there the link opens in a hidden frame.
+const FIREFOX = () => /Firefox\//.test(navigator.userAgent);
+const launch = (href: string) => {
+  const f = document.createElement("iframe");
+  f.hidden = true; f.src = href; document.body.append(f);
+  setTimeout(() => f.remove(), 3000);
+};
 // The paste keys for each kind of computer; html[data-os] decides which shows. Linux terminals paste with Ctrl Shift V,
 // and the message may go into a terminal agent or an app, so Linux gets both for the message and the terminal keys for
 // a command. Phones show none of these (install.css).
@@ -63,23 +78,17 @@ const selectText = (el: Element | null) => {
   try { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s?.removeAllRanges(); s?.addRange(r); } catch {}
 };
 
-export function InstallPage({ places, kits, skills, kitLines, account, children }: { places: Place[]; kits: number; skills: number; kitLines: KitLine[]; account: boolean; children: React.ReactNode }) {
-  // Whether the message is unfolded, and which agent the visitor opened (it opens in a new tab; this page stays, and
-  // says so, and the account path comes forward).
-  const [peek, setPeek] = useState(false);
+export function InstallPage({ places, kitLines, account, children }: { places: Place[]; kitLines: KitLine[]; account: boolean; children: React.ReactNode }) {
+  // Which agent the visitor opened: this page stays, says where it went, and the account path comes forward.
   const [opened, setOpened] = useState("");
-  // On a phone some agents have a link that opens their app (OPEN_URL_PHONE); set after load, so the page renders the same.
-  const [phone, setPhone] = useState(false);
-  useEffect(() => setPhone(isPhone()), []);
+  // Where the tiles lead (install-choice.ts); read after load, so the page renders the same for everyone.
+  const [on, setOn] = useState<Device>("web");
+  useEffect(() => setOn(device()), []);
   const [agent, setAgent] = useState<Agent>(SHOWN[0]);
-  // The by-hand command's copied state, and the message's, each with its own button.
+  // The by-hand command's copied state.
   const [copied, setCopied] = useState(false);
-  const [said1, setSaid1] = useState(false);
   // The browser refused to copy: the message shows, selected, to copy by hand. It is shown at no other time.
   const [blocked, setBlocked] = useState(false);
-  // A copy has succeeded on this visit. Unlike said1 it doesn't lapse, so the line under the panel stays put.
-  const [everCopied, setEverCopied] = useState(false);
-  useEffect(() => { if (said1) setEverCopied(true); }, [said1]);
   // Once an agent's command has been copied this visit, its light stays softly lit (it never says the clipboard
   // still holds it); another agent's is unlit until its own command is copied.
   const [copiedIds, setCopiedIds] = useState<string[]>([]);
@@ -93,16 +102,22 @@ export function InstallPage({ places, kits, skills, kitLines, account, children 
   // Counts copies of the message that succeeded; each one runs the rim light once.
   const [trace, setTrace] = useState(0);
   const [said, setSaid] = useState("");
+  // The panel's copied glow, which lapses (COPIED_MS).
+  const [lit, setLit] = useState(false);
+  useEffect(() => { if (!trace) return; setLit(true); const t = setTimeout(() => setLit(false), COPIED_MS); return () => clearTimeout(t); }, [trace]);
+  // Hydrated: until then both tabs' panels show, so the terminal commands are there without scripts.
+  const [ready, setReady] = useState(false);
   const h1 = useRef<HTMLHeadingElement>(null);
   const msg = useRef<HTMLPreElement>(null);
   const root = useRef<HTMLElement>(null);
   const cmd = useRef<HTMLPreElement>(null);
 
-  // Before paint: the saved agent, a link straight to the commands (#manual), and what the homepage's Install button did.
+  // Before paint: the saved agent, a link straight to the commands (#manual, which picks the Run it yourself tab), and what the homepage's Install button did.
   useLayoutEffect(() => {
     if (!document.documentElement.hasAttribute("data-os")) markOS();
     setAgent(lastAgent());
     if (location.hash === "#manual") setOpen(true);
+    setReady(true);
     // What the homepage's Install button did. The answer may already be saved, or arrive in the next moments.
     let t = 0, done = false;
     const read = () => {
@@ -113,7 +128,7 @@ export function InstallPage({ places, kits, skills, kitLines, account, children 
       if (!("message" in h) && !("blocked" in h)) return;
       done = true;
       const kind: Note["kind"] = "message" in h ? "message" : "blocked";
-      if (kind === "message") { setSaid1(true); setBlocked(false); setTrace((n) => n + 1); } else setBlocked(true);
+      if (kind === "message") { setBlocked(false); setTrace((n) => n + 1); } else setBlocked(true);
       h1.current?.focus({ preventScroll: true });
       // The status waits a moment, so a screen reader reads it after the new page's title, not over it.
       t = window.setTimeout(() => setNote({ kind, n: 1 }), 600);
@@ -131,8 +146,6 @@ export function InstallPage({ places, kits, skills, kitLines, account, children 
   }, []);
   useEffect(() => { if (blocked) { root.current?.removeAttribute("data-got"); selectText(msg.current); } }, [blocked]);
   useEffect(() => { if (!copied) return; const t = setTimeout(() => setCopied(false), NOTE_MS); return () => clearTimeout(t); }, [copied]);
-  // data-got (set before paint on a full load) shows the Copied panel from the first frame; it ends with the claim.
-  useEffect(() => { if (!said1) return; const t = setTimeout(() => { setSaid1(false); root.current?.removeAttribute("data-got"); }, COPIED_MS); return () => clearTimeout(t); }, [said1]);
 
   // Copied notes clear with their button; a blocked note stays until the next copy, since the visitor still has to act.
   useEffect(() => { if (!note || note.kind === "blocked" || note.kind === "failed") return; const t = setTimeout(() => setNote(null), NOTE_MS); return () => clearTimeout(t); }, [note]);
@@ -151,45 +164,54 @@ export function InstallPage({ places, kits, skills, kitLines, account, children 
     catch { setCopied(false); selectText(cmd.current?.querySelector(`[data-a="${agent.id}"]`) ?? null); show("failed"); }
   };
   const copyMessage = async () => {
-    try { await navigator.clipboard.writeText(INSTALL_MESSAGE); setSaid1(true); setBlocked(false); setTrace((n) => n + 1); show("message"); }
-    catch { setSaid1(false); setBlocked(true); show("blocked"); }
+    try { await navigator.clipboard.writeText(INSTALL_MESSAGE); setBlocked(false); setTrace((n) => n + 1); show("message"); }
+    catch { setBlocked(true); show("blocked"); }
   };
   const many = agent.steps.length > 1;
-  // The agents with a site to open.
-  const openable = SHOWN.filter((a) => OPEN_URL[a.id]);
+  // The agents with something to open, and the one just opened.
+  // The tiles run Codex, Claude Code, Cursor: Claude in the middle, between the two quieter colours.
+  const openable = ["codex", "claude", "cursor"].map((id) => SHOWN.find((a) => a.id === id)).filter((a): a is Agent => Boolean(a && OPEN[a.id]));
+  const went = openable.find((a) => a.label === opened);
   // The message's status line answers the message; the command's answers inside the disclosure, next to it.
   const msgNote = note && (note.kind === "message" || note.kind === "blocked") ? note : null;
   const cmdNote = note && (note.kind === "copied" || note.kind === "failed") ? note : null;
 
   return (
-    <main ref={root} className="quiet inst" data-said={said1 || undefined} data-agent={agent.id} data-picked={picked || undefined} data-arrived={arrived || undefined} suppressHydrationWarning>
-      <script dangerouslySetInnerHTML={{ __html: AGENT_SCRIPT + OS_SCRIPT }} />
+    <main ref={root} className="quiet inst" data-agent={agent.id} data-picked={picked || undefined} data-arrived={arrived || undefined} suppressHydrationWarning>
+      {/* Runs only from the server's HTML. Rendered in the browser (an in-site link) it is inert, which also keeps React
+          from warning about it. */}
+      <script type={typeof window === "undefined" ? undefined : "text/plain"} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: AGENT_SCRIPT + OS_SCRIPT }} />
       <div className="inst__in">
         <div className="inst__main">
+          <h1 ref={h1} tabIndex={-1} className="sr">Install Agent Kit</h1>
+          {/* The chip that flashes after a copy, in the space above everything; the status line says it to screen
+              readers. The first flash can start before scripts (data-got); later copies replay it. */}
+          <div className="inst__flash"><span className="inst__chip" key={`c${Math.max(trace, 1)}`} data-on={trace > 0 || undefined} aria-hidden="true"><Check />Copied</span></div>
+
+          <InstallPaths account={account} places={places} nudge={Boolean(opened)} />
+
           <div className="inst__deck">
-          <section className={`inst__msg${said1 ? " is-copied" : ""}`} data-blocked={blocked || undefined} aria-labelledby="inst-msg-h">
+          <section className={`inst__msg${lit && !blocked ? " is-copied" : ""}`} data-blocked={blocked || undefined} aria-label="Agents">
             <span className="inst__rim" aria-hidden="true" />
             {trace > 0 && <><span className="inst__trace" key={`t${trace}`} aria-hidden="true" /><span className="inst__bloom" key={`b${trace}`} aria-hidden="true" /></>}
             {blocked && <pre className="inst__say" ref={msg}>{INSTALL_MESSAGE}</pre>}
-            {/* The panel's heading is the page's: Copied after a copy, Install Agent Kit on a direct visit (CSS shows one,
-                from data-got before paint and data-said after). It takes focus on arrival from the homepage. */}
-            <div className="inst__head">
-              <span className="inst__tick" aria-hidden="true"><Check /></span>
-              <h1 ref={h1} tabIndex={-1} id="inst-msg-h"><span className="inst__h-got">Copied</span><span className="inst__h-new">Install Agent Kit</span></h1>
-              <button type="button" className="inst__copy inst__copy--main" onClick={copyMessage} aria-label="Copy the message"><CopyIcon />Copy</button>
-            </div>
-            {/* Three equal choices, each lit in its own colour. They open in a new tab, so this page stays. */}
+            {/* Three equal choices, each lit in its own colour. An app link leaves this page where it is; a website opens
+                in a new tab. */}
             <div className="inst__agents" role="group" aria-label="Open your agent">
-              {openable.map((a) => (
-                <a key={a.id} className="inst__agent" data-a-light={a.id} href={(phone && OPEN_URL_PHONE[a.id]) || OPEN_URL[a.id]} target="_blank" rel="noopener noreferrer" onClick={() => setOpened(a.label)}>
-                  <AgentMark id={a.id} /><span>{a.label}</span><Ext /><span className="sr"> (opens in a new tab)</span>
-                </a>
-              ))}
+              {openable.map((a) => {
+                const o = OPEN[a.id], app = on === "desktop";
+                return (
+                  <a key={a.id} className="inst__agent" data-a-light={a.id} href={app ? o.app(INSTALL_MESSAGE) : (on === "phone" && o.phone) || o.web} target={app ? undefined : "_blank"} rel="noopener noreferrer" onClick={(e) => { setOpened(a.label); void copyMessage(); if (app && FIREFOX()) { e.preventDefault(); launch(e.currentTarget.href); } }}>
+                    <AgentMark id={a.id} /><span>{a.label}</span><Ext /><span className="sr">{app ? " (opens the app)" : " (opens in a new tab)"}</span>
+                  </a>
+                );
+              })}
             </div>
-            <p className="inst__opened" aria-live="polite">{opened && <>{opened} opens in a new tab. Paste the message there.</>}</p>
-            <div className="inst__peek" id="inst-peek" hidden={!peek || blocked}>
-              <p className="inst__peekmsg" translate="no">{INSTALL_MESSAGE}</p>
-            </div>
+            <p className="inst__opened" aria-live="polite">
+              {went && (on === "desktop"
+                ? <>Opening {went.label} with the message filled in. Send it there.<span className="inst__help">Nothing opened? {OPEN[went.id].help.map(([label, href], n) => <span key={href}>{n > 0 && " or "}<a href={href} target="_blank" rel="noopener noreferrer">{label}</a></span>)}.</span></>
+                : <>{went.label} opens in a new tab. {blocked ? "Copy the message above and paste" : "Paste the message"} {blocked ? "it " : ""}there.</>)}
+            </p>
           </section>
           <div className="inst__ground" aria-hidden="true"><span className="inst__grid" /><span className="inst__pool" /><span className="inst__horizon" /></div>
           </div>
@@ -205,22 +227,46 @@ export function InstallPage({ places, kits, skills, kitLines, account, children 
             )}
           </div>
 
-          <InstallPaths account={account} places={places} nudge={Boolean(opened)} />
-
-          {/* Recovery, kept quiet: the message again, the per-agent terminal commands, and what gets installed. */}
-          <div className="inst__quietrow">
-            {!blocked && <button type="button" className="inst__quiet" aria-expanded={peek} aria-controls="inst-peek" onClick={() => setPeek((v) => !v)}>{peek ? "Hide the message" : "See the message"}</button>}
-            <button type="button" className="inst__quiet inst__again--copy" onClick={copyMessage} aria-label="Copied. Copy the message again">Copy it again</button>
+          {/* Two small chips: back to the homepage (the stage plays the camera move back), and the message copied again. */}
+          <div className="inst__chips">
+            <Link className="inst__pill" href="/"><svg className="i" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 3.5 5 8l4.5 4.5" /></svg>Back</Link>
+            <button type="button" className="inst__pill" onClick={copyMessage} aria-label="Copy install message"><CopyIcon />Copy install</button>
           </div>
 
-          <details className="inst__manual" id="manual" open={open} onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}>
-            <summary>
-              <h2 className="inst__or">Or run it yourself</h2>
-              <span className="inst__sum">Terminal commands for each agent</span>
-              <Chevron />
-            </summary>
-            <div className="inst__body">
-              <div className="inst__tabs" role="tablist" aria-label="Your agent"
+          {/* What's inside: one panel, two tabs. What it installs shows the kits as cards that wrap to fit however many
+              there are; Run it yourself holds the terminal commands for each agent. */}
+          <section className="inst__inside" id="manual">
+            <div className="inst__views" role="tablist" aria-label="What's inside"
+              onKeyDown={(e) => {
+                const to = e.key === "ArrowRight" || e.key === "ArrowLeft" ? !open : e.key === "Home" ? false : e.key === "End" ? true : null;
+                if (to === null) return;
+                e.preventDefault(); setOpen(to);
+                document.getElementById(to ? "iv-term" : "iv-kits")?.focus();
+              }}>
+              <button type="button" role="tab" id="iv-kits" aria-selected={!open} aria-controls="iv-kits-p" tabIndex={open ? -1 : 0} onClick={() => setOpen(false)}><BoxIcon />What it installs</button>
+              <button type="button" role="tab" id="iv-term" aria-selected={open} aria-controls="iv-term-p" tabIndex={open ? 0 : -1} onClick={() => setOpen(true)}><TermIcon />Run it yourself</button>
+            </div>
+
+            <div className="inst__view inst__kits" id="iv-kits-p" role="tabpanel" aria-labelledby="iv-kits" hidden={ready && open}>
+              <p className="inst__kitnote">Each kit starts with the command shown, as typed in Claude Code.</p>
+              <ul data-cap={KIT_CARDS}>
+                {kitLines.slice(0, KIT_CARDS).map((k) => (
+                  <li key={k.name}>
+                    <Link href={`/kits/${k.name}`} style={{ "--h": hue(k.name) } as React.CSSProperties}>
+                      <span className="inst__kittile" aria-hidden="true">{k.name[0]}</span>
+                      <span className="inst__kitname">{k.name}</span>
+                      <span className="inst__kitline">{k.line}</span>
+                      <span className="inst__kittype">{k.type.map((t) => <code key={t} translate="no">{t}</code>)}</span>
+                    </Link>
+                  </li>
+                ))}
+                {kitLines.length > KIT_CARDS && <li className="inst__kitall"><Link href="/kits">All kits<Chevron /></Link></li>}
+              </ul>
+              <p className="inst__by">{children}</p>
+            </div>
+
+            <div className="inst__view inst__body" id="iv-term-p" role="tabpanel" aria-labelledby="iv-term" hidden={ready && !open}>
+              <div className="inst__tabs" role="tablist" aria-label="Agent for the commands"
                 onKeyDown={(e) => {
                   const i = SHOWN.findIndex((a) => a.id === agent.id);
                   const to = e.key === "ArrowRight" ? (i + 1) % SHOWN.length : e.key === "ArrowLeft" ? (i + SHOWN.length - 1) % SHOWN.length : e.key === "Home" ? 0 : e.key === "End" ? SHOWN.length - 1 : -1;
@@ -271,30 +317,7 @@ export function InstallPage({ places, kits, skills, kitLines, account, children 
                 ))}
               </div>
             </div>
-          </details>
-
-          <details className="inst__fold inst__kits">
-            <summary>
-              <h2 className="inst__or">What it installs</h2>
-              <span className="inst__sum">{kits} kits, {skills} skills</span>
-              <Chevron />
-            </summary>
-            <div className="inst__body">
-              <p className="inst__kitnote">Each kit starts with the command shown, as typed in Claude Code.</p>
-              <ul>
-                {kitLines.map((k) => (
-                  <li key={k.name}>
-                    <Link href={`/kits/${k.name}`}>
-                      <span className="inst__kit"><span className="inst__kitname">{k.name}</span><span className="inst__kitn">{k.skills} {k.skills === 1 ? "skill" : "skills"}</span></span>
-                      <span className="inst__kitline">{k.line}</span>
-                      <span className="inst__kittype">{k.type.map((t) => <code key={t} translate="no">{t}</code>)}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-              <p className="inst__by">{children}</p>
-            </div>
-          </details>
+          </section>
 
         </div>
       </div>

@@ -14,5 +14,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { themeColor: "#020302", colorScheme: "dark" };
 
 export default function Install() {
-  return <InstallRoute account={authEnabled()} />;
+  // The dev server shows the account button without sign-in keys, so the page reviews as it looks live. Its sign-in
+  // link only works where accounts are set up.
+  return <InstallRoute account={authEnabled() || process.env.NODE_ENV === "development"} />;
 }

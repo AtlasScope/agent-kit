@@ -52,7 +52,8 @@ export function HomeHero() {
   const lines = HERO.headline.split(" ");
   return (
     <section className="hero" aria-labelledby="hero-h" suppressHydrationWarning>
-      <script dangerouslySetInnerHTML={{ __html: LOADED + EARLY }} />
+      {/* Runs only from the server's HTML; inert when rendered in the browser, so React doesn't warn about it. */}
+      <script type={typeof window === "undefined" ? undefined : "text/plain"} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: LOADED + EARLY }} />
       <div className="hero__msg">
         <h1 id="hero-h">{lines.map((w, i) => <span key={i} className="hero__w" style={{ "--i": i } as React.CSSProperties}>{w}{i < lines.length - 1 ? " " : ""}</span>)}</h1>
         <p className="hero__lede">Skills and prompts for Claude Code, Codex and Cursor.</p>
