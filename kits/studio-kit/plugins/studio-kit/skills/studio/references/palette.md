@@ -46,6 +46,12 @@ Signals map by name: an id or name with warn, warm, caution or star draws as the
 danger or destructive as the error colour; others as success. With several roles of one type, the first is drawn in
 the representative piece; all of them are listed, changed and proposed.
 
+Light and dark: give a product that has both themes its roles for each side (`side:'light'` and `side:'dark'`, each with
+its own tokens and scope). Both are then drawn side by side, changed together by every direction, measured on their own
+and proposed role by role. A product with one theme can ask for a matched twin (Themes, "Light and dark, matched"):
+derived from the same greys, accent and status colours, drawn beside it, measured, and proposed as a new theme under
+the project's own light or dark selector.
+
 Older pages may give `hexes:{ page, surface, text, accent, fill, ok, warn, bad }` instead. Those become exact values
 for the thirteen standard roles and the rest are marked Proposed.
 
@@ -65,6 +71,7 @@ accent and main button, the status colours); roles it does not cover keep theirs
 | `fill`, `fillHue` | `'accent'`, `'ink'`, `'own'` (uses `fillHue`) or `'soft'` |
 | `stSet`, `okH`, `warnH`, `badH`, `stC` | status family name, the three hues, how strong (0.02 to 0.26) |
 | `textk` | 0 to 1: softer to crisper words |
+| `pair` | `'one'` or `'both'`: also propose a matched twin for the other theme. Fixed at `'both'` when the project has roles on both sides |
 | `r_<role id>` | a role's own value, `#RRGGBB`, or empty to follow the direction |
 
 ## Adding choices (MORE block)

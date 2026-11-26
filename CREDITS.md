@@ -23,6 +23,10 @@ Commit hashes and the few changes made to these skills are listed in [design-kit
 
 `/design`, `/design-setup`, `fix-writing`, `/palette-builder`, `/keen`, `/motion`, `/studio`, `/engineer`, `/database`, `/engineering-setup`, the four experience-architecture skills (`diagnose`, `rethink`, `verify`, `walkthrough`), and the four working-style skills (`ceo`, `harsh-review`, `recommend`, `viewport-proof`). MIT, © AtlasScope.
 
+## Fonts
+
+Studio Kit's page embeds a Latin subset of [Geist and Geist Mono](https://github.com/vercel/geist-font) by Vercel with basement.studio, under the SIL Open Font License 1.1. The licence ships beside the files in `kits/studio-kit/plugins/studio-kit/skills/studio/src/studio/fonts/OFL.txt`.
+
 ## Homepage artwork
 
 The view from orbit behind the homepage is computed in the browser from NASA imagery. We acknowledge the use of imagery provided by services from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS): the cloud of 22 November 2026 seen by VIIRS on NOAA-20, and the cloud-top heights retrieved from the same pass. Land and sea colour is NASA Blue Marble Next Generation (December 2004) and city lights are NASA Black Marble (2016), both by NASA Earth Observatory. NASA does not endorse Agent Kit. What is observed and what is computed is set out on [About this view](https://www.atlasscope.dev/horizon/about).

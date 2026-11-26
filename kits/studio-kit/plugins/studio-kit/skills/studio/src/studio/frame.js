@@ -140,8 +140,9 @@ function renderStageBar() {
   $('hold').textContent = 'Hold for ' + baseName(m).toLowerCase();
   $('hold').disabled = !changedKeys(m.id).length;
   const full = PINS.length >= 3;
-  $('pin').disabled = full || PINS.some((p) => p.mod === m.id && sameLook(m.id, p.s, AS()));
-  $('pin').title = full ? 'Three are pinned. Unpin one in Compare to pin another.' : 'Keep this version to compare with later ones';
+  const isBase = sameLook(m.id, AS(), DEFS[m.id]);
+  $('pin').disabled = full || isBase || PINS.some((p) => p.mod === m.id && sameLook(m.id, p.s, AS()));
+  $('pin').title = full ? 'Three are pinned. Unpin one in Compare to pin another.' : isBase ? `This is ${baseName(m).toLowerCase()}; Compare always shows it` : 'Keep this version to compare with later ones';
   $('pin').textContent = PINS.some((p) => p.mod === m.id && sameLook(m.id, p.s, AS())) ? 'Pinned' : 'Pin';
 }
 function setMode(k) {
@@ -170,6 +171,9 @@ function setRm(on) {
 /* ---- pins, and holding the baseline up against what you have ---- */
 function pinNow() {
   const m = AM(), s = AS();
+  if (sameLook(m.id, s, DEFS[m.id])) return msg(`This is ${esc(baseName(m).toLowerCase())}, which Compare always shows. Change something first, then pin it.`);
+  const twin = PINS.find((p) => p.mod === m.id && sameLook(m.id, s, p.s));
+  if (twin) return msg(`Already pinned as ${esc(twin.name)}.`);
   if (PINS.length >= 3) return msg('Three versions are pinned already. Remove one in Compare first.', 'warn');
   const letter = ['A', 'B', 'C'].find((l) => !PINS.some((p) => p.name.startsWith(l + ' ·') || p.name === l));
   const what = m.summary ? m.summary(s) : (() => { const c = m.groups[0] && m.groups[0].ctl.find((x) => x.t === 'chips'); const op = c && optOf(c, s[c.k]); return op ? op.n : ''; })();

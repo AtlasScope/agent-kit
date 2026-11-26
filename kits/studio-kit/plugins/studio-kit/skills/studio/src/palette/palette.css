@@ -104,3 +104,27 @@
 /* Review and Compare: the palette's piece of the product at full width, never cropped */
 .art:has(.pl-cmp),.cmp-art:has(.pl-cmp){height:auto;place-items:stretch;place-content:stretch}
 .art:has(.pl-cmp)>.art-in,.cmp-art:has(.pl-cmp)>.art-in{width:100%;transform:none!important}
+/* light and dark together */
+.pl-strips{display:flex;flex-direction:column;gap:8px;width:100%;height:100%;min-width:240px}
+.pl-strips .pl-strip-big{min-width:0;height:auto;flex:1}
+.art:has(.pl-strips){padding:16px;place-content:stretch}
+.art:has(.pl-strips)>.art-in{width:100%;height:100%;transform:none!important}
+.pl-twins{display:flex;gap:10px}
+.pl-cap{display:block;padding:7px 12px;font:600 11px/1.3 var(--font);letter-spacing:.04em;text-transform:uppercase;color:var(--c-fg-3);background:var(--c-sunken)}
+.pl-two{flex-direction:row;gap:1px;background:var(--line)}
+.pl-two>div{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--s1)}
+.pl-two .pl-scene{flex:1}
+.pl-pair{display:grid;grid-template-rows:1fr 1fr;gap:1px;height:100%;background:var(--line)}
+.pl-pair>div{position:relative;min-height:0;overflow:hidden;background:var(--c-sunken)}
+.pl-pair .pl-cap{position:absolute;z-index:1;right:8px;top:8px;padding:3px 8px;border-radius:6px;background:oklch(0% 0 0 / .62);color:var(--c-fg-2);backdrop-filter:blur(6px)}
+.pl-pair .pl-scene{min-height:100%}
+.pl-side{margin:18px 0 8px;font:600 12px/1.3 var(--font);letter-spacing:.05em;text-transform:uppercase;color:var(--c-fg-3)}
+.pl-side:first-child{margin-top:0}
+.pl-twinh{margin:26px 0 4px;font-size:15px;font-weight:600}
+@media (max-width:899px){.pl-two{flex-direction:column}}
+.pl-pair .pl-cap{top:auto;bottom:8px}
+.pl-pair .pl-p,.pl-pair .pl-box{display:none}
+.pl-pair .pl-sb{padding-top:14px}
+.pl-pair .pl-scene h4{font-size:17px}
+.ba:has(.pl-two){grid-template-columns:minmax(0,1fr)}
+@media (max-width:899px){.pl-pair .pl-sh{display:none}.pl-pair .pl-sb{padding-top:10px}.pl-pair .pl-scene h4{font-size:15px}.pl-pair .pl-acts{margin-top:8px}}

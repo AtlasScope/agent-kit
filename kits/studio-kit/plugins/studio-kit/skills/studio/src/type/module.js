@@ -130,6 +130,8 @@
     return out.join(' ');
   }
   const lt = () => { try { return bgLight() ? ' ty-lt' : ''; } catch { return ''; } };
+  /** With the Palette studio open, every specimen sits on the palette being chosen, so type and colour are judged together. */
+  const pal = () => { const R = shared('roles'); return R ? { cls: ' ty-pal', css: `background:${R.page};color:${R.text};--ty-acc:${R.accent}` } : { cls: '', css: '' }; };
 
   function vars(s) {
     const [d, b, m] = facesOf(s);
@@ -182,8 +184,9 @@
       + `<span class="ty-meta ty-gap">${esc(d.name)}${d.id === b.id ? '' : ' · ' + esc(b.name)} · ${esc(m.name)} · ${s.size}px</span>`;
   }
   function still(s, opt = {}) {
-    if (opt.tile) return `<div class="ty ty-tile${opt.tile === 'measure' ? ' ty-wide' : ''}${lt()}">${tileArt(s, opt.tile)}</div>`;
-    return `<div class="ty ty-spec${opt.compare ? ' ty-big' : ''}${lt()}">${specimen(s, opt.compare)}</div>`;
+    const p = pal();
+    if (opt.tile) return `<div class="ty ty-tile${opt.tile === 'measure' ? ' ty-wide' : ''}${p.cls || lt()}" style="${p.css}">${tileArt(s, opt.tile)}</div>`;
+    return `<div class="ty ty-spec${opt.compare ? ' ty-big' : ''}${p.cls || lt()}" style="${p.css}">${specimen(s, opt.compare)}</div>`;
   }
 
   function live(el, s) {
@@ -196,7 +199,8 @@
       return `<div class="ty-row"><span class="ty-meta">${role}<b>${px}px</b></span><span class="${head ? 'ty-h' : 'ty-t'} ${n === 4 ? '' : 'ty-one'}" style="font-size:${px}px">${esc(sample[n])}</span></div>`;
     }).join('');
     const lost = [d, b, m].filter(missing);
-    el.innerHTML = `<div class="ty ty-sheet${lt()}" style="${varsCss(vars(s))}">`
+    const p = pal();
+    el.innerHTML = `<div class="ty ty-sheet${p.cls || lt()}" style="${varsCss(vars(s))};${p.css}">`
       + `<p class="ty-meta ty-who">${esc(who)}, ${m.id === 'sysmono' ? 'the device’s own code lettering' : esc(m.name) + ' for code'}</p>`
       + (lost.length ? `<p class="ty-warnline">${esc(list(lost.map((f) => f.name)))} did not load, so a stand-in face is showing in ${lost.length > 1 ? 'their' : 'its'} place.</p>` : '')
       + `<section><h4 class="ty-meta ty-sec">Sizes, from page title to small print</h4>${rows}</section>`

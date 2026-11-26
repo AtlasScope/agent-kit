@@ -9,6 +9,19 @@ import { fileURLToPath } from "node:url";
 
 const SRC = fileURLToPath(new URL("../../src/", import.meta.url));
 const read = (f) => fs.readFileSync(path.join(SRC, f), "utf8");
+const b64 = (f) => fs.readFileSync(path.join(SRC, f)).toString("base64");
+
+/* AtlasScope's own identity for the studio's frame, the same in every project: the official lockup and symbol, the
+   favicon, and Geist (a Latin subset, SIL Open Font License, fonts/OFL.txt) embedded so the page needs no network. */
+const svgInner = (f, cls) => read(f).replace(/<title>[^<]*<\/title>/, "").replace(/^<svg /, `<svg class="${cls}" aria-hidden="true" focusable="false" `).replace(/ width="[^"]*" height="[^"]*"/, "").trim();
+function brand() {
+  return {
+    fonts: `@font-face{font-family:"Studio Geist";src:url(data:font/woff2;base64,${b64("studio/fonts/geist-sans.woff2")}) format("woff2");font-weight:100 900;font-display:block}\n`
+      + `@font-face{font-family:"Studio Geist Mono";src:url(data:font/woff2;base64,${b64("studio/fonts/geist-mono.woff2")}) format("woff2");font-weight:100 900;font-display:block}\n`,
+    icon: `<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,${b64("studio/brand/icon.svg")}">`,
+    logo: svgInner("studio/brand/lockup.svg", "aslogo aslogo--full") + svgInner("studio/brand/symbol.svg", "aslogo aslogo--mark"),
+  };
+}
 
 /** Every module in src/: { id: { name, css: [], js: [] } }, in a steady order with button first. */
 export function modules() {
@@ -72,7 +85,8 @@ export function build({ modules: wanted, keep = {} } = {}) {
     project: keep.project ?? "<script>\n" + read("project.js"),
     more: keep.more ?? "<script>\n" + read("more.js"),
   };
-  const css = [...SHELL_CSS, ...ids.flatMap((id) => all[id].css)].map(read).join("\n");
+  const id = brand();
+  const css = id.fonts + [...SHELL_CSS, ...ids.flatMap((id) => all[id].css)].map(read).join("\n");
   const files = [...SHELL_HEAD, ...ids.flatMap((id) => all[id].js), ...SHELL_TAIL];
   // Modules other than the button keep their names to themselves: each file runs in its own function scope, so a helper
   // it declares can never replace one of the shell's (the page is not strict code, so a block alone does not do that).
@@ -85,12 +99,13 @@ export function build({ modules: wanted, keep = {} } = {}) {
 <meta name="studio-modules" content="${ids.join(",")}">
 <meta name="studio-available" content="${Object.entries(all).map(([id, m]) => id + ":" + m.name.replace(/[,:"<>&]/g, "")).join(",")}">
 <title>Studio</title>
+${id.icon}
 <style>
 ${css}</style>
 ${parts.moreCss}</style></head><body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
 ${icons.slice(0, iconsAt)}${parts.icons}</defs></svg>
-${read("studio/body.html")}
+${read("studio/body.html").replace("<!-- LOGO -->", id.logo)}
 ${parts.project}</script>
 ${parts.more}</script>
 <script>

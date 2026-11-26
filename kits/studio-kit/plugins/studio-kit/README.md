@@ -21,12 +21,23 @@ Nothing in your application changes while you explore. When you send a proposal 
 
 ## Install
 
-**Claude Code**
+**Claude Code on a computer (Mac, Windows, Linux)**
 
 ```sh
 claude plugin marketplace add AtlasScope/agent-kit
 claude plugin install studio-kit@agent-kit
 ```
+
+Update later with `claude plugin marketplace update agent-kit` and `claude plugin update studio-kit@agent-kit`.
+
+**Codex on a computer**
+
+```sh
+codex plugin marketplace add AtlasScope/agent-kit
+codex plugin add studio-kit@agent-kit
+```
+
+Then type `/studio` in a project. The page opens on `127.0.0.1` and works offline: everything it needs, including its fonts, is inside the plugin.
 
 ## The scripts on their own
 
@@ -52,10 +63,10 @@ node kits/studio-kit/plugins/studio-kit/skills/studio/scripts/studio.mjs new <di
 
 ## What has and has not been tested
 
-- Version 0.1.0 is early. It has been run only on Windows, with Claude Code, in local sessions.
-- Codex, Cursor, Mac and cloud sessions are not yet tested.
-- The kit has no automated tests yet.
+- Version 0.1.0 is early. It has been run only on Windows, with Claude Code, in local sessions, in Chromium.
+- Codex, Cursor, Mac, Safari, a real phone and cloud sessions are not yet tested.
+- `skills/studio/tests/studio.test.mjs` checks that a built page passes its own check, that new categories follow the page's rules, and that the colour maths matches Palette Builder's. It runs in CI when the kit changes.
 
 ## Sources
 
-The skill is original to Agent Kit and MIT licensed.
+The skill is original to Agent Kit and MIT licensed. The studio's own frame carries the AtlasScope symbol and wordmark (© AtlasScope) and a Latin subset of Geist and Geist Mono (Vercel with basement.studio, SIL Open Font License 1.1, licence in `skills/studio/src/studio/fonts/OFL.txt`). The designs inside it use the project's own fonts and colours.

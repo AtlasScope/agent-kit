@@ -48,3 +48,6 @@
 /* Specimens always grow to their words, in every grid and at every width; on a phone, one per row. */
 .tiles .art:has(.ty),.looks .art:has(.ty){height:auto;min-height:150px}
 @media (max-width:899px){.tiles.wide:has(.ty),.looks:has(.ty){grid-template-columns:minmax(0,1fr)}.tiles .art:has(.ty){min-height:0}}
+.ty-pal{min-height:100%}
+.ty-sheet.ty-pal{width:100%}
+.art:has(.ty-pal)>.art-in{height:100%}

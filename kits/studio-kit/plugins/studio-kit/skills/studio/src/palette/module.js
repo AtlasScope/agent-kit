@@ -109,9 +109,17 @@
     against: SLOT_AGAINST[id] || [], source: C.HEX.test(String(HEXES[id])) ? (PP.measured === false ? 'estimated' : 'measured') : 'proposed',
   }));
   const RBY = Object.fromEntries(RL.map((r) => [r.id, r]));
+  /* Light and dark. A project that has roles on both sides keeps both, drawn and changed together; one that has a
+     single theme can ask for a matched twin, derived from the same greys, accent and status colours. */
+  const BOTH = PROJECT_ROLES.some((r) => r.side === 'light') && PROJECT_ROLES.some((r) => r.side === 'dark');
+  DEFAULTS.pair = BOTH ? 'both' : 'one';
+  const otherSide = (s) => (s.side === 'light' ? 'dark' : 'light');
+  const twinOn = (s) => BOTH || s.pair === 'both';
+  const sideName = (x) => (x === 'light' ? 'Light' : 'Dark');
   RL.forEach((r) => { DEFAULTS['r_' + r.id] = ''; });
-  const FIRST_OF_SLOT = {};
+  const FIRST_OF_SLOT = {}, FIRST_ON = { dark: {}, light: {} };
   RL.forEach((r) => { if (r.slot && !FIRST_OF_SLOT[r.slot]) FIRST_OF_SLOT[r.slot] = r.id; });
+  PROJECT_ROLES.forEach((r) => { if (r.slot && !FIRST_ON[r.side][r.slot]) FIRST_ON[r.side][r.slot] = r.id; });
   /* Which roles a direction control moves. Changing one of these lets go of the hand-set values it covers. */
   const GREYS = ['page', 'surface', 'line', 'control', 'text', 'text2', 'text3'];
   const MOVES = {
@@ -153,7 +161,8 @@
 
   const groups = [
     { id: 'mode', t: 'Light or dark', sec: 'Overall', why: 'Whether the page is dark with light words or light with dark words, and how far the background goes.', ctl: [
-      ch('side', 'Light or dark', [o('dark', 'Dark', 'Light words on a dark background.'), o('light', 'Light', 'Dark words on a light background.')]),
+      ch('side', 'Light or dark', [o('dark', 'Dark', 'Light words on a dark background.'), o('light', 'Light', 'Dark words on a light background.')], { show: () => !BOTH }),
+      ch('pair', 'Themes', [o('one', 'One theme', 'Only the theme shown here.'), o('both', 'Light and dark, matched', 'A twin for the other theme from the same greys, accent and status colours, so both read as one product. Drawn beside this one and proposed with it.')], { show: () => !BOTH }),
       ch('base', 'Background', [o(0, 'Pure', 'As far as it goes: black, or white.'), o(0.35, 'Softened', 'Just off black or white. Easier on the eyes.'), o(0.75, 'Muted', 'A deep grey, or a paper tone.')]),
       rg('base', 'How far from black or white', 0, 1, 0.01, '', 'Left is pure black or pure white.'),
     ] },
@@ -202,20 +211,28 @@
     ['sage', 'Sage', 'Soft greens and stone. Quiet and natural.', { side: 'light', base: 0.5, tint: 'Green', gH: 155, gC: 0.022, tintk: 1.2, sep: 0.9, hue: 160, vivid: 0.09, lift: -0.06, stSet: 'gentle', okH: 178, warnH: 92, badH: 18, stC: 0.09, textk: 0.4 }],
     ['violet', 'Midnight violet', 'Inky purple, a bright violet and a pink main button.', { base: 0.2, tint: 'Indigo', gH: 277, gC: 0.03, tintk: 1.4, sep: 1.2, hue: 300, vivid: 0.2, lift: 0.05, fill: 'own', fillHue: 355 }],
   ].map(([id, n, d, patch]) => ({ id, n, d, patch: Object.assign({}, DEFAULTS, patch) }));
+  LOOKS.forEach((l) => { delete l.patch.pair; }); // a look changes the colours, not whether there are two themes
 
   /* ---- the colours a state gives every role ---- */
   /** Every role's colour: its own value when one is set, else what the direction proposes for its kind. */
+  const rolesOn = (s, side) => roles(side === s.side ? s : Object.assign({}, s, { side }));
   const values = (s) => {
-    const R = roles(s), out = {};
-    RL.forEach((r) => { const v = s['r_' + r.id]; out[r.id] = typeof v === 'string' && C.HEX.test(v) ? v.toUpperCase() : R[r.slot] || R.text; });
+    const out = {};
+    RL.forEach((r) => {
+      const v = s['r_' + r.id], R = rolesOn(s, PROJECT_ROLES.length ? r.side : s.side);
+      out[r.id] = typeof v === 'string' && C.HEX.test(v) ? v.toUpperCase() : R[r.slot] || R.text;
+    });
     return out;
   };
   /** The colours the drawings use, by kind, with the project's own roles laid over the direction's. */
-  const slots = (s) => {
-    const R = Object.assign({}, roles(s)), v = values(s);
-    for (const k in FIRST_OF_SLOT) R[k] = v[FIRST_OF_SLOT[k]];
+  const slots = (s, side = s.side) => {
+    const R = Object.assign({}, rolesOn(s, side)), v = values(s);
+    const lay = PROJECT_ROLES.length ? (BOTH ? FIRST_ON[side] : side === s.side ? FIRST_OF_SLOT : {}) : side === s.side ? FIRST_OF_SLOT : {};
+    for (const k in lay) R[k] = v[lay[k]];
     return R;
   };
+  /** The other theme, when there is one: [side, its colours, whether it is the project's own or a matched proposal]. */
+  const twin = (s) => (twinOn(s) ? [otherSide(s), slots(s, otherSide(s)), BOTH] : null);
   /** A role as Palette Builder's helpers expect it; the thirteen stand-in roles sit on whichever side the palette is. */
   const roleFor = (s) => (r) => (PROJECT_ROLES.length ? r : Object.assign({}, r, { side: s.side === 'light' ? 'light' : 'dark' }));
 
@@ -261,10 +278,12 @@
   RL.forEach((r) => { if (r.value && r.slot && !found[r.slot]) found[r.slot] = r.value; });
   const today = Object.assign(fromHexes(found), (PP.today && typeof PP.today === 'object') ? PP.today : {});
   RL.forEach((r) => { if (r.value) today['r_' + r.id] = r.value; });
+  today.pair = DEFAULTS.pair;
   const measured = RL.some((r) => r.value);
 
   const fix = (s) => {
     if (s.side !== 'light') s.side = 'dark';
+    s.pair = BOTH ? 'both' : s.pair === 'both' ? 'both' : 'one';
     for (const k in DEFAULTS) if (typeof DEFAULTS[k] === 'number') s[k] = num(s[k], DEFAULTS[k]);
     s.base = lim(s.base, 0, 1); s.textk = lim(s.textk, 0, 1); s.tintk = lim(s.tintk, 0, 4); s.sep = lim(s.sep, 0.2, 3);
     s.vivid = lim(s.vivid, 0, 0.32); s.lift = lim(s.lift, -0.3, 0.25); s.stC = lim(s.stC, 0.02, 0.26);
@@ -298,11 +317,12 @@
   const scenelet = (R, big) => {
     const links = (CX.links.length ? CX.links : ['Docs', 'Pricing']).slice(0, big ? 3 : 2);
     const label = (STUDIO.has('button') ? ST.button.label : '') || (P.labels && P.labels[0] && two(P.labels[0])[0]) || 'Get started';
-    return `<div class="pl-scene${big ? ' big' : ''}" style="background:${R.page};color:${R.text}">`
+    const f = shared('fonts'), ff = f ? `;font-family:${esc(f.body)}` : '', hf = f ? ` style="font-family:${esc(f.display)}"` : '';
+    return `<div class="pl-scene${big ? ' big' : ''}" style="background:${R.page};color:${R.text}${ff}">`
       + `<div class="pl-sh" style="border-bottom:1px solid ${R.line}"><b>${esc(P.name)}</b><span style="color:${R.text2}">${links.map((l) => `<span>${esc(l)}</span>`).join('')}</span></div>`
       + '<div class="pl-sb">'
       + (CX.eyebrow ? `<p class="pl-eb" style="color:${R.accent}">${esc(CX.eyebrow)}</p>` : '')
-      + `<h4>${esc(CX.headline || 'A clear headline that says what this is')}</h4>`
+      + `<h4${hf}>${esc(CX.headline || 'A clear headline that says what this is')}</h4>`
       + `<p class="pl-p" style="color:${R.text2}">${esc(CX.body || 'One or two plain sentences underneath, long enough to judge how words read on this page.')}</p>`
       + `<div class="pl-acts"><span class="pl-go" style="background:${R.fill};color:${R['on-fill']}">${esc(label)}</span><span style="color:${R.accent}">${esc(CX.secondary || (P.secondary && P.secondary[0]) || 'Learn more')} →</span></div>`
       + `<div class="pl-box" style="background:${R.surface};${edge(R.line)}"><span class="pl-lbl">${esc(CX.field || 'Email')}</span>`
@@ -310,16 +330,24 @@
       + `<span class="pl-st"><i style="background:${R.ok}"></i><span style="color:${R.ok}">Saved</span><i style="background:${R.warn}"></i><span style="color:${R.warn}">Needs a look</span><i style="background:${R.bad}"></i><span style="color:${R.bad}">Failed</span></span></div>`
       + '</div></div>';
   };
+  const label2 = (side, own) => `${sideName(side)}${own ? '' : ', matched'}`;
   const still = (s, opt = {}) => {
-    const R = slots(s);
-    if (opt.look) return strip(R);
+    const R = slots(s), t = twin(s);
+    if (opt.look) return t ? `<div class="pl-strips">${strip(R)}${strip(t[1])}</div>` : strip(R);
+    if (opt.tile === 'pair') return t ? `<div class="pl-twins">${mini(R)}${mini(t[1])}</div>` : mini(R);
     if (opt.tile === 'stSet' || opt.tile === 'stC') return statusArt(R);
     if (opt.tile === 'textk') return wordsArt(R);
     if (opt.tile) return mini(R);
+    if (t) return `<div class="pl-cmp pl-two"><div><span class="pl-cap">${sideName(s.side)}</span>${scenelet(R, true)}${strip(R)}</div><div><span class="pl-cap">${label2(t[0], t[2])}</span>${scenelet(t[1], true)}${strip(t[1])}</div></div>`;
     return `<div class="pl-cmp">${scenelet(R, true)}${strip(R)}</div>`;
   };
   /* The preview card: the palette at work in a representative piece of the product. */
-  const live = (el, s) => { el.innerHTML = `<div class="pl-live">${scenelet(slots(s), false)}</div>`; };
+  const live = (el, s) => {
+    const t = twin(s);
+    el.innerHTML = t
+      ? `<div class="pl-live pl-pair"><div><span class="pl-cap">${sideName(s.side)}</span>${scenelet(slots(s), false)}</div><div><span class="pl-cap">${label2(t[0], t[2])}</span>${scenelet(t[1], false)}</div></div>`
+      : `<div class="pl-live">${scenelet(slots(s), false)}</div>`;
+  };
 
   /* ---- a role you can change on its own: Palette Builder's families and shades ---- */
   const status = (r, s) => {
@@ -352,7 +380,8 @@
         + (s['r_' + r.id] ? `<button class="chip sm ghost" data-mset="palette|r_${r.id}" data-val="">Follow the direction</button>` : '')
         + '</div></div>';
     }
-    return `<div class="pl-rrow${open ? ' open' : ''}" data-ctl="${c.id}"><button class="pl-rbtn" data-mopen="palette:${r.id}" aria-expanded="${open}">`
+    const head = BOTH && PROJECT_ROLES.find((x) => x.side === r.side) === r ? `<p class="pl-side">${sideName(r.side)} theme</p>` : '';
+    return head + `<div class="pl-rrow${open ? ' open' : ''}" data-ctl="${c.id}"><button class="pl-rbtn" data-mopen="palette:${r.id}" aria-expanded="${open}">`
       + `<span class="pl-rsw" style="background:${hex}"></span><span class="pl-rtx"><b>${esc(r.name)}</b><small>${esc(r.used || SLOT_NAME[r.slot] || '')}</small></span>`
       + `<span class="pl-rv"><code>${hex}</code><span class="pl-tag pl-${tag.toLowerCase()}" title="${esc(tip)}">${tag}</span></span></button>`
       + (tok ? `<p class="pl-tok">${esc(tok.name)}${tok.file ? ` <span>${esc(tok.file)}</span>` : ''}${r.tokens.length > 1 ? ` and ${r.tokens.length - 1} more` : ''}</p>` : '')
@@ -372,7 +401,18 @@
     return `<div class="pl-read"><p class="why">${fails ? `${fails} pair${fails > 1 ? 's are' : ' is'} too faint with these colours.` : 'Every pair reads with these colours.'}`
       + (measured ? ` ${wasFail ? `Today’s palette already has ${wasFail} pair${wasFail > 1 ? 's' : ''} below the minimum; that is a finding about the product, not a change.` : 'Today’s palette passes every pair.'}` : '')
       + ' Gradients, glass and images behind words are not measured here; check those on the real page.</p>'
-      + `<ul class="pl-pairs">${rows.join('')}</ul></div>`;
+      + `<ul class="pl-pairs">${rows.join('')}</ul>${twinBoard(s)}</div>`;
+  }
+  /** The matched twin's pairs, by kind of role: it has no project values, so only now is measured. */
+  const TWIN_PAIRS = Object.entries(SLOT_AGAINST).flatMap(([k, list]) => list.map(([bg, min]) => [k, bg, min]));
+  const twinFails = (s) => { const t = twin(s); return t && !t[2] ? TWIN_PAIRS.filter(([k, bg, min]) => C.ratio(t[1][k], t[1][bg]) < min) : []; };
+  function twinBoard(s) {
+    const t = twin(s);
+    if (!t || t[2]) return '';
+    const R = t[1], fails = twinFails(s).length;
+    return `<h3 class="pl-twinh">${label2(t[0], false)} theme</h3><p class="why">${fails ? `${fails} pair${fails > 1 ? 's are' : ' is'} too faint in the matched theme.` : 'Every pair reads in the matched theme too.'}</p><ul class="pl-pairs">`
+      + TWIN_PAIRS.map(([k, bg, min]) => { const now = C.ratio(R[k], R[bg]); return `<li><span class="pl-aa" style="background:${R[bg]};color:${R[k]}">Aa</span><span><b>${esc(SLOT_NAME[k] || k)}</b> on ${esc(SLOT_NAME[bg] || bg)}</span><span class="pl-res"><b class="${now >= min ? 'ok' : 'no'}">${now >= min ? 'Readable' : 'Too faint'} · ${C.showRatio(now)}</b><small>needs ${min}</small></span></li>`; }).join('')
+      + '</ul>';
   }
   const control = (c, s) => (c.t === 'role' ? roleRow(c, s) : c.t === 'board' ? board(s) : null);
 
@@ -400,35 +440,42 @@
     return C.failures(rs, vals).map((f) => ({
       k: 'r_' + f.role, soft: was.has(f.role + '/' + f.bg),
       t: `${RBY[f.role].name} on ${(RBY[f.bg] || { name: f.bg }).name}: ${C.showRatio(f.got)} to 1, needs ${f.min}.${was.has(f.role + '/' + f.bg) ? ' Today’s palette has this too.' : ''}`,
-    }));
+    })).concat(twinFails(s).map(([k, bg, min]) => ({ k: 'pair', t: `Matched ${otherSide(s)} theme: ${SLOT_NAME[k] || k} on ${SLOT_NAME[bg] || bg} is ${C.showRatio(C.ratio(twin(s)[1][k], twin(s)[1][bg]))} to 1, needs ${min}.` })));
   };
   /** What changed, role by role, for Review: the exact values, and how today's was known. */
   const changes = (s, d) => {
     const v = values(s), b = values(d);
-    return RL.filter((r) => v[r.id] !== b[r.id]).map((r) => ({
-      c: ctlsFor('palette', 'r_' + r.id)[0], label: r.name, from: b[r.id], to: v[r.id],
+    const out = RL.filter((r) => v[r.id] !== b[r.id]).map((r) => ({
+      c: ctlsFor('palette', 'r_' + r.id)[0], label: (BOTH ? sideName(r.side) + ': ' : '') + r.name, from: b[r.id], to: v[r.id],
       known: r.value ? (r.source === 'estimated' ? 'estimated from source' : '') : 'not measured',
     }));
+    if (!BOTH && s.pair !== d.pair) out.unshift({ c: ctlsFor('palette', 'pair')[0], label: 'Themes', from: d.pair === 'both' ? 'Light and dark' : 'One theme', to: s.pair === 'both' ? `${sideName(s.side)} with a matched ${otherSide(s)} twin` : 'One theme', known: '' });
+    return out;
   };
   const notes = (s) => {
     const v = values(s), d = values(DEFS.palette), out = [];
     const tok = (r) => (r.tokens.length ? r.tokens.map((t) => `${t.name}${t.file ? ' in ' + t.file : ''}${t.scope && t.scope !== ':root' ? ' (' + t.scope + ')' : ''}: ${C.formatColor(v[r.id], t.format)}`).join('; ') : 'no token found; say where it should live');
     const changed = RL.filter((r) => v[r.id] !== d[r.id]);
-    out.push(`Colour roles (${s.side === 'light' ? 'light' : 'dark'}), by Palette Builder role id. Write each into its token in the format it already uses.`);
+    out.push(`Colour roles (${BOTH ? 'light and dark' : s.side === 'light' ? 'light' : 'dark'}), by Palette Builder role id. Write each into its token in the format it already uses.`);
     changed.forEach((r) => out.push(`- ${r.id} (${r.name}${r.used ? '; used for ' + r.used : ''}): ${d[r.id]} → ${v[r.id]}. Today’s value ${r.value ? (r.source === 'estimated' ? 'estimated from source' : 'found in the project') : 'was not found; the old value shown is a proposal'}. ${tok(r)}.`));
     const same = RL.filter((r) => v[r.id] === d[r.id]);
     if (same.length) out.push(`Unchanged: ${same.map((r) => `${r.id} ${v[r.id]}`).join(', ')}.`);
+    const t = twin(s);
+    if (t && !t[2]) {
+      out.push(`A matched ${t[0]} theme (new: the project has none today), derived from the same greys, accent and status colours. Add it under the project's ${t[0]}-theme selector (for example @media (prefers-color-scheme: ${t[0]}) or [data-theme="${t[0]}"]), reusing the same token names:`);
+      out.push('- ' + ROLE.map(([k, n]) => `${k} (${n}) ${t[1][k]}`).join('; ') + '.');
+    }
     return out;
   };
   const summary = (s) => {
     const n = RL.filter((r) => s['r_' + r.id] && r.value && s['r_' + r.id] !== r.value).length;
     const look = LOOKS.find((l) => Object.keys(l.patch).every((k) => sameValue(l.patch[k], s[k])));
-    return (look ? look.n : `${s.side === 'light' ? 'Light' : 'Dark'}, ${s.vivid < 0.005 ? 'grey' : hueName(s.hue).toLowerCase()}`) + (n ? `, ${n} role${n > 1 ? 's' : ''} set by hand` : '');
+    return (look ? look.n : `${s.side === 'light' ? 'Light' : 'Dark'}, ${s.vivid < 0.005 ? 'grey' : hueName(s.hue).toLowerCase()}`) + (twinOn(s) ? ', light and dark' : '') + (n ? `, ${n} role${n > 1 ? 's' : ''} set by hand` : '');
   };
 
   STUDIO.add({
     id: 'palette', ground: true, name: 'Palette', title: () => 'colours',
-    defaults: DEFAULTS, today, measured, groups, looks: LOOKS, keep: [],
+    defaults: DEFAULTS, today, measured, groups, looks: LOOKS, keep: ['pair'],
     fix, pick, touch, vars: () => ({}), live, still, control, changes, tile: () => ({}), tall: () => true,
     scene, share, warn, notes, summary, roles: slots,
   });
