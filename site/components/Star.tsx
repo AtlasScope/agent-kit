@@ -11,10 +11,12 @@ const authOn = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 // A star for one prompt or skill. Signed out, it links to sign-in and comes back here, and the star is remembered
 // (lib/intent.ts) so it is added once they are signed in. Signed in, it adds to or
 // removes from Starred once Clerk has loaded, and stays greyed out until then.
-export function Star(props: StarProps) {
+// `preview` shows the signed-out star where Clerk isn't set up (the install page's sample-data copy), so the journey can
+// be seen and tested there.
+export function Star({ preview, ...props }: StarProps & { preview?: boolean }) {
   const { parts, signedInHint } = useAuthGate();
   const pathname = usePathname();
-  if (!authOn) return null;
+  if (!authOn && !preview) return null;
   if (parts) return <parts.Star {...props} />;
   const cls = `star${props.label ? " star--label" : ""}`;
   const inner = <><StarIcon on={false} />{props.label && <span>Star</span>}</>;

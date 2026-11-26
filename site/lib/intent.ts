@@ -20,3 +20,10 @@ export function takeIntent(kind: string, ref: string, now = Date.now()): boolean
     return true;
   } catch { return false; }
 }
+// The item waiting to be starred, without finishing it: a page can show that item so its star can finish the job.
+export function peekIntent(now = Date.now()): Intent | null {
+  try {
+    const v = JSON.parse(localStorage.getItem(INTENT_KEY) || "null");
+    return v && typeof v.at === "number" && now - v.at <= INTENT_MS && typeof v.ref === "string" ? v : null;
+  } catch { return null; }
+}
