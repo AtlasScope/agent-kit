@@ -53,22 +53,19 @@ for (const size of SIZES) {
     const { page, ctx, errors } = await open(size, "/");
     await noSideScroll(page, "/");
     // The homepage is one screen. Install copies one message for any agent on the click and opens /install, which
-    // says Copied and offers to open an agent. The message itself is never shown. It is the same on a phone and a computer.
+    // flashes Copied and offers to open an agent. The message itself is never shown. It is the same on a phone and a computer.
     assert.ok(await page.evaluate(() => document.documentElement.scrollHeight - innerHeight) <= 1, "the homepage does not scroll");
     await page.locator(".launch__go", { hasText: "Install Agent Kit" }).click();
     await page.waitForURL(/\/install$/);
     await page.locator(".inst__note", { hasText: "Message copied" }).waitFor();
     assert.equal(await clipboard(page), INSTALL_MESSAGE, "Install copies the message to paste into an agent");
-    assert.equal((await page.locator(".inst h1").innerText()).trim(), "Copied", "the panel says Copied");
+    await page.locator(".inst__chip", { hasText: "Copied" }).waitFor({ state: "attached" });
     assert.equal(await page.locator(".inst__say").count(), 0, "the message is not shown");
-    // It is one tap away, exactly as copied.
-    await page.getByRole("button", { name: "See the message" }).click();
-    assert.equal((await page.locator(".inst__peekmsg").innerText()).trim(), INSTALL_MESSAGE, "See the message shows the exact message");
     assert.ok(await page.locator(".inst__agent", { hasText: "Claude Code" }).isVisible(), "a link opens the agent");
-    await page.getByRole("button", { name: /Copy the message/ }).click();
+    await page.getByRole("button", { name: "Copy install" }).click();
     assert.equal(await clipboard(page), INSTALL_MESSAGE, "the install page copies the same message");
-    // The by-hand commands sit in a closed disclosure under the message.
-    await page.locator(".inst__manual > summary").click();
+    // The by-hand commands sit behind the Run it yourself tab.
+    await page.getByRole("tab", { name: "Run it yourself" }).click();
     for (const agent of ["claude", "any"].map((id) => AGENTS.find((a) => a.id === id))) {
       await page.getByRole("tab", { name: agent.label }).click();
       const copy = page.locator("#inst-cmd").getByRole("button", { name: /^Copy/ });
