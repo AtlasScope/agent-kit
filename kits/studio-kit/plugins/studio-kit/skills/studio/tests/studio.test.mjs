@@ -4,7 +4,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
-import { build, compile, APP_FILE } from "../scripts/lib/build.mjs";
+import { build, compile, modules, APP_FILE } from "../scripts/lib/build.mjs";
 import { checkHtml, dimProblems, extensionProblems } from "../scripts/lib/check.mjs";
 
 const withMore = (html, more, css = "") => html
@@ -13,7 +13,10 @@ const withMore = (html, more, css = "") => html
 const RIM = "dims:[{id:'rimLight',module:'button',t:'Rim light',options:[['none','No rim','None.'],['top','From above','A rim on top.']],default:'none',ranges:[{k:'rimK',label:'Brightness',min:0.2,max:1,step:0.05,default:0.6}]}],";
 
 test("a fresh page with every studio passes its own check", () => {
-  assert.deepEqual(checkHtml(build({ modules: ["button", "palette", "type"] })), []);
+  const all = ["button", "palette", "type", "surface", "spacing", "motion", "icons"];
+  assert.deepEqual(Object.keys(modules()).sort(), [...all].sort(), "every studio in src/ is one the page is tested with");
+  assert.deepEqual(checkHtml(build({ modules: all })), []);
+  for (const id of all.slice(1)) assert.deepEqual(checkHtml(build({ modules: [id] })), [], `${id} alone`);
 });
 
 test("the prebuilt studio is current with src/, and a session is that page with its own studios named", () => {

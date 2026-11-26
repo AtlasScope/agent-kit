@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="studio-modules" content="button">
-<meta name="studio-available" content="button:Button,icons:Icons,palette:Palette,spacing:Spacing,type:Typography">
+<meta name="studio-available" content="button:Button,icons:Icons,motion:Motion,palette:Palette,spacing:Spacing,surface:Surface,type:Typography">
 <title>Studio</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj48dGl0bGU+QXRsYXNTY29wZTwvdGl0bGU+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNi40IiBmaWxsPSIjMEIwQzEyIi8+PHBhdGggZmlsbD0iI0ZGRkZGRiIgZD0iTTE0LjM4IDMuNzFMMTcuNjIgMy43MUwyNS4wOSAyMC4yOUExOS4xNCAxOS4xNCAwIDAgMCAyMC4zNiAxOC41TDE2IDguODFMMTEuNjQgMTguNUExOS4xNCAxOS4xNCAwIDAgMCA2LjkxIDIwLjI5Wk01Ljc3IDIzLjM5QTE3LjE0IDE3LjE0IDAgMCAxIDI2LjIzIDIzLjM5TDI0LjE4IDI2LjE0QTEzLjcxIDEzLjcxIDAgMCAwIDcuODIgMjYuMTRaIi8+PC9zdmc+Cg==">
 <style>
@@ -1079,6 +1079,62 @@ details.fine[open]>.ctl:not(:last-child){border-bottom:0}
 .ty-sheet.ty-pal{width:100%}
 .art:has(.ty-pal)>.art-in{height:100%}
 
+/* ===== Surface module: a card, a field and a floating menu on the page. Everything reads --su-* properties from vars(s) ===== */
+.su{--su-font:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;position:relative;box-sizing:border-box;width:100%;min-height:100%;display:grid;grid-template-columns:minmax(0,1fr);place-items:center;overflow:hidden;padding:26px 24px;color:var(--su-text);font:14px/1.45 var(--su-font);text-align:left;-webkit-font-smoothing:antialiased}
+.su *{box-sizing:border-box;margin:0}
+.su-stack{position:relative;width:100%;min-width:0;max-width:320px}
+.su-stack.su-full{padding-bottom:112px}
+.su-live .su-stack{max-width:400px;padding-bottom:120px}
+/* the coloured shapes behind the card, so every kind of see-through shows what it does */
+.su-blob{position:absolute;z-index:0;top:-20px;right:-16px;width:74px;height:74px;border-radius:50%;background:var(--su-acc)}
+.su-band{position:absolute;z-index:0;left:-12px;right:-12px;top:52%;height:22px;border-radius:11px;background:var(--su-acc2)}
+.su-full .su-band{top:46%}
+.su-card{position:relative;z-index:1;padding:20px;border-radius:var(--su-r);background:var(--su-bg);border:var(--su-bd);box-shadow:var(--su-shadow);-webkit-backdrop-filter:var(--su-blur);backdrop-filter:var(--su-blur);transition:transform .2s ease,box-shadow .2s ease}
+.su-card::before{content:"";position:absolute;inset:0;border-radius:inherit;background-image:var(--su-tex);background-repeat:repeat;pointer-events:none}
+.su-card>*{position:relative}
+.su-h{font:600 17px/1.25 var(--su-display,var(--su-font));letter-spacing:-.01em;color:var(--su-text)}
+.su-p{margin-top:5px;color:var(--su-text2);font-size:14px}
+.su-lbl{display:block;margin:14px 0 6px;font-size:12.5px;font-weight:600;color:var(--su-text)}
+.su-field{display:flex;align-items:center;height:40px;padding:0 12px;border-radius:var(--su-rs);background:var(--su-n-bg);border:var(--su-fbd);box-shadow:var(--su-n-sh);color:var(--su-text2);font-size:14px;outline:0;transition:box-shadow .15s ease,border-color .15s ease}
+.su-field span{opacity:.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.su-field:focus-visible,.su-field.su-focus{border-color:var(--su-acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--su-acc) 38%,transparent)}
+.su-row{display:flex;align-items:center;gap:9px;margin-top:10px;height:36px;padding:0 11px;border-radius:var(--su-rs);background:var(--su-n-bg);box-shadow:var(--su-n-sh);font-size:13px;color:var(--su-text);white-space:nowrap;overflow:hidden}
+.su-row i{flex:none;width:8px;height:8px;border-radius:50%;background:var(--su-acc)}
+.su-row span{flex:none;font-weight:500}
+.su-row em{flex:1;min-width:0;font-style:normal;color:var(--su-text2);font-size:12px;overflow:hidden;text-overflow:ellipsis}
+.su-menu{position:absolute;z-index:2;right:10px;bottom:0;width:min(176px,74%);list-style:none;padding:5px;border-radius:var(--su-rm);background:var(--su-menu-bg);border:var(--su-bd);box-shadow:var(--su-menu-shadow);-webkit-backdrop-filter:var(--su-blur);backdrop-filter:var(--su-blur)}
+.su-live .su-menu{width:min(196px,74%);right:14px}
+.su-menu li{display:block;padding:7px 10px;border-radius:max(0px,calc(var(--su-rm) - 4px));font-size:13px;color:var(--su-text);white-space:nowrap}
+.su-menu li.on{background:color-mix(in srgb,var(--su-text) 9%,transparent)}
+.su-menu li.sep{height:1px;padding:0;margin:4px 6px;border-radius:0;background:color-mix(in srgb,var(--su-text) 14%,transparent)}
+.su-menu li.bad{color:var(--su-bad)}
+.su-live .su-menu li:not(.sep){cursor:default;transition:background .12s ease}
+.su-live .su-menu li:not(.sep):hover{background:color-mix(in srgb,var(--su-text) 9%,transparent)}
+.su-live .su-card.su-lift:hover,.su-card.su-hover{transform:translateY(-3px);box-shadow:var(--su-shadow-up)}
+.su-note{position:absolute;left:0;right:0;bottom:10px;text-align:center;font-size:12px;color:var(--su-text2);opacity:.8;padding:0 16px}
+/* small drawings (tiles) */
+.su-tile{padding:14px 16px 28px}
+.su-tile .su-stack{max-width:none}
+.su-tile .su-card{padding:12px}
+.su-tile .su-h{font-size:13px}
+.su-tile .su-field{height:28px;margin-top:8px;padding:0 9px;font-size:11.5px}
+.su-tile .su-row{height:26px;margin-top:7px;padding:0 8px;gap:6px;font-size:11px}
+.su-tile .su-row em{font-size:10.5px}
+.su-tile .su-blob{width:46px;height:46px;top:-12px;right:-10px}
+.su-tile .su-band{height:14px;border-radius:7px;left:-8px;right:-8px}
+/* tiles and compare drawings grow to their content and fill the frame */
+.art:has(.su),.cmp-art:has(.su){height:auto;min-height:150px;place-items:stretch;place-content:stretch}
+.art:has(.su)>.art-in,.cmp-art:has(.su)>.art-in{width:100%;transform:none!important}
+.looks .art:has(.su){min-height:250px}
+.tiles .art:has(.su),.looks .art:has(.su){height:auto}
+.board.states .cmp-art:has(.su){min-height:300px}
+.stage.rm .su-card,.stage.rm .su-field{transition:none!important}
+.stage.rm .su-live .su-card.su-lift:hover{transform:none!important}
+@media (prefers-reduced-motion:reduce){.su-card,.su-field,.su-menu li{transition:none!important}.su-live .su-card.su-lift:hover,.su-card.su-hover{transform:none!important}}
+@media (max-width:899px){.tiles:has(.su){grid-template-columns:repeat(auto-fill,minmax(min(100%,150px),1fr))}.tiles .art:has(.su){min-height:0}}
+.su-row,.su-field,.su-menu li{min-width:0}
+.su-menu li{overflow:hidden;text-overflow:ellipsis}
+
 /* ===== Spacing module. Drawings bring their own page colour (set inline from the palette or the project's page) ===== */
 .sp{box-sizing:border-box;text-align:left;width:100%;min-height:100%;-webkit-font-smoothing:antialiased;overflow:hidden}
 .sp *{box-sizing:border-box;margin:0}
@@ -1166,6 +1222,127 @@ details.fine[open]>.ctl:not(:last-child){border-bottom:0}
 @container (max-width:470px){.sp-live .sp-cols{grid-template-columns:minmax(0,1fr);row-gap:var(--sp-section)}}
 .art:has(.sp)>.art-in{height:100%}
 .tiles:has(.sp){align-items:start}
+
+/* ===== Motion module. Colours come from the project (or the stage) through --mo-* ===== */
+.mo{color:var(--mo-text);text-align:left;box-sizing:border-box;-webkit-font-smoothing:antialiased}
+.mo *{box-sizing:border-box;margin:0}
+.mo i,.mo b,.mo u{display:block;text-decoration:none;font-style:normal}
+/* tiles: 236 x 96 of drawing */
+.mo-t{display:flex;align-items:center;gap:12px;width:236px;height:96px;padding:0 4px}
+.mo-l{display:flex;flex-direction:column;justify-content:center;gap:10px;width:152px;flex:none}
+.mo-r{display:flex;flex-direction:column;justify-content:center;gap:5px;min-width:0;flex:1}
+.mo-cap{font:600 10.5px/1.3 var(--font);color:inherit;opacity:.75;letter-spacing:.01em}
+.mo-cap.big{font-size:12px;opacity:.95;white-space:normal}
+.mo-trk{position:relative;height:14px;width:130px;margin-left:12px}
+.mo-sd{position:absolute;left:0;top:3px;width:8px;height:8px;margin-left:3px;border-radius:50%;background:var(--mo-acc)}
+.mo-dot{position:absolute;left:0;top:0;width:14px;height:14px;border-radius:50%;background:var(--mo-acc);box-shadow:0 0 0 2px var(--mo-surf)}
+.mo-end{position:absolute;top:-4px;width:1px;height:22px;margin-left:7px;background:var(--mo-line)}
+.mo-cv{width:64px;height:64px;flex:none;overflow:visible}
+.mo-cv .g{stroke:var(--mo-line);stroke-width:1;stroke-dasharray:2 3;fill:none}
+.mo-cv .c{stroke:var(--mo-acc);stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+/* speed */
+.mo-sp{display:flex;flex-direction:column;justify-content:center;gap:9px;width:100%;padding:0 8px}
+.mo-ms{font:700 24px/1 var(--font);font-variant-numeric:tabular-nums}
+.mo-ms small{font-size:12px;font-weight:600;opacity:.65}
+.mo-bar{height:6px;border-radius:3px;background:color-mix(in srgb,var(--mo-line) 60%,transparent);overflow:hidden}
+.mo-bar u{height:100%;border-radius:3px;background:var(--mo-acc)}
+.mo-sp .mo-trk{width:170px;margin-left:0}
+/* arrival */
+.mo-box{position:relative;width:104px;height:74px;flex:none;margin-left:6px}
+.mo-mc,.mo-gh,.mo-cardl{background:var(--mo-surf);border:1px solid var(--mo-line);border-radius:10px}
+.mo-mc{position:absolute;inset:8px 6px;padding:9px 10px;display:flex;flex-direction:column;gap:6px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.mo-gh{position:absolute;inset:8px 6px;background:transparent;border:1.5px dashed var(--mo-acc)}
+.mo-l1{height:7px;width:58%;border-radius:4px;background:var(--mo-text);opacity:.85}
+.mo-l2,.mo-l3{height:5px;border-radius:3px;background:var(--mo-text2);opacity:.55}
+.mo-l2{width:90%}.mo-l3{width:64%}
+.mo-ruler{width:2px;border-radius:1px;background:var(--mo-acc)}
+/* sequence */
+.mo-rws{display:flex;flex-direction:column;gap:6px;width:92px;flex:none;margin-left:6px}
+.mo-rw{height:13px;border-radius:5px;background:var(--mo-surf);border:1px solid var(--mo-line);padding:3px 5px}
+.mo-rw b{height:100%;width:60%;border-radius:2px;background:var(--mo-text2);opacity:.5}
+.mo-gantt{position:relative;display:block;width:108px;height:48px}.mo-gantt i{position:absolute;left:0;height:7px;border-radius:3px;background:var(--mo-acc)}
+/* touch */
+.mo-btn{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:0 18px;border:0;border-radius:9px;font:600 13px/1 var(--font);color:var(--mo-on);background:var(--mo-fill);box-shadow:0 1px 2px rgba(0,0,0,.28);cursor:pointer;transition:transform var(--mo-fast,140ms) var(--mo-ease,ease),box-shadow var(--mo-fast,140ms) var(--mo-ease,ease),filter var(--mo-fast,140ms) var(--mo-soft,ease);will-change:transform}
+.mo-live .mo-btn:hover{transform:var(--mo-h-t);box-shadow:var(--mo-h-s);filter:var(--mo-h-f)}
+.mo-live .mo-btn:active{transform:var(--mo-d-t);box-shadow:var(--mo-d-s);filter:var(--mo-d-f);transition-duration:calc(var(--mo-fast,140ms)*.6)}
+.mo-btn:focus-visible,.mo-sw:focus-visible,.mo-rp:focus-visible{outline:2px solid var(--mo-acc);outline-offset:3px}
+.mo-pb{width:112px;display:grid;place-items:center;flex:none}
+.mo-poses{gap:7px}
+.mo-poses span{display:flex;align-items:center;gap:8px}
+.mo-poses i{width:56px;font:600 10px/1.2 var(--font);opacity:.7}
+.mo-poses .mo-btn{min-height:22px;padding:0 10px;font-size:11px;border-radius:7px;cursor:default;transition:none}
+/* pages */
+.mo-pages{position:relative;overflow:hidden;width:112px;height:76px;flex:none;border-radius:9px;background:color-mix(in srgb,var(--mo-line) 30%,var(--mo-surf));border:1px solid var(--mo-line)}
+.mo-pg{position:absolute;inset:0;padding:8px;display:flex;flex-direction:column;gap:5px;background:var(--mo-surf);opacity:0;visibility:hidden}
+.mo-pg.cur{opacity:1;visibility:visible}
+.mo-pages.static .mo-pg{opacity:1}
+.mo-pg.now{box-shadow:-3px 0 8px rgba(0,0,0,.14)}
+.mo-hero{border-radius:6px;background:var(--mo-acc);opacity:.85;flex:none}
+.mo-hero.small{width:24px;height:24px}.mo-hero.wide{width:100%;height:26px}
+.mo-morph{position:absolute;z-index:5;border-radius:6px;background:var(--mo-acc);opacity:.85}
+/* loading */
+.mo-load{display:flex;flex-direction:column;justify-content:center;gap:7px;width:128px;flex:none;min-height:56px}
+.mo-sk{position:relative;overflow:hidden;height:8px;border-radius:4px;background:color-mix(in srgb,var(--mo-text) 16%,transparent)}
+.mo-band{position:absolute;top:0;left:-30%;width:40%;height:100%;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--mo-text) 42%,transparent),transparent)}
+.k-shimmer .mo-sk:nth-child(1) .mo-band{left:30%}
+.k-pulse .mo-sk{opacity:.7}
+.mo-spin{display:flex;align-items:center;gap:8px;font:600 12px/1 var(--font);opacity:.9}
+.mo-ring{width:24px;height:24px}
+.mo-ring .t{fill:none;stroke:color-mix(in srgb,var(--mo-text) 20%,transparent);stroke-width:3}
+.mo-ring .a{fill:none;stroke:var(--mo-acc);stroke-width:3;stroke-linecap:round}
+.mo-ld{width:10px;height:10px;border-radius:50%;background:var(--mo-acc)}
+.mo-ld:nth-child(1){transform:scale(.6)}.mo-ld:nth-child(3){transform:scale(.8)}
+.mo-prog{position:relative;overflow:hidden;height:5px;border-radius:3px;background:color-mix(in srgb,var(--mo-text) 16%,transparent)}
+.mo-sweep{position:absolute;top:0;left:0;height:100%;width:30%;border-radius:3px;background:var(--mo-acc)}
+/* a whole scene in miniature: looks, compare, states */
+.mo-ov{display:grid;grid-template-columns:auto auto;grid-template-rows:auto auto auto;gap:8px 16px;align-items:center;width:268px;padding:6px 8px}
+.mo-ov.big{width:330px;gap:10px 20px;padding:10px 12px}
+.mo-ovl{display:flex;gap:12px;align-items:center;grid-column:1/-1;justify-content:center}
+.mo-ovr{display:flex;align-items:center;gap:6px;justify-self:start}
+.mo-ovr .mo-trk{width:88px;margin-left:4px}
+.mo-ovr .mo-cv{width:54px;height:54px}
+.mo-act{display:flex;align-items:center;gap:10px;justify-self:end}
+.mo-ov .mo-btn{min-height:26px;padding:0 12px;font-size:11.5px;cursor:default;transition:none}
+.mo-meta{grid-column:1/-1;font:600 11px/1.3 var(--font);opacity:.78;text-align:center}
+/* the live scene */
+.mo-live{width:min(100%,600px);margin:0 auto;padding:18px}
+.mo-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.mo-note{font:500 12.5px/1.4 var(--font);opacity:.8}
+.mo-rp{all:unset;box-sizing:border-box;cursor:pointer;padding:6px 13px;border-radius:999px;font:600 12.5px/1 var(--font);color:var(--mo-text);box-shadow:inset 0 0 0 1px var(--mo-line);background:var(--mo-surf)}
+.mo-rp:active{filter:brightness(.92)}
+.mo-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
+.mo-cardl{padding:16px;display:flex;flex-direction:column;gap:9px;box-shadow:0 4px 14px rgba(0,0,0,.16)}
+.mo-cardl h3{font:700 16px/1.25 var(--font)}
+.mo-cardl p{font:400 13px/1.45 var(--font);color:var(--mo-text2)}
+.mo-acts{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:4px}
+.mo-tg{display:flex;align-items:center;gap:8px;font:500 12.5px/1.2 var(--font);color:var(--mo-text2);cursor:pointer}
+.mo-sw{position:relative;display:inline-block;width:38px;height:22px;flex:none;border-radius:999px;background:color-mix(in srgb,var(--mo-text) 28%,transparent);cursor:pointer;transition:background var(--mo-fast,140ms) var(--mo-soft,ease)}
+.mo-sw i{position:absolute;left:2px;top:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.35);transition:transform var(--mo-fast,140ms) var(--mo-ease,ease)}
+.mo-sw[aria-checked=true],.mo-sw.on{background:var(--mo-fill)}
+.mo-sw[aria-checked=true] i,.mo-sw.on i{transform:translateX(16px)}
+.mo-sw.mini{width:28px;height:16px;cursor:default;transition:none}.mo-sw.mini i{width:12px;height:12px;transition:none}.mo-sw.mini.on i{transform:translateX(12px)}
+.mo-list{list-style:none;padding:0;display:flex;flex-direction:column;gap:7px}
+.mo-li{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:var(--mo-surf);border:1px solid var(--mo-line);font:500 13px/1.3 var(--font)}
+.mo-rt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mo-rm{font-size:11.5px;color:var(--mo-text2);white-space:nowrap}
+.mo-bd{font:700 10.5px/1 var(--font);padding:3px 7px;border-radius:999px;color:var(--mo-on);background:var(--mo-fill)}
+.mo-h{font:700 11px/1.3 var(--font);letter-spacing:.06em;text-transform:uppercase;color:var(--mo-text2);margin-bottom:8px}
+.mo-pgwrap .mo-pages,.mo-live .mo-pages{width:100%;height:112px}
+.mo-live .mo-pg{padding:12px;gap:8px}
+.mo-live .mo-pg .mo-l1{height:9px}.mo-live .mo-pg .mo-l2,.mo-live .mo-pg .mo-l3{height:6px}
+.mo-live .mo-hero.small{width:34px;height:34px}.mo-live .mo-hero.wide{height:38px}
+.mo-btn.sm{min-height:28px;padding:0 14px;font-size:12px;margin-top:10px}
+.mo-ldwrap .mo-load{width:100%;padding:12px;border-radius:10px;border:1px solid var(--mo-line);background:var(--mo-surf);min-height:112px}
+.mo-live .mo-sk{height:11px}
+.mo-live .mo-ring{width:30px;height:30px}
+.mo-facts{display:flex;align-items:center;gap:14px;margin-top:16px;padding-top:14px;border-top:1px solid var(--mo-line)}
+.mo-facts p{font:400 12.5px/1.5 var(--font);color:var(--mo-text2)}
+.mo-facts b{color:var(--mo-text);font-weight:700}
+.mo-facts .mo-cv{width:54px;height:54px}
+@media (max-width:520px){.mo-grid{grid-template-columns:minmax(0,1fr)}}
+/* tiles are drawn on their own surface, not on the stage */
+.looks .art:has(.mo-ov){height:150px}
+.tile.wide .art:has(.mo-t){height:112px}
 
 /* ===== Icons module. Every drawing brings its own page colour (set inline), so it reads on any stage ===== */
 .ic{font-family:var(--ic-font,system-ui,sans-serif);font-size:15px;line-height:1.4;text-align:left;box-sizing:border-box;-webkit-font-smoothing:antialiased;color:var(--ic-text,inherit)}
@@ -1346,7 +1523,11 @@ const PROJECT={
   sources:{},                          // optional, per key in today: how it was found when not measured in the running page, e.g. {h:'read from the stylesheet'}
   context:{},                          // the project's own words for the example page: {eyebrow, headline, body, links:[], secondary, field, placeholder, hint, rows:[[title, detail, tag]], code}
   palette:{},                          // for the Palette studio; see references/palette.md
-  type:{}                              // for the Typography studio; see references/type.md
+  type:{},                             // for the Typography studio; see references/type.md
+  surface:{},                          // for the Surface studio; see references/surface.md
+  spacing:{},                          // for the Spacing studio; see references/spacing.md
+  motion:{},                           // for the Motion studio; see references/motion.md
+  icons:{}                             // for the Icons studio; see references/icons.md
 };
 </script>
 <script>
@@ -1579,7 +1760,7 @@ const P = Object.assign({
   id: '', name: 'Your project', noun: 'main button', measured: false, startName: '', brand: ['Blue', 255, 0.17, 0.64],
   pageBg: '', column: 0, font: '', fontCss: '', labels: ['Get started'], subs: [], action: {}, choices: {}, secondary: [],
   system: [], specRules: 'Honour reduced motion.', afterNote: '', dropSteps: [], today: {}, sources: {},
-  context: {}, palette: {}, type: {},
+  context: {}, palette: {}, type: {}, surface: {}, spacing: {}, motion: {}, icons: {},
 }, PROJECT);
 const COLUMN = +P.column || 440;
 
@@ -3423,6 +3604,438 @@ function btnFollows(s) {
 }
 
 })();
+/* ---- surface/module.js ---- */
+(() => {
+/* ===== Surface module: the material, shape, depth and edges of cards, panels, fields and menus =====
+   One small page is drawn everywhere: a card (heading, a line of text, a field, a row inside it) and a menu floating
+   above it, on the project's page colour, with coloured shapes behind so see-through surfaces show what they do.
+   look(s) works out every colour, shadow and line once; vars(s) hands them to the drawing as --su-* properties. */
+{
+  const C = COLOUR;
+  const SP = Object.assign({ measured: false, today: {}, drop: [], words: {} }, P.surface || {});
+  const WD = SP.words && typeof SP.words === 'object' ? SP.words : {};
+
+  /* ---- small helpers ---- */
+  const lim = (x, a, b) => Math.min(b, Math.max(a, x));
+  const r2 = (x) => Math.round(x * 100) / 100;
+  const r1 = (x) => Math.round(x * 10) / 10;
+  const rgbOf = (h) => C.hexRgb(h);
+  const mix = (a, b, t) => { const x = rgbOf(a), y = rgbOf(b); return C.rgbHex(x.map((v, i) => v + (y[i] - v) * t)); };
+  const rgba = (h, a) => { const [r, g, b] = rgbOf(h).map((v) => Math.round(v * 255)); return `rgba(${r},${g},${b},${r2(lim(a, 0, 1))})`; };
+  const over = (fg, a, bg) => mix(bg, fg, lim(a, 0, 1));
+
+  /* ---- the page the surfaces sit on ---- */
+  const BG_HEX = { black: '#000000', white: '#FFFFFF', light: '#EEF1F0', paper: '#F4EFE6', studio: '#0F1213' };
+  const brand = () => { try { const b = P.brand; return C.oklch(+b[3], +b[2], +b[1]); } catch { return '#2F6BE0'; } };
+  const hexOr = (v, d) => (typeof v === 'string' && C.HEX.test(v) ? v : d);
+  function env(lightOver) {
+    const R = shared('roles'), F = shared('fonts');
+    const pal = !!R && V.bg === 'page';
+    const page = V.bg === 'page' ? pageColour() : BG_HEX[V.bg] || (bgLight() ? '#EEF1F0' : '#0B0E0D');
+    const light = lightOver != null ? !!lightOver : C.lum(page) > 0.3;
+    const acc = hexOr(pal && R.accent, brand());
+    const [aL, aC, aH] = C.toOklch(acc);
+    return {
+      page, light, pal, acc,
+      acc2: C.oklch(lim(aL, 0.5, 0.78), Math.max(aC, 0.1), (aH + 135) % 360),
+      text: hexOr(pal && R.text, light ? '#14181A' : '#F3F5F4'),
+      text2: hexOr(pal && R.text2, light ? '#4A5356' : '#B4BDBA'),
+      surf: pal ? hexOr(R.surface, null) : null,
+      bad: light ? '#B42318' : '#F87171',
+      font: F && F.body ? F.body : '', display: F && F.display ? F.display : '',
+    };
+  }
+
+  /* ---- the choices ---- */
+  const DIR = { top: [0, 1], topleft: [0.7, 0.7], topright: [-0.7, 0.7], ambient: [0, 0.18], below: [0, -1] };
+  const ANG = { top: 180, topleft: 135, topright: 225, ambient: 160, below: 0 };
+  const MATS = {
+    solid: 'Solid', frosted: 'Frosted glass', clear: 'Clear glass', tinted: 'Tinted', paper: 'Paper', satin: 'Satin metal', sheen: 'Soft sheen', outline: 'Outline only', pressed: 'Soft and pressed',
+  };
+  /* What a material brings with it: how see-through, how blurred, its texture. The person can change each afterwards. */
+  const MAT_SET = {
+    solid: { alpha: 100, blur: 0, tex: 'none' },
+    frosted: { alpha: 55, blur: 18, tex: 'none' },
+    clear: { alpha: 40, blur: 8, tex: 'none' },
+    tinted: { alpha: 100, blur: 0, tex: 'none' },
+    paper: { alpha: 100, blur: 0, tex: 'paper', texa: 55 },
+    satin: { alpha: 100, blur: 0, tex: 'brushed', texa: 35 },
+    sheen: { alpha: 100, blur: 0, tex: 'none' },
+    outline: { alpha: 100, blur: 0, tex: 'none', edge: 'firm', bw: 1.5, ba: 60, depth: 0 },
+    pressed: { alpha: 100, blur: 0, tex: 'none', edge: 'none', bw: 0, ba: 0, depth: 50 },
+  };
+  const EDGE_SET = {
+    none: { bw: 0, ba: 0 }, hairline: { bw: 1, ba: 20 }, firm: { bw: 1.5, ba: 45 }, lit: { bw: 1, ba: 16 },
+    double: { bw: 1, ba: 35 }, accent: { bw: 1.5, ba: 100 }, ink: { bw: 2, ba: 100 },
+  };
+  const SHADOWS = ['soft', 'crisp', 'long', 'layered', 'coloured', 'hard'];
+  const TEXS = ['none', 'grain', 'paper', 'dots', 'lines', 'grid', 'brushed'];
+  const LAYERS = ['same', 'lighter', 'darker', 'sunken', 'tinted'];
+
+  /* ---- shadows ---- */
+  function outer(kind, d, dir, E) {
+    if (d <= 0) return '';
+    const [dx, dy] = DIR[dir] || DIR.top;
+    const px = (v) => r1(v);
+    const k = E.light ? 1 : 1.7;
+    const c = (a) => rgba(E.light ? '#141E32' : '#000000', Math.min(0.92, a * k));
+    switch (kind) {
+      case 'crisp': return `${px(dx * (2 + 8 * d))}px ${px(dy * (2 + 10 * d))}px ${px(2 + 6 * d)}px ${c(0.22 + 0.24 * d)}, ${px(dx)}px ${px(dy)}px 0 ${c(0.12)}`;
+      case 'long': return `${px(dx * (14 + 50 * d))}px ${px(dy * (14 + 50 * d))}px ${px(16 + 24 * d)}px ${px(-(10 + 10 * d))}px ${c(0.3 + 0.1 * d)}`;
+      case 'layered': return [1, 2, 4, 8, 16].map((n) => `${px(dx * n * d * 0.9)}px ${px(dy * n * (0.45 + d * 0.9))}px ${px(n * (1 + d * 1.4))}px ${c(0.06 + 0.075 * d)}`).join(', ');
+      case 'coloured': return `${px(dx * (6 + 18 * d))}px ${px(dy * (10 + 28 * d))}px ${px(20 + 40 * d)}px -4px ${rgba(E.acc, 0.3 + 0.22 * d)}, ${px(dx * 2)}px ${px(dy * 2)}px 6px ${c(0.08)}`;
+      case 'hard': { const o = px(4 + 12 * d), sx = dx < -0.3 ? -1 : 1, sy = dy < -0.3 ? -1 : 1; return `${sx * o}px ${sy * o}px 0 0 ${rgba(E.text, 0.92)}`; }
+      default: return `${px(dx * 24 * d)}px ${px(dy * (4 + 28 * d))}px ${px(12 + 44 * d)}px ${px(-(2 + 4 * d))}px ${c(0.16 + 0.28 * d)}`;
+    }
+  }
+  /** A thin bright edge on the side the light comes from. */
+  function lightLine(dir, hl, E) {
+    const a = (hl / 100) * (E.light ? 0.95 : 0.2);
+    if (a < 0.01) return '';
+    const [dx, dy] = DIR[dir] || DIR.top;
+    const sx = dx > 0.3 ? 1 : dx < -0.3 ? -1 : 0, sy = dy > 0.3 ? 1 : dy < -0.3 ? -1 : 0;
+    return sx || sy ? `inset ${sx}px ${sy}px 0 0 rgba(255,255,255,${r2(a)})` : `inset 0 0 0 1px rgba(255,255,255,${r2(a)})`;
+  }
+  /** Pushed-in surfaces: a dark shadow inside the lit edge and a light one inside the far edge. */
+  function pressedShadow(d, dir, E) {
+    const [dx0, dy0] = dir === 'ambient' ? [0.7, 0.7] : DIR[dir] || DIR.top;
+    const o = r1(2 + 7 * d), b = r1(5 + 14 * d);
+    const dark = E.light ? 'rgba(20,30,50,0.2)' : 'rgba(0,0,0,0.6)', lite = E.light ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.07)';
+    return `inset ${r1(dx0 * o)}px ${r1(dy0 * o)}px ${b}px ${dark}, inset ${r1(-dx0 * o)}px ${r1(-dy0 * o)}px ${b}px ${lite}`;
+  }
+  function raisedSoft(d, dir, E) {
+    const [dx0, dy0] = dir === 'ambient' ? [0.7, 0.7] : DIR[dir] || DIR.top;
+    const o = r1(3 + 9 * d), b = r1(7 + 18 * d);
+    const dark = E.light ? 'rgba(20,30,50,0.2)' : 'rgba(0,0,0,0.65)', lite = E.light ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.07)';
+    return `${r1(dx0 * o)}px ${r1(dy0 * o)}px ${b}px ${dark}, ${r1(-dx0 * o)}px ${r1(-dy0 * o)}px ${b}px ${lite}`;
+  }
+
+  /* ---- textures: inline SVG only ---- */
+  const svgUrl = (svg) => `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+  function texture(id, strength, E) {
+    const k = lim(strength, 0, 100) / 100;
+    if (id === 'none' || !TEXS.includes(id) || k <= 0) return 'none';
+    const ink = E.light ? [20, 24, 26] : [255, 255, 255];
+    const rgb = `rgb(${ink.join(',')})`;
+    const NS = 'xmlns="http://www.w3.org/2000/svg"';
+    const noise = (freq, oct, w, a, col) => svgUrl(`<svg ${NS} width="${w}" height="${w}"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="${freq}" numOctaves="${oct}" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 ${r2(col[0] / 255)} 0 0 0 0 ${r2(col[1] / 255)} 0 0 0 0 ${r2(col[2] / 255)} 0 0 0 ${r2(a)} 0"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>`);
+    switch (id) {
+      case 'grain': return noise('.85', 3, 140, k * (E.light ? 0.9 : 0.5), ink);
+      case 'paper': return noise('.12 .5', 3, 220, k * (E.light ? 0.6 : 0.4), E.light ? [110, 85, 50] : ink);
+      case 'dots': return svgUrl(`<svg ${NS} width="10" height="10"><circle cx="5" cy="5" r="1.1" fill="${rgb}" fill-opacity="${r2(k * 0.5)}"/></svg>`);
+      case 'lines': return svgUrl(`<svg ${NS} width="8" height="8"><path d="M-2 2L2 -2M0 8L8 0M6 10L10 6" stroke="${rgb}" stroke-opacity="${r2(k * 0.45)}" stroke-width="1" fill="none"/></svg>`);
+      case 'grid': return svgUrl(`<svg ${NS} width="24" height="24"><path d="M24 0V24H0" fill="none" stroke="${rgb}" stroke-opacity="${r2(k * 0.35)}" stroke-width="1"/></svg>`);
+      default: return svgUrl(`<svg ${NS} width="200" height="9" fill="${rgb}"><rect y="0" width="200" height="1" fill-opacity="${r2(k * 0.3)}"/><rect y="2" width="200" height="1" fill-opacity="${r2(k * 0.1)}"/><rect y="3" width="200" height="1" fill-opacity="${r2(k * 0.38)}"/><rect y="5" width="200" height="1" fill-opacity="${r2(k * 0.16)}"/><rect y="7" width="200" height="1" fill-opacity="${r2(k * 0.28)}"/></svg>`);
+    }
+  }
+
+  /* ---- everything a drawing needs, from one state ---- */
+  function look(s, lightOver) {
+    const E = env(lightOver), d = s.depth / 100, a = s.alpha / 100;
+    const surf = E.surf || (E.light ? '#FFFFFF' : mix(E.page, '#FFFFFF', 0.06 + 0.07 * d));
+    const ang = ANG[s.light] == null ? 180 : ANG[s.light];
+    let bg, base = surf, ea = a, sat = 1;
+    switch (s.material) {
+      case 'frosted': bg = rgba(surf, a); sat = 1.6; break;
+      case 'clear': {
+        const [h, l] = E.light ? [1.4, 0.4] : [0.4, 0.1];
+        bg = `linear-gradient(${ang}deg,${rgba('#FFFFFF', a * h)},${rgba('#FFFFFF', a * l)})`; base = '#FFFFFF'; ea = a * (h + l) / 2; sat = 1.4; break;
+      }
+      case 'tinted': base = mix(surf, E.acc, E.light ? 0.16 : 0.24); bg = rgba(base, a); break;
+      case 'paper': base = E.light ? mix(surf, '#F1E4C6', 0.55) : mix(surf, '#CDBB92', 0.12); bg = rgba(base, a); break;
+      case 'satin': {
+        const hi = mix(surf, '#FFFFFF', E.light ? 0.8 : 0.16), lo = mix(surf, '#000000', E.light ? 0.17 : 0.38);
+        bg = `linear-gradient(${ang}deg,${rgba(hi, a)} 0%,${rgba(surf, a)} 38%,${rgba(lo, a)} 62%,${rgba(mix(surf, hi, 0.5), a)} 100%)`; break;
+      }
+      case 'sheen': {
+        const hi = E.light ? '#FFFFFF' : mix(surf, '#FFFFFF', 0.1), lo = E.light ? mix(surf, '#000000', 0.06) : surf;
+        bg = `linear-gradient(${ang}deg,${rgba(hi, a)},${rgba(lo, a)})`; base = mix(hi, lo, 0.5); break;
+      }
+      case 'outline': bg = 'transparent'; base = E.page; ea = 0; break;
+      case 'pressed': base = E.page; bg = rgba(E.page, 1); break;
+      default: bg = rgba(surf, a);
+    }
+    const bw = s.edge === 'none' ? 0 : s.bw, ba = s.ba / 100;
+    const lineCol = s.edge === 'accent' ? rgba(E.acc, ba || 1) : rgba(E.text, ba);
+    const bd = bw > 0 ? `${bw}px solid ${lineCol}` : 'none';
+    const decor = [];
+    if (s.edge === 'lit') decor.push(`inset 0 1px 0 rgba(255,255,255,${E.light ? 0.95 : 0.2})`, `inset 0 -1px 0 rgba(0,0,0,${E.light ? 0.08 : 0.45})`);
+    if (s.edge === 'double') decor.push(`inset 0 0 0 3px ${rgba(base, Math.max(a, 0.9))}`, `inset 0 0 0 4px ${rgba(E.text, ba)}`);
+    const pressed = s.material === 'pressed';
+    const lit = pressed ? '' : lightLine(s.light, s.hl, E);
+    const out = pressed ? pressedShadow(d, s.light, E) : outer(s.shadow, d, s.light, E);
+    const up = pressed ? out : outer(s.shadow, Math.min(1, d + 0.22), s.light, E);
+    const join = (...x) => x.filter(Boolean).join(', ') || 'none';
+    const r = s.radius, rs = r >= 36 ? 999 : Math.round(r * 0.6), rm = r >= 36 ? 24 : Math.round(r * 0.75);
+    /* things inside the card: the field and the row */
+    const nb = s.material === 'clear' ? surf : base; // things inside clear glass are judged against the surface, not the white sheen
+    const dk = (t) => mix(nb, '#000000', t);
+    const nest = {
+      same: ['transparent', 'none'],
+      lighter: [mix(nb, '#FFFFFF', E.light ? 0.6 : 0.07), `0 1px 2px rgba(0,0,0,${E.light ? 0.14 : 0.5})`],
+      darker: [dk(E.light ? 0.045 : 0.28), 'none'],
+      sunken: [dk(E.light ? 0.07 : 0.4), `inset 0 1px 3px rgba(0,0,0,${E.light ? 0.22 : 0.6})`],
+      tinted: [mix(nb, E.acc, E.light ? 0.11 : 0.18), 'none'],
+    }[s.layers] || ['transparent', 'none'];
+    const fa = bw > 0 ? ba : 0.24;
+    const fbw = bw > 0 ? lim(bw, 1, 2) : 1;
+    const blurCss = s.blur > 0 || sat !== 1 ? `blur(${s.blur}px) saturate(${sat})` : 'none';
+    const menuDepth = Math.min(1, Math.max(d + 0.25, 0.32));
+    const menuShadow = pressed ? raisedSoft(menuDepth, s.light, E) : join(outer(s.shadow, menuDepth, s.light, E), lit);
+    const raisedOnly = join(out, lit);
+    return {
+      E, base, ea, bw, ba, r, rs, rm, bg, bd, lit, out, raisedOnly, pressed,
+      tex: texture(s.tex, s.texa, E), blurCss, sat,
+      fieldLine: { w: fbw, a: fa, col: rgba(E.text, fa), hex: over(E.text, fa, nb), ground: nb },
+      cardShadow: join(out, lit, ...decor), cardShadowUp: join(up, lit, ...decor),
+      menuShadow, menuBg: s.material === 'outline' ? rgba(E.page, 1) : bg,
+      nest,
+    };
+  }
+  const lookOf = (s) => { try { return look(s); } catch (e) { report('surface look: ' + e.message); return null; } };
+
+  function vars(s) {
+    const L = lookOf(s);
+    if (!L) return {};
+    const E = L.E;
+    return {
+      '--su-page': E.page, '--su-text': E.text, '--su-text2': E.text2, '--su-acc': E.acc, '--su-acc2': E.acc2, '--su-bad': E.bad,
+      '--su-font': E.font || 'system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif',
+      '--su-display': E.display || E.font || 'system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif',
+      '--su-r': L.r + 'px', '--su-rs': L.rs + 'px', '--su-rm': L.rm + 'px',
+      '--su-bg': L.bg, '--su-bd': L.bd, '--su-shadow': L.cardShadow, '--su-shadow-up': L.cardShadowUp,
+      '--su-menu-bg': L.menuBg, '--su-menu-shadow': L.menuShadow, '--su-blur': L.blurCss, '--su-tex': L.tex,
+      '--su-n-bg': L.nest[0], '--su-n-sh': L.nest[1], '--su-fbd': `${L.fieldLine.w}px solid ${L.fieldLine.col}`,
+    };
+  }
+
+  /* ---- words: the project's own where the agent found them ---- */
+  function words() {
+    let r0 = [], r1_ = [];
+    try { r0 = (CX.rows && CX.rows[0]) || []; r1_ = (CX.rows && CX.rows[1]) || []; } catch {}
+    let field = '', ph = '';
+    try { field = CX.field; ph = CX.placeholder; } catch {}
+    const menu = Array.isArray(WD.menu) && WD.menu.length ? WD.menu.map(String).slice(0, 4) : ['Rename', 'Duplicate', 'Move to folder', 'Delete'];
+    return {
+      title: String(WD.title || r0[0] || 'Weekly summary'), text: String(WD.text || 'Sent to your team every Monday morning.'),
+      label: String(WD.label || field || 'Email'), ph: String(WD.placeholder || ph || 'name@example.com'),
+      row: [String(WD.row || r1_[0] || 'Billing export'), String(r1_[1] || 'Updated yesterday')], menu,
+    };
+  }
+
+  /* ---- drawings ---- */
+  function compose(s, mode, o = {}) {
+    const w = words(), L = lookOf(s);
+    const full = mode !== 'tile', lift = !!L && !L.pressed && s.depth >= 15;
+    const card = `<div class="su-card${lift ? ' su-lift' : ''}${o.hover ? ' su-hover' : ''}"><h4 class="su-h">${esc(w.title)}</h4>`
+      + (full ? `<p class="su-p">${esc(w.text)}</p><span class="su-lbl">${esc(w.label)}</span>` : '')
+      + `<div class="su-field${o.focus ? ' su-focus' : ''}"${o.live ? ' tabindex="0"' : ''}><span>${esc(w.ph)}</span></div>`
+      + `<div class="su-row"><i></i><span>${esc(w.row[0])}</span><em>${esc(w.row[1])}</em></div></div>`;
+    const items = w.menu.map((m, i) => `<li${i === 0 ? ' class="on"' : ''}${/^(delete|remove)/i.test(m) ? ' class="bad"' : ''}>${esc(m)}</li>`);
+    if (items.length > 1) items.splice(items.length - 1, 0, '<li class="sep"></li>');
+    const menu = full ? `<ul class="su-menu" role="menu">${items.join('')}</ul>` : '';
+    return `<div class="su-stack${full ? ' su-full' : ''}"><i class="su-blob"></i><i class="su-band"></i>${card}${menu}</div>`;
+  }
+  /** What each tile draws: the same small page, with the option itself pushed far enough to be told apart. */
+  function tileState(s, k) {
+    const t = Object.assign({}, s);
+    if (k === 'shadow' || k === 'light') t.depth = Math.max(t.depth, 55);
+    if (k === 'blur') t.alpha = Math.min(t.alpha, 60);
+    return t;
+  }
+  function still(s, opt = {}) {
+    if (opt.tile) return `<div class="su su-tile bgd" ${bgAttr()}>${compose(tileState(s, opt.tile), 'tile')}</div>`;
+    return `<div class="su bgd" ${bgAttr()}>${compose(s, 'full', { hover: opt.state === 'hover', focus: opt.state === 'focus' })}</div>`;
+  }
+  function live(el, s) {
+    const bgStyle = V.bg === 'page' ? `;background:${pageColour()}` : '';
+    el.innerHTML = `<div class="su su-live bgd ${dimCls('surface', s)}" data-bg="${esc(V.bg)}" style="${esc(varsCss(vars(s)) + bgStyle)}">`
+      + compose(s, 'full', { live: true })
+      + '<p class="su-note">The coloured shapes behind show how see-through the surfaces are.</p></div>';
+  }
+
+  /* ---- what other studios and the example page use ---- */
+  function sceneLightNow() { try { return sceneLight(); } catch { return null; } }
+  function scene(s) {
+    const L = look(s, sceneLightNow());
+    return { vars: {
+      '--sc-radius': L.r + 'px', '--sc-radius-sm': L.rs + 'px', '--sc-border': L.bw + 'px', '--sc-border-a': String(r2(L.bw > 0 ? L.ba : 0)),
+      '--sc-shadow': L.raisedOnly, '--sc-card-alpha': String(r2(L.ea)), '--sc-blur': (s.blur || 0) + 'px', '--sc-texture': L.tex,
+    } };
+  }
+  function share(s) {
+    const L = look(s);
+    return { surface: {
+      r: L.rs, rCard: L.r, border: L.bw, borderAlpha: r2(L.bw > 0 ? L.ba : 0), shadow: L.raisedOnly, depth: s.depth,
+      material: s.material, blur: s.blur, alpha: r2(s.alpha / 100),
+    } };
+  }
+
+  /* ---- checks and the proposal ---- */
+  const ratioText = (v) => C.showRatio(v) + ' to 1';
+  function warn(s) {
+    const out = [], L = lookOf(s);
+    if (!L) return out;
+    const E = L.E;
+    /* Words on a see-through surface: judged over the page and over the coloured shapes that may sit behind it. */
+    if (L.ea > 0.02 && L.ea < 0.995) {
+      const a2 = mix(E.page, E.acc, 0.5);
+      const unders = s.blur >= 14 ? [E.page, a2] : [E.page, E.acc, E.acc2];
+      const worst = Math.min(...unders.map((u) => C.ratio(E.text, over(L.base, L.ea, u))));
+      if (worst < 4.5) out.push({ k: 'alpha', t: `Words on this surface read at only about ${ratioText(worst)} where something colourful sits behind it. Comfortable reading needs 4.5 to 1. A more solid surface, or more blur, brings it back.` });
+    }
+    const fbd = L.fieldLine;
+    if (C.ratio(fbd.hex, fbd.ground) < 1.4 && L.bw > 0) out.push({ k: 'ba', t: `The line around a field is too faint to see clearly (about ${ratioText(C.ratio(fbd.hex, fbd.ground))}). People need to see where a field starts and ends. A stronger line fixes it.` });
+    const defined = s.depth >= 12 || L.pressed || (L.bw > 0 && L.ba >= 0.1) || s.material === 'outline' || C.ratio(over(L.base, L.ea, E.page), E.page) >= 1.12;
+    if (!defined) out.push({ k: 'edge', t: 'The card has no line, almost no shadow and nearly the same colour as the page, so it blends in and people cannot see where it ends. Add a line, a shadow or a different colour.' });
+    if (s.texa >= 75 && s.tex !== 'none' && s.tex !== 'grain') out.push({ k: 'texa', soft: true, t: 'A texture this strong shows through the words and slows reading. Lower it, or keep it for surfaces with little text.' });
+    return out;
+  }
+  function notes(s) {
+    const L = look(s), out = [];
+    const px = (v) => (v >= 999 ? '999px (a full pill)' : v + 'px');
+    out.push(`Surface shape: cards and panels border-radius ${px(L.r)}; fields and small controls ${px(L.rs)}; menus and popovers ${px(L.rm)}.`);
+    out.push(`Surface material, ${MATS[s.material] || s.material}: background ${L.bg}${L.bw > 0 ? `; border ${L.bd}` : '; no border'}${s.blur > 0 || L.sat !== 1 ? `; backdrop-filter ${L.blurCss}` : ''}. Opacity ${s.alpha}%${s.alpha < 100 ? ', so keep a solid fallback colour under @supports not (backdrop-filter: blur(1px))' : ''}.`);
+    out.push(`Surface depth ${s.depth} of 100, ${s.shadow} shadow, light from ${({ top: 'above', topleft: 'the top left', topright: 'the top right', ambient: 'all round', below: 'below' })[s.light] || 'above'}: resting box-shadow ${L.cardShadow}; lifted (hover or focus within) ${L.cardShadowUp}${L.pressed ? '' : ' with transform translateY(-3px)'}; menus box-shadow ${L.menuShadow}.`);
+    out.push(`Surface layers: things inside a card are ${({ same: 'the card colour, outlined only', lighter: 'lighter than the card with a small shadow', darker: 'a step darker than the card', sunken: 'sunken, with an inner shadow', tinted: 'washed with the brand colour' })[s.layers]}${L.nest[0] !== 'transparent' ? ` (background ${L.nest[0]}${L.nest[1] !== 'none' ? ', box-shadow ' + L.nest[1] : ''})` : ''}; field line ${L.fieldLine.w}px ${L.fieldLine.col}.`);
+    if (s.tex !== 'none') out.push(`Surface texture, ${({ grain: 'fine grain', paper: 'paper fibre', dots: 'dots', lines: 'diagonal lines', grid: 'grid', brushed: 'brushed' })[s.tex]} at ${s.texa}%: an inline SVG as a background-image on a ::before layer (pointer-events none, same radius as the surface): ${L.tex}`);
+    out.push('Surface tokens to create or update, in the format the project already uses: radius (card, small, menu), border width and colour, shadow (rest, lifted, menu), blur, opacity and texture. Use them in every card, panel, field and menu instead of repeating values.');
+    return out;
+  }
+
+  /* ---- controls ---- */
+  const E_ = (v, n, d, set) => Object.assign(o(v, n, d), set ? { set } : {});
+  const ofMat = (id, n, d) => E_(id, n, d, MAT_SET[id]);
+  const ofEdge = (id, n, d) => E_(id, n, d, EDGE_SET[id]);
+  const groups = [
+    { id: 'material', t: 'Material', sec: 'Look', why: 'What the surface is made of. This sets how it takes light, and whether you can see through it.',
+      ctl: [ch('material', 'Material', [
+        ofMat('solid', 'Solid', 'A plain opaque surface. Calm and dependable.'),
+        ofMat('frosted', 'Frosted glass', 'Half see-through, with what is behind it blurred into a soft haze.'),
+        ofMat('clear', 'Clear glass', 'Almost see-through, with a faint sheen. What is behind shows through.'),
+        ofMat('tinted', 'Tinted', 'The brand colour washed lightly into the surface.'),
+        ofMat('paper', 'Paper', 'A warm, matte sheet with a faint fibre. Feels printed and calm.'),
+        ofMat('satin', 'Satin metal', 'A smooth surface that catches the light in soft bands.'),
+        ofMat('sheen', 'Soft sheen', 'A gentle fade from light to slightly darker. A little polish, nothing loud.'),
+        ofMat('outline', 'Outline only', 'No fill and no shadow, just a clear line. The page shows through.'),
+        ofMat('pressed', 'Soft and pressed', 'Looks gently pushed into the page, like soft clay.')])] },
+    { id: 'shape', t: 'Shape', sec: 'Look', why: 'How round the corners are. Square feels exact and serious; round feels friendly. Fields and menus follow the card.',
+      ctl: [ch('radius', 'Corners', [
+        o(0, 'Sharp', 'Square corners. Exact, serious and a little severe.'), o(4, 'Crisp', 'Barely softened. Precise but not harsh.'),
+        o(8, 'Gentle', 'Slightly rounded, the usual for working software.'), o(12, 'Soft', 'Clearly rounded without looking playful.'),
+        o(16, 'Rounded', 'Friendly and modern.'), o(24, 'Very round', 'Big, generous curves. Soft and approachable.'),
+        o(32, 'Pillowy', 'Almost bubble-like on small surfaces.'), o(40, 'Pill', 'Fully rounded ends, and fields become pills too.')]),
+      rg('radius', 'Exact corner size', 0, 40, 1, 'px', 'The corner of a card, in pixels. Fields and menus are worked out from it.')] },
+    { id: 'depth', t: 'Depth', sec: 'Depth', why: 'How far the surface rises above the page, and what its shadow looks like.',
+      ctl: [ch('depth', 'How high', [
+        o(0, 'Flat', 'Sits on the page with no shadow.'), o(15, 'Barely there', 'A whisper of shadow. Enough to tell it from the page.'),
+        o(35, 'Raised', 'A clear but quiet lift. The usual for cards.'), o(55, 'Lifted', 'Visibly above the page.'),
+        o(78, 'Floating', 'Well above the page, with a wide shadow.'), o(100, 'Far above', 'As high as it goes. Dramatic.')]),
+      ch('shadow', 'Shadow style', [
+        o('soft', 'Soft', 'One wide, gentle shadow. Calm and natural.'), o('crisp', 'Crisp', 'A tight, sharp shadow just underneath. Precise.'),
+        o('long', 'Long', 'A shadow that stretches away at an angle, as if lit low.'), o('layered', 'Layered', 'Several shadows stacked into one smooth, realistic lift.'),
+        o('coloured', 'Coloured', 'A glow of the brand colour underneath instead of grey.'), o('hard', 'Hard block', 'A solid block with no blur. Bold and graphic.')]),
+      rg('depth', 'Exact height', 0, 100, 1, '', '0 is flat on the page, 100 is as high as it goes.')] },
+    { id: 'edges', t: 'Edges', sec: 'Edges', why: 'The line around a surface, if any. It also decides how clearly fields and rows inside it can be told apart.',
+      ctl: [ch('edge', 'Edge', [
+        ofEdge('none', 'No edge', 'The surface ends where its colour ends. Fields still keep a quiet line.'), ofEdge('hairline', 'Hairline', 'A thin, quiet line.'),
+        ofEdge('firm', 'Firm line', 'A clear, thicker line that draws the shape.'), ofEdge('lit', 'Lit edge', 'A thin line, a bright top edge and a darker bottom edge, like a bevel.'),
+        ofEdge('double', 'Double line', 'A line with a second line just inside it.'), ofEdge('accent', 'Brand line', 'A line in the brand colour.'),
+        ofEdge('ink', 'Heavy ink', 'A thick, full-strength outline. Bold and graphic.')]),
+      rg('bw', 'Line thickness', 0, 4, 0.5, 'px', 'How thick the line is, in pixels.'),
+      rg('ba', 'Line strength', 0, 100, 5, '%', 'How strong the line is. Low is a whisper; 100 is the full text colour.')] },
+    { id: 'light', extra: 1, t: 'Light', sec: 'Light', why: 'Where the light comes from. It decides which way shadows fall and which edge catches a bright line.',
+      ctl: [ch('light', 'Light from', [
+        o('top', 'From above', 'Shadows fall straight down. The most natural.'), o('topleft', 'From the top left', 'Shadows fall to the bottom right, like most interface drawings.'),
+        o('topright', 'From the top right', 'Shadows fall to the bottom left.'), o('ambient', 'Even all round', 'Soft light from everywhere. Small shadows, a thin bright rim.'),
+        o('below', 'From below', 'Shadows fall upward. Dramatic and unusual.')]),
+      rg('hl', 'Bright edge', 0, 100, 5, '%', 'How strongly the lit edge shines. Easiest to see on tinted or dark surfaces.')] },
+    { id: 'glass', extra: 2, t: 'See-through', sec: 'Light', why: 'How much of what is behind a surface shows through, and how blurred it is.',
+      ctl: [ch('alpha', 'How solid', [
+        o(100, 'Solid', 'Nothing shows through.'), o(88, 'Slightly clear', 'A hint of what is behind.'), o(70, 'Milky', 'What is behind glows through softly.'),
+        o(52, 'Half clear', 'Half the colour, half what is behind.'), o(32, 'Mostly clear', 'Mostly see-through. Words need care.'), o(14, 'Almost invisible', 'Only a trace of surface is left.')]),
+      ch('blur', 'Blur behind', [
+        o(0, 'None', 'What is behind stays sharp.'), o(4, 'A hint', 'Slightly softened.'), o(10, 'Soft', 'Clearly softened. Shapes stay readable.'),
+        o(18, 'Frosted', 'Shapes melt into a haze.'), o(28, 'Heavy', 'Only colour comes through.'), o(40, 'Deep', 'Pure colour, no shapes.')]),
+      rg('alpha', 'Exact solidness', 10, 100, 1, '%', '100 is solid; lower lets more of what is behind show through.'),
+      rg('blur', 'Exact blur', 0, 40, 1, 'px', 'How much what is behind is blurred.')] },
+    { id: 'texture', extra: 3, t: 'Texture', sec: 'Light', why: 'A fine pattern over the surface so it feels like a material. Drawn in code, with no image files.',
+      ctl: [ch('tex', 'Texture', [
+        o('none', 'Smooth', 'Clean, with no pattern.'), o('grain', 'Fine grain', 'A speckle, like fine paper or film.'), o('paper', 'Paper fibre', 'Soft horizontal fibres, like handmade paper.'),
+        o('dots', 'Dots', 'A regular grid of tiny dots.'), o('lines', 'Diagonal lines', 'Thin slanted lines, like a hatched print.'),
+        o('grid', 'Grid', 'Thin squares, like graph paper.'), o('brushed', 'Brushed', 'Fine horizontal streaks, like brushed metal.')]),
+      rg('texa', 'Texture strength', 0, 100, 5, '%', 'How strongly the pattern shows.')] },
+    { id: 'layers', extra: 4, t: 'Layers', sec: 'Light', why: 'How things inside a card, such as fields and rows, differ from the card around them.',
+      ctl: [ch('layers', 'Inside the card', [
+        o('same', 'Same colour', 'Fields and rows keep the card’s colour and are drawn with a line only.'), o('lighter', 'Stepped lighter', 'Things inside sit lighter, as if raised a little.'),
+        o('darker', 'Stepped darker', 'Things inside are a step darker, like a well.'), o('sunken', 'Sunken', 'Pressed in, with a soft shadow inside the top edge.'),
+        o('tinted', 'Tinted', 'Things inside are washed with the brand colour.')])] },
+  ];
+
+  const defaults = { material: 'solid', radius: 14, depth: 35, shadow: 'layered', edge: 'hairline', bw: 1, ba: 20, light: 'top', hl: 50, alpha: 100, blur: 0, tex: 'none', texa: 40, layers: 'darker' };
+  const L_ = (id, n, d, p) => ({ id, n, d, patch: Object.assign({}, defaults, p) });
+  const looks = [
+    L_('paper', 'Calm paper', 'Warm paper with a fibre you can almost feel, a soft shadow and gentle corners.',
+      { material: 'paper', radius: 12, depth: 22, shadow: 'soft', edge: 'hairline', bw: 1, ba: 22, hl: 30, tex: 'paper', texa: 55, layers: 'darker' }),
+    L_('crisp', 'Crisp flat', 'No shadows at all, small corners and a clear line. Quick to read and very precise.',
+      { material: 'solid', radius: 6, depth: 0, shadow: 'crisp', edge: 'firm', bw: 1.5, ba: 45, hl: 0, layers: 'same' }),
+    L_('soft', 'Soft depth', 'Round, quiet cards lifted off the page by a smooth layered shadow and no line.',
+      { material: 'solid', radius: 20, depth: 55, shadow: 'layered', edge: 'none', bw: 0, ba: 0, hl: 50, layers: 'darker' }),
+    L_('glass', 'Frosted glass', 'Half see-through panels that blur whatever is behind them, with a bright edge.',
+      { material: 'frosted', radius: 20, depth: 45, shadow: 'soft', edge: 'lit', bw: 1, ba: 16, light: 'topleft', hl: 70, alpha: 55, blur: 20, layers: 'lighter' }),
+    L_('pressed', 'Soft and pressed', 'Surfaces that look gently pushed into the page, like soft clay.',
+      { material: 'pressed', radius: 24, depth: 50, shadow: 'soft', edge: 'none', bw: 0, ba: 0, light: 'topleft', hl: 0, layers: 'sunken' }),
+    L_('technical', 'Hairline technical', 'Nearly square, flat, with a thin line and a faint grid, like a drawing board.',
+      { material: 'solid', radius: 2, depth: 0, shadow: 'crisp', edge: 'hairline', bw: 1, ba: 30, hl: 0, tex: 'grid', texa: 22, layers: 'same' }),
+    L_('blunt', 'Bold and blunt', 'Square blocks with a heavy outline and a hard block shadow. Loud and graphic.',
+      { material: 'solid', radius: 0, depth: 60, shadow: 'hard', edge: 'ink', bw: 2, ba: 100, hl: 0, layers: 'darker' }),
+    L_('satin', 'Luxe satin', 'Smooth metallic panels with a bevelled edge, soft bands of light and a deep shadow.',
+      { material: 'satin', radius: 16, depth: 62, shadow: 'layered', edge: 'lit', bw: 1, ba: 16, light: 'topleft', hl: 80, tex: 'brushed', texa: 30, layers: 'lighter' }),
+  ];
+
+  const clamp = (v, a, b, d) => (typeof v === 'number' && isFinite(v) ? lim(v, a, b) : d);
+  const oneOf = (v, list, d) => (list.includes(v) ? v : d);
+  function fix(s) {
+    s.material = oneOf(s.material, Object.keys(MATS), 'solid');
+    s.shadow = oneOf(s.shadow, SHADOWS, 'soft');
+    s.edge = oneOf(s.edge, Object.keys(EDGE_SET), 'hairline');
+    s.light = oneOf(s.light, Object.keys(DIR), 'top');
+    s.tex = oneOf(s.tex, TEXS, 'none');
+    s.layers = oneOf(s.layers, LAYERS, 'same');
+    s.radius = Math.round(clamp(s.radius, 0, 40, 14));
+    s.depth = Math.round(clamp(s.depth, 0, 100, 35));
+    s.bw = Math.round(clamp(s.bw, 0, 4, 1) * 2) / 2;
+    s.ba = Math.round(clamp(s.ba, 0, 100, 20));
+    s.hl = Math.round(clamp(s.hl, 0, 100, 50));
+    s.alpha = Math.round(clamp(s.alpha, 10, 100, 100));
+    s.blur = Math.round(clamp(s.blur, 0, 40, 0));
+    s.texa = Math.round(clamp(s.texa, 0, 100, 40));
+  }
+  /* Moving the line sliders brings a "No edge" surface back to a hairline, so the slider does something. */
+  function touch(s, k) {
+    if ((k === 'bw' || k === 'ba') && s.edge === 'none' && (k === 'bw' ? s.bw : s.ba) > 0) s.edge = 'hairline';
+  }
+  function summary(s) {
+    const l = looks.find((x) => Object.keys(x.patch).every((k) => sameValue(x.patch[k], s[k])));
+    return l ? l.n : `${MATS[s.material] || 'Surface'}, ${s.radius}px corners, depth ${s.depth}`;
+  }
+
+  STUDIO.add({
+    id: 'surface', ground: true, name: 'Surface',
+    title: () => 'surfaces',
+    defaults, today: SP.today || {}, measured: !!SP.measured,
+    groups, keep: [], looks,
+    fix, touch, vars, still, live, scene, share, warn, notes, summary,
+    tile: () => ({}), tall: () => true,
+    states: [['rest', 'At rest'], ['hover', 'Pointed at'], ['focus', 'Field selected']],
+    reach: [
+      ['system', 'The shared surface styles', 'Change the card, panel, field and menu styles every screen is built from, so all of them follow.'],
+      ['one', 'Only the surfaces shown', 'Change just the cards, panels and menus drawn here and leave the rest of the product alone.'],
+    ],
+  });
+}
+
+})();
 /* ---- spacing/module.js ---- */
 (() => {
 /* ===== Spacing module: density, the scale every gap is picked from, padding, gaps and alignment, drawn as a real layout =====
@@ -3714,6 +4327,621 @@ function btnFollows(s) {
     reach: [['system', 'The spacing scale', 'Change the shared spacing tokens, so every screen follows them.'], ['one', 'Only the screens shown', 'Change the spacing on the screens in the preview and leave the shared scale alone.']],
     tile: (c) => TILES[c.k] || null,
     tall: () => true,
+  });
+}
+
+})();
+/* ---- motion/module.js ---- */
+(() => {
+/* ===== Motion module: how things move: timing, feel, arrival, order, response to touch, page changes and loading =====
+   Every drawing is the same small scene (a card that arrives, rows that follow it, a button and a switch that answer
+   touch, two pages that swap, something loading) so only the movement differs. A still tile is a frozen frame that
+   still tells the options apart (a trail of positions, a ghost of where things start, a curve); pointing at it plays it.
+   Movement is run with the Web Animations API so Less motion can replace it with a gentle fade instead of stopping it. */
+{
+  const T = Object.assign({ measured: false, today: {}, drop: [] }, P.motion || {});
+  const SANS = 'system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
+  const clamp = (v, a, b, d) => (typeof v === 'number' && isFinite(v) ? Math.min(b, Math.max(a, v)) : d);
+  const r1 = (x) => Math.round(x * 10) / 10;
+  const lerp = (a, p) => a[0] + (a[1] - a[0]) * p;
+
+  /* ---- how it feels: the curve a movement follows ---- */
+  const bez = (x1, y1, x2, y2) => {
+    const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx, cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
+    const X = (t) => ((ax * t + bx) * t + cx) * t, Y = (t) => ((ay * t + by) * t + cy) * t;
+    return (x) => {
+      if (x <= 0) return 0;
+      if (x >= 1) return 1;
+      let lo = 0, hi = 1, t = x;
+      for (let i = 0; i < 32; i++) { const v = X(t); if (Math.abs(v - x) < 1e-5) break; if (v < x) lo = t; else hi = t; t = (lo + hi) / 2; }
+      return Y(t);
+    };
+  };
+  const sample = (fn, n) => `linear(${Array.from({ length: n + 1 }, (_, i) => +fn(i / n).toFixed(3)).join(', ')})`;
+  const bounceOut = (t) => {
+    const n = 7.5625, d = 2.75;
+    if (t < 1 / d) return n * t * t;
+    if (t < 2 / d) return n * (t -= 1.5 / d) * t + 0.75;
+    if (t < 2.5 / d) return n * (t -= 2.25 / d) * t + 0.9375;
+    return n * (t -= 2.625 / d) * t + 0.984375;
+  };
+  const springFn = (bounce) => {
+    const z = Math.max(0.3, 1 - bounce / 100), wn = 6.5 / z;
+    return (t) => {
+      if (t <= 0) return 0;
+      if (t >= 1) return 1;
+      if (z >= 0.999) return 1 - (1 + wn * t) * Math.exp(-wn * t);
+      const wd = wn * Math.sqrt(1 - z * z);
+      return 1 - Math.exp(-z * wn * t) * (Math.cos(wd * t) + (z * wn / wd) * Math.sin(wd * t));
+    };
+  };
+  const CB = (id, n, d, a, b, c, e, over) => ({ id, n, d, css: `cubic-bezier(${a}, ${b}, ${c}, ${e})`, fn: bez(a, b, c, e), over: !!over });
+  const EASES = [
+    CB('out', 'Quick start, gentle stop', 'Sets off fast and settles softly. The one most interfaces use.', 0.2, 0.8, 0.2, 1),
+    CB('ease', 'Everyday', 'The browser’s own standard: a little build-up, a soft landing.', 0.25, 0.1, 0.25, 1),
+    CB('snappy', 'Snappy', 'Almost there at once, then a tiny glide to a stop. Feels instant and exact.', 0.05, 0.7, 0.1, 1),
+    { id: 'even', n: 'Even', d: 'The same speed all the way. Right for loading bars, stiff for most else.', css: 'linear', fn: (t) => t, over: false },
+    CB('inout', 'Slow at both ends', 'Eases away, speeds up, eases in. Calm, and a little cinematic.', 0.65, 0, 0.35, 1),
+    CB('floaty', 'Floaty', 'A long, drifting stop. Soft and dreamy.', 0.4, 0, 0.1, 1),
+    CB('in', 'Slow start, quick finish', 'Builds speed as it goes. Good for things leaving, odd for things arriving.', 0.4, 0, 1, 1),
+    CB('overshoot', 'Overshoot', 'Goes a little too far, then settles back. Playful.', 0.34, 1.56, 0.64, 1, true),
+    CB('anticipate', 'Wind up first', 'Pulls back a touch before going, so the movement feels intended.', 0.5, -0.4, 0.35, 1, true),
+    { id: 'spring', n: 'Springy', d: 'Moves like a real spring. How bouncy is set under Extras.', over: true },
+    { id: 'bouncy', n: 'Bounce', d: 'Lands and bounces like a dropped ball. Fun, and tiring fast.', css: sample(bounceOut, 60), fn: bounceOut, over: true },
+  ];
+  const EASE_BY = Object.fromEntries(EASES.map((e) => [e.id, e]));
+  const springCache = {};
+  function easeOf(s) {
+    if (s.ease === 'spring') {
+      const k = Math.round(s.bounce);
+      return springCache[k] || (springCache[k] = { id: 'spring', n: 'Springy', fn: springFn(k), css: sample(springFn(k), 44), over: k > 0 });
+    }
+    return EASE_BY[s.ease] || EASE_BY.out;
+  }
+  const softOf = (e) => (e.over ? EASE_BY.out : e); // fades and colour never overshoot
+  const timesOf = (s) => ({ dur: s.dur, fast: Math.max(60, Math.round(s.dur / 20) * 10), slow: Math.round(s.dur * 1.5 / 10) * 10 });
+
+  /* ---- how things arrive: a pose is described by numbers, so one description draws a frozen frame and runs the movement ---- */
+  const ENTER = {
+    none: () => null,
+    fade: () => ({ o: [0, 1] }),
+    rise: (d) => ({ o: [0, 1], y: [d, 0] }),
+    drop: (d) => ({ o: [0, 1], y: [-d, 0] }),
+    slide: (d) => ({ o: [0, 1], x: [-d * 2, 0] }),
+    scale: () => ({ o: [0, 1], sc: [0.86, 1] }),
+    blur: () => ({ o: [0, 1], bl: [10, 0] }),
+    tilt: (d) => ({ o: [0, 1], rx: [26, 0], y: [d * 0.5, 0] }),
+    grow: (d) => ({ o: [0, 1], y: [d, 0], sc: [0.92, 1] }),
+  };
+  const ENTER_NAMES = {
+    none: ['Appears at once', 'Nothing moves. It is simply there.'],
+    fade: ['Fade in', 'Fades up from nothing. Nothing travels.'],
+    rise: ['Rise', 'Floats up a little as it fades in. The everyday choice.'],
+    drop: ['Drop in', 'Comes down from above, like a notification.'],
+    slide: ['Slide in', 'Arrives from the left side.'],
+    scale: ['Grow', 'Starts a little small and grows into place.'],
+    blur: ['Come into focus', 'Starts soft and blurred, then sharpens.'],
+    tilt: ['Tilt up', 'Leans back like a card and tips up into place.'],
+    grow: ['Rise and grow', 'Floats up while growing a little. Lively.'],
+  };
+  const STYLE = (d, p) => {
+    d = d || {};
+    const pp = d.w ? clamp((p - d.w[0]) / (d.w[1] - d.w[0]), 0, 1.5) : p;
+    const at = (a, dflt) => (a ? lerp(a, pp) : dflt);
+    return {
+      opacity: clamp(at(d.o, 1), 0, 1),
+      transform: `perspective(600px) translate(${r1(at(d.x, 0))}${d.u || 'px'}, ${r1(at(d.y, 0))}px) scale(${+at(d.sc, 1).toFixed(3)}) rotateX(${r1(at(d.rx, 0))}deg)`,
+      filter: `blur(${Math.max(0, r1(at(d.bl, 0)))}px)`,
+    };
+  };
+  const sty = (d, p) => { const o = STYLE(d, p); return `opacity:${o.opacity};transform:${o.transform};filter:${o.filter}`; };
+  const fadeOnly = (d) => (d ? { o: d.o || [0, 1], w: d.w } : { o: [0, 1] });
+  const enterDesc = (s, rm) => {
+    const d = ENTER[s.enter] ? ENTER[s.enter](s.dist) : null;
+    if (rm === 'fade') return fadeOnly(d || { o: [0, 1] });
+    if (rm === 'none') return null;
+    return d;
+  };
+  const enterCap = (s) => {
+    const d = s.dist;
+    return ({
+      none: 'Appears at once', fade: 'Fades in, nothing travels', rise: d ? `Rises ${d} px as it fades in` : 'Fades in',
+      drop: d ? `Drops ${d} px as it fades in` : 'Fades in', slide: d ? `Slides ${d * 2} px in from the left` : 'Fades in',
+      scale: 'Grows from 86% size', blur: 'Clears from a blur', tilt: 'Tips up into place', grow: d ? `Rises ${d} px and grows` : 'Grows a little',
+    })[s.enter] || '';
+  };
+
+  /* ---- one after another ---- */
+  const SEQ = [
+    ['together', 'All at once', 'Everything arrives together. Fast and tidy, with nothing to follow.', 0, 'top'],
+    ['quick', 'Quick ripple', 'Each row a beat after the one above. Barely noticed, and it makes a list feel alive.', 40, 'top'],
+    ['cascade', 'Cascade', 'A clear, steady top-to-bottom reveal. Easy to follow.', 80, 'top'],
+    ['slow', 'Slow reveal', 'One at a time with room between. Theatrical; use it sparingly.', 140, 'top'],
+    ['bottom', 'Bottom up', 'Starts at the bottom and rises through the list.', 60, 'bottom'],
+    ['centre', 'From the middle', 'The middle first, spreading out to both ends.', 60, 'centre'],
+    ['edges', 'From the ends in', 'The first and last rows first, closing in on the middle.', 60, 'edges'],
+  ];
+  const SEQ_BY = Object.fromEntries(SEQ.map((x) => [x[0], x]));
+  const delays = (n, seq, st) => {
+    const order = (SEQ_BY[seq] || SEQ_BY.quick)[4], mid = (n - 1) / 2;
+    return Array.from({ length: n }, (_, i) => Math.round(st * (seq === 'together' ? 0 : order === 'top' ? i : order === 'bottom' ? n - 1 - i : order === 'centre' ? Math.abs(i - mid) : mid - Math.abs(i - mid))));
+  };
+
+  /* ---- response to touch ---- */
+  const BASE_SH = '0 1px 2px rgba(0,0,0,.28)';
+  const GLOW = (a) => `0 0 0 ${a}px color-mix(in srgb, var(--mo-fill) 32%, transparent), 0 0 24px color-mix(in srgb, var(--mo-fill) 50%, transparent)`;
+  const rest = { t: 'none', s: BASE_SH, f: 'none' };
+  const PRESS = {
+    none: { n: 'No response', d: 'It does not change when pointed at or pressed.', h: rest, d_: rest },
+    lift: { n: 'Lifts', d: 'Rises a little with a deeper shadow when pointed at; settles back when pressed.', h: { t: 'translateY(-3px)', s: '0 8px 16px rgba(0,0,0,.34)', f: 'none' }, d_: { t: 'translateY(0)', s: BASE_SH, f: 'none' } },
+    press: { n: 'Presses in', d: 'Brightens when pointed at and shrinks a little when pressed.', h: { t: 'none', s: BASE_SH, f: 'brightness(1.1)' }, d_: { t: 'scale(.94)', s: BASE_SH, f: 'brightness(.94)' } },
+    liftpress: { n: 'Lifts, then presses in', d: 'Rises when pointed at, presses down when pressed. Feels like a real key.', h: { t: 'translateY(-3px)', s: '0 8px 16px rgba(0,0,0,.34)', f: 'none' }, d_: { t: 'translateY(0) scale(.96)', s: BASE_SH, f: 'brightness(.95)' } },
+    sink: { n: 'Sinks', d: 'Dips and darkens inside when pressed, like a physical button.', h: { t: 'none', s: BASE_SH, f: 'brightness(1.06)' }, d_: { t: 'translateY(2px)', s: 'inset 0 2px 5px rgba(0,0,0,.4)', f: 'brightness(.92)' } },
+    glow: { n: 'Soft glow', d: 'A halo of its own colour appears when pointed at. Nothing moves.', h: { t: 'none', s: GLOW(4), f: 'none' }, d_: { t: 'none', s: GLOW(2), f: 'brightness(.96)' } },
+    squash: { n: 'Squash and stretch', d: 'Squashes flat when pressed and springs back. Cartoonish and fun.', h: { t: 'scale(1.03)', s: BASE_SH, f: 'none' }, d_: { t: 'scale(1.09, .88)', s: BASE_SH, f: 'none' } },
+    grow: { n: 'Grows', d: 'Swells a little when pointed at, settles when pressed.', h: { t: 'scale(1.07)', s: '0 4px 10px rgba(0,0,0,.3)', f: 'none' }, d_: { t: 'scale(1.02)', s: BASE_SH, f: 'none' } },
+  };
+  const pressPose = (kind, which, rm) => {
+    const p = (PRESS[kind] || PRESS.none)[which === 'h' ? 'h' : which === 'd' ? 'd_' : null] || rest;
+    if (rm) return { t: 'none', s: BASE_SH, f: kind === 'none' ? 'none' : which === 'd' ? 'brightness(.9)' : 'brightness(1.1)' };
+    return p;
+  };
+  const poseCss = (p) => `transform:${p.t};box-shadow:${p.s};filter:${p.f}`;
+
+  /* ---- page changes ---- */
+  const PAGE = {
+    none: { n: 'Instant swap', d: 'The new page is simply there. Fastest, and nothing to look at.' },
+    fade: { n: 'Crossfade', d: 'The old page fades out as the new one fades in. Safe everywhere.', x: { o: [1, 0] }, y: { o: [0, 1] } },
+    dip: { n: 'Fade through', d: 'The old page leaves, then the new one arrives. Clean and calm.', x: { o: [1, 0], w: [0, 0.45] }, y: { o: [0, 1], w: [0.55, 1] } },
+    slide: { n: 'Slide over', d: 'The new page slides in from the right over the old one.', x: { o: [1, 0.55] }, y: { x: [100, 0], u: '%' } },
+    push: { n: 'Push', d: 'The old page is pushed out as the new one arrives. Gives a clear sense of direction.', x: { x: [0, -100], u: '%' }, y: { x: [100, 0], u: '%' } },
+    rise: { n: 'Rise over', d: 'The new page floats up over the old one as it fades in.', x: { o: [1, 0] }, y: { y: [28, 0], o: [0, 1] } },
+    scale: { n: 'Zoom through', d: 'The old page swells away as the new one settles in from slightly small.', x: { sc: [1, 1.06], o: [1, 0] }, y: { sc: [0.94, 1], o: [0, 1] } },
+    shared: { n: 'Shared element', d: 'The picture at the top glides from one page to the other while the rest fades.', x: { o: [1, 0], w: [0, 0.6] }, y: { o: [0, 1], w: [0.4, 1] } },
+  };
+
+  /* ---- loading ---- */
+  const LOAD = {
+    shimmer: ['Shimmer', 'Grey placeholder lines with a soft light sweeping across. Familiar and calm.'],
+    pulse: ['Pulse', 'The placeholder lines fade gently in and out.'],
+    spinner: ['Spinner', 'A small ring turns while the content loads.'],
+    dots: ['Dots', 'Three dots swell in turn.'],
+    bar: ['Progress bar', 'A bar sweeps back and forth along the top.'],
+    none: ['Plain words', 'Just the word Loading. No animation.'],
+  };
+
+  /* ---- the project's colours and fonts, else the stage's ---- */
+  const lt = () => { try { return bgLight(); } catch { return false; } };
+  function pal() {
+    const R = shared('roles'), F = shared('fonts');
+    const [, H, C, Lb] = Array.isArray(P.brand) ? P.brand : [0, 255, 0.17, 0.64];
+    const brand = `oklch(${Lb} ${C} ${H})`;
+    const font = `font-family:${(F && F.body) || P.font || SANS};`;
+    if (R) return `${font}--mo-surf:${R.surface};--mo-line:${R.line};--mo-text:${R.text};--mo-text2:${R.text2};--mo-acc:${R.accent};--mo-fill:${R.fill};--mo-on:${R['on-fill']}`;
+    return lt()
+      ? `${font}--mo-surf:#ffffff;--mo-line:#d5dbe0;--mo-text:#14181a;--mo-text2:#566068;--mo-acc:${brand};--mo-fill:${brand};--mo-on:#ffffff`
+      : `${font}--mo-surf:#1b2025;--mo-line:#323a41;--mo-text:#eef1f3;--mo-text2:#a3adb4;--mo-acc:${brand};--mo-fill:${brand};--mo-on:#ffffff`;
+  }
+
+  /* ---- what the drawings read from a state ---- */
+  const rmNow = (s) => (V.rm ? s.reduce : '');
+  function params(s, rm) {
+    const t = timesOf(s), e = easeOf(s);
+    return { dur: t.dur, fast: t.fast, slow: t.slow, ease: e.css, soft: softOf(e).css, enter: s.enter, dist: s.dist, seq: s.seq, stagger: s.stagger, press: s.press, page: s.page, load: s.load, rm: rm == null ? rmNow(s) : rm };
+  }
+  const pdata = (s, rm) => esc(JSON.stringify(params(s, rm)));
+  const pressVars = (s, rm) => {
+    const h = pressPose(s.press, 'h', rm), d = pressPose(s.press, 'd', rm);
+    return `--mo-h-t:${h.t};--mo-h-s:${h.s};--mo-h-f:${h.f};--mo-d-t:${d.t};--mo-d-s:${d.s};--mo-d-f:${d.f}`;
+  };
+  function vars(s) {
+    const t = timesOf(s), e = easeOf(s);
+    return { '--mo-dur': t.dur + 'ms', '--mo-fast': t.fast + 'ms', '--mo-slow': t.slow + 'ms', '--mo-ease': e.css, '--mo-soft': softOf(e).css };
+  }
+  const lift = (s) => ((PRESS[s.press] || PRESS.none).h.t.startsWith('translateY(-') ? 3 : 0);
+
+  /* ---- drawing parts ---- */
+  const curve = (fn) => {
+    const pts = [];
+    for (let i = 0; i <= 48; i++) { const t = i / 48, y = Math.max(2, Math.min(62, 52 - fn(t) * 40)); pts.push(`${i ? 'L' : 'M'}${r1(6 + t * 52)} ${r1(y)}`); }
+    return `<svg class="mo-cv" viewBox="0 0 64 64" aria-hidden="true"><path class="g" d="M6 52H58M6 12H58"/><path class="c" d="${pts.join('')}"/></svg>`;
+  };
+  const TRK = 104;
+  const strobe = (fn) => Array.from({ length: 7 }, (_, k) => `<i class="mo-sd" style="transform:translateX(${r1(fn(k / 6) * TRK)}px);opacity:${r1(0.18 + 0.62 * k / 6)}"></i>`).join('');
+  const track = (fn, x) => `<div class="mo-trk">${fn ? strobe(fn) : ''}<i class="mo-end" style="left:${x}px"></i><i class="mo-dot" data-a="dot" data-x="${x}"></i></div>`;
+  const cardBits = '<b class="mo-l1"></b><u class="mo-l2"></u><u class="mo-l3"></u>';
+  const ghosts = (s, d) => (d ? `<i class="mo-gh g2" style="${sty(d, 0.5)};opacity:.22"></i><i class="mo-gh" style="${sty(d, 0)};opacity:${s.enter === 'fade' || d.o && !d.x && !d.y && !d.sc && !d.bl && !d.rx ? 0.5 : 0.7}"></i>` : '');
+  const box = (s, d) => `<div class="mo-box">${ghosts(s, d)}<div class="mo-mc" data-a="enter" data-i="0" data-n="1" data-base="0">${cardBits}</div></div>`;
+  const btnHTML = (s, pose, label) => `<span class="mo-btn" ${pose ? `style="${poseCss(pose)}"` : ''}>${esc(label || 'Save')}</span>`;
+  const rows = (n, extra) => Array.from({ length: n }, (_, i) => `<i class="mo-rw" data-a="enter" data-i="${i}" data-n="${n}" data-base="${extra || 0}"><b></b></i>`).join('');
+
+  function pagesHTML(cur, kind, p) {
+    const pane = (k, w, extra) => `<div class="mo-pg${k === cur ? ' cur' : ''}" data-k="${k}" style="${extra || ''}"><i class="mo-hero ${k === 'a' ? 'small' : 'wide'}"></i><b class="mo-l1"></b><u class="mo-l2"></u><u class="mo-l3"></u></div>`;
+    if (p == null) return `<div class="mo-pages" data-a="pages" data-cur="${cur}">${pane('a')}${pane('b')}</div>`;
+    const D = PAGE[kind] || PAGE.none, x = D.x || { o: [1, 0] }, y = D.y || { o: [0, 1] };
+    if (!D.x) return `<div class="mo-pages static"><div class="mo-pg" style="visibility:visible"><i class="mo-hero wide"></i><b class="mo-l1"></b><u class="mo-l2"></u></div></div>`;
+    const sA = sty(x, p), sB = sty(y, p);
+    return `<div class="mo-pages static"><div class="mo-pg" style="visibility:visible;${sA}"><i class="mo-hero small"></i><b class="mo-l1"></b><u class="mo-l2"></u><u class="mo-l3"></u></div>`
+      + `<div class="mo-pg now" style="visibility:visible;${sB}"><i class="mo-hero wide"></i><b class="mo-l1"></b><u class="mo-l2"></u><u class="mo-l3"></u></div></div>`;
+  }
+  const loadHTML = (kind) => {
+    const lines = `<i class="mo-sk" style="width:86%">${kind === 'shimmer' ? '<b class="mo-band"></b>' : ''}</i><i class="mo-sk" style="width:64%">${kind === 'shimmer' ? '<b class="mo-band"></b>' : ''}</i><i class="mo-sk" style="width:74%">${kind === 'shimmer' ? '<b class="mo-band"></b>' : ''}</i>`;
+    const body = kind === 'spinner' ? '<span class="mo-spin"><svg class="mo-ring" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" class="t"/><path d="M12 3a9 9 0 0 1 9 9" class="a"/></svg><span>Loading</span></span>'
+      : kind === 'dots' ? '<span class="mo-spin"><i class="mo-ld"></i><i class="mo-ld"></i><i class="mo-ld"></i></span>'
+        : kind === 'bar' ? `<i class="mo-prog"><b class="mo-sweep" style="left:18%"></b></i>${lines}`
+          : kind === 'none' ? '<span class="mo-spin"><span>Loading…</span></span>' : lines;
+    return `<div class="mo-load k-${kind}" data-a="load" data-kind="${kind}">${body}</div>`;
+  };
+
+  /* ---- running the movement ---- */
+  const kfLoop = (from, to, dur, delay, T, ease) => {
+    const kf = [Object.assign({ offset: 0 }, from)];
+    if (delay > 0) { kf.push(Object.assign({ offset: delay / T }, from)); kf[kf.length - 1].easing = ease; } else kf[0].easing = ease;
+    kf.push(Object.assign({ offset: (delay + dur) / T }, to), Object.assign({ offset: 1 }, to));
+    return kf;
+  };
+  const NONE_STYLE = { opacity: 1, transform: 'none', filter: 'none' };
+  function stop(root) {
+    (root._anims || []).forEach((a) => { try { a.cancel(); } catch {} });
+    root._anims = [];
+    clearTimeout(root._t); clearTimeout(root._tf);
+    const pg = root.querySelector('[data-a=pages]');
+    if (pg) { pg._busy = false; pg.querySelectorAll('.mo-morph').forEach((m) => m.remove()); pg.querySelectorAll('.mo-pg').forEach((e) => { e.style.cssText = ''; }); }
+  }
+  /** Plays everything a drawing moves. loop: tiles and cards repeat while pointed at; the live preview plays its arrival once. */
+  function play(root, loop) {
+    stop(root);
+    let p;
+    try { p = JSON.parse(root.dataset.p); } catch { return; }
+    const A = (el, kf, opt) => { try { const a = el.animate(kf, opt); root._anims.push(a); return a; } catch { return null; } };
+    const rm = p.rm, fade = rm === 'fade';
+    const esoft = p.soft;
+    const HOLD = 900;
+
+    /* things arriving */
+    const els = [...root.querySelectorAll('[data-a=enter]')];
+    const d = enterDesc(p, rm);
+    if (d) {
+      const dur = fade ? clamp(p.dur, 140, 260) : p.dur, ease = fade ? esoft : p.ease;
+      const groups = {};
+      els.forEach((el) => { const n = +el.dataset.n || 1; (groups[n] = groups[n] || []).push(el); });
+      let T = 0;
+      const plan = els.map((el) => {
+        const n = +el.dataset.n || 1, i = +el.dataset.i || 0, base = +el.dataset.base || 0;
+        const dl = base + (fade ? 0 : delays(n, p.seq, p.stagger)[i]);
+        T = Math.max(T, dl + dur);
+        return [el, dl];
+      });
+      T += HOLD;
+      plan.forEach(([el, dl]) => {
+        const from = STYLE(d, 0), to = STYLE(d, 1);
+        if (loop) A(el, kfLoop(from, NONE_STYLE, dur, dl, T, ease), { duration: T, iterations: Infinity });
+        else A(el, [from, NONE_STYLE], { duration: dur, delay: dl, easing: ease, fill: 'backwards' });
+      });
+    }
+
+    /* a dot travelling along a track, there and back */
+    root.querySelectorAll('[data-a=dot]').forEach((el) => {
+      const x = +el.dataset.x, dur = rm === 'none' ? 1 : p.dur, ease = fade ? esoft : p.ease, T = 2 * dur + 1300;
+      const kf = [{ transform: 'translateX(0)', offset: 0, easing: ease }, { transform: `translateX(${x}px)`, offset: dur / T }, { transform: `translateX(${x}px)`, offset: (dur + 650) / T, easing: ease }, { transform: 'translateX(0)', offset: (2 * dur + 650) / T }, { transform: 'translateX(0)', offset: 1 }];
+      A(el, kf, { duration: T, iterations: Infinity });
+    });
+
+    /* a button answering a hover and a press */
+    root.querySelectorAll('[data-a=btn]').forEach((el) => {
+      const f = p.fast, h = pressPose(p.press, 'h', rm), dn = pressPose(p.press, 'd', rm), r = rest;
+      const fr = (q, off, easing) => Object.assign({ transform: q.t, boxShadow: q.s, filter: q.f, offset: off }, easing ? { easing } : {});
+      const down = Math.round(f * 0.6), t1 = f, t2 = t1 + 420, t3 = t2 + down, t4 = t3 + 220, t5 = t4 + f, T = t5 + 700;
+      const e = p.ease;
+      A(el, [fr(r, 0, e), fr(h, t1 / T), fr(h, t2 / T, e), fr(dn, t3 / T), fr(dn, t4 / T, e), fr(r, t5 / T), fr(r, 1)], { duration: T, iterations: Infinity });
+    });
+
+    /* two pages swapping, over and over */
+    const pg = root.querySelector('.mo-pages[data-a=pages]');
+    if (pg && loop) {
+      const tick = () => { pageGo(root, () => { root._t = setTimeout(tick, 900); }); };
+      root._t = setTimeout(tick, 500);
+    }
+
+    /* loading */
+    root.querySelectorAll('[data-a=load]').forEach((el) => {
+      const kind = el.dataset.kind;
+      if (kind === 'none' || rm === 'none') return;
+      const inf = { iterations: Infinity };
+      if (rm) { A(el, [{ opacity: 0.45 }, { opacity: 1 }], Object.assign({ duration: 1600, direction: 'alternate', easing: 'ease-in-out' }, inf)); return; }
+      if (kind === 'shimmer') el.querySelectorAll('.mo-band').forEach((b) => A(b, [{ transform: 'translateX(-110%)' }, { transform: 'translateX(300%)' }], Object.assign({ duration: 1500, easing: 'ease-in-out' }, inf)));
+      else if (kind === 'pulse') el.querySelectorAll('.mo-sk').forEach((b) => A(b, [{ opacity: 0.4 }, { opacity: 1 }], Object.assign({ duration: 950, direction: 'alternate', easing: 'ease-in-out' }, inf)));
+      else if (kind === 'spinner') el.querySelectorAll('.mo-ring').forEach((b) => A(b, [{ transform: 'rotate(0)' }, { transform: 'rotate(360deg)' }], Object.assign({ duration: 900, easing: 'linear' }, inf)));
+      else if (kind === 'dots') el.querySelectorAll('.mo-ld').forEach((b, i) => A(b, [{ transform: 'scale(.5)', opacity: 0.35 }, { transform: 'scale(1)', opacity: 1 }], Object.assign({ duration: 500, direction: 'alternate', easing: 'ease-in-out', delay: i * 170 }, inf)));
+      else if (kind === 'bar') el.querySelectorAll('.mo-sweep').forEach((b) => A(b, [{ transform: 'translateX(-100%)' }, { transform: 'translateX(330%)' }], Object.assign({ duration: 1200, easing: 'ease-in-out' }, inf)));
+    });
+  }
+
+  /** One swap between the two pages, with the chosen kind of change. */
+  function pageGo(root, done) {
+    const pg = root.querySelector('.mo-pages[data-a=pages]');
+    if (!pg || pg._busy) return;
+    let p; try { p = JSON.parse(root.dataset.p); } catch { return; }
+    root._anims = root._anims || [];
+    const cur = pg.dataset.cur || 'a', next = cur === 'a' ? 'b' : 'a';
+    const X = pg.querySelector(`[data-k=${cur}]`), Y = pg.querySelector(`[data-k=${next}]`);
+    const finish = () => {
+      pg._busy = false;
+      pg.dataset.cur = next;
+      X.classList.remove('cur'); Y.classList.add('cur');
+      [X, Y].forEach((e) => { e.getAnimations().forEach((a) => a.cancel()); e.style.cssText = ''; });
+      pg.querySelectorAll('.mo-morph').forEach((m) => m.remove());
+      pg.querySelectorAll('.mo-hero').forEach((h) => { h.style.visibility = ''; });
+      if (done) done();
+    };
+    const rm = p.rm, kind = rm === 'none' || p.page === 'none' ? 'none' : rm === 'fade' && !['fade', 'dip'].includes(p.page) ? 'fade' : p.page;
+    if (kind === 'none') { finish(); return; }
+    const dur = rm ? clamp(p.slow, 160, 300) : p.slow, ease = rm || kind === 'fade' || kind === 'dip' || kind === 'scale' ? p.soft : p.ease;
+    const D = PAGE[kind];
+    pg._busy = true;
+    X.style.visibility = Y.style.visibility = 'visible';
+    X.style.zIndex = 1; Y.style.zIndex = 2;
+    const run = (el, desc) => {
+      const from = STYLE(desc, 0), to = STYLE(desc, 1);
+      const kf = desc.w ? [Object.assign({ offset: 0 }, from), Object.assign({ offset: desc.w[0] }, from, { easing: ease }), Object.assign({ offset: desc.w[1] }, to), Object.assign({ offset: 1 }, to)] : [from, to];
+      const a = el.animate(kf, Object.assign({ duration: dur, fill: 'both' }, desc.w ? {} : { easing: ease }));
+      root._anims.push(a);
+      return a;
+    };
+    run(X, D.x);
+    const last = run(Y, D.y);
+    if (kind === 'shared') {
+      const hx = X.querySelector('.mo-hero'), hy = Y.querySelector('.mo-hero');
+      const rect = (pane, h) => ({ l: pane.offsetLeft + h.offsetLeft, t: pane.offsetTop + h.offsetTop, w: h.offsetWidth, h: h.offsetHeight });
+      const a = rect(X, hx), b = rect(Y, hy), g = document.createElement('i');
+      g.className = 'mo-morph';
+      g.style.cssText = `left:${a.l}px;top:${a.t}px;width:${a.w}px;height:${a.h}px`;
+      pg.appendChild(g);
+      hx.style.visibility = hy.style.visibility = 'hidden';
+      root._anims.push(g.animate([{ left: a.l + 'px', top: a.t + 'px', width: a.w + 'px', height: a.h + 'px' }, { left: b.l + 'px', top: b.t + 'px', width: b.w + 'px', height: b.h + 'px' }], { duration: dur, easing: p.ease, fill: 'both' }));
+    }
+    last.onfinish = finish;
+    root._tf = setTimeout(() => { if (pg._busy && pg.dataset.cur === cur) finish(); }, dur + 250);
+    last.oncancel = () => { pg._busy = false; };
+  }
+
+  /* ---- the tiles ---- */
+  const TRAVEL = ['rise', 'drop', 'slide', 'tilt', 'grow'];
+  function tileArt(s, k) {
+    const e = easeOf(s), rm = rmNow(s);
+    const wrap = (inner, st = s, rmv = rmNow(st)) => `<div class="mo mo-t" data-p="${pdata(st, rmv)}" style="${pal()};${pressVars(st, rmv)}">${inner}</div>`;
+    switch (k) {
+      case 'bounce': {
+        const t = Object.assign({}, s, { ease: 'spring' }), q = easeOf(t);
+        return wrap(`<div class="mo-l">${track(q.fn, TRK)}<span class="mo-cap">${Math.round(s.bounce)}% bounce</span></div>${curve(q.fn)}`, t);
+      }
+      case 'dur': {
+        const w = Math.min(100, s.dur / 750 * 100);
+        return wrap(`<div class="mo-sp"><b class="mo-ms">${s.dur}<small> ms</small></b><i class="mo-bar"><u style="width:${r1(w)}%"></u></i>${track(null, 150)}</div>`);
+      }
+      case 'enter': {
+        const cap = rm === 'none' ? 'Appears at once' : rm === 'fade' ? 'Fades in; nothing travels' : enterCap(s);
+        return wrap(`${box(s, enterDesc(s, rm))}<div class="mo-r"><span class="mo-cap big">${esc(cap)}</span></div>`);
+      }
+      case 'dist': {
+        const t = TRAVEL.includes(s.enter) ? s : Object.assign({}, s, { enter: 'rise' });
+        return wrap(`${box(t, enterDesc(t, rm === 'none' ? '' : rm))}<div class="mo-r"><span class="mo-cap big">${t.dist} px of travel</span><i class="mo-ruler" style="height:${Math.max(2, Math.min(56, t.dist))}px"></i></div>`, t);
+      }
+      case 'reduce': {
+        const t = s.enter === 'none' ? Object.assign({}, s, { enter: 'rise' }) : s;
+        return wrap(`${box(t, s.reduce === 'fade' ? { o: [0, 1] } : null)}<div class="mo-r"><span class="mo-cap big">${s.reduce === 'fade' ? 'Fades in; nothing travels' : 'Appears at once'}</span></div>`, t, s.reduce);
+      }
+      case 'seq': {
+        const dl = delays(4, s.seq, s.stagger), total = Math.max(400, Math.max(...dl) + s.dur), sc = 108 / total;
+        const bars = dl.map((x, i) => `<i style="top:${4 + i * 11}px;width:${r1(Math.max(4, s.dur * sc))}px;transform:translateX(${r1(x * sc)}px)"></i>`).join('');
+        return wrap(`<div class="mo-rws">${rows(4)}</div><div class="mo-r"><span class="mo-gantt" aria-hidden="true">${bars}</span><span class="mo-cap">${s.seq === 'together' ? 'All start together' : s.stagger + ' ms between rows'}</span></div>`);
+      }
+      case 'press':
+        return wrap(`<div class="mo-pb"><span class="mo-btn" data-a="btn">Save</span></div><div class="mo-r mo-poses"><span><i>Pointed at</i>${btnHTML(s, pressPose(s.press, 'h', rm))}</span><span><i>Pressed</i>${btnHTML(s, pressPose(s.press, 'd', rm))}</span></div>`);
+      case 'page':
+        return wrap(`${pagesHTML('a', s.page, 0.5)}<div class="mo-r"><span class="mo-cap big">${esc((PAGE[s.page] || PAGE.none).n)}</span><span class="mo-cap">${s.page === 'none' ? 'No movement' : 'Halfway through'}</span></div>`);
+      case 'load':
+        return wrap(`${loadHTML(s.load)}<div class="mo-r"><span class="mo-cap big">${esc(LOAD[s.load][0])}</span></div>`);
+      default: // ease
+        return wrap(`<div class="mo-l">${track(e.fn, TRK)}<span class="mo-cap">${esc(e.n)}</span></div>${curve(e.fn)}`);
+    }
+  }
+
+  /* A whole scene in miniature for looks, compare and the states view. */
+  function overview(s, o) {
+    const e = easeOf(s), rm = rmNow(s), t = timesOf(s);
+    const d = enterDesc(s, rm);
+    const pose = o.state || 'rest';
+    const hold = pose === 'arriving' ? 0.5 : 1;
+    const cardStyle = pose === 'arriving' && d ? sty(d, e.fn(hold)) : '';
+    const rowDl = delays(4, s.seq, s.stagger);
+    const rowStyle = (i) => (pose === 'arriving' && d ? sty(d, e.fn(Math.max(0, Math.min(1, (hold * (s.dur + Math.max(...rowDl)) - rowDl[i]) / s.dur)))) : '');
+    const bpose = pose === 'hover' ? pressPose(s.press, 'h', rm) : pose === 'press' ? pressPose(s.press, 'd', rm) : null;
+    const g = pose === 'arriving' ? ghosts(s, d) : '';
+    const rw = Array.from({ length: 4 }, (_, i) => `<i class="mo-rw" data-a="enter" data-i="${i}" data-n="4" data-base="90" style="${rowStyle(i)}"><b></b></i>`).join('');
+    const cap = `${e.n} · ${t.dur} ms · ${rm === 'none' ? 'no movement' : (ENTER_NAMES[s.enter] || ENTER_NAMES.none)[0].toLowerCase()}`;
+    return `<div class="mo mo-ov${o.compare ? ' big' : ''}" data-p="${pdata(s)}" style="${pal()};${pressVars(s, rm)}">`
+      + `<div class="mo-ovl"><div class="mo-box">${g}<div class="mo-mc" data-a="enter" data-i="0" data-n="1" data-base="0" style="${cardStyle}">${cardBits}</div></div>`
+      + `<div class="mo-rws">${rw}</div></div>`
+      + `<div class="mo-ovr">${track(e.fn, TRK - 30)}${curve(e.fn)}</div>`
+      + `<div class="mo-act">${btnHTML(s, bpose, 'Save')}<span class="mo-sw mini on"><i></i></span></div>`
+      + `<p class="mo-meta">${esc(cap)}</p></div>`;
+  }
+  function still(s, opt = {}) {
+    if (opt.tile) return tileArt(s, opt.tile);
+    return overview(s, opt);
+  }
+
+  /* ---- the live preview ---- */
+  let LIVE_ROOT = null, lastLive = 0, liveTimer = 0;
+  const WORDS = () => {
+    const r = CX.rows && CX.rows.length >= 3 ? CX.rows : [['Weekly summary', 'Updated today', 'New'], ['Billing export', 'Updated yesterday', ''], ['Team access', '12 people', ''], ['Audit log', 'Last week', '']];
+    return { rows: r.slice(0, 4), label: (P.labels && P.labels[0] && two(P.labels[0])[0]) || 'Save changes', card: r[0][0] };
+  };
+  function liveHTML(s) {
+    const W = WORDS(), rm = rmNow(s);
+    const row = (r, i) => `<li class="mo-li" data-a="enter" data-i="${i}" data-n="${W.rows.length}" data-base="140"><span class="mo-rt">${esc(r[0])}</span><span class="mo-rm">${esc(r[1] || '')}</span>${r[2] ? `<span class="mo-bd">${esc(r[2])}</span>` : ''}</li>`;
+    const lab = (t) => `<h4 class="mo-h">${t}</h4>`;
+    return `<div class="mo mo-live ${dimCls('motion', s)}" data-p="${pdata(s)}" style="${varsCss(vars(s))};${pal()};${pressVars(s, rm)}">`
+      + `<div class="mo-top"><span class="mo-note">${rm ? 'Less motion: ' + (rm === 'fade' ? 'things fade, nothing travels' : 'nothing moves') : 'Point at the button, press it, flip the switch, switch pages'}</span><button type="button" class="mo-rp" data-mo="replay">Replay</button></div>`
+      + `<div class="mo-grid">`
+      + `<section class="mo-cardl" data-a="enter" data-i="0" data-n="1" data-base="0"><h3>${esc(W.card)}</h3><p>Your numbers for the week, ready to share with the team.</p>`
+      + `<div class="mo-acts"><button type="button" class="mo-btn">${esc(W.label)}</button><label class="mo-tg"><span class="mo-sw" role="switch" tabindex="0" aria-checked="false"><i></i></span>Send me a copy</label></div></section>`
+      + `<ul class="mo-list">${W.rows.map(row).join('')}</ul>`
+      + `<div class="mo-pgwrap">${lab('Switching pages')}${pagesHTML('a', s.page)}<button type="button" class="mo-btn sm" data-mo="page">Next page</button></div>`
+      + `<div class="mo-ldwrap">${lab('While loading')}${loadHTML(s.load)}</div>`
+      + `</div><div class="mo-facts">${curve(easeOf(s).fn)}<p><b>${esc(easeOf(s).n)}</b>. ${timesOf(s).dur} ms for things arriving, ${timesOf(s).fast} ms for touch, ${timesOf(s).slow} ms for pages. ${esc(ENTER_NAMES[s.enter][0])}${s.dist && ['rise', 'drop', 'slide', 'tilt', 'grow'].includes(s.enter) ? `, ${s.dist} px` : ''}.</p></div></div>`;
+  }
+  function live(el, s) {
+    el.innerHTML = liveHTML(s);
+    const root = LIVE_ROOT = el.firstElementChild;
+    root.querySelector('[data-mo=replay]').onclick = () => play(root, false);
+    const pgb = root.querySelector('[data-mo=page]');
+    if (pgb) pgb.onclick = () => pageGo(root);
+    const sw = root.querySelector('.mo-sw');
+    const flip = () => { const on = sw.getAttribute('aria-checked') !== 'true'; sw.setAttribute('aria-checked', String(on)); };
+    sw.onclick = flip;
+    sw.onkeydown = (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip(); } };
+    const now = Date.now(), quick = now - lastLive < 400;
+    lastLive = now;
+    clearTimeout(liveTimer);
+    if (quick) liveTimer = setTimeout(() => { if (LIVE_ROOT === root && root.isConnected) play(root, false); }, 450); // a slider being dragged: wait, then play once
+    else requestAnimationFrame(() => { if (root.isConnected) play(root, false); });
+  }
+  const replay = () => { if (LIVE_ROOT && LIVE_ROOT.isConnected) play(LIVE_ROOT, false); };
+
+  /* Tiles, looks and compare cards play while pointed at or focused, and the chosen tile plays too. */
+  const hostOf = (t) => (t && t.closest ? t.closest('.tile,.look,.cmp') : null);
+  const startHost = (h) => h.querySelectorAll('.mo[data-p]:not(.mo-live)').forEach((r) => play(r, true));
+  const stopHost = (h) => h.querySelectorAll('.mo[data-p]:not(.mo-live)').forEach((r) => stop(r));
+  let hot = null;
+  const heat = (h) => { if (h === hot) return; if (hot) stopHost(hot); hot = h; if (h) startHost(h); };
+  document.addEventListener('mouseover', (e) => heat(hostOf(e.target)));
+  document.addEventListener('mouseout', (e) => { if (!e.relatedTarget) heat(null); });
+  document.addEventListener('focusin', (e) => { const h = hostOf(e.target); if (h) heat(h); });
+  document.addEventListener('focusout', (e) => { if (hot && !hot.contains(e.relatedTarget)) heat(null); });
+  try {
+    const pn = document.getElementById('panel');
+    if (pn) new MutationObserver(() => setTimeout(() => pn.querySelectorAll('.tile[aria-pressed=true] .mo[data-p]').forEach((r) => { if (!r._anims || !r._anims.length) play(r, true); }), 30)).observe(pn, { childList: true, subtree: true });
+  } catch {}
+
+  /* ---- what other studios and the example page use ---- */
+  function scene(s) {
+    const t = timesOf(s), e = easeOf(s);
+    return { vars: { '--sc-dur': t.dur + 'ms', '--sc-ease': e.css, '--sc-dist': s.dist + 'px', '--sc-stagger': s.stagger + 'ms', '--sc-lift': lift(s) + 'px' } };
+  }
+  function share(s) {
+    const t = timesOf(s), e = easeOf(s);
+    return { motion: { dur: t.dur, durFast: t.fast, durSlow: t.slow, ease: e.css, easeOf: e.id, easeOut: softOf(e).css, spring: s.ease === 'spring', distance: s.dist, stagger: s.seq === 'together' ? 0 : s.stagger, enter: s.enter, press: s.press, reduce: s.reduce } };
+  }
+
+  /* ---- checks and the proposal ---- */
+  function warn(s) {
+    const out = [], t = timesOf(s), n = 4;
+    if (s.dur > 700) out.push({ k: 'dur', t: `${s.dur} ms is long for an interface to answer. Anything that takes this long to arrive feels like waiting, not movement. Under about 500 ms feels responsive.` });
+    else if (t.fast > 250) out.push({ k: 'dur', soft: true, t: `Touch and hover answers would take ${t.fast} ms. Beyond about 250 ms a button feels as if it did not hear you.` });
+    const last = Math.max(...delays(n, s.seq, s.stagger)) + s.dur;
+    if (last > 900) out.push({ k: 'seq', t: `The last of four rows would not finish arriving until ${last} ms after the first starts. Longer lists would take even longer, so people wait for the page to finish.` });
+    if (s.dist >= 40 && ['rise', 'drop', 'slide', 'tilt', 'grow'].includes(s.enter)) out.push({ k: 'dist', soft: true, t: `Things travel ${s.dist} px as they arrive. Large movements across the screen can be uncomfortable for people sensitive to motion, so keep the Less motion fade in place.` });
+    if (['spring', 'bouncy'].includes(s.ease) && s.dur > 500 && s.stagger > 0 && s.seq !== 'together') out.push({ k: 'ease', soft: true, t: 'Bouncing movement on several items one after another keeps the page restless for a long time.' });
+    return out;
+  }
+  const fmtMs = (n) => `${n}ms`;
+  function notes(s) {
+    const t = timesOf(s), e = easeOf(s), soft = softOf(e), out = [];
+    out.push(`Motion tokens: --motion-fast: ${fmtMs(t.fast)} (hover, press, switches); --motion-base: ${fmtMs(t.dur)} (things arriving); --motion-slow: ${fmtMs(t.slow)} (panels and page changes); --ease-standard: ${e.css}; --ease-soft: ${soft.css} (fades and colour, which never overshoot). Leaving is quicker than arriving: use --motion-fast and --ease-soft when something goes away.`);
+    if (s.ease === 'spring' || s.ease === 'bouncy') out.push(`Motion spring: the curve is a CSS linear() list, so it needs no library. Browsers without linear() fall back to ${EASE_BY.overshoot.css}: wrap it in @supports not (transition-timing-function: linear(0, 1)).`);
+    const d = ENTER[s.enter] ? ENTER[s.enter](s.dist) : null;
+    out.push(`Motion arrival: ${(ENTER_NAMES[s.enter] || ENTER_NAMES.none)[0].toLowerCase()}${d ? ` (${enterCap(s).toLowerCase()})` : ''}. ` + (s.seq === 'together' ? 'Everything arrives together.' : `Items follow one another ${s.stagger}ms apart, ${(SEQ_BY[s.seq] || SEQ[1])[1].toLowerCase()}, with the total delay capped at ${Math.round(Math.min(480, s.stagger * 6))}ms so long lists do not make people wait.`));
+    const h = (PRESS[s.press] || PRESS.none);
+    out.push(`Motion touch response: ${h.n.toLowerCase()}. ` + (s.press === 'none' ? 'No change on hover or press.' : `Hover: transform ${h.h.t}, box-shadow ${h.h.s}, filter ${h.h.f}. Press: transform ${h.d_.t}, filter ${h.d_.f}. Transition: transform, box-shadow, filter ${fmtMs(t.fast)} ${e.css}. Hover effects only where a pointer exists (@media (hover: hover)).`));
+    out.push(`Motion page changes: ${(PAGE[s.page] || PAGE.none).n.toLowerCase()}, ${fmtMs(t.slow)}${['fade', 'dip', 'scale', 'rise'].includes(s.page) ? ` with ${soft.css}` : ''}. Loading: ${LOAD[s.load][0].toLowerCase()}.`);
+    out.push(`Motion less-motion rule: @media (prefers-reduced-motion: reduce) { ${s.reduce === 'fade'
+      ? `movement, scaling and blur are removed and every arrival and page change becomes a plain fade of about ${clamp(s.dur, 140, 260)}ms using --ease-soft; spring and bounce curves are not used; looping loaders become a gentle fade`
+      : 'transitions and animations are switched off (use 0.01ms, not none, so end states and events still happen); changes are instant'} }. The in-page Less motion switch uses the same rule.`);
+    return out;
+  }
+  const summary = (s) => `${easeOf(s).n} · ${s.dur} ms · ${(ENTER_NAMES[s.enter] || ENTER_NAMES.none)[0].toLowerCase()}`;
+
+  /* ---- controls ---- */
+  const tileAll = { wide: true, moves: true };
+  const groups = [
+    { id: 'feel', t: 'How it feels', sec: 'Feel', why: 'The shape of a movement: whether it leaps off and settles gently, goes at one speed, or springs. It sets the personality more than anything else here.',
+      ctl: [ch('ease', 'How movement feels', EASES.map((e) => o(e.id, e.n, e.d)), { replay: true })] },
+    { id: 'speed', t: 'Speed', sec: 'Feel', why: 'How long a normal movement takes. Touch answers are half of this, and page changes one and a half times.',
+      ctl: [ch('dur', 'How long things take', [
+        o(100, 'Instant', 'Barely there. Fast tools that should never make you wait.'), o(160, 'Quick', 'Brisk and light. Good for small controls.'),
+        o(220, 'Standard', 'The usual speed for interface movement.'), o(300, 'Relaxed', 'Easy to see, a little unhurried.'),
+        o(420, 'Slow', 'Clearly visible. Calm, and a little theatrical.'), o(600, 'Very slow', 'Cinematic. Fine for a hero moment, tiring for everyday use.')], { replay: true }),
+      rg('dur', 'Exact time', 60, 800, 10, ' ms', 'In thousandths of a second. 200 to 300 feels natural for most movement.', { primary: true })] },
+    { id: 'enter', t: 'How things arrive', short: 'Arrival', sec: 'Arrival', why: 'How a card, a menu or a message comes onto the screen.',
+      ctl: [ch('enter', 'How things arrive', Object.keys(ENTER_NAMES).map((k) => o(k, ENTER_NAMES[k][0], ENTER_NAMES[k][1])), { replay: true })] },
+    { id: 'seq', t: 'One after another', short: 'Order', sec: 'Arrival', why: 'When several things arrive together, whether they come at once or follow each other, and in which order.',
+      ctl: [ch('seq', 'How a group arrives', SEQ.map((x) => Object.assign(o(x[0], x[1], x[2]), { set: { stagger: x[3] } })), { replay: true }),
+        rg('stagger', 'Gap between items', 0, 200, 5, ' ms', 'How long each item waits after the one before.', { show: (s) => s.seq !== 'together', primary: true })] },
+    { id: 'press', t: 'Response to touch', short: 'Touch', sec: 'Touch', why: 'How buttons and controls answer a pointer and a press. This is what makes an interface feel alive, or dead.',
+      ctl: [ch('press', 'How controls respond', Object.keys(PRESS).map((k) => o(k, PRESS[k].n, PRESS[k].d)), { replay: true })] },
+    { id: 'spring', extra: 1, t: 'Bounce', sec: 'Details', why: 'How much a springy movement overshoots and wobbles before it stops.',
+      na: (s) => (s.ease === 'spring' ? '' : 'Bounce only applies to the Springy feel. Choose Springy under How it feels, and this opens.'),
+      ctl: [ch('bounce', 'How bouncy', [
+        o(0, 'None', 'Glides to a stop with no wobble, like a heavy door on a good hinge.'), o(15, 'Tight', 'A hint of overshoot. Feels responsive.'), o(30, 'Soft', 'One gentle bounce. Friendly.'),
+        o(45, 'Lively', 'A clear bounce and a small wobble.'), o(60, 'Bouncy', 'Wobbles several times. Playful, and a lot.')], { replay: true }),
+      rg('bounce', 'Exact bounce', 0, 60, 1, '%', 'How far it overshoots, as a share of the distance.')] },
+    { id: 'dist', extra: 2, t: 'Distance', sec: 'Details', why: 'How far things travel as they arrive. Small movements feel precise; big ones feel dramatic and can tire the eye.',
+      ctl: [ch('dist', 'How far things travel', [
+        o(0, 'None', 'Nothing travels. Arrivals are fades and scales only.'), o(6, 'A hint', 'Just enough to show direction.'), o(12, 'Small', 'Clearly floats in. The usual size.'),
+        o(20, 'Medium', 'An easy, visible journey.'), o(32, 'Large', 'A bold arrival.'), o(48, 'Very large', 'Dramatic. Use for one big moment, not for every card.')], { replay: true }),
+      rg('dist', 'Exact distance', 0, 64, 1, ' px', 'In pixels.')] },
+    { id: 'page', extra: 3, t: 'Page changes', sec: 'Details', why: 'What happens when the screen moves from one page or panel to another.',
+      ctl: [ch('page', 'How pages change', Object.keys(PAGE).map((k) => o(k, PAGE[k].n, PAGE[k].d)), { replay: true })] },
+    { id: 'load', extra: 4, t: 'While loading', sec: 'Details', why: 'What people see while something is on its way.',
+      ctl: [ch('load', 'What shows while loading', Object.keys(LOAD).map((k) => o(k, LOAD[k][0], LOAD[k][1])))] },
+    { id: 'reduce', extra: 5, t: 'Less motion', sec: 'Details', why: 'Some people turn on a setting that asks websites to move less, because movement makes them ill or uneasy. This is what you do instead.',
+      ctl: [ch('reduce', 'When someone asks for less motion', [
+        o('fade', 'Gentle fades only', 'Movement becomes a quick fade. Nothing travels, scales or bounces. The usual and kindest choice.'),
+        o('none', 'Nothing at all', 'Everything is instant. Stillest, though changes can feel abrupt.')])] },
+  ];
+
+  const defaults = { ease: 'out', dur: 220, enter: 'rise', seq: 'quick', stagger: 40, press: 'liftpress', bounce: 30, dist: 12, page: 'fade', load: 'shimmer', reduce: 'fade' };
+  const K = (id, n, d, p) => ({ id, n, d, patch: Object.assign({}, defaults, p) });
+  const looks = [
+    K('crisp', 'Crisp product', 'Quick, tidy and confident. Things rise a little, answer touch at once, and never get in the way.', {}),
+    K('calm', 'Calm and quiet', 'Soft fades, long gentle stops and almost no travel. Nothing ever startles.', { ease: 'floaty', dur: 360, enter: 'fade', seq: 'cascade', stagger: 80, press: 'press', dist: 6, page: 'dip', load: 'pulse' }),
+    K('playful', 'Playful spring', 'Things pop in on a springy curve and squash when pressed. Warm and full of life.', { ease: 'spring', bounce: 35, dur: 420, enter: 'grow', seq: 'cascade', stagger: 70, press: 'squash', dist: 20, page: 'push', load: 'dots' }),
+    K('snappy', 'Snappy tool', 'Instant, exact, nearly no ceremony. For tools people use all day.', { ease: 'snappy', dur: 120, enter: 'fade', seq: 'together', stagger: 0, press: 'press', dist: 4, page: 'fade', load: 'bar' }),
+    K('cinematic', 'Cinematic', 'Slow, soft and staged. Things come into focus one after another.', { ease: 'inout', dur: 600, enter: 'blur', seq: 'slow', stagger: 140, press: 'glow', dist: 28, page: 'scale', load: 'pulse' }),
+    K('minimal', 'Almost still', 'Hardly any movement: changes happen at once and only touch gives a hint.', { ease: 'out', dur: 100, enter: 'none', seq: 'together', stagger: 0, press: 'press', dist: 0, page: 'none', load: 'none', reduce: 'none' }),
+    K('familiar', 'Familiar, like most apps', 'The ordinary standard: a short slide, a clean lift, a cascade down the list.', { ease: 'ease', dur: 280, enter: 'slide', seq: 'cascade', stagger: 50, press: 'lift', dist: 14, page: 'slide', load: 'shimmer' }),
+    K('lively', 'Bright and bouncy', 'A little overshoot on everything, arriving from the middle outwards.', { ease: 'overshoot', dur: 360, enter: 'scale', seq: 'centre', stagger: 60, press: 'grow', dist: 16, page: 'rise', load: 'spinner' }),
+  ];
+
+  function fix(s) {
+    if (!EASE_BY[s.ease]) s.ease = 'out';
+    s.dur = clamp(s.dur, 40, 1200, 220);
+    s.bounce = clamp(s.bounce, 0, 60, 30);
+    s.dist = clamp(s.dist, 0, 80, 12);
+    s.stagger = clamp(s.stagger, 0, 300, 40);
+    if (!ENTER[s.enter]) s.enter = 'rise';
+    if (!SEQ_BY[s.seq]) s.seq = 'quick';
+    if (!PRESS[s.press]) s.press = 'liftpress';
+    if (!PAGE[s.page]) s.page = 'fade';
+    if (!LOAD[s.load]) s.load = 'shimmer';
+    if (!['fade', 'none'].includes(s.reduce)) s.reduce = 'fade';
+  }
+
+  STUDIO.add({
+    id: 'motion', name: 'Motion',
+    title: () => 'motion',
+    defaults, today: T.today || {}, measured: !!T.measured,
+    groups, keep: [], looks,
+    reach: [
+      ['system', 'The shared motion rules', 'Set the timings, curves and less-motion rule once as shared values, and use them everywhere.'],
+      ['one', 'Only the movements shown', 'Change the cards, rows, buttons, switches and page changes drawn here, and leave everything else alone.'],
+    ],
+    fix, vars, still, live, replay, scene, share, warn, notes, summary,
+    tile: () => tileAll,
+    states: [['rest', 'At rest'], ['hover', 'Pointed at'], ['press', 'Pressed'], ['arriving', 'Halfway in']],
+    stateNote: 'Frozen frames of the same scene. The curve and the trail of dots show how it moves; Compare and tiles play when pointed at.',
   });
 }
 

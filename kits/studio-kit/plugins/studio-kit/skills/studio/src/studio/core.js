@@ -59,7 +59,7 @@ const P = Object.assign({
   id: '', name: 'Your project', noun: 'main button', measured: false, startName: '', brand: ['Blue', 255, 0.17, 0.64],
   pageBg: '', column: 0, font: '', fontCss: '', labels: ['Get started'], subs: [], action: {}, choices: {}, secondary: [],
   system: [], specRules: 'Honour reduced motion.', afterNote: '', dropSteps: [], today: {}, sources: {},
-  context: {}, palette: {}, type: {},
+  context: {}, palette: {}, type: {}, surface: {}, spacing: {}, motion: {}, icons: {},
 }, PROJECT);
 const COLUMN = +P.column || 440;
 

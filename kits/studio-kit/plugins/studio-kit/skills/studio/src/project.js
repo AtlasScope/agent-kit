@@ -23,5 +23,9 @@ const PROJECT={
   sources:{},                          // optional, per key in today: how it was found when not measured in the running page, e.g. {h:'read from the stylesheet'}
   context:{},                          // the project's own words for the example page: {eyebrow, headline, body, links:[], secondary, field, placeholder, hint, rows:[[title, detail, tag]], code}
   palette:{},                          // for the Palette studio; see references/palette.md
-  type:{}                              // for the Typography studio; see references/type.md
+  type:{},                             // for the Typography studio; see references/type.md
+  surface:{},                          // for the Surface studio; see references/surface.md
+  spacing:{},                          // for the Spacing studio; see references/spacing.md
+  motion:{},                           // for the Motion studio; see references/motion.md
+  icons:{}                             // for the Icons studio; see references/icons.md
 };
