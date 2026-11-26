@@ -1,6 +1,6 @@
 import { InstallPage } from "./InstallPage";
 import { KITS, KIT_GUIDE, SITE } from "@/lib/site";
-import { counts, authors, kits, fixes } from "@/lib/content";
+import { counts, authors, kits } from "@/lib/content";
 import type { Place } from "./InstallPaths";
 
 export function InstallRoute({ account }: { account: boolean }) {
@@ -14,11 +14,11 @@ export function InstallRoute({ account }: { account: boolean }) {
   });
   // The explore drawer: each part of the site in one line, with real counts.
   const places: Place[] = [
-    { href: "/prompts", title: "Prompts", line: `${counts.prompts} prompts, commands and recipes to paste into your agent` },
-    { href: "/skills", title: "Skills", line: `${counts.skills} skills your agent picks up on its own once installed` },
-    { href: "/kits", title: "Kits", line: `${KITS.length} kits: what each one does and how to start it` },
-    { href: "/fix", title: "Fix a problem", line: `${fixes.length} common problems, each with the prompts that help` },
-    { href: "/start", title: "New to coding agents?", line: "An eight-step guide, from opening an agent to a first result" },
+    { href: "/prompts", icon: "prompts", title: "Prompts", line: `${counts.prompts} better instructions to paste into your agent` },
+    { href: "/skills", icon: "skills", title: "Skills", line: `${counts.skills} abilities your agent uses on its own` },
+    { href: "/kits", icon: "kits", title: "Kits", line: "Skills grouped by the job they do" },
+    { href: "/fix", icon: "fix", title: "Fix a problem", line: "Start from what’s wrong" },
+    { href: "/start", icon: "start", title: "New to coding agents?", line: "An eight-step guide to a first result" },
   ];
   return (
     <InstallPage places={places} kits={KITS.length} skills={counts.skills} kitLines={kitLines} account={account}>

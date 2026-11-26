@@ -64,8 +64,10 @@ const selectText = (el: Element | null) => {
 };
 
 export function InstallPage({ places, kits, skills, kitLines, account, children }: { places: Place[]; kits: number; skills: number; kitLines: KitLine[]; account: boolean; children: React.ReactNode }) {
-  // Whether the message is unfolded.
+  // Whether the message is unfolded, and which agent the visitor opened (it opens in a new tab; this page stays, and
+  // says so, and the account path comes forward).
   const [peek, setPeek] = useState(false);
+  const [opened, setOpened] = useState("");
   const [agent, setAgent] = useState<Agent>(SHOWN[0]);
   // The by-hand command's copied state, and the message's, each with its own button.
   const [copied, setCopied] = useState(false);
@@ -150,9 +152,8 @@ export function InstallPage({ places, kits, skills, kitLines, account, children 
     catch { setSaid1(false); setBlocked(true); show("blocked"); }
   };
   const many = agent.steps.length > 1;
-  // The agents with a site to open; the visitor's own is the lit one.
+  // The agents with a site to open.
   const openable = SHOWN.filter((a) => OPEN_URL[a.id]);
-  const lead = openable.find((a) => a.id === agent.id) ?? openable[0];
   // The message's status line answers the message; the command's answers inside the disclosure, next to it.
   const msgNote = note && (note.kind === "message" || note.kind === "blocked") ? note : null;
   const cmdNote = note && (note.kind === "copied" || note.kind === "failed") ? note : null;
@@ -162,36 +163,28 @@ export function InstallPage({ places, kits, skills, kitLines, account, children 
       <script dangerouslySetInnerHTML={{ __html: AGENT_SCRIPT + OS_SCRIPT }} />
       <div className="inst__in">
         <div className="inst__main">
-          {/* A welcome. Arriving from the homepage the message is already copied: the heading welcomes them and the panel
-              says Copied and offers the three agents. Visited directly, the heading is Install Agent Kit and the panel's
-              first line is the Copy key. CSS shows the right words from data-got (before paint) and data-said (after). */}
-          <header className="inst__hello">
-            <h1 ref={h1} tabIndex={-1}><span className="inst__h-got">Welcome to Agent Kit</span><span className="inst__h-new">Install Agent Kit</span></h1>
-            <p className="inst__lede">One message installs {kits} kits and {skills} skills in your coding agent.</p>
-          </header>
-
-          {/* The panel the homepage's Install button travels to: Copied, and where to paste it. It stands on the floor
-              (.inst__ground), where the button's light lands. A copy that truly succeeded runs one light round the rim
-              and swells a bloom under it (both remounted per copy); screen readers hear it through the status below.
-              The message itself unfolds only on request, or opens selected when the browser blocks copying. */}
           <div className="inst__deck">
           <section className={`inst__msg${said1 ? " is-copied" : ""}`} data-blocked={blocked || undefined} aria-labelledby="inst-msg-h">
             <span className="inst__rim" aria-hidden="true" />
             {trace > 0 && <><span className="inst__trace" key={`t${trace}`} aria-hidden="true" /><span className="inst__bloom" key={`b${trace}`} aria-hidden="true" /></>}
-            <h2 id="inst-msg-h" className="sr">Paste into your agent</h2>
             {blocked && <pre className="inst__say" ref={msg}>{INSTALL_MESSAGE}</pre>}
+            {/* The panel's heading is the page's: Copied after a copy, Install Agent Kit on a direct visit (CSS shows one,
+                from data-got before paint and data-said after). It takes focus on arrival from the homepage. */}
             <div className="inst__head">
-              <p className="inst__done"><span className="inst__tick"><Check /></span>Copied</p>
-              <span className="inst__idle inst__label" aria-hidden="true">{blocked ? "Copy it yourself" : "Copy the message, then paste it into your agent"}</span>
+              <span className="inst__tick" aria-hidden="true"><Check /></span>
+              <h1 ref={h1} tabIndex={-1} id="inst-msg-h"><span className="inst__h-got">Copied</span><span className="inst__h-new">Install Agent Kit</span></h1>
               <button type="button" className="inst__copy inst__copy--main" onClick={copyMessage} aria-label="Copy the message"><CopyIcon />{blocked ? "Copy" : "Copy install message"}</button>
             </div>
+            <p className="inst__lede">One message installs {kits} kits and {skills} skills. Copy it, then paste it into your agent.</p>
+            {/* Three equal choices, each lit in its own colour. They open in a new tab, so this page stays. */}
             <div className="inst__agents" role="group" aria-label="Open your agent">
               {openable.map((a) => (
-                <a key={a.id} className={`inst__agent${a.id === lead?.id ? " inst__agent--lead" : ""}`} href={OPEN_URL[a.id]} target="_blank" rel="noopener noreferrer">
-                  <AgentMark id={a.id} /><span>{a.label}</span><Ext />
+                <a key={a.id} className="inst__agent" data-a-light={a.id} href={OPEN_URL[a.id]} target="_blank" rel="noopener noreferrer" onClick={() => setOpened(a.label)}>
+                  <AgentMark id={a.id} /><span>{a.label}</span><Ext /><span className="sr"> (opens in a new tab)</span>
                 </a>
               ))}
             </div>
+            <p className="inst__opened" aria-live="polite">{opened && <>{opened} opens in a new tab. Paste the message there.</>}</p>
             <div className="inst__peek" id="inst-peek" hidden={!peek || blocked}>
               <p className="inst__peekmsg" translate="no">{INSTALL_MESSAGE}</p>
             </div>
@@ -211,7 +204,7 @@ export function InstallPage({ places, kits, skills, kitLines, account, children 
           </div>
           <p className="inst__phone">Agent Kit installs on a computer. Send yourself this page, or paste the message into your agent there.</p>
 
-          <InstallPaths account={account} places={places} />
+          <InstallPaths account={account} places={places} nudge={Boolean(opened)} />
 
           {/* Recovery, kept quiet: the message again, the per-agent terminal commands, and what gets installed. */}
           <div className="inst__quietrow">
