@@ -12,7 +12,7 @@ const NEEDS_CSS = {
 };
 const hasClass = (css, selector) => new RegExp(reEsc(selector) + "(?![\\w-])").test(css);
 
-export const scriptsOf = (html) => [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+export const scriptsOf = (html) => [...html.matchAll(/<script>([\s\S]*?)<\/script\s*>/gi)].map((m) => m[1]);
 /** Syntax errors in the page's inline scripts, as plain lines. */
 export function syntaxProblems(html) {
   return scriptsOf(html).flatMap((code, i) => {

@@ -1,6 +1,6 @@
 ---
 name: studio
-description: Use only when the user explicitly invokes /studio or $studio. Opens a live design studio page for a button, a colour palette, typography, or several together: finished looks and every option drawn for real, compare, undo, ask for more, then a proposal sent to chat. Never changes the application until the user approves. Ordinary design requests must not activate it.
+description: Use only when the user explicitly invokes /studio or $studio. Opens a live design studio page for a button, a colour palette, typography, or several together, with finished looks and every option drawn for real, compare, undo, ask for more, then a proposal sent to chat. Never changes the application until the user approves. Ordinary design requests must not activate it.
 disable-model-invocation: true
 metadata:
   short-description: Live studio for choosing how buttons, colours and type look
