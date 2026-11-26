@@ -3698,8 +3698,13 @@ function renderStageBar() {
   $('bgsel').hidden = m.ground && modeNow() === 'alone';
   $('stbar').hidden = m.ground && modeNow() === 'alone'; // a palette or a type specimen brings its own ground and does not move
   $('bgsel').value = V.bg;
-  const dots = [['page', P.pageBg || (P.palette && P.palette.roles) ? 'Your page' : 'Your palette’s page', pageColour()], ['black', 'Black', '#000'], ['white', 'White', '#fff']];
-  $('bgdots').innerHTML = dots.map(([v, n, c]) => `<button data-bgq="${v}" aria-pressed="${V.bg === v}" title="${esc(n)}" aria-label="Background: ${esc(n)}" style="background:${esc(c)}"></button>`).join('');
+  /* Your page, black and white, but never two dots that look the same: a page that is almost black or almost white
+     is that dot, which then says so. */
+  const pc = pageColour(), pl = COLOUR.lum(pc), own = P.pageBg || (P.palette && P.palette.roles) ? 'your page' : 'your palette’s page';
+  const near = pl < 0.02 ? 'black' : pl > 0.85 ? 'white' : '';
+  const dots = [...(near ? [] : [['page', cap(own), pc]]), ['black', near === 'black' ? `Black (${own})` : 'Black', near === 'black' ? pc : '#000'], ['white', near === 'white' ? `White (${own})` : 'White', near === 'white' ? pc : '#fff']];
+  const on = (v) => V.bg === v || (V.bg === 'page' && v === near);
+  $('bgdots').innerHTML = dots.map(([v, n, c]) => `<button data-bgq="${near === v ? 'page' : v}" aria-pressed="${on(v)}" title="${esc(n)}" aria-label="Background: ${esc(n)}" style="background:${esc(c)}"></button>`).join('');
   $('bgdots').hidden = $('bgsel').hidden;
   $('rmtog').setAttribute('aria-pressed', String(V.rm));
   $('hold').textContent = 'Hold to see ' + baseName(m).toLowerCase();
