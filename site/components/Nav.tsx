@@ -29,7 +29,7 @@ export function Nav() {
         <NavLinks />
         <Search />
         <div className="nav__end">{authEnabled() && <AuthNav />}<GitHubLink /><Link className="btn btn--sm nav__install" href="/install">Install</Link></div>
-        <NavMenu />
+        <NavMenu account={authEnabled()} />
       </div>
     </header>
   );

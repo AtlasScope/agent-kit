@@ -2,8 +2,10 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { NavLinks } from "./NavLinks";
 import { SITE } from "@/lib/site";
+import { signedIn } from "@/lib/auth-hint";
+import { signInHref } from "./AuthNav";
+import { Chevron, PlaceIcon } from "./PlaceIcon";
 
 // Up to 1248px wide (78rem) the header is one row: brand, search, and these buttons. The menu is a native modal
 // dialog, so the browser traps focus inside it and closes it on Escape. It sits outside the buttons' wrapper, which
@@ -15,10 +17,29 @@ const WIDE = "(min-width: 78.0625rem)";
 const OPEN = { commandfor: "site-menu", command: "show-modal" } as Record<string, string>;
 export const openSearch = () => window.dispatchEvent(new Event("agent-kit:search"));
 
-export function NavMenu() {
+// The menu's places, in the same list as the install page's Explore drawer; the rest of the site sits in one quieter row.
+const PLACES = [
+  { href: "/start", title: "Start", icon: "start" },
+  { href: "/prompts", title: "Prompts", icon: "prompts" },
+  { href: "/skills", title: "Skills", icon: "skills" },
+  { href: "/kits", title: "Kits", icon: "kits" },
+  { href: "/fix", title: "Fix a problem", icon: "fix" },
+];
+
+export function NavMenu({ account }: { account: boolean }) {
   const sheet = useRef<HTMLDialogElement>(null);
   const toggle = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
+  // html[data-auth] picks the account foot before paint, but only on load. Signing in or out in another tab changes
+  // the cookie, so read it again when this tab comes back and when the menu opens (as InstallPaths does).
+  const [signed, setSigned] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!account) return;
+    const ask = () => setSigned(signedIn(document.cookie));
+    ask();
+    addEventListener("focus", ask); document.addEventListener("visibilitychange", ask);
+    return () => { removeEventListener("focus", ask); document.removeEventListener("visibilitychange", ask); };
+  }, [account]);
   const path = usePathname();
   useEffect(() => { sheet.current?.close(); }, [path]);
   useEffect(() => {
@@ -31,7 +52,7 @@ export function NavMenu() {
     mq.addEventListener("change", wide); d.addEventListener("close", closed); d.addEventListener("toggle", toggled);
     return () => { mq.removeEventListener("change", wide); d.removeEventListener("close", closed); d.removeEventListener("toggle", toggled); };
   }, []);
-  const show = () => { const d = sheet.current; if (d && !d.open) d.showModal(); setOpen(true); };
+  const show = () => { const d = sheet.current; if (account) setSigned(signedIn(document.cookie)); if (d && !d.open) d.showModal(); setOpen(true); };
 
   return (
     <>
@@ -44,28 +65,46 @@ export function NavMenu() {
           <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 8h16M4 16h16" /></svg>
         </button>
       </div>
-      {/* A press on any link or button inside closes the sheet. Sign in and the account stay in the bar; the sheet adds the
-          places the bar has no room for, and Install. */}
-      <dialog ref={sheet} id="site-menu" className="sheet" aria-label="Menu"
-        onClick={(e) => { if ((e.target as HTMLElement).closest("a, button")) sheet.current?.close(); }}>
-        <div className="container sheet__top">
+      {/* A side panel over the dimmed page, in the install page's glass. A press on any link or button inside closes it.
+          With accounts on, its foot is the account: Create a free account and Sign in to someone signed out
+          (html[data-auth] is set before paint, so the right one shows from the first frame), Collections to someone
+          signed in. Both sign-in links come back to the page the visitor was on. */}
+      <dialog ref={sheet} id="site-menu" className="sheet" aria-label="Menu" data-signed={signed === null ? undefined : signed ? "yes" : "no"}
+        onClick={(e) => { const t = e.target as HTMLElement; if (t === e.currentTarget || t.closest("a, button")) sheet.current?.close(); }}>
+        <div className="sheet__top">
           {/* The dialog gives its first focus to this title, so Safari draws no ring round Close on open. */}
           <span className="sheet__title" tabIndex={-1} ref={(el) => { el?.setAttribute("autofocus", ""); }}>Menu</span>
-          <button type="button" className="iconbtn" aria-label="Close menu">
+          <button type="button" className="iconbtn sheet__close" aria-label="Close menu">
             <svg className="i" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
           </button>
         </div>
-        <nav className="container" aria-label="Sections">
-          <NavLinks className="sheet__links" />
+        <nav aria-label="Sections">
+          <ul className="places">
+            {PLACES.map((p) => (
+              <li key={p.href}><Link href={p.href} aria-current={path === p.href || path.startsWith(p.href + "/") ? "page" : undefined}><PlaceIcon name={p.icon} /><span>{p.title}</span><Chevron /></Link></li>
+            ))}
+          </ul>
           <ul className="sheet__more">
-            <li><Link href="/kits">Kits</Link></li>
             <li><Link href="/learn">Learn</Link></li>
             <li><Link href="/mcp-setup">Connect your agent</Link></li>
             <li><a href={SITE.repo}>GitHub</a></li>
             <li><Link href="/about">About</Link></li>
           </ul>
-          <div className="sheet__act"><Link className="btn btn--lg btn--brand" href="/install">Install Agent Kit</Link></div>
         </nav>
+        <div className="sheet__act">
+          <Link className="btn btn--lg btn--brand" href="/install">Install Agent Kit</Link>
+          {account && (
+            <>
+              <div className="sheet__acct sheet__acct--out">
+                <Link className="btn btn--lg sheet__join" href={signInHref(path)}>Create a free account</Link>
+                <Link className="sheet__signin" href={signInHref(path)}>Sign in</Link>
+              </div>
+              <div className="sheet__acct sheet__acct--in">
+                <Link className="btn btn--lg sheet__join" href="/account">Your collections</Link>
+              </div>
+            </>
+          )}
+        </div>
       </dialog>
       {/* Without JavaScript the menu cannot open, so the section links show as a second row instead. */}
       <noscript><style>{"@media (max-width: 78rem) { .nav { flex-wrap: wrap; } .nav > .links { display: flex; order: 9; width: 100%; overflow-x: auto; padding-bottom: 8px; } .nav__toggles { display: none; } .nav__gh { display: inline-flex; } }"}</style></noscript>

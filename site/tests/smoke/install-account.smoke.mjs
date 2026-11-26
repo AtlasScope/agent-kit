@@ -22,6 +22,8 @@ after(async () => {
   try { await browser?.close(); } finally { await target?.close(); }
 });
 
+// A Linux browser, where the agent tiles are websites (app links are covered in install.smoke.mjs).
+const WEB = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36";
 async function open(size, extra = {}) {
   const ctx = await browser.newContext({ ...size, permissions: ["clipboard-read", "clipboard-write"], ...extra });
   const page = await ctx.newPage();
@@ -31,35 +33,39 @@ async function open(size, extra = {}) {
   assert.equal(res.status(), 200, "sample data is on at this server");
   return { page, ctx, errors };
 }
-const copy = async (page) => { await page.getByRole("button", { name: /Copy the message/ }).first().click(); await page.locator(".inst__msg.is-copied").waitFor(); };
+const copy = async (page) => { await page.getByRole("button", { name: "Copy install" }).first().click(); await page.locator(".inst__msg.is-copied").waitFor(); };
 const offer = (page) => page.locator(".inst__row--out");
 const join = (page) => page.locator(".inst__row--out");
 const explore = (page) => page.getByRole("button", { name: "Explore Agent Kit" });
 
 for (const size of SIZES) {
-  test(`${size.name}: after a copy, the two ways on are an account and Explore, both in view`, async () => {
+  test(`${size.name}: the two ways on are an account and Explore, side by side above the agents`, async () => {
     const { page, ctx, errors } = await open(size);
     await copy(page);
-    assert.equal((await page.locator(".inst h1").innerText()).trim(), "Copied");
     // Nothing else competes on the first screen: no prompt to copy before the install message is pasted.
     assert.equal(await page.locator(".inst__msg .copy, .inst__msg [data-copied]").count(), 0);
     await offer(page).waitFor();
-    assert.match(await offer(page).innerText(), /^Create a free account\s+Keep your favourite prompts and skills/);
-    // One row, one control: it goes to sign-in, which comes back here.
+    assert.match(await offer(page).innerText(), /^Create a free account$/);
+    // One button, one control: it goes to sign-in, which comes back here.
     assert.equal(await join(page).getAttribute("href"), "/sign-in?redirect_url=%2Finstall");
-    assert.equal(await offer(page).locator("a, button").count(), 0, "no buttons nested in the row");
-    // Below the agent buttons, and on a computer both ways on are on the first screen.
+    assert.equal(await offer(page).locator("a, button").count(), 0, "no buttons nested in the button");
+    // Above the agent buttons, and on a computer both ways on are on the first screen.
     const agents = await page.locator(".inst__agents").boundingBox(), j = await join(page).boundingBox(), e = await explore(page).boundingBox();
-    assert.ok(j.y > agents.y + agents.height, "the paths sit below the agent buttons");
+    assert.ok(j.y + j.height < agents.y, "the paths sit above the agent buttons");
     assert.ok(j.height >= 44 && e.height >= 44);
+    // Side by side and equal, the two halves of one bar as wide as the agent panel.
+    const panel = await page.locator(".inst__msg").boundingBox(), bar = await page.locator(".inst__paths").boundingBox();
+    assert.ok(Math.abs(j.y - e.y) <= 2 && e.x > j.x + j.width, "side by side");
+    assert.ok(Math.abs(j.width - e.width) <= 1, "equal halves");
+    assert.ok(Math.abs(bar.x - panel.x) <= 1 && Math.abs(bar.width - panel.width) <= 1, "the bar spans the panel");
     if (size.name === "desktop") assert.ok(j.y + j.height <= size.viewport.height && e.y + e.height <= size.viewport.height, "both are in view");
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth) <= 1, "no sideways scroll");
     assert.deepEqual(errors, []);
     await ctx.close();
   });
 
-  test(`${size.name}: opening an agent keeps this page, says where it went and brings the account row forward`, async () => {
-    const { page, ctx } = await open(size);
+  test(`${size.name}: opening an agent keeps this page, says where it went and brings the account button forward`, async () => {
+    const { page, ctx } = await open(size, { userAgent: WEB });
     await copy(page);
     const agent = page.locator(".inst__agent", { hasText: "Codex" });
     assert.equal(await agent.getAttribute("target"), "_blank");

@@ -59,33 +59,56 @@ html[data-auth] .auth-out { visibility: hidden; }
 /* Home and /install carry their own Install action, so the bar's would only repeat it. */
 body:has(main.home, .inst) .nav__install { display: none; }
 .nav__toggles { display: none; }
-/* Menu sheet: fills the window, own top row so Close sits where Menu was. */
-.sheet { position: fixed; inset: 0; width: 100%; max-width: none; height: 100dvh; max-height: none; margin: 0; padding: 0 0 max(var(--space-6), env(safe-area-inset-bottom));
-  border: 0; background: var(--c-canvas); color: var(--c-fg); overflow-y: auto; overscroll-behavior: contain; }
-.sheet::backdrop { background: var(--c-canvas); }
+/* Menu: a side panel over the dimmed page, the same glass and list as the install page's Explore drawer. It follows
+   the light and dark themes of the page it opens on. */
+.sheet { position: fixed; inset: 10px 10px 10px auto; width: min(380px, 100vw - 20px); max-width: none; height: auto; max-height: none; margin: 0; padding: 0;
+  display: none; flex-direction: column; border: 0; border-radius: 24px; color: var(--c-fg); overflow-y: auto; overscroll-behavior: contain;
+  background: color-mix(in oklab, var(--c-surface) 90%, transparent); -webkit-backdrop-filter: blur(28px) saturate(1.4); backdrop-filter: blur(28px) saturate(1.4);
+  box-shadow: var(--glass-rim), var(--shadow-3), 0 0 60px -30px color-mix(in oklab, var(--c-brand-glow) 45%, transparent); }
+.sheet[open] { display: flex; }
+.sheet::backdrop { background: oklch(0% 0 0 / .45); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
 /* The page behind the open menu stays put (Safari otherwise scrolls it). */
 html:has(.sheet[open]) { overflow: hidden; }
-.sheet__top { display: flex; align-items: center; justify-content: space-between; min-height: var(--header-h); border-bottom: 1px solid var(--c-line); color: var(--c-fg-3); font: var(--weight-medium) .9375rem/1 var(--font-body); }
-.sheet__top .iconbtn { margin-right: -8px; }
-.sheet__title { outline: none; }
-.sheet__links { margin: 0; padding: var(--space-3) 0 0; list-style: none; }
-.sheet__links a { display: flex; align-items: center; min-height: 60px; border-bottom: 1px solid var(--c-line); color: var(--c-fg-3); font: var(--weight-semibold) 1.5rem/1.2 var(--font-body); letter-spacing: -0.025em;
-  text-decoration: none; transition: color var(--dur-fast) var(--ease-out); }
-.sheet__links a[aria-current="page"] { color: var(--c-fg); }
-.sheet__links a:active { color: var(--c-fg); }
-.sheet__more { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 var(--space-6); margin: var(--space-8) 0 0; padding: 0; list-style: none; }
-.sheet__more a { display: flex; align-items: center; min-height: 44px; color: var(--c-fg-2); font-size: var(--type-sm); text-decoration: none; }
-.sheet__act { display: grid; margin-top: var(--space-8); }
-@media (hover: hover) and (pointer: fine) { .sheet__links a:hover, .sheet__more a:hover { color: var(--c-fg); } }
+.sheet__top { display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding: 14px 12px 6px 22px; }
+.sheet__title { outline: none; font: 600 1.25rem/1.2 var(--font-body); letter-spacing: -0.02em; color: var(--c-fg); }
+.sheet nav { padding: 4px 16px 0 18px; }
+.sheet__more { display: flex; flex-wrap: wrap; gap: 0 4px; margin: 10px 0 0 -8px; padding: 0; list-style: none; }
+.sheet__more a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 8px; border-radius: 10px; color: var(--c-fg-3); font-size: var(--type-xs); text-decoration: none; }
+.sheet__act { display: grid; gap: 10px; margin-top: auto; padding: 22px 18px max(18px, env(safe-area-inset-bottom)); }
+.sheet__act > .btn { width: 100%; }
+.sheet__acct { display: grid; gap: 2px; }
+.sheet__acct--in, html[data-auth] .sheet__acct--out { display: none; }
+html[data-auth] .sheet__acct--in { display: grid; }
+.sheet[data-signed="yes"] .sheet__acct--out, .sheet[data-signed="no"] .sheet__acct--in { display: none; }
+.sheet[data-signed="yes"] .sheet__acct--in, .sheet[data-signed="no"] .sheet__acct--out { display: grid; }
+.sheet__join { width: 100%; color: var(--c-brand-ink); border-color: color-mix(in oklab, var(--c-brand) 55%, transparent); background: color-mix(in oklab, var(--c-brand) 10%, transparent); box-shadow: none; font-weight: var(--weight-semibold); }
+.sheet__signin { display: flex; align-items: center; justify-content: center; min-height: 40px; color: var(--c-fg-2); font-size: var(--type-sm); text-decoration: none; }
+@media (hover: hover) and (pointer: fine) {
+  .sheet__more a:hover, .sheet__signin:hover { color: var(--c-fg); background: var(--c-fill); }
+  .sheet__join:hover { background: color-mix(in oklab, var(--c-brand) 18%, transparent); border-color: var(--c-brand-line); }
+}
 .sheet { transition: opacity var(--dur-slow) var(--ease-out), transform var(--dur-slow) var(--ease-out), overlay var(--dur-slow) allow-discrete, display var(--dur-slow) allow-discrete; }
-.sheet:not([open]) { opacity: 0; }
-@starting-style { .sheet[open] { opacity: 0; transform: translateY(calc(-8px * var(--travel))); } }
-.sheet[open] .sheet__links li { animation: sheet-in 360ms var(--ease-out) backwards; }
-.sheet[open] .sheet__links li:nth-child(2) { animation-delay: 30ms; }
-.sheet[open] .sheet__links li:nth-child(3) { animation-delay: 60ms; }
-.sheet[open] .sheet__links li:nth-child(4) { animation-delay: 90ms; }
-.sheet[open] .sheet__links li:nth-child(5) { animation-delay: 120ms; }
-@keyframes sheet-in { from { opacity: 0; transform: translateY(6px); } }
+.sheet:not([open]) { opacity: 0; transform: translateX(calc(24px * var(--travel))); }
+@starting-style { .sheet[open] { opacity: 0; transform: translateX(calc(40px * var(--travel))); } }
+.sheet::backdrop { transition: opacity var(--dur-slow) ease, overlay var(--dur-slow) allow-discrete, display var(--dur-slow) allow-discrete; }
+@starting-style { .sheet[open]::backdrop { opacity: 0; } }
+
+/* A list of places on the site, in the menu and the Explore drawer: icon, name, chevron. Hover lights the row with a
+   faint cyan wash that reaches a little past the text on both sides. */
+.places { display: grid; margin: 0; padding: 0; list-style: none; }
+.places li + li { border-top: 1px solid var(--c-line); }
+.places a { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 14px; align-items: center; min-height: 54px; margin-inline: -10px; padding: 0 10px; border-radius: 12px;
+  color: var(--c-fg); font: 600 1rem/1.3 var(--font-body); letter-spacing: -0.01em; text-decoration: none; transition: background-color var(--dur-fast) var(--ease-out); }
+.places__i { width: 22px; height: 22px; color: var(--c-brand-ink); }
+.places__go { width: 16px; height: 16px; color: var(--c-fg-3); transition: transform var(--dur-slow) var(--ease-out), color var(--dur-fast) var(--ease-out); }
+.places a[aria-current="page"] { background: color-mix(in oklab, var(--c-brand) 7%, transparent); }
+@media (hover: hover) and (pointer: fine) {
+  .places a:hover { background: color-mix(in oklab, var(--c-brand) 10%, transparent); }
+  .places a:hover .places__go { color: var(--c-brand-ink); transform: translateX(3px); }
+}
+.places a:active { background: color-mix(in oklab, var(--c-brand) 14%, transparent); }
+.places li:has(a:hover) + li, .places li:has(+ li a:hover) { border-top-color: transparent; }
+
 /* Up to 78rem: a 56px bar with search and a menu button. The 32px logo sits at 12px, a whole device pixel. */
 @media (max-width: 78rem) { .nav { min-height: 56px; gap: var(--space-3); } }
 @media (max-width: 78rem) { .nav > .links { display: none; } }

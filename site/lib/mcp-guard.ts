@@ -7,7 +7,7 @@ import { sql } from "./db";
 //   off switch   Edge Config item `mcp_enabled: false` (instant, no redeploy) or MCP_ENABLED=false
 //   per-IP       MCP_PER_MINUTE calls a minute per visitor, per running instance (backstop)
 //   daily cap    MCP_DAILY_CAP calls a UTC day across all instances, counted in Neon
-//   alerts       at 50%, 80% and 100% of the cap: a log line, plus MCP_ALERT_WEBHOOK if set
+//   alerts       at 50%, 80% and 100% of the cap, with a legacy webhook fallback
 
 const num = (v: string | undefined, d: number) => { const n = Number(v); return Number.isFinite(n) && n > 0 ? Math.floor(n) : d; };
 
@@ -54,13 +54,31 @@ function overIpLimit(req: Request) {
   return h.n > limit ? Math.ceil((h.reset - now) / 1000) : 0;
 }
 
-async function alert(text: string) {
+async function alert(percentage: 50 | 80 | 100, calls: number, cap: number) {
+  const text = `Agent Kit MCP reached ${percentage}% of its daily cap (${calls}/${cap} calls today, UTC).`;
   console.warn(`mcp: ${text}`);
-  const url = process.env.MCP_ALERT_WEBHOOK;
+  const destination = percentage === 50 ? process.env.MCP_BACKGROUND_WEBHOOK : process.env.MCP_INBOX_WEBHOOK;
+  const url = destination || process.env.MCP_ALERT_WEBHOOK;
   if (!url) return;
+
+  const impact = {
+    50: "Half the daily allowance remains. No action needed.",
+    80: "Less than a quarter of the daily allowance remains. Check current demand and whether the cap is appropriate.",
+    100: "Further calls will be rejected until 00:00 UTC. Check current demand and decide whether to adjust the cap.",
+  }[percentage];
+  const message = `${text} ${impact}\nhttps://github.com/AtlasScope/agent-kit/tree/main/site#mcp-server-limits`;
   try {
-    await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text, content: text }), signal: AbortSignal.timeout(2000) });
-  } catch (e) { console.error("mcp: alert webhook failed", e); }
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text: message, content: message }),
+      redirect: "error",
+      signal: AbortSignal.timeout(2000),
+    });
+    if (!response.ok) console.error(`mcp: alert webhook rejected ${percentage}% delivery (HTTP ${response.status})`);
+  } catch {
+    console.error(`mcp: alert webhook failed for ${percentage}% threshold`);
+  }
 }
 
 async function overDailyCap() {
@@ -72,8 +90,8 @@ async function overDailyCap() {
       on conflict (day) do update set calls = mcp_usage.calls + 1 returning calls`;
     calls = Number(rows[0].calls);
   } catch (e) { console.error("mcp: usage count failed, letting the call through", e); return false; }
-  for (const [share, label] of [[0.5, "50%"], [0.8, "80%"], [1, "100%"]] as const) {
-    if (calls === Math.ceil(cap * share)) await alert(`Agent Kit MCP server reached ${label} of its daily cap (${calls} of ${cap} calls today, UTC).`);
+  for (const percentage of [50, 80, 100] as const) {
+    if (calls === Math.ceil(cap * (percentage / 100))) await alert(percentage, calls, cap);
   }
   return calls > cap;
 }
