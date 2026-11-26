@@ -73,3 +73,5 @@
 .scene.has-icons .sc-list li{align-items:center;gap:var(--sc-icon-gap,10px)}
 .scene.has-icons .sc-ghost,.scene.has-icons .sc-label{display:inline-flex;align-items:center;gap:var(--sc-icon-gap,8px)}
 .scene.has-icons .sc-search{color:var(--sc-fg2)}
+.scene:not(.sc-heroonly)>.sc-hero,.scene:not(.sc-heroonly)>.sc-grid,.scene:not(.sc-heroonly)>.sc-code{margin-inline:var(--sc-hero-m,0)}
+.scene:not(.sc-heroonly)>.sc-grid,.scene:not(.sc-heroonly)>.sc-code{max-width:var(--sc-maxw,none)}

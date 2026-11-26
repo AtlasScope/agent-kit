@@ -167,8 +167,8 @@
 
   /* ---- what other studios and the example page use ---- */
   const scene = (s) => ({ vars: {
-    '--sc-space': s.unit, '--sc-pad': s.pad, '--sc-gap': s.gap, '--sc-stack': stack(s), '--sc-section': s.section, '--sc-row': s.row,
-    '--sc-align': s.align === 'center' ? 'center' : 'start', '--sc-maxw': s.maxw, '--sc-control-h': s.controlH,
+    '--sc-space': s.unit + 'px', '--sc-pad': s.pad + 'px', '--sc-gap': s.gap + 'px', '--sc-stack': stack(s) + 'px', '--sc-section': s.section + 'px', '--sc-row': s.row + 'px',
+    '--sc-align': s.align === 'center' ? 'center' : 'start', '--sc-hero-m': s.align === 'center' ? 'auto' : '0', '--sc-maxw': s.maxw + 'px', '--sc-control-h': s.controlH + 'px',
   } });
   const share = (s) => ({ spacing: {
     unit: s.unit, scale: scaleOf(s), density: s.density, pad: s.pad, gap: s.gap, section: s.section, controlH: s.controlH, padX: s.padX,
@@ -187,7 +187,7 @@
     if (s.maxw >= 1040) out.push({ k: 'maxw', t: `A content width of ${s.maxw}px lets a paragraph run about ${chars} letters across a line. 45 to 75 reads comfortably, so cap the paragraph width on its own.` });
     return out;
   }
-  const dens = (s) => (DENS[s.density] ? DENS[s.density].n.toLowerCase() : 'custom');
+  const dens = (s) => (DENS[s.density] ? DENS[s.density].n.toLowerCase() : 'your own mix');
   const ALIGN = { start: 'left-aligned', center: 'centred', split: 'spread apart, with the action at the far side', grid: 'on a two-column grid', end: 'right-aligned', indent: 'with a label column and content hanging to its right' };
   function notes(s) {
     const sc = scaleOf(s), out = [], sys = SYS[s.system] || SYSTEMS[0];
@@ -206,7 +206,7 @@
   const TILES = { density: { wide: true }, system: { wide: true }, unit: { wide: true }, pad: { wide: true }, gap: { wide: true }, section: { wide: true }, align: { wide: true }, controlH: { wide: true }, padX: { wide: true }, maxw: { wide: true }, row: { wide: true }, guides: { wide: true } };
   const groups = [
     { id: 'density', t: 'Density', sec: 'Feel', why: 'How much room things get overall. It sets padding, gaps, sections and row height together; you can fine-tune each afterwards.',
-      ctl: [ch('density', 'How much room', Object.keys(DENS).map((id) => o(id, DENS[id].n, DENS[id].d)))] },
+      ctl: [ch('density', 'How much room', [...Object.keys(DENS).map((id) => o(id, DENS[id].n, DENS[id].d)), o('custom', 'Your own mix', 'The sizes you set step by step, not one of the presets.', (s) => s.density === 'custom')])] },
     { id: 'rhythm', t: 'Spacing scale', short: 'Scale', sec: 'Scale', why: 'The short list of sizes every gap and padding is picked from. A fixed list keeps the whole page in step.',
       ctl: [ch('system', 'How the sizes grow', SYSTEMS.map((x) => o(x[0], x[1], x[2]))),
         ch('unit', 'Base unit', [o(4, '4px', 'Fine. Small steps give the most control.'), o(5, '5px', 'Between fine and standard.'), o(6, '6px', 'A little bigger than fine.'), o(8, '8px', 'The usual base. Everything a multiple of 8.'), o(10, '10px', 'Easy to count. Steps land on round numbers.'), o(12, '12px', 'Big steps. Fewer, bolder choices.')])] },
